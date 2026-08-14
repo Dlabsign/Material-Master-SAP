@@ -1,0 +1,697 @@
+    <%@page language="ABAP" %>
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Material Master - Material Code Assignment</title>
+
+        <!-- Tailwind CSS CDN -->
+        <script src="https://cdn.tailwindcss.com"></script>
+
+        <script>
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        colors: {
+                            brand: {
+                                50: '#f0fdf4', 100: '#dcfce7', 200: '#bbf7d0',
+                                500: '#10b981', 600: '#059669', 700: '#047857',
+                                800: '#065f46', 900: '#022c22',
+                            },
+                            app: {
+                                bg: '#f8fafc', card: '#ffffff', border: '#e2e8f0',
+                                'border-strong': '#cbd5e1', text: '#0f172a', muted: '#64748b',
+                                danger: '#dc2626', 'danger-bg': '#fef2f2'
+                            }
+                        }
+                    }
+                }
+            }
+        </script>
+        <style>
+            ::-webkit-scrollbar { width: 7px; height: 7px; }
+            ::-webkit-scrollbar-track { background: #f1f5f9; }
+            ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
+            ::-webkit-scrollbar-thumb:hover { background: #059669; }
+
+            .custom-select {
+                background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%6b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+                background-position: right 0.5rem center;
+                background-repeat: no-repeat;
+                background-size: 1.25em 1.25em;
+                padding-right: 2rem;
+                -webkit-appearance: none;
+                -moz-appearance: none;
+                appearance: none;
+            }
+
+            .drawer-slide {
+                transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            }
+        </style>
+    </head>
+    <body class="bg-app-bg text-app-text text-xs font-sans leading-relaxed m-0 p-0 antialiased selection:bg-brand-100 selection:text-brand-900">
+
+        <!-- TOP NAVIGATION BAR -->
+        <header class="bg-white h-12 border-b border-app-border sticky top-0 z-40 shadow-xs px-4 lg:px-6 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-md bg-brand-800 text-white flex items-center justify-center font-bold text-xs tracking-wider shadow-xs">
+                    DS
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="font-bold text-xs text-slate-800">Material Master Governance</span>
+                        <span class="bg-brand-100 text-brand-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-brand-200 uppercase">
+                            Data Steward Mode
+                        </span>
+                    </div>
+                    <p class="text-[10px] text-slate-500 font-medium">Material Code Assignment Queue</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 sm:gap-4">
+                <!-- Navigation Links -->
+                <a href="request_form.htm" class="hidden sm:inline-flex items-center gap-1 text-[11px] font-medium text-slate-600 hover:text-brand-700 px-2.5 py-1 rounded transition hover:bg-slate-100">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    Purchasing Request
+                </a>
+                <a href="approval.htm" class="hidden sm:inline-flex items-center gap-1 text-[11px] font-medium text-slate-600 hover:text-brand-700 px-2.5 py-1 rounded transition hover:bg-slate-100">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Boss Approval
+                </a>
+                <div class="h-4 w-[1px] bg-slate-200 hidden sm:block"></div>
+                <!-- User Badge -->
+                <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-full">
+                    <div class="w-5 h-5 rounded-full bg-brand-700 text-white flex items-center justify-center font-bold text-[10px]" id="userAvatar">DS</div>
+                    <span class="text-[11px] font-semibold text-slate-700"><%= sy-uname %></span>
+                </div>
+                <a href="?OnInputProcessing=LOGOUT" class="text-[11px] font-medium text-slate-600 hover:text-red-600 px-2 py-1 rounded transition hover:bg-red-50">Sign Out</a>
+            </div>
+        </header>
+
+        <!-- MAIN CONTENT CONTAINER -->
+        <main class="max-w-[1700px] my-4 mx-auto px-4">
+
+            <!-- PAGE TITLE HEADER -->
+            <div class="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-3">
+                <div>
+                    <h1 class="text-base font-bold text-slate-900 tracking-tight flex items-center gap-2">
+                        <svg class="w-5 h-5 text-brand-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10M7 11h10M7 15h10M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z"/></svg>
+                        Material Code Entry (Data Steward)
+                    </h1>
+                    <p class="text-xs text-slate-500 mt-0.5">Review material master requests from Purchasing, assign official SAP Material Codes (`MATNR`), and submit to Approval.</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="fetchRequests()" class="bg-white border border-slate-300 hover:border-slate-400 text-slate-700 px-3 py-1.5 rounded-md font-semibold text-xs flex items-center gap-1.5 shadow-xs transition hover:bg-slate-50 active:scale-95">
+                        <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        Refresh Queue
+                    </button>
+                </div>
+            </div>
+
+            <!-- KPI SUMMARY CARDS -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-4">
+                <div id="kpiCard_ALL" class="kpi-card bg-white p-3 pl-3.5 rounded-lg border border-slate-200 border-l-4 border-l-slate-400 shadow-xs cursor-pointer hover:shadow-sm transition" onclick="filterByStatus('ALL')">
+                    <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">TOTAL REQUESTS</p>
+                    <p class="text-lg font-bold text-slate-800 mt-0.5" id="kpiTotal">0</p>
+                </div>
+                <div id="kpiCard_SUBMITTED" class="kpi-card bg-white p-3 pl-3.5 rounded-lg border border-slate-200 border-l-4 border-l-amber-500 shadow-xs cursor-pointer hover:shadow-sm transition" onclick="filterByStatus('SUBMITTED')">
+                    <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">PENDING CODE (PURCHASING)</p>
+                    <p class="text-lg font-bold text-amber-800 mt-0.5" id="kpiSubmitted">0</p>
+                </div>
+                <div id="kpiCard_CODED" class="kpi-card bg-white p-3 pl-3.5 rounded-lg border border-slate-200 border-l-4 border-l-blue-500 shadow-xs cursor-pointer hover:shadow-sm transition" onclick="filterByStatus('CODED')">
+                    <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">CODED (FOR APPROVAL)</p>
+                    <p class="text-lg font-bold text-blue-800 mt-0.5" id="kpiCoded">0</p>
+                </div>
+                <div id="kpiCard_APPROVED" class="kpi-card bg-white p-3 pl-3.5 rounded-lg border border-slate-200 border-l-4 border-l-emerald-500 shadow-xs cursor-pointer hover:shadow-sm transition" onclick="filterByStatus('APPROVED')">
+                    <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">SAP CREATED / APPROVED</p>
+                    <p class="text-lg font-bold text-emerald-800 mt-0.5" id="kpiApproved">0</p>
+                </div>
+                <div id="kpiCard_REJECTED" class="kpi-card bg-white p-3 pl-3.5 rounded-lg border border-slate-200 border-l-4 border-l-red-500 shadow-xs cursor-pointer hover:shadow-sm transition" onclick="filterByStatus('REJECTED')">
+                    <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">RETURNED / REJECTED</p>
+                    <p class="text-lg font-bold text-red-800 mt-0.5" id="kpiRejected">0</p>
+                </div>
+            </div>
+
+            <!-- FILTER & SEARCH BAR -->
+            <div class="bg-white border border-slate-200 rounded-lg p-3 mb-4 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 flex-1">
+                    <!-- Search Input -->
+                    <div class="relative flex-1 min-w-[240px]">
+                        <svg class="w-4 h-4 text-slate-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        <input type="text" id="searchInput" onkeyup="applyFilter()" placeholder="Search by Request ID, Remarks, or Requestor..." class="w-full pl-8 pr-3 py-1.5 border border-slate-300 rounded-md text-xs outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-500 bg-white">
+                    </div>
+                    <!-- Status Filter -->
+                    <div class="w-full sm:w-48">
+                        <select id="statusFilter" onchange="applyFilter()" class="custom-select w-full px-3 py-1.5 border border-slate-300 rounded-md text-xs outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-500 bg-white font-medium text-slate-700">
+                            <option value="ALL">All Statuses</option>
+                            <option value="SUBMITTED" selected>Pending Code (SUBMITTED)</option>
+                            <option value="CODED">Coded (Submitted to Boss)</option>
+                            <option value="DRAFT">Draft</option>
+                            <option value="APPROVED">Approved / SAP Created</option>
+                            <option value="REJECTED">Returned / Rejected</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="text-[11px] text-slate-500 font-medium self-end md:self-auto" id="queueSummaryLabel">
+                    Showing 0 requests
+                </div>
+            </div>
+
+            <!-- MAIN TABLE CONTAINER -->
+            <div class="bg-white border border-slate-200 rounded-lg shadow-xs overflow-hidden mb-6">
+                <div class="overflow-x-auto min-h-[300px]">
+                    <table class="w-full text-left border-collapse" id="requestTable">
+                        <thead>
+                            <tr class="bg-slate-100 border-b border-slate-200 text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                                <th class="p-3 w-12 text-center">#</th>
+                                <th class="p-3 w-40">Request ID</th>
+                                <th class="p-3 w-36">Request Date</th>
+                                <th class="p-3 w-36">Requestor</th>
+                                <th class="p-3">Remarks / Filename</th>
+                                <th class="p-3 w-36 text-center">Items & Coding</th>
+                                <th class="p-3 w-32 text-center">Status</th>
+                                <th class="p-3 w-44 text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="requestTableBody" class="divide-y divide-slate-200 text-xs">
+                            <tr>
+                                <td colspan="8" class="p-8 text-center text-slate-400">Loading request queue...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- DRAWER / MODAL UNTUK PENGISIAN KODE MATERIAL -->
+        <div id="codeDrawer" class="fixed inset-0 z-50 hidden overflow-hidden bg-slate-900/40 backdrop-blur-xs flex justify-end">
+            <div class="w-full max-w-[1300px] bg-white h-full shadow-2xl flex flex-col drawer-slide transform translate-x-full" id="drawerContent">
+
+                <!-- Drawer Header -->
+                <div class="px-5 py-3.5 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
+                    <div class="flex items-center gap-3">
+                        <div class="w-7 h-7 rounded-md bg-brand-600 flex items-center justify-center font-bold text-white text-xs">
+                            #
+                        </div>
+                        <div>
+                            <h2 class="font-bold text-sm text-white flex items-center gap-2">
+                                <span>Assign Material Codes</span>
+                                <span class="bg-brand-500/20 text-brand-300 text-[10px] font-bold px-2 py-0.5 rounded border border-brand-500/30 uppercase" id="drawerReqIdLabel">REQ-0000</span>
+                            </h2>
+                            <p class="text-[11px] text-slate-400 font-normal" id="drawerSubLabel">Requestor: - | Date: -</p>
+                        </div>
+                    </div>
+                    <button onclick="closeCodeDrawer()" class="text-slate-400 hover:text-white p-1 rounded-md transition hover:bg-slate-800">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+
+                <!-- Batch Helper & Action Bar -->
+                <div class="px-5 py-2.5 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="text-[11px] font-bold text-slate-600 uppercase tracking-wider mr-1">Auto-Generator:</span>
+                        <input type="text" id="autoPrefix" placeholder="Prefix (e.g. RAW-)" class="w-28 px-2 py-1 border border-slate-300 rounded text-xs outline-none focus:border-brand-600 bg-white">
+                        <input type="number" id="autoStart" value="1001" placeholder="Start #" class="w-24 px-2 py-1 border border-slate-300 rounded text-xs outline-none focus:border-brand-600 bg-white">
+                        <button onclick="applyAutoPattern()" class="bg-brand-700 hover:bg-brand-800 text-white px-2.5 py-1 rounded text-xs font-semibold shadow-2xs transition active:scale-95">
+                            ⚡ Generate Format
+                        </button>
+                        <button onclick="clearAllCodes()" class="bg-white border border-slate-300 hover:border-slate-400 text-slate-600 px-2.5 py-1 rounded text-xs font-medium transition hover:bg-slate-100">
+                            Clear All Codes
+                        </button>
+                    </div>
+
+                    <div class="flex items-center gap-3 text-xs">
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>
+                            <span class="text-slate-600 font-medium" id="codedBadgeCount">0 / 0 Coded</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Drawer Main Content (Line Items Table) -->
+                <div class="flex-1 overflow-auto p-5">
+                    <div class="border border-slate-200 rounded-lg overflow-hidden shadow-2xs">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="bg-slate-100 border-b border-slate-200 text-[11px] font-bold text-slate-700 uppercase tracking-wider sticky top-0 bg-slate-100 z-10">
+                                    <th class="p-2.5 w-10 text-center">#</th>
+                                    <th class="p-2.5 w-48 text-brand-900 font-extrabold bg-brand-50 border-r border-brand-200">SAP Material Code (MATNR) *</th>
+                                    <th class="p-2.5 min-w-[220px]">Material Description (MAKTX)</th>
+                                    <th class="p-2.5 w-24">Type</th>
+                                    <th class="p-2.5 w-28">Group</th>
+                                    <th class="p-2.5 w-20">UoM</th>
+                                    <th class="p-2.5 w-20">Plant</th>
+                                    <th class="p-2.5 w-24">Storage Loc</th>
+                                    <th class="p-2.5 w-28">Profit Ctr</th>
+                                    <th class="p-2.5 w-28 text-right">Price</th>
+                                </tr>
+                            </thead>
+                            <tbody id="drawerItemTableBody" class="divide-y divide-slate-200">
+                                <tr>
+                                    <td colspan="10" class="p-6 text-center text-slate-400">Loading item details...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Drawer Footer Actions -->
+                <div class="px-5 py-3 bg-slate-100 border-t border-slate-200 flex items-center justify-between gap-3">
+                    <button onclick="openReturnModal()" class="bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 px-3.5 py-2 rounded-md font-semibold text-xs flex items-center gap-1.5 transition active:scale-95">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        Return to Purchasing
+                    </button>
+
+                    <div class="flex items-center gap-2">
+                        <button onclick="saveCodes('DRAFT')" class="bg-white border border-slate-300 hover:border-slate-400 text-slate-700 px-4 py-2 rounded-md font-semibold text-xs shadow-2xs transition hover:bg-slate-50 active:scale-95">
+                            Save Draft Codes
+                        </button>
+                        <button onclick="saveCodes('SUBMIT')" class="bg-brand-700 hover:bg-brand-800 text-white px-5 py-2 rounded-md font-bold text-xs shadow-xs transition transform active:scale-95 flex items-center gap-1.5">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            Submit to Approver (Boss)
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- MODAL RETURN TO PURCHASING REASON -->
+        <div id="returnModal" class="fixed inset-0 z-50 hidden bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
+            <div class="bg-white rounded-lg max-w-md w-full p-5 shadow-xl border border-slate-200">
+                <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2 mb-2">
+                    <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    Return Request to Purchasing
+                </h3>
+                <p class="text-xs text-slate-500 mb-3">Please specify the reason why this request is returned or rejected so Purchasing can revise it.</p>
+
+                <textarea id="returnReasonInput" rows="3" placeholder="Enter reason (e.g. Incorrect material group, duplicate description...)" class="w-full p-2.5 border border-slate-300 rounded-md text-xs outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 mb-4"></textarea>
+
+                <div class="flex items-center justify-end gap-2">
+                    <button onclick="closeReturnModal()" class="px-3 py-1.5 rounded-md text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">Cancel</button>
+                    <button onclick="confirmReturnToPurchasing()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-1.5 rounded-md text-xs font-bold shadow-2xs transition">Confirm Return</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TOAST NOTIFICATION CONTAINER -->
+        <div id="toastContainer" class="fixed top-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+        <!-- JAVASCRIPT LOGIC -->
+        <script>
+            let allRequests = [];
+            let currentReqNo = '';
+            let currentItems = [];
+
+            document.addEventListener('DOMContentLoaded', () => {
+                fetchRequests();
+
+                // Cek query string parameter jika ada req_id dikirim dari URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const reqIdParam = urlParams.get('req_id') || urlParams.get('req_no');
+                if (reqIdParam) {
+                    setTimeout(() => openCodeDrawer(reqIdParam), 500);
+                }
+            });
+
+            // 1. Fetch Request Queue
+            function fetchRequests() {
+                const tbody = document.getElementById('requestTableBody');
+                tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-slate-400"><div class="inline-block animate-spin rounded-full h-5 w-5 border-2 border-brand-600 border-t-transparent mr-2"></div> Loading requests...</td></tr>`;
+
+                const formData = new FormData();
+                formData.append('OnInputProcessing', 'GET_PENDING_LIST');
+
+                fetch('?OnInputProcessing=GET_PENDING_LIST', { method: 'POST', body: formData })
+                    .then(res => res.json())
+                    .then(data => {
+                        allRequests = data || [];
+                        updateKpis();
+                        applyFilter();
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-red-500 font-semibold">Error loading requests. Please refresh.</td></tr>`;
+                    });
+            }
+
+            // 2. Update KPI Summary Cards
+            function updateKpis() {
+                document.getElementById('kpiTotal').innerText = allRequests.length;
+                document.getElementById('kpiSubmitted').innerText = allRequests.filter(r => r.status === 'SUBMITTED').length;
+                document.getElementById('kpiCoded').innerText = allRequests.filter(r => r.status === 'CODED').length;
+                document.getElementById('kpiApproved').innerText = allRequests.filter(r => r.status === 'APPROVED').length;
+                document.getElementById('kpiRejected').innerText = allRequests.filter(r => r.status === 'REJECTED').length;
+            }
+
+            // 3. Filter by KPI card click
+            function filterByStatus(status) {
+                document.getElementById('statusFilter').value = status;
+                applyFilter();
+            }
+
+            // 4. Apply Filter & Search
+            function applyFilter() {
+                const status = document.getElementById('statusFilter').value;
+                const search = document.getElementById('searchInput').value.toLowerCase().trim();
+
+                const filtered = allRequests.filter(r => {
+                    const matchStatus = (status === 'ALL') || (r.status === status);
+                    const matchSearch = !search ||
+                        (r.req_no && r.req_no.toLowerCase().includes(search)) ||
+                        (r.remarks && r.remarks.toLowerCase().includes(search)) ||
+                        (r.requestor && r.requestor.toLowerCase().includes(search));
+                    return matchStatus && matchSearch;
+                });
+
+                renderTable(filtered);
+            }
+
+            // 5. Render Table Rows
+            function renderTable(list) {
+                const tbody = document.getElementById('requestTableBody');
+                document.getElementById('queueSummaryLabel').innerText = `Showing ${list.length} of ${allRequests.length} requests`;
+
+                if (list.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-slate-400">No matching requests found in queue.</td></tr>`;
+                    return;
+                }
+
+                let html = '';
+                list.forEach((r, idx) => {
+                    let badge = '';
+                    if (r.status === 'SUBMITTED') badge = `<span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-amber-200">PENDING CHECK</span>`;
+                    else if (r.status === 'CHECKED' || r.status === 'CODED') badge = `<span class="bg-teal-100 text-teal-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-teal-200">CHECKED &amp; SENT</span>`;
+                    else if (r.status === 'APPROVED') badge = `<span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-200">APPROVED</span>`;
+                    else if (r.status === 'REJECTED') badge = `<span class="bg-red-100 text-red-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-red-200">RETURNED</span>`;
+                    else badge = `<span class="bg-slate-100 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-slate-200">${r.status || 'DRAFT'}</span>`;
+
+                    const isCodedComplete = r.coded_count >= r.total_item && r.total_item > 0;
+                    const progressColor = isCodedComplete ? 'bg-emerald-500' : (r.coded_count > 0 ? 'bg-amber-500' : 'bg-slate-300');
+                    const progressPct = r.total_item > 0 ? Math.round((r.coded_count / r.total_item) * 100) : 0;
+
+                    const isCheckedOrDone = r.status === 'CHECKED' || r.status === 'CODED' || r.status === 'APPROVED';
+
+                    html += `
+                        <tr class="hover:bg-slate-50/80 transition">
+                            <td class="p-3 text-center text-slate-400 font-medium">${idx + 1}</td>
+                            <td class="p-3 font-bold text-brand-800 font-mono">${r.req_no}</td>
+                            <td class="p-3 text-slate-600">${r.req_date || '-'} <span class="text-[10px] text-slate-400 block">${r.req_time || ''}</span></td>
+                            <td class="p-3 font-medium text-slate-800">${r.requestor || '-'}</td>
+                            <td class="p-3 text-slate-700 max-w-[280px] truncate" title="${r.remarks || ''}">${r.remarks || '-'}</td>
+                            <td class="p-3 text-center">
+                                <div class="flex items-center justify-center gap-1.5 mb-1">
+                                    <span class="font-bold text-slate-800">${r.coded_count || 0}</span>
+                                    <span class="text-slate-400">/ ${r.total_item || 0} Verified</span>
+                                </div>
+                                <div class="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
+                                    <div class="${progressColor} h-1.5 rounded-full transition-all" style="width: ${progressPct}%"></div>
+                                </div>
+                            </td>
+                            <td class="p-3 text-center">${badge}</td>
+                            <td class="p-3 text-center flex items-center justify-center gap-1.5">
+                                <button onclick="openCodeDrawer('${r.req_no}')" class="bg-slate-800 hover:bg-slate-900 text-white px-2.5 py-1.5 rounded-md font-bold text-[11px] transition shadow-2xs">
+                                    Check / Details
+                                </button>
+                                ${!isCheckedOrDone ? `
+                                    <button onclick="markAsCheckedDirect('${r.req_no}')" class="bg-teal-600 hover:bg-teal-700 text-white px-2.5 py-1.5 rounded-md font-bold text-[11px] transition shadow-2xs flex items-center gap-1">
+                                        &#10003; Checked
+                                    </button>
+                                ` : ''}
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                tbody.innerHTML = html;
+            }
+
+            // 6. Open Drawer for Material Code Assignment
+            function openCodeDrawer(reqNo) {
+                currentReqNo = reqNo;
+                const req = allRequests.find(r => r.req_no === reqNo) || { req_no: reqNo, requestor: '-', req_date: '-' };
+
+                document.getElementById('drawerReqIdLabel').innerText = reqNo;
+                document.getElementById('drawerSubLabel').innerText = `Requestor: ${req.requestor || '-'} | Remarks: ${req.remarks || '-'}`;
+
+                const drawer = document.getElementById('codeDrawer');
+                const drawerContent = document.getElementById('drawerContent');
+                drawer.classList.remove('hidden');
+
+                setTimeout(() => {
+                    drawerContent.classList.remove('translate-x-full');
+                }, 10);
+
+                // Fetch Items
+                const tbody = document.getElementById('drawerItemTableBody');
+                tbody.innerHTML = `<tr><td colspan="10" class="p-8 text-center text-slate-400"><div class="inline-block animate-spin rounded-full h-5 w-5 border-2 border-brand-600 border-t-transparent mr-2"></div> Fetching material items...</td></tr>`;
+
+                const formData = new FormData();
+                formData.append('OnInputProcessing', 'GET_REQUEST_DETAIL');
+                formData.append('REQ_NO', reqNo);
+
+                fetch('?OnInputProcessing=GET_REQUEST_DETAIL', { method: 'POST', body: formData })
+                    .then(res => res.json())
+                    .then(items => {
+                        currentItems = items || [];
+                        renderDrawerItems();
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        tbody.innerHTML = `<tr><td colspan="10" class="p-8 text-center text-red-500">Failed to load item details.</td></tr>`;
+                    });
+            }
+
+            // 7. Render Items in Drawer Table
+            function renderDrawerItems() {
+                const tbody = document.getElementById('drawerItemTableBody');
+
+                if (currentItems.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="10" class="p-6 text-center text-slate-400">No items in this request.</td></tr>`;
+                    updateDrawerCodedCount();
+                    return;
+                }
+
+                let html = '';
+                currentItems.forEach((item, idx) => {
+                    const itemMatnr = item.matnr_ext || item.matnr || '';
+                    const price = item.stprs || item.verpr || '0';
+
+                    html += `
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="p-2.5 text-center text-slate-400 font-medium">${idx + 1}</td>
+                            <td class="p-2 bg-brand-50/50 border-r border-brand-200">
+                                <input type="text" id="matnr_input_${idx + 1}" value="${itemMatnr}" oninput="onCodeInputChanged()" placeholder="Enter SAP Code..." class="w-full px-2 py-1 border border-slate-300 focus:border-brand-600 focus:ring-1 focus:ring-brand-500 rounded font-mono font-bold text-xs text-brand-900 bg-white">
+                            </td>
+                            <td class="p-2.5 font-medium text-slate-900">${item.maktx || '-'}</td>
+                            <td class="p-2.5 text-slate-700 font-semibold">${item.mtart || '-'}</td>
+                            <td class="p-2.5 text-slate-600">${item.matkl || '-'}</td>
+                            <td class="p-2.5 text-slate-600">${item.meins || '-'}</td>
+                            <td class="p-2.5 text-slate-600">${item.werks || '-'}</td>
+                            <td class="p-2.5 text-slate-600">${item.lgort || '-'}</td>
+                            <td class="p-2.5 text-slate-600">${item.prctr || '-'}</td>
+                            <td class="p-2.5 text-right font-mono text-slate-700">${price}</td>
+                        </tr>
+                    `;
+                });
+
+                tbody.innerHTML = html;
+                updateDrawerCodedCount();
+            }
+
+            // 8. Track Coded Count
+            function updateDrawerCodedCount() {
+                let filledCount = 0;
+                currentItems.forEach((_, idx) => {
+                    const el = document.getElementById(`matnr_input_${idx + 1}`);
+                    if (el && el.value.trim() !== '') {
+                        filledCount++;
+                    }
+                });
+
+                document.getElementById('codedBadgeCount').innerText = `${filledCount} / ${currentItems.length} Coded`;
+            }
+
+            function onCodeInputChanged() {
+                updateDrawerCodedCount();
+            }
+
+            // 9. Close Drawer
+            function closeCodeDrawer() {
+                const drawerContent = document.getElementById('drawerContent');
+                drawerContent.classList.add('translate-x-full');
+
+                setTimeout(() => {
+                    document.getElementById('codeDrawer').classList.add('hidden');
+                }, 300);
+            }
+
+            // 10. Auto Pattern Generator Helper
+            function applyAutoPattern() {
+                const prefix = document.getElementById('autoPrefix').value.trim();
+                let startNum = parseInt(document.getElementById('autoStart').value) || 1001;
+
+                if (!prefix) {
+                    showToast('Please enter a prefix (e.g. RAW- or MAT-)', 'warning');
+                    return;
+                }
+
+                currentItems.forEach((_, idx) => {
+                    const inputEl = document.getElementById(`matnr_input_${idx + 1}`);
+                    if (inputEl) {
+                        const formattedCode = `${prefix}${startNum + idx}`;
+                        inputEl.value = formattedCode;
+                    }
+                });
+
+                updateDrawerCodedCount();
+                showToast('Auto material code pattern applied to items!', 'success');
+            }
+
+            // 11. Clear All Codes
+            function clearAllCodes() {
+                if (!confirm('Clear all entered material codes for this request?')) return;
+
+                currentItems.forEach((_, idx) => {
+                    const inputEl = document.getElementById(`matnr_input_${idx + 1}`);
+                    if (inputEl) inputEl.value = '';
+                });
+
+                updateDrawerCodedCount();
+                showToast('All codes cleared.', 'info');
+            }
+
+            // 12. Save Codes (Draft or Submit)
+            function saveCodes(actionType) {
+                if (!currentReqNo || currentItems.length === 0) return;
+
+                const formData = new FormData();
+                const actionName = actionType === 'SUBMIT' ? 'SUBMIT_TO_APPROVAL' : 'SAVE_MATERIAL_CODES';
+
+                formData.append('OnInputProcessing', actionName);
+                formData.append('REQ_NO', currentReqNo);
+                formData.append('ROW_COUNT', currentItems.length);
+
+                let missingCode = false;
+                currentItems.forEach((_, idx) => {
+                    const val = document.getElementById(`matnr_input_${idx + 1}`).value.trim();
+                    if (!val) missingCode = true;
+                    formData.append(`matnr_${idx + 1}`, val);
+                });
+
+                if (actionType === 'SUBMIT' && missingCode) {
+                    showToast('All items must have a Material Code before submitting to approval!', 'warning');
+                    return;
+                }
+
+                fetch(`?OnInputProcessing=${actionName}`, { method: 'POST', body: formData })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.status === 'SUCCESS') {
+                            showToast(data.message, 'success');
+                            closeCodeDrawer();
+                            fetchRequests();
+                        } else {
+                            showToast(data.message || 'Error saving material codes', 'error');
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        showToast('Server connection error. Failed to save codes.', 'error');
+                    });
+            }
+
+            // 12b. Direct Mark as Checked by Data Steward
+            function markAsCheckedDirect(reqNo) {
+                if (!confirm(`Mark Request ${reqNo} as Checked & Verified by Data Steward and forward to Approval?`)) return;
+
+                const formData = new FormData();
+                formData.append('OnInputProcessing', 'CHECK_AND_FORWARD');
+                formData.append('REQ_NO', reqNo);
+
+                fetch('?OnInputProcessing=CHECK_AND_FORWARD', { method: 'POST', body: formData })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.status === 'SUCCESS') {
+                            showToast(data.message, 'success');
+                            fetchRequests();
+                        } else {
+                            showToast(data.message || 'Verification failed.', 'error');
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        showToast('Server connection error.', 'error');
+                    });
+            }
+
+            // 13. Return to Purchasing Modal
+            function openReturnModal() {
+                document.getElementById('returnReasonInput').value = '';
+                document.getElementById('returnModal').classList.remove('hidden');
+            }
+
+            function closeReturnModal() {
+                document.getElementById('returnModal').classList.add('hidden');
+            }
+
+            function confirmReturnToPurchasing() {
+                const reason = document.getElementById('returnReasonInput').value.trim();
+                if (!reason) {
+                    showToast('Please specify a reason for returning the request.', 'warning');
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('OnInputProcessing', 'RETURN_TO_REQUESTOR');
+                formData.append('REQ_NO', currentReqNo);
+                formData.append('REASON', reason);
+
+                fetch('?OnInputProcessing=RETURN_TO_REQUESTOR', { method: 'POST', body: formData })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.status === 'SUCCESS') {
+                            showToast(data.message, 'success');
+                            closeReturnModal();
+                            closeCodeDrawer();
+                            fetchRequests();
+                        } else {
+                            showToast(data.message || 'Failed to return request', 'error');
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        showToast('Server connection error.', 'error');
+                    });
+            }
+
+            // 14. Toast Notification System
+            function showToast(message, type = 'info') {
+                const container = document.getElementById('toastContainer');
+                const toast = document.createElement('div');
+
+                let colors = 'bg-slate-800 text-white';
+                if (type === 'success') colors = 'bg-emerald-700 text-white';
+                else if (type === 'error') colors = 'bg-red-700 text-white';
+                else if (type === 'warning') colors = 'bg-amber-600 text-white';
+
+                toast.className = `${colors} px-4 py-2.5 rounded-lg shadow-lg text-xs font-semibold flex items-center gap-2 pointer-events-auto transition transform translate-y-2 opacity-0`;
+                toast.innerHTML = `<span>${message}</span>`;
+
+                container.appendChild(toast);
+
+                setTimeout(() => {
+                    toast.classList.remove('translate-y-2', 'opacity-0');
+                }, 10);
+
+                setTimeout(() => {
+                    toast.classList.add('opacity-0', '-translate-y-2');
+                    setTimeout(() => toast.remove(), 300);
+                }, 3500);
+            }
+        </script>
+    </body>
+    </html>

@@ -1,0 +1,1002 @@
+<%@page language="ABAP" %>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Material Master - Staging Dashboard</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4', 100: '#dcfce7', 200: '#bbf7d0',
+                            500: '#10b981', 600: '#059669', 700: '#047857',
+                            800: '#065f46', 900: '#022c22',
+                        },
+                        app: {
+                            bg: '#f8fafc', card: '#ffffff', border: '#e2e8f0',
+                            'border-strong': '#cbd5e1', text: '#0f172a', muted: '#64748b',
+                            danger: '#dc2626', 'danger-bg': '#fef2f2'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar { width: 7px; height: 7px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #059669; }
+
+        .custom-select {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%6b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.25em 1.25em;
+            padding-right: 2rem;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+    </style>
+</head>
+<body class="bg-app-bg text-app-text text-xs font-sans leading-relaxed m-0 p-0 antialiased selection:bg-brand-100 selection:text-brand-900">
+
+    <div class="flex min-h-screen">
+        <!-- REUSABLE SIDEBAR PAGE FRAGMENT -->
+        <%@include file="sidebar_approval.htm" %>
+
+        <!-- MAIN CONTENT AREA -->
+        <div class="flex-1 min-w-0 flex flex-col">
+            <!-- TOP NAVBAR -->
+            <header class="bg-white h-14 border-b border-app-border sticky top-0 z-30 shadow-xs px-4 lg:px-6 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <span class="font-bold text-xs text-slate-800">Pending Approval Staging Dashboard</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1 rounded-full shadow-xs">
+                        <div class="w-5 h-5 rounded-full bg-brand-100 text-brand-800 flex items-center justify-center font-bold text-[10px]" id="userAvatarInitial">A</div>
+                        <span class="text-[11px] font-semibold text-slate-700" id="userNameLabel"><%= sy-uname %></span>
+                    </div>
+                    <a href="?action=LOGOUT" class="text-[11px] font-medium text-slate-600 hover:text-brand-700 px-2.5 py-1 rounded transition hover:bg-slate-100">Sign Out</a>
+                </div>
+            </header>
+
+            <main class="p-4 flex-1">
+
+        <!-- PAGE HEADER -->
+        <div class="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-2.5">
+            <div>
+                <h1 class="text-base font-bold text-slate-900 tracking-tight flex items-center gap-2">
+                    Staging Overview
+                </h1>
+            </div>
+            <a href="request_form.htm" class="bg-brand-700 hover:bg-brand-800 text-white px-3.5 py-1.5 rounded-md font-semibold text-xs flex items-center gap-1.5 shadow-sm transition transform active:scale-95">
+                + New Request
+            </a>
+        </div>
+
+        <!-- KPI SUMMARY CARDS -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-4">
+            <div id="kpiCard_ALL" class="kpi-card bg-white p-3 pl-3.5 rounded-lg border border-slate-200 border-l-4 border-l-slate-400 shadow-xs cursor-pointer hover:shadow-sm transition" onclick="filterByStatus('ALL')">
+                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">TOTAL</p>
+                <p class="text-lg font-bold text-slate-800 mt-0.5" id="kpiTotal">0</p>
+            </div>
+            <div id="kpiCard_DRAFT" class="kpi-card bg-white p-3 pl-3.5 rounded-lg border border-slate-200 border-l-4 border-l-amber-500 shadow-xs cursor-pointer hover:shadow-sm transition" onclick="filterByStatus('DRAFT')">
+                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">DRAFT</p>
+                <p class="text-lg font-bold text-amber-800 mt-0.5" id="kpiDraft">0</p>
+            </div>
+            <div id="kpiCard_SUBMITTED" class="kpi-card bg-white p-3 pl-3.5 rounded-lg border border-slate-200 border-l-4 border-l-blue-500 shadow-xs cursor-pointer hover:shadow-sm transition" onclick="filterByStatus('SUBMITTED')">
+                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">PENDING</p>
+                <p class="text-lg font-bold text-blue-800 mt-0.5" id="kpiSubmitted">0</p>
+            </div>
+            <div id="kpiCard_APPROVED" class="kpi-card bg-white p-3 pl-3.5 rounded-lg border border-slate-200 border-l-4 border-l-emerald-500 shadow-xs cursor-pointer hover:shadow-sm transition" onclick="filterByStatus('APPROVED')">
+                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">APPROVED</p>
+                <p class="text-lg font-bold text-emerald-800 mt-0.5" id="kpiApproved">0</p>
+            </div>
+            <div id="kpiCard_FAILED" class="kpi-card bg-white p-3 pl-3.5 rounded-lg border border-slate-200 border-l-4 border-l-rose-600 shadow-xs cursor-pointer hover:shadow-sm transition" onclick="filterByStatus('FAILED')">
+                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">FAILED</p>
+                <p class="text-lg font-bold text-rose-800 mt-0.5" id="kpiFailed">0</p>
+            </div>
+            <div id="kpiCard_REJECTED" class="kpi-card bg-white p-3 pl-3.5 rounded-lg border border-slate-200 border-l-4 border-l-red-500 shadow-xs cursor-pointer hover:shadow-sm transition" onclick="filterByStatus('REJECTED')">
+                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">REJECTED</p>
+                <p class="text-lg font-bold text-red-800 mt-0.5" id="kpiRejected">0</p>
+            </div>
+        </div>
+
+        <!-- FILTER & SEARCH BAR -->
+        <section class="bg-white rounded-lg border border-app-border shadow-xs mb-4 p-3">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 w-full md:w-auto">
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Column</label>
+                        <select id="columnFilter" class="custom-select w-full px-2.5 py-1.5 border border-slate-300 rounded text-xs outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-500 bg-white font-medium text-slate-700 cursor-pointer
+transition hover:border-slate-400" onchange="applyFilter()">
+                            <option value="ALL">All Columns</option>
+                            <option value="req_no">Request ID</option>
+                            <option value="remarks">File / Remarks</option>
+                            <option value="requestor">Requestor</option>
+                            <option value="rej_reason">Rejection Reason</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Status</label>
+                        <select id="statusFilter" class="custom-select w-full px-2.5 py-1.5 border border-slate-300 rounded text-xs outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-500 bg-white font-medium text-slate-700 cursor-pointer transition hover:border-slate-400" onchange="applyFilter()">
+                            <option value="ALL">All Statuses</option>
+                            <option value="DRAFT">Draft</option>
+                            <option value="SUBMITTED">Submitted</option>
+                            <option value="CHECKED">Checked (Ready for Approval)</option>
+                            <option value="APPROVED">Approved</option>
+                            <option value="FAILED">Failed</option>
+                            <option value="REJECTED">Rejected</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Search</label>
+                        <input type="text" id="searchInput" placeholder="Search..." class="w-full px-2.5 py-1.5 border border-slate-300 rounded text-xs outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-500 font-medium text-slate-800
+transition placeholder:text-slate-400" onkeyup="applyFilter()">
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 self-end w-full md:w-auto justify-end">
+                    <button type="button" onclick="loadStagingList()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded font-semibold text-xs flex items-center gap-1.5 border border-slate-300 transition shadow-xs">
+                        Refresh
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ACTION BAR MULTIPLE SELECTION -->
+        <div id="batchActionBar" class="hidden bg-slate-900 text-white px-3.5 py-2.5 rounded-lg mb-3 flex items-center justify-between shadow-md">
+            <div class="flex items-center gap-2.5">
+                <span class="bg-brand-500 text-slate-900 font-bold px-2.5 py-0.5 rounded-full text-[11px]" id="selectedCountBadge">0</span>
+                <span class="text-xs font-medium">selected</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <button type="button" onclick="triggerBulkApprove()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded font-bold text-xs transition shadow-xs">
+                    Approve
+                </button>
+                <button type="button" onclick="openRejectModal('BULK')" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded font-bold text-xs transition shadow-xs">
+                    Reject
+                </button>
+            </div>
+        </div>
+
+        <!-- STAGING TABLE SECTION -->
+        <section class="bg-white rounded-lg border border-app-border shadow-xs overflow-hidden max-w-full">
+            <div class="overflow-x-auto overflow-y-auto max-h-[620px] w-full max-w-full">
+                <table class="w-full border-collapse text-xs min-w-[1000px]">
+                    <thead>
+                        <tr class="text-left text-slate-700 font-bold text-[11px] uppercase tracking-wider bg-slate-100 border-b border-app-border sticky top-0 z-20">
+                            <th class="p-2.5 text-center" style="width: 38px;">
+                                <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)" class="w-3.5 h-3.5 rounded border-slate-300 text-brand-600 focus:ring-brand-500 cursor-pointer">
+                            </th>
+                            <th class="p-2.5 text-center" style="width: 48px;">Detail</th>
+                            <th class="p-2.5 text-center" style="width: 45px;">#</th>
+                            <th class="p-2.5" style="width: 150px;">Request ID</th>
+                            <th class="p-2.5">File / Remarks</th>
+                            <th class="p-2.5 text-center" style="width: 140px;">Requested Date</th>
+                            <th class="p-2.5 text-center" style="width: 100px;">Items</th>
+                            <th class="p-2.5 text-center" style="width: 110px;">Requestor</th>
+                            <th class="p-2.5 text-center" style="width: 110px;">Status</th>
+                            <th class="p-2.5 text-center" style="width: 150px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="stagingTableBody" class="divide-y divide-app-border">
+                        <tr>
+                            <td colspan="10" class="p-6 text-center text-slate-400 italic">Loading...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- REJECTION REASON MODAL POPUP -->
+    <div id="rejectModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-[10000] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl border border-slate-200 max-w-md w-full overflow-hidden transform transition-all">
+            <div class="bg-red-50 border-b border-red-100 px-4 py-3 flex items-center justify-between">
+                <h3 class="text-xs font-bold text-red-800 uppercase tracking-wider">
+                    Reject Request
+                </h3>
+                <button type="button" onclick="closeRejectModal()" class="text-slate-400 hover:text-slate-600 font-bold text-base">&times;</button>
+            </div>
+            <div class="p-4">
+                <input type="hidden" id="modalTargetReqNo" value="">
+                <input type="hidden" id="modalMode" value="SINGLE">
+
+                <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Reason <span class="text-red-600">*</span></label>
+                <textarea id="rejectReasonInput" rows="3" placeholder="Enter rejection reason..." class="w-full p-2 border border-slate-300 rounded text-xs outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 font-medium
+text-slate-800"></textarea>
+            </div>
+            <div class="bg-slate-50 px-4 py-2.5 border-t border-slate-200 flex justify-end gap-2">
+                <button type="button" onclick="closeRejectModal()" class="px-3 py-1 rounded text-xs font-semibold border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 transition">
+                    Cancel
+                </button>
+                <button type="button" onclick="submitRejection()" class="px-3.5 py-1 rounded text-xs font-bold bg-red-600 hover:bg-red-700 text-white shadow-xs transition">
+                    Confirm Reject
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MATERIAL FULL DETAIL MODAL POPUP -->
+    <div id="materialDetailModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-[10000] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-4xl w-full overflow-hidden transform transition-all flex flex-col max-h-[90vh]">
+            <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white px-6 py-4 flex items-center justify-between shadow-md shrink-0 border-b border-slate-700/50">
+                <div>
+                    <h3 class="text-sm sm:text-base font-bold text-white tracking-wide" id="detailModalTitle">MATERIAL DETAILS</h3>
+                    <div class="flex items-center gap-2 mt-1 text-[11px] text-slate-300 flex-wrap" id="detailModalSubTitle"></div>
+                </div>
+                <button type="button" onclick="closeMaterialDetailModal()" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold text-lg flex items-center justify-center transition border
+border-slate-700/50">&times;</button>
+            </div>
+            <div class="p-4 sm:p-5 overflow-y-auto space-y-4 text-xs bg-slate-50/70" id="detailModalBody">
+                <!-- Content dynamically generated by JS -->
+            </div>
+            <div class="bg-slate-50 px-5 py-3 border-t border-slate-200 flex justify-end shrink-0">
+                <button type="button" onclick="closeMaterialDetailModal()" class="px-5 py-2 rounded-lg text-xs font-bold bg-slate-800 hover:bg-slate-900 text-white shadow-sm transition transform active:scale-95">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SAP UPLOAD RESULT NOTIFICATION MODAL -->
+    <div id="uploadResultModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-[10000] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-md w-full overflow-hidden transform transition-all">
+            <div id="uploadResultHeader" class="px-5 py-4 border-b flex items-center justify-between">
+                <h3 class="text-xs font-bold uppercase tracking-wider flex items-center gap-2" id="uploadResultTitle">
+                    SAP Upload Notification
+                </h3>
+                <button type="button" onclick="closeUploadResultModal()" class="text-slate-400 hover:text-slate-600 font-bold text-base">&times;</button>
+            </div>
+            <div class="p-5 space-y-3 text-center">
+                <div id="uploadResultIcon" class="w-14 h-14 rounded-full mx-auto flex items-center justify-center text-2xl font-bold shadow-inner"></div>
+                <h4 class="text-sm font-bold text-slate-800" id="uploadResultHeading"></h4>
+                <p class="text-xs text-slate-600 font-medium leading-relaxed" id="uploadResultMessage"></p>
+                <div id="uploadResultDetailBox" class="hidden text-left bg-slate-50 p-3 rounded-lg border border-slate-200 text-[11px] font-mono text-slate-700 max-h-36 overflow-y-auto"></div>
+            </div>
+            <div class="bg-slate-50 px-5 py-3 border-t border-slate-200 flex justify-center">
+                <button type="button" onclick="closeUploadResultModal()" class="px-6 py-2 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white shadow-sm transition transform active:scale-95">
+                    OK, Mengerti
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST STACK NOTIFICATION -->
+    <div class="fixed bottom-5 right-5 flex flex-col gap-2 z-[10000]" id="toastStack"></div>
+
+<script>
+    var fullStagingData = [];
+    var selectedReqNos = [];
+    var loadedBatchDetails = {};
+
+    document.addEventListener("DOMContentLoaded", function() {
+        var nameLabel = document.getElementById("userNameLabel");
+        if (nameLabel && nameLabel.innerText.trim()) {
+            var initial = nameLabel.innerText.trim().charAt(0).toUpperCase();
+            var avatar = document.getElementById("userAvatarInitial");
+            if (avatar) avatar.innerText = initial;
+        }
+        loadStagingList();
+    });
+
+    function loadStagingList() {
+    var tbody = document.getElementById("stagingTableBody");
+    if (tbody) {
+        tbody.innerHTML = '<tr><td colspan="10" class="p-6 text-center text-slate-400 italic">Loading...</td></tr>';
+    }
+    selectedReqNos = [];
+    loadedBatchDetails = {};
+    updateBatchActionBar();
+
+    fetch("?action=GET_STAGING_LIST", { method: "POST" })
+    .then(function(res) {
+        if (!res.ok) {
+            throw new Error("HTTP error status: " + res.status);
+        }
+        return res.json();
+    })
+    .then(function(data) {
+        fullStagingData = data || [];
+        updateKPICards(fullStagingData);
+        applyFilter();
+    })
+    .catch(function(err) {
+        console.error("Detail Error AJAX:", err);
+        if (tbody) {
+            tbody.innerHTML = '<tr><td colspan="10" class="p-6 text-center text-red-500 italic">Failed to load data: ' + err.message + '</td></tr>';
+        }
+    });
+}
+
+    function updateKPICards(data) {
+        var total = data.length;
+        var draft = data.filter(function(i) { return i.status === 'DRAFT'; }).length;
+        var submitted = data.filter(function(i) { return i.status === 'SUBMITTED' || i.status === 'CHECKED' || i.status === 'CODED'; }).length;
+        var approved = data.filter(function(i) { return i.status === 'APPROVED'; }).length;
+        var failed = data.filter(function(i) { return i.status === 'FAILED'; }).length;
+        var rejected = data.filter(function(i) { return i.status === 'REJECTED'; }).length;
+
+        if (document.getElementById("kpiTotal")) document.getElementById("kpiTotal").innerText = total;
+        if (document.getElementById("kpiDraft")) document.getElementById("kpiDraft").innerText = draft;
+        if (document.getElementById("kpiSubmitted")) document.getElementById("kpiSubmitted").innerText = submitted;
+        if (document.getElementById("kpiApproved")) document.getElementById("kpiApproved").innerText = approved;
+        if (document.getElementById("kpiFailed")) document.getElementById("kpiFailed").innerText = failed;
+        if (document.getElementById("kpiRejected")) document.getElementById("kpiRejected").innerText = rejected;
+    }
+
+    function filterByStatus(status) {
+        var statusFilter = document.getElementById("statusFilter");
+        if (statusFilter) statusFilter.value = status;
+
+        var cards = document.querySelectorAll(".kpi-card");
+        cards.forEach(function(card) {
+            card.classList.remove("ring-2", "ring-brand-600", "shadow-sm");
+        });
+        var activeCard = document.getElementById("kpiCard_" + status);
+        if (activeCard) {
+            activeCard.classList.add("ring-2", "ring-brand-600", "shadow-sm");
+        }
+
+        applyFilter();
+    }
+
+    function applyFilter() {
+        var searchInput = document.getElementById("searchInput");
+        var statusFilter = document.getElementById("statusFilter");
+        var columnFilter = document.getElementById("columnFilter");
+
+        var search = (searchInput ? searchInput.value : '').toLowerCase();
+        var status = statusFilter ? statusFilter.value : 'ALL';
+        var column = columnFilter ? columnFilter.value : 'ALL';
+
+        var filtered = fullStagingData.filter(function(item) {
+            var matchSearch = false;
+            if (column === 'ALL') {
+                matchSearch = (item.req_no || '').toLowerCase().indexOf(search) >= 0 ||
+                              (item.remarks || '').toLowerCase().indexOf(search) >= 0 ||
+                              (item.requestor || '').toLowerCase().indexOf(search) >= 0 ||
+                              (item.rej_reason || '').toLowerCase().indexOf(search) >= 0;
+            } else {
+                matchSearch = (item[column] || '').toLowerCase().indexOf(search) >= 0;
+            }
+            var matchStatus = (status === 'ALL') || (item.status === status);
+            return matchSearch && matchStatus;
+        });
+
+        renderTable(filtered);
+    }
+
+    function escapeHtml(str) {
+        if (str === null || str === undefined) return '';
+        return String(str)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/\x22/g, "&quot;")
+            .replace(/\x27/g, "&#039;")
+            .replace(/[\r\n]+/g, " ");
+    }
+
+    function renderTable(data) {
+        var tbody = document.getElementById("stagingTableBody");
+        if (!tbody) return;
+        tbody.innerHTML = "";
+
+        var masterCheck = document.getElementById("selectAllCheckbox");
+        if (masterCheck) masterCheck.checked = false;
+
+        if (!data || data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="10" class="p-6 text-center text-slate-400 italic">No records found.</td></tr>';
+            return;
+        }
+
+        data.forEach(function(item, idx) {
+            var tr = document.createElement("tr");
+            tr.className = "hover:bg-slate-50/80 transition-colors border-b border-app-border";
+
+            var reqNoEsc = escapeHtml(item.req_no);
+            var remarksEsc = escapeHtml(item.remarks);
+            var requestorEsc = escapeHtml(item.requestor);
+            var rejReasonEsc = escapeHtml(item.rej_reason);
+
+            var fDate = (item.req_date && item.req_date.length === 8) ? (item.req_date.substring(6,8) + '/' + item.req_date.substring(4,6) + '/' + item.req_date.substring(0,4)) : (escapeHtml(item.req_date) || "-");
+            var fTime = (item.req_time && item.req_time.length >= 4) ? (item.req_time.substring(0,2) + ':' + item.req_time.substring(2,4)) : "";
+            var dateTimeStr = fDate + (fTime ? ' ' + fTime : '');
+
+            var badge = '<span class="bg-slate-100 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-slate-200">DRAFT</span>';
+
+            if (item.status === 'SUBMITTED') {
+                badge = '<span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-blue-200 inline-flex items-center gap-1">' +
+                        '<span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> SUBMITTED (BELUM UPLOAD)</span>';
+            }
+
+            if (item.status === 'CHECKED' || item.status === 'CODED') {
+                badge = '<span class="bg-teal-100 text-teal-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-teal-200 inline-flex items-center gap-1">' +
+                        '<span class="w-1.5 h-1.5 rounded-full bg-teal-500"></span> SIAP APPROVE (BELUM UPLOAD)</span>';
+            }
+
+            if (item.status === 'VALIDATING' || item.status === 'UPLOADING') {
+                badge = '<span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-amber-300 animate-pulse inline-flex items-center gap-1">' +
+                        '<span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> UPLOADING KE SAP...</span>';
+            }
+
+            if (item.status === 'APPROVED') {
+                badge = '<span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-emerald-200 shadow-2xs inline-flex items-center gap-1">' +
+                        '<svg class="w-3 h-3 text-emerald-600 inline" fill="currentColor" viewBox="0 0 20 20">' +
+                        '<path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>' +
+                        '</svg> TERUPLOAD KE SAP S/4HANA</span>';
+            }
+
+            if (item.status === 'FAILED') {
+                badge = '<span class="bg-rose-100 text-rose-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-rose-300 inline-flex items-center gap-1">' +
+                        '<span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> GAGAL UPLOAD SAP</span>';
+            }
+
+            if (item.status === 'REJECTED') {
+                badge = '<span class="bg-red-100 text-red-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-red-200 inline-flex items-center gap-1">DITOLAK</span>';
+            }
+
+            var reasonHtml = '';
+            if (item.status === 'REJECTED' && rejReasonEsc) {
+                reasonHtml = '<div class="text-[11px] text-red-600 italic mt-0.5 font-medium bg-red-50 p-1 rounded border border-red-100">Reason: ' + rejReasonEsc + '</div>';
+            } else if (item.status === 'FAILED' && rejReasonEsc) {
+                reasonHtml = '<div class="text-[11px] text-rose-700 font-medium mt-0.5 bg-rose-50 p-1.5 rounded border border-rose-200"><strong>SAP Upload Error:</strong> ' + rejReasonEsc + '</div>';
+            }
+
+            var actionBtns = '';
+            if (item.status === 'SUBMITTED' || item.status === 'CHECKED' || item.status === 'CODED' || item.status === 'FAILED') {
+                var approveLabel = item.status === 'FAILED' ? 'Retry' : 'Approve';
+
+                actionBtns += '<button type="button" onclick="quickApprove(\x27' + reqNoEsc + '\x27)" ';
+                actionBtns += 'class="bg-emerald-700 hover:bg-emerald-800 text-white text-[11px] ';
+                actionBtns += 'font-semibold px-2 py-0.5 rounded shadow-xs transition">';
+                actionBtns += approveLabel + '</button> ';
+
+                actionBtns += '<button type="button" onclick="openRejectModal(\x27SINGLE\x27, \x27' + reqNoEsc + '\x27)" ';
+                actionBtns += 'class="bg-red-600 hover:bg-red-700 text-white text-[11px] ';
+                actionBtns += 'font-semibold px-2 py-0.5 rounded shadow-xs transition">Reject</button>';
+            }
+
+            if (item.status === 'DRAFT') {
+                actionBtns += '<button type="button" onclick="deleteDraft(\x27' + reqNoEsc + '\x27)" ';
+                actionBtns += 'class="bg-red-600 hover:bg-red-700 text-white text-[11px] ';
+                actionBtns += 'font-semibold px-2 py-0.5 rounded shadow-xs transition">Delete</button>';
+            }
+
+            var isChecked = selectedReqNos.indexOf(item.req_no) >= 0;
+
+            var htmlStr = '';
+            htmlStr += '<td class="p-2 text-center">';
+            htmlStr += '<input type="checkbox" value="' + reqNoEsc + '" ' + (isChecked ? 'checked' : '') + ' ';
+            htmlStr += 'onchange="toggleSelectRow(this)" class="row-checkbox w-3.5 h-3.5 rounded border-slate-300 text-brand-600 focus:ring-brand-500 cursor-pointer">';
+            htmlStr += '</td>';
+
+            htmlStr += '<td class="p-2 text-center">';
+            htmlStr += '<button type="button" onclick="toggleExpandRow(\'' + reqNoEsc + '\')" id="expand_btn_' + reqNoEsc + '" ';
+            htmlStr += 'class="w-6 h-6 rounded bg-slate-100 hover:bg-brand-100 text-slate-700 hover:text-brand-800 font-bold flex items-center justify-center transition shadow-xs text-[10px]">&#9660;</button>';
+            htmlStr += '</td>';
+
+            htmlStr += '<td class="p-2 text-center font-bold text-slate-700">' + (idx + 1) + '</td>';
+            htmlStr += '<td class="p-2 font-mono font-bold text-brand-800">' + (reqNoEsc || '-') + '</td>';
+            htmlStr += '<td class="p-2 font-medium text-slate-800">' + (remarksEsc || '-') + reasonHtml + '</td>';
+            htmlStr += '<td class="p-2 text-center font-mono text-slate-600 text-[11px]">' + dateTimeStr + '</td>';
+            htmlStr += '<td class="p-2 text-center font-bold text-slate-800">' + (item.total_item || 0) + '</td>';
+            htmlStr += '<td class="p-2 text-center text-slate-700 font-medium">' + (requestorEsc || '-') + '</td>';
+            htmlStr += '<td class="p-2 text-center">' + badge + '</td>';
+            htmlStr += '<td class="p-2 text-center"><div class="flex items-center justify-center gap-1 flex-wrap">' + (actionBtns || '-') + '</div></td>';
+
+            tr.innerHTML = htmlStr;
+            tbody.appendChild(tr);
+
+            var expandTr = document.createElement("tr");
+            expandTr.id = "expand_row_" + reqNoEsc;
+            expandTr.className = "hidden bg-slate-50/90 border-b border-app-border";
+
+            var expStr = '';
+            expStr += '<td colspan="10" class="p-2 sm:p-3 max-w-0">';
+            expStr += '<div class="p-3 bg-slate-100/90 border border-slate-200 rounded-lg shadow-inner w-full max-w-full overflow-hidden">';
+            expStr += '<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2 px-1">';
+            expStr += '<div class="flex flex-wrap items-center gap-2">';
+            expStr += '<span class="text-[11px] font-bold text-slate-800 uppercase tracking-wider">Batch Items (ID: <span class="font-mono text-brand-800">' + reqNoEsc + '</span>)</span>';
+            expStr += '<span class="text-[10px] font-semibold text-slate-600 bg-white px-2 py-0.5 rounded border border-slate-200 shadow-xs">' + (item.total_item || 0) + ' items</span>';
+            expStr += '</div>';
+            expStr += '<div class="flex items-center gap-2">';
+            expStr += '<input type="text" id="detailSearch_' + reqNoEsc + '" ';
+            expStr += 'onkeyup="filterDetailRows(\x27' + reqNoEsc + '\x27)" ';
+            expStr += 'placeholder="Search batch items..." ';
+            expStr += 'class="px-2.5 py-1 text-[11px] border border-slate-300 rounded ';
+            expStr += 'bg-white outline-none focus:border-brand-600 focus:ring-1 ';
+            expStr += 'focus:ring-brand-500 w-56 shadow-xs transition">';
+            expStr += '</div></div>';
+            expStr += '<div id="expand_content_' + reqNoEsc + '" class="w-full max-w-full max-h-[350px] overflow-x-auto overflow-y-auto border border-slate-200 rounded-md bg-white shadow-xs">';
+            expStr += '<div class="p-4 text-center text-slate-400 italic text-xs">Loading items...</div>';
+            expStr += '</div></div></td>';
+
+            expandTr.innerHTML = expStr;
+            tbody.appendChild(expandTr);
+        });
+    }
+
+    function toggleExpandRow(reqNo) {
+        var expandTr = document.getElementById("expand_row_" + reqNo);
+        var expandBtn = document.getElementById("expand_btn_" + reqNo);
+        if (!expandTr) return;
+
+        var isHidden = expandTr.classList.contains("hidden");
+
+        if (isHidden) {
+            expandTr.classList.remove("hidden");
+            if (expandBtn) {
+                expandBtn.innerHTML = "&#9650;";
+                expandBtn.className = "w-6 h-6 rounded bg-brand-700 text-white font-bold flex items-center justify-center transition shadow-xs text-[10px]";
+            }
+            if (!loadedBatchDetails[reqNo]) {
+                fetchBatchDetail(reqNo);
+            }
+        } else {
+            expandTr.classList.add("hidden");
+            if (expandBtn) {
+                expandBtn.innerHTML = "&#9660;";
+                expandBtn.className = "w-6 h-6 rounded bg-slate-100 hover:bg-brand-100 text-slate-700 hover:text-brand-800 font-bold flex items-center justify-center transition shadow-xs text-[10px]";
+            }
+        }
+    }
+
+    function fetchBatchDetail(reqNo) {
+        var container = document.getElementById("expand_content_" + reqNo);
+        if (!container) return;
+
+        var formData = new FormData();
+        formData.append("REQ_NO", reqNo);
+
+        fetch("?action=GET_UPLOAD_DETAIL", { method: "POST", body: formData })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            loadedBatchDetails[reqNo] = data || [];
+            renderExpandDetailTable(reqNo, loadedBatchDetails[reqNo]);
+        })
+        .catch(function() {
+            container.innerHTML = '<div class="p-3 text-center text-red-500 font-semibold italic text-xs">Failed to load items.</div>';
+        });
+    }
+
+    function renderExpandDetailTable(reqNo, items) {
+        var container = document.getElementById("expand_content_" + reqNo);
+        if (!container) return;
+
+        if (!items || items.length === 0) {
+            container.innerHTML = '<div class="p-4 text-center text-slate-400 italic text-xs">No items found.</div>';
+            return;
+        }
+
+        var html = '';
+        html += '<table class="w-full text-xs text-slate-700 border-collapse"><thead>';
+        html += '<tr class="text-left font-bold uppercase tracking-wider bg-slate-100 text-slate-700 border-b border-slate-200 sticky top-0 z-10 whitespace-nowrap text-[11px]">';
+        html += '<th class="p-2.5 border-r border-slate-200 text-center" style="width: 50px;">#</th>';
+        html += '<th class="p-2.5 border-r border-slate-200 text-center" style="width: 140px;">Action</th>';
+        html += '<th class="p-2.5 border-r border-slate-200" style="width: 170px;">Material Code</th>';
+        html += '<th class="p-2.5 border-r border-slate-200">Material Description</th>';
+        html += '<th class="p-2.5 border-r border-slate-200 text-center" style="width: 130px;">Type / Group</th>';
+        html += '<th class="p-2.5 text-center" style="width: 130px;">Plant & S.Loc</th></tr></thead>';
+        html += '<tbody class="divide-y divide-slate-200 bg-white">';
+
+        items.forEach(function(row, i) {
+            var matName = escapeHtml(row.matnr_ext || row.matnr || '-');
+            var maktxEsc = escapeHtml(row.maktx || '-');
+            var mtartEsc = escapeHtml(row.mtart || 'ZOS3');
+            var matklEsc = escapeHtml(row.matkl || '-');
+            var werksEsc = escapeHtml(row.werks || '1200');
+            var lgortEsc = escapeHtml(row.lgort || '1201');
+
+            var rStr = '';
+            rStr += '<tr class="detail-row-' + escapeHtml(reqNo) + ' hover:bg-slate-50 transition-colors">';
+            rStr += '<td class="p-2.5 border-r border-slate-200 text-center font-bold text-slate-700">' + (row.item_no || (i + 1)) + '</td>';
+            rStr += '<td class="p-2.5 border-r border-slate-200 text-center">';
+            rStr += '<button type="button" onclick="showMaterialDetailModal(\x27' + escapeHtml(reqNo) + '\x27, ' + i + ')" ';
+            rStr += 'class="bg-emerald-700 hover:bg-emerald-800 text-white border border-emerald-800 px-3 py-1 ';
+            rStr += 'rounded-md font-bold text-[11px] shadow-xs transition transform active:scale-95 mx-auto">';
+            rStr += 'Details</button></td>';
+            rStr += '<td class="p-2.5 border-r border-slate-200 font-mono font-bold text-emerald-800">' + matName + '</td>';
+            rStr += '<td class="p-2.5 border-r border-slate-200 font-medium text-slate-900">' + maktxEsc + '</td>';
+            rStr += '<td class="p-2.5 border-r border-slate-200 text-center">';
+            rStr += '<span class="font-bold text-slate-800">' + mtartEsc + '</span>';
+            rStr += '<span class="text-slate-400 mx-0.5">/</span>';
+            rStr += '<span class="font-mono text-slate-600">' + matklEsc + '</span></td>';
+            rStr += '<td class="p-2.5 text-center font-mono text-slate-700">' + werksEsc + ' - ' + lgortEsc + '</td></tr>';
+            html += rStr;
+        });
+
+        html += '</tbody></table>';
+        container.innerHTML = html;
+    }
+
+    function showMaterialDetailModal(reqNo, itemIndex) {
+        var items = loadedBatchDetails[reqNo];
+        if (!items || !items[itemIndex]) return;
+        var row = items[itemIndex];
+
+        var matName = row.matnr_ext || row.matnr || '-';
+        var matDesc = escapeHtml(row.maktx || '-');
+        var reqNoEsc = escapeHtml(reqNo);
+
+        var titleElem = document.getElementById("detailModalTitle");
+        if (titleElem) titleElem.innerText = 'MATERIAL: ' + matName;
+
+        var subTitleElem = document.getElementById("detailModalSubTitle");
+        if (subTitleElem) {
+            var subStr = '';
+            subStr += '<span class="bg-slate-800 text-brand-400 font-mono font-bold px-2 py-0.5 rounded border border-slate-700">Batch: ' + reqNoEsc + '</span> ';
+            subStr += '<span class="bg-slate-800 text-slate-200 font-semibold px-2 py-0.5 rounded border border-slate-700">Line #' + (row.item_no || (itemIndex + 1)) + '</span> ';
+            subStr += '<span class="text-slate-300 font-medium truncate max-w-md">' + matDesc + '</span>';
+            subTitleElem.innerHTML = subStr;
+        }
+
+        function field(label, val, isHighlight, isMono) {
+            var fStr = '';
+            fStr += '<div class="bg-white p-3.5 rounded-xl border border-slate-200/80 hover:bg-white hover:border-brand-500/40 transition-colors shadow-2xs">';
+            fStr += '<span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">' + escapeHtml(label) + '</span>';
+            fStr += '<span class="text-xs font-bold ' + (isHighlight ? 'text-brand-700 font-bold' : 'text-slate-800') + ' ' + (isMono ? 'font-mono' : '') + '">' + (escapeHtml(val) || '-') + '</span>';
+            fStr += '</div>';
+            return fStr;
+        }
+
+        var body = document.getElementById("detailModalBody");
+        if (body) {
+            var bStr = '';
+            bStr += '<div class="space-y-4">';
+
+            // 1. BASIC DATA
+            bStr += '<div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">';
+            bStr += '<div class="bg-slate-100/70 border-b border-slate-200 px-4 py-2.5 font-bold text-brand-800 text-xs uppercase tracking-wider flex items-center gap-2">📌 BASIC DATA</div>';
+            bStr += '<div class="p-3.5 grid grid-cols-1 sm:grid-cols-3 md:grid-cols-3 gap-3">';
+            bStr += field('Material Temp', row.matnr_ext || row.matnr, true, true);
+            bStr += field('Old Material No.', row.bismt, false, true);
+            bStr += field('Material Description', row.maktx, true, false);
+            bStr += field('Material Type', row.mtart || 'ZOS3', false, false);
+            bStr += field('Industry Sector', row.mbrsh || 'F', false, false);
+            bStr += field('Material Group', row.matkl, false, true);
+            bStr += field('Base UoM', row.meins || 'PC', false, false);
+            bStr += field('Division', row.spart || 'M1', false, true);
+            bStr += field('Gen. Item Cat. Group', row.mtpos_mara || 'NORM', false, true);
+            bStr += field('Prod./Insp. Memo', row.ferth, false, false);
+            bStr += field('Document Num.', row.zeinr, false, true);
+            bStr += field('Industry Std. Desc.', row.normt, false, false);
+            bStr += field('Dimensions', row.groes, false, false);
+            bStr += '</div></div>';
+
+            // 2. PLANT & STORAGE DATA
+            bStr += '<div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">';
+            bStr += '<div class="bg-slate-100/70 border-b border-slate-200 px-4 py-2.5 font-bold text-brand-800 text-xs uppercase tracking-wider flex items-center gap-2">🏭 PLANT & STORAGE DATA</div>';
+            bStr += '<div class="p-3.5 grid grid-cols-1 sm:grid-cols-3 md:grid-cols-3 gap-3">';
+            bStr += field('Plant', row.werks || '1200', false, true);
+            bStr += field('Storage Location', row.lgort || '1201', false, true);
+            bStr += field('Country Origin', row.herkl || 'ID', false, true);
+            bStr += field('Prod. Storage Loc', row.lgpro || '1201', false, true);
+            bStr += field('Prod. Sched Profile', row.sfpro, false, true);
+            bStr += field('Batch Management', row.xchpf || 'X', false, false);
+            bStr += '</div></div>';
+
+            // 3. PURCHASING & LOGISTICS
+            bStr += '<div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">';
+            bStr += '<div class="bg-slate-100/70 border-b border-slate-200 px-4 py-2.5 font-bold text-brand-800 text-xs uppercase tracking-wider flex items-center gap-2">🛒 PURCHASING & LOGISTICS</div>';
+            bStr += '<div class="p-3.5 grid grid-cols-1 sm:grid-cols-3 md:grid-cols-3 gap-3">';
+            bStr += field('Purchasing Group', row.ekgrp || 'K01', false, true);
+            bStr += field('Transportation Group', row.tragr || '0001', false, true);
+            bStr += field('Loading Group', row.ladgr || '0001', false, true);
+            bStr += field('Tax Class', row.taxkm || '1', false, true);
+            bStr += field('Tax Category', row.tatyp || 'MWST', false, true);
+            bStr += field('Item Category Group', row.mtpos || 'NORM', false, true);
+            bStr += '</div></div>';
+
+            // 4. ACCOUNTING & VALUATION
+            bStr += '<div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">';
+            bStr += '<div class="bg-slate-100/70 border-b border-slate-200 px-4 py-2.5 font-bold text-brand-800 text-xs uppercase tracking-wider flex items-center gap-2">📊 ACCOUNTING & VALUATION</div>';
+            bStr += '<div class="p-3.5 grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 gap-3">';
+            bStr += field('Valuation Class', row.bklas || 'OS01', false, true);
+            bStr += field('Price Unit', row.peinh || '1', false, true);
+            bStr += field('Price Control', row.vprsv || 'V', false, false);
+            bStr += field('Profit Center', row.prctr || '200201', false, true);
+            bStr += field('Origin Indicator', row.hkmat || 'X', false, false);
+            bStr += field('Qty Struct. Ind.', row.ekalr || 'X', false, false);
+            bStr += field('Costing Lot Size', row.losgr || '100', false, true);
+            bStr += field('Stock Determ. Group', row.eprio || '0001', false, true);
+            bStr += '</div></div>';
+
+            // 5. MRP & PLANNING
+            bStr += '<div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">';
+            bStr += '<div class="bg-slate-100/70 border-b border-slate-200 px-4 py-2.5 font-bold text-brand-800 text-xs uppercase tracking-wider flex items-center gap-2">⚙️ MRP & PLANNING</div>';
+            bStr += '<div class="p-3.5 grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 gap-3">';
+            bStr += field('MRP Type', row.dismm || 'PD', false, true);
+            bStr += field('MRP Group', row.disgr || 'ZWH5', false, true);
+            bStr += field('MRP Controller', row.dispo || 'RW8', false, true);
+            bStr += field('Lot Sizing Procedure', row.disls || 'PB', false, true);
+            bStr += field('Procurement Type', row.beskz || 'F', false, true);
+            bStr += field('Backflush Indicator', row.rgekz || '1', false, true);
+            bStr += field('Sched. Margin Key', row.fhori || '000', false, true);
+            bStr += field('Safety Stock', row.eisbe, false, true);
+            bStr += field('Strategy Group', row.strgr, false, true);
+            bStr += field('Consumption Mode', row.vrmod, false, true);
+            bStr += field('Fwd Consum. Period', row.vint1, false, true);
+            bStr += field('Bwd Consum. Period', row.vint2, false, true);
+            bStr += field('Period Indicator', row.perkz || 'M', false, true);
+            bStr += field('Fiscal Year Variant', row.periv || 'C1', false, true);
+            bStr += field('Availability Check', row.mtvfp || 'KP', false, true);
+            bStr += field('Individual/Collective', row.kzkst || '2', false, true);
+            bStr += '</div></div>';
+
+            bStr += '</div>';
+            body.innerHTML = bStr;
+        }
+
+        var modalElem = document.getElementById("materialDetailModal");
+        if (modalElem) modalElem.classList.remove("hidden");
+    }
+
+    function closeMaterialDetailModal() {
+        var modalElem = document.getElementById("materialDetailModal");
+        if (modalElem) modalElem.classList.add("hidden");
+    }
+
+    function filterDetailRows(reqNo) {
+        var input = document.getElementById("detailSearch_" + reqNo);
+        if (!input) return;
+        var query = input.value.toLowerCase().trim();
+        var rows = document.querySelectorAll(".detail-row-" + reqNo);
+
+        rows.forEach(function(row) {
+            var content = row.innerText.toLowerCase();
+            row.style.display = content.includes(query) ? "" : "none";
+        });
+    }
+
+    function toggleSelectAll(master) {
+        var checkboxes = document.querySelectorAll(".row-checkbox");
+        selectedReqNos = [];
+
+        checkboxes.forEach(function(cb) {
+            cb.checked = master.checked;
+            if (master.checked) {
+                selectedReqNos.push(cb.value);
+            }
+        });
+        updateBatchActionBar();
+    }
+
+    function toggleSelectRow(cb) {
+        if (cb.checked) {
+            if (!selectedReqNos.includes(cb.value)) selectedReqNos.push(cb.value);
+        } else {
+            selectedReqNos = selectedReqNos.filter(function(id) { return id !== cb.value; });
+        }
+        updateBatchActionBar();
+    }
+
+    function updateBatchActionBar() {
+        var bar = document.getElementById("batchActionBar");
+        var badge = document.getElementById("selectedCountBadge");
+
+        if (selectedReqNos.length > 0) {
+            if (bar) bar.classList.remove("hidden");
+            if (badge) badge.innerText = selectedReqNos.length;
+        } else {
+            if (bar) bar.classList.add("hidden");
+        }
+    }
+
+    function triggerBulkApprove() {
+        if (selectedReqNos.length === 0) return;
+        if (!confirm("Approve " + selectedReqNos.length + " selected request(s)?")) return;
+
+        var formData = new FormData();
+        formData.append("REQ_NOS", selectedReqNos.join(','));
+
+        fetch("?action=BULK_APPROVE", { method: "POST", body: formData })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            if (data.status === "SUCCESS") {
+                showToast(selectedReqNos.length + " request(s) approved.", "success");
+                showUploadResultNotification(true, "Approve Successful", "Request yang dipilih telah BERHASIL divalidasi dan TERUPLOAD ke SAP S/4HANA Master Data!", data.message);
+            } else {
+                showToast("Approval failed.", "error");
+                showUploadResultNotification(false, "Approve Failed", "Proses Upload Material ke SAP S/4HANA GAGAL:", data.message);
+            }
+        })
+        .catch(function(err) {
+            showToast("Bulk approval failed.", "error");
+            showUploadResultNotification(false, "System Error", "Terjadi kesalahan sistem saat melakukan upload ke SAP.", err.message);
+        });
+    }
+
+    function openRejectModal(mode, reqNo) {
+        if (!reqNo) reqNo = '';
+        document.getElementById("modalMode").value = mode;
+        document.getElementById("modalTargetReqNo").value = reqNo;
+        document.getElementById("rejectReasonInput").value = '';
+        document.getElementById("rejectModal").classList.remove("hidden");
+    }
+
+    function closeRejectModal() {
+        document.getElementById("rejectModal").classList.add("hidden");
+    }
+
+    function submitRejection() {
+        var mode = document.getElementById("modalMode").value;
+        var singleReqNo = document.getElementById("modalTargetReqNo").value;
+        var reason = document.getElementById("rejectReasonInput").value.trim();
+
+        if (!reason) {
+            showToast("Rejection reason is required.", "error");
+            return;
+        }
+
+        var targetReqNos = (mode === 'SINGLE') ? singleReqNo : selectedReqNos.join(',');
+        if (!targetReqNos) {
+            showToast("No request selected.", "error");
+            return;
+        }
+
+        var formData = new FormData();
+        formData.append("REQ_NOS", targetReqNos);
+        formData.append("REJ_REASON", reason);
+
+        fetch("?action=BULK_REJECT", { method: "POST", body: formData })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            showToast("Request rejected.", "info");
+            closeRejectModal();
+            loadStagingList();
+        })
+        .catch(function() { showToast("Rejection failed.", "error"); });
+    }
+
+    function quickApprove(reqNo) {
+        if (!confirm("Approve request " + reqNo + "?")) return;
+        var formData = new FormData();
+        formData.append("REQ_NO", reqNo);
+
+        fetch("?action=QUICK_APPROVE", { method: "POST", body: formData })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            if (data.status === "SUCCESS") {
+                showToast("Request " + reqNo + " approved.", "success");
+                showUploadResultNotification(true, "Approve Successful", "Request " + reqNo + " telah BERHASIL divalidasi dan SELURUH MATERIAL TERUPLOAD ke SAP S/4HANA Master Data!", data.message);
+            } else {
+                showToast("Approval failed.", "error");
+                showUploadResultNotification(false, "Approve Failed", "Proses Upload Material Request " + reqNo + " ke SAP S/4HANA GAGAL:", data.message);
+            }
+        })
+        .catch(function(err) {
+            showToast("Approval failed.", "error");
+            showUploadResultNotification(false, "System Error", "Terjadi kesalahan koneksi/sistem saat upload ke SAP.", err.message);
+        });
+    }
+
+    function showUploadResultNotification(isSuccess, title, message, details) {
+        var modal = document.getElementById("uploadResultModal");
+        var header = document.getElementById("uploadResultHeader");
+        var icon = document.getElementById("uploadResultIcon");
+        var heading = document.getElementById("uploadResultHeading");
+        var msg = document.getElementById("uploadResultMessage");
+        var detailBox = document.getElementById("uploadResultDetailBox");
+
+        if (!modal) return;
+
+        if (isSuccess) {
+            header.className = "px-5 py-4 border-b border-emerald-200 bg-emerald-50 " +
+                               "text-emerald-800 flex items-center justify-between";
+            icon.className = "w-14 h-14 rounded-full mx-auto flex items-center justify-center " +
+                             "text-2xl font-bold bg-emerald-100 text-emerald-600 border-2 " +
+                             "border-emerald-400 shadow-xs";
+            icon.innerHTML = "&#10003;";
+            heading.innerText = "BERHASIL DI-UPLOAD KE SAP S/4HANA!";
+            heading.className = "text-sm font-bold text-emerald-800 uppercase tracking-wide";
+        } else {
+            header.className = "px-5 py-4 border-b border-rose-200 bg-rose-50 " +
+                               "text-rose-800 flex items-center justify-between";
+            icon.className = "w-14 h-14 rounded-full mx-auto flex items-center justify-center " +
+                             "text-2xl font-bold bg-rose-100 text-rose-600 border-2 " +
+                             "border-rose-400 shadow-xs";
+            icon.innerHTML = "&#10005;";
+            heading.innerText = "GAGAL UPLOAD KE SAP S/4HANA!";
+            heading.className = "text-sm font-bold text-rose-800 uppercase tracking-wide";
+        }
+
+        msg.innerText = message || "";
+        if (details && details.trim() !== "") {
+            detailBox.innerText = details;
+            detailBox.classList.remove("hidden");
+        } else {
+            detailBox.classList.add("hidden");
+        }
+
+        modal.classList.remove("hidden");
+    }
+
+    function closeUploadResultModal() {
+        var modal = document.getElementById("uploadResultModal");
+        if (modal) modal.classList.add("hidden");
+        loadStagingList();
+    }
+
+    function deleteDraft(reqNo) {
+        if (!confirm("Delete draft " + reqNo + "?")) return;
+        var formData = new FormData();
+        formData.append("REQ_NO", reqNo);
+
+        fetch("?action=DELETE_DRAFT", { method: "POST", body: formData })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            showToast("Draft " + reqNo + " deleted.", "info");
+            loadStagingList();
+        })
+        .catch(function() { showToast("Failed to delete draft.", "error"); });
+    }
+
+    function showToast(message, type) {
+        if (!type) type = "info";
+        var dotClasses = { success: "bg-brand-500", error: "bg-red-500", info: "bg-blue-500" };
+        var bgClasses = {
+            success: "bg-slate-900 border-l-4 border-brand-500",
+            error: "bg-slate-900 border-l-4 border-red-500",
+            info: "bg-slate-900 border-l-4 border-blue-500"
+        };
+        var stack = document.getElementById("toastStack");
+        if (!stack) return;
+        var toast = document.createElement("div");
+        toast.className = 'min-w-[280px] max-w-[380px] ' + (bgClasses[type] || bgClasses.info) + ' text-white p-3 rounded-md text-xs flex items-start gap-2.5 shadow-lg transition-all duration-300 opacity-100 translate-y-0';
+
+        var tStr = '';
+        tStr += '<span class="shrink-0 mt-1 w-1.5 h-1.5 rounded-full ' + (dotClasses[type] || dotClasses.info) + '"></span>';
+        tStr += '<span class="font-medium">' + escapeHtml(message) + '</span>';
+        toast.innerHTML = tStr;
+
+        setTimeout(function() {
+            toast.classList.add("opacity-0", "translate-y-2");
+            setTimeout(function() { toast.remove(); }, 300);
+        }, 3500);
+    }
+
+    function loadSidebarCounters() {
+        fetch("?OnInputProcessing=GET_COUNTERS&action=GET_COUNTERS", { method: "POST" })
+        .then(function(res) {
+            var ct = res.headers.get("content-type") || "";
+            if (ct.indexOf("application/json") !== -1) {
+                return res.json();
+            }
+            return res.text().then(function(text) {
+                try { return JSON.parse(text); } catch(e) { return null; }
+            });
+        })
+        .then(function(cnts) {
+            if (!cnts) return;
+            var p = document.getElementById("sbBadgePending");
+            var a = document.getElementById("sbBadgeApproved");
+            var r = document.getElementById("sbBadgeRejected");
+            if (p && cnts.pending !== undefined) p.innerText = cnts.pending;
+            if (a && cnts.approved !== undefined) a.innerText = cnts.approved;
+            if (r && cnts.rejected !== undefined) r.innerText = cnts.rejected;
+        })
+        .catch(function(e) { console.error("Counter load err", e); });
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        loadSidebarCounters();
+    });
+</script>
+            </main>
+        </div>
+    </div>
+</body>
+</html>
