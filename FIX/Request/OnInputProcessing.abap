@@ -201,24 +201,6 @@ CASE lv_action.
       ls_dtl-bismt      = request->get_form_field( |bismt_{ idx_str }| ).
       ls_dtl-maktx      = request->get_form_field( |maktx_{ idx_str }| ).
       ls_dtl-mtart      = request->get_form_field( |mtart_{ idx_str }| ).
-
-      " Auto-generate / fetch next available Material Code from SAP via ZFM_CHECK_MATERIAL if matnr_ext is empty
-      IF ls_dtl-matnr_ext IS INITIAL AND ls_dtl-mtart IS NOT INITIAL.
-        DATA: lv_chk_avail TYPE char1,
-              lv_chk_next  TYPE matnr_ext.
-        CLEAR: lv_chk_avail, lv_chk_next.
-        CALL FUNCTION 'ZFM_CHECK_MATERIAL'
-          EXPORTING
-            iv_mtart        = ls_dtl-mtart
-          IMPORTING
-            ev_is_available = lv_chk_avail
-            ev_next_number  = lv_chk_next
-          EXCEPTIONS
-            OTHERS          = 1.
-        IF lv_chk_next IS NOT INITIAL.
-          ls_dtl-matnr_ext = lv_chk_next.
-        ENDIF.
-      ENDIF.
       ls_dtl-mbrsh      = request->get_form_field( |mbrsh_{ idx_str }| ).
       ls_dtl-matkl      = request->get_form_field( |matkl_{ idx_str }| ).
       ls_dtl-meins      = request->get_form_field( |meins_{ idx_str }| ).

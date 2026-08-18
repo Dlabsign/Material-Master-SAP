@@ -514,7 +514,7 @@ IF lv_action IS NOT INITIAL.
 
       DELETE FROM zmdg_req_hdr WHERE req_no = @lv_req_no.
       DELETE FROM zmdg_req_dtl WHERE req_no = @lv_req_no.
-      
+
       lv_json = '{"status":"SUCCESS","message":"Draft deleted!"}'.
       _m_response->set_content_type( 'application/json' ).
       _m_response->set_cdata( lv_json ).
