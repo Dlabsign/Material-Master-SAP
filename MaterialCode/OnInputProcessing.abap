@@ -239,6 +239,28 @@
           ENDIF.
         ENDIF.
 
+        " 10. Table Existence & Duplicate Check - MARA (SAP Material Master)
+        IF ls_check_dtl-matnr_ext IS NOT INITIAL.
+          DATA: lv_m_check TYPE matnr,
+                lv_m_exist TYPE mara-matnr.
+          CLEAR: lv_m_check, lv_m_exist.
+          CALL FUNCTION 'CONVERSION_EXIT_MATN1_INPUT'
+            EXPORTING
+              input        = ls_check_dtl-matnr_ext
+            IMPORTING
+              output       = lv_m_check
+            EXCEPTIONS
+              OTHERS       = 1.
+          IF lv_m_check IS INITIAL.
+            lv_m_check = CONV #( ls_check_dtl-matnr_ext ).
+          ENDIF.
+          SELECT SINGLE matnr FROM mara INTO @lv_m_exist WHERE matnr = @lv_m_check.
+          IF sy-subrc = 0.
+            IF lv_item_err IS NOT INITIAL. lv_item_err = |{ lv_item_err }; |. ENDIF.
+            lv_item_err = |{ lv_item_err }Kode Material '{ ls_check_dtl-matnr_ext }' sudah terdaftar di MARA SAP|.
+          ENDIF.
+        ENDIF.
+
         IF lv_item_err IS NOT INITIAL.
           lv_has_val_err = abap_true.
           IF lv_err_log IS NOT INITIAL.
@@ -248,80 +270,19 @@
         ENDIF.
       ENDLOOP.
 
-      " IF ANY ITEM FAILS VALIDATION -> AUTO REJECT
+      " IF ANY ITEM FAILS VALIDATION -> HOLD IN SYSTEM (DO NOT AUTO REJECT OR SEND EMAIL TO REQUESTOR)
       IF lv_has_val_err = abap_true.
-        DATA: lv_auto_rej_reason TYPE string.
-        lv_auto_rej_reason = |[AUTO-REJECT EXCEL.ABAP] { lv_err_log }|.
+        DATA: lv_auto_hold_reason TYPE string.
+        lv_auto_hold_reason = |[HOLD VALIDASI EXCEL.ABAP] { lv_err_log }|.
 
-        " Fetch Header & Requestor Info
-        CLEAR ls_hdr.
-        SELECT SINGLE * FROM zmdg_req_hdr INTO @ls_hdr WHERE req_no = @lv_req_no.
-
-        " Update Header Status to REJECTED
+        " Update Header Status to HOLD
         UPDATE zmdg_req_hdr
-          SET status     = 'REJECTED',
-              rej_reason = @lv_auto_rej_reason,
+          SET status     = 'HOLD',
+              rej_reason = @lv_auto_hold_reason,
               approver   = @sy-uname,
               app_date   = @sy-datum,
               app_time   = @sy-uzeit
           WHERE req_no   = @lv_req_no.
-
-        " Send Rejection Email Notification to Requestor
-        DATA: lv_req_usr TYPE usr21-bname,
-              lt_smtp_a  TYPE TABLE OF bapiadsmtp,
-              ls_smtp_a  TYPE bapiadsmtp,
-              lt_ret_u   TYPE TABLE OF bapiret2,
-              lv_em_addr TYPE string.
-
-        lv_req_usr = CONV #( ls_hdr-requestor ).
-        IF lv_req_usr IS NOT INITIAL.
-          CALL FUNCTION 'BAPI_USER_GET_DETAIL'
-            EXPORTING username = lv_req_usr
-            TABLES return = lt_ret_u addsmtp = lt_smtp_a.
-          READ TABLE lt_smtp_a INTO ls_smtp_a INDEX 1.
-          IF sy-subrc = 0 AND ls_smtp_a-e_mail IS NOT INITIAL.
-            lv_em_addr = ls_smtp_a-e_mail.
-          ENDIF.
-        ENDIF.
-
-        IF lv_em_addr IS NOT INITIAL.
-          TRY.
-              DATA: lo_send_r  TYPE REF TO cl_bcs,
-                    lo_doc_r   TYPE REF TO cl_document_bcs,
-                    lo_rec_r   TYPE REF TO if_recipient_bcs,
-                    lt_body_r  TYPE bcsy_text,
-                    lv_subj_r  TYPE so_obj_des,
-                    lv_sent_r  TYPE abap_bool.
-
-              lo_send_r = cl_bcs=>create_persistent( ).
-              lv_subj_r = |[MDG AUTO-REJECT] Request { lv_req_no } Gagal Validasi excel.abap|.
-
-              APPEND |Yth. { ls_hdr-requestor },| TO lt_body_r.
-              APPEND | | TO lt_body_r.
-              APPEND |Pengajuan Material Master Anda (Request ID: { lv_req_no }) DITOLAK OTOMATIS saat pemeriksaan Data Steward.| TO lt_body_r.
-              APPEND |Alasan: Terdapat data/kolom yang tidak memenuhi aturan validasi excel.abap.| TO lt_body_r.
-              APPEND |----------------------------------------------------------------------| TO lt_body_r.
-              APPEND |RINCIAN KESALAHAN VALIDASI:| TO lt_body_r.
-              APPEND |{ lv_err_log }| TO lt_body_r.
-              APPEND |----------------------------------------------------------------------| TO lt_body_r.
-              APPEND |Silakan perbaiki data pada sistem SAP MDG dan lakukan submit ulang.| TO lt_body_r.
-              APPEND | | TO lt_body_r.
-              APPEND |Salam,| TO lt_body_r.
-              APPEND |SAP MDG Data Steward Validation System| TO lt_body_r.
-
-              lo_doc_r = cl_document_bcs=>create_document(
-                          i_type    = 'RAW'
-                          i_text    = lt_body_r
-                          i_subject = lv_subj_r ).
-              lo_send_r->set_document( lo_doc_r ).
-              lo_rec_r = cl_cam_address_bcs=>create_internet_address( CONV #( lv_em_addr ) ).
-              lo_send_r->add_recipient( lo_rec_r ).
-              lo_send_r->set_send_immediately( abap_true ).
-              lv_sent_r = lo_send_r->send( i_with_error_screen = abap_false ).
-              COMMIT WORK.
-            CATCH cx_bcs.
-          ENDTRY.
-        ENDIF.
 
         TYPES: BEGIN OF ty_err_json,
                  status     TYPE string,
@@ -330,9 +291,9 @@
                END OF ty_err_json.
         DATA: ls_err_json TYPE ty_err_json.
 
-        ls_err_json-status     = 'REJECTED'.
-        ls_err_json-message    = |Dokumen { lv_req_no } gagal validasi excel.abap dan OTOMATIS DITOLAK (REJECTED).|.
-        ls_err_json-rej_reason = lv_auto_rej_reason.
+        ls_err_json-status     = 'HOLD'.
+        ls_err_json-message    = |Dokumen { lv_req_no } di-hold pada sistem karena terdapat data yang tidak sesuai validasi.|.
+        ls_err_json-rej_reason = lv_auto_hold_reason.
 
         lv_json = /ui2/cl_json=>serialize( data = ls_err_json compress = 'X' pretty_name = /ui2/cl_json=>pretty_mode-low_case ).
         _m_response->set_content_type( 'application/json' ).
@@ -490,7 +451,94 @@
       RETURN.
 
     " ==================================================================
-    " 6. LOGOUT
+    " 6. SEARCH SAP MARA RECORDS
+    " ==================================================================
+    WHEN 'SEARCH_MARA'.
+      DATA: lv_str_matnr     TYPE string,
+            lv_str_maktx     TYPE string,
+            lv_str_mtart     TYPE string,
+            lv_str_matkl     TYPE string,
+            lv_filter_matnr  TYPE char40,
+            lv_filter_maktx  TYPE char40,
+            lv_filter_mtart  TYPE mara-mtart,
+            lv_filter_matkl  TYPE char10,
+            lv_pattern_matnr TYPE char50,
+            lv_pattern_maktx TYPE char50,
+            lv_pattern_matkl TYPE char20,
+            lv_matnr_padded  TYPE mara-matnr.
+
+      TYPES: BEGIN OF ty_mara_res,
+               matnr TYPE mara-matnr,
+               maktx TYPE makt-maktx,
+               mtart TYPE mara-mtart,
+               matkl TYPE mara-matkl,
+               meins TYPE mara-meins,
+               bismt TYPE mara-bismt,
+               mbrsh TYPE mara-mbrsh,
+               spart TYPE mara-spart,
+             END OF ty_mara_res.
+
+      DATA: lt_mara_res TYPE TABLE OF ty_mara_res,
+            ls_mara_res TYPE ty_mara_res.
+
+      lv_str_matnr = request->get_form_field( 'FILTER_MATNR' ).
+      lv_str_maktx = request->get_form_field( 'FILTER_MAKTX' ).
+      lv_str_mtart = request->get_form_field( 'FILTER_MTART' ).
+      lv_str_matkl = request->get_form_field( 'FILTER_MATKL' ).
+
+      TRANSLATE lv_str_matnr TO UPPER CASE.
+      TRANSLATE lv_str_maktx TO UPPER CASE.
+      TRANSLATE lv_str_mtart TO UPPER CASE.
+      TRANSLATE lv_str_matkl TO UPPER CASE.
+
+      CONDENSE lv_str_matnr.
+      CONDENSE lv_str_maktx.
+      CONDENSE lv_str_mtart.
+      CONDENSE lv_str_matkl.
+
+      lv_filter_matnr = lv_str_matnr.
+      lv_filter_maktx = lv_str_maktx.
+      lv_filter_mtart = lv_str_mtart.
+      lv_filter_matkl = lv_str_matkl.
+
+      IF lv_filter_matnr IS NOT INITIAL.
+        CONCATENATE '%' lv_str_matnr '%' INTO lv_pattern_matnr.
+        IF lv_str_matnr CO '0123456789'.
+          lv_matnr_padded = lv_str_matnr.
+          CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
+            EXPORTING
+              input  = lv_matnr_padded
+            IMPORTING
+              output = lv_matnr_padded.
+        ENDIF.
+      ENDIF.
+
+      IF lv_filter_maktx IS NOT INITIAL.
+        CONCATENATE '%' lv_str_maktx '%' INTO lv_pattern_maktx.
+      ENDIF.
+
+      IF lv_filter_matkl IS NOT INITIAL.
+        CONCATENATE '%' lv_str_matkl '%' INTO lv_pattern_matkl.
+      ENDIF.
+
+      SELECT a~matnr, b~maktx, a~mtart, a~matkl, a~meins, a~bismt, a~mbrsh, a~spart
+        FROM mara AS a
+        LEFT OUTER JOIN makt AS b ON a~matnr = b~matnr AND b~spras = @sy-langu
+        WHERE ( @lv_filter_matnr IS INITIAL OR a~matnr LIKE @lv_pattern_matnr OR ( @lv_matnr_padded IS NOT INITIAL AND a~matnr = @lv_matnr_padded ) )
+          AND ( @lv_filter_maktx IS INITIAL OR b~maktx LIKE @lv_pattern_maktx )
+          AND ( @lv_filter_mtart IS INITIAL OR a~mtart = @lv_filter_mtart )
+          AND ( @lv_filter_matkl IS INITIAL OR a~matkl LIKE @lv_pattern_matkl )
+        INTO TABLE @lt_mara_res
+        UP TO 200 ROWS.
+
+      lv_json = /ui2/cl_json=>serialize( data = lt_mara_res compress = 'X' pretty_name = /ui2/cl_json=>pretty_mode-low_case ).
+      _m_response->set_content_type( 'application/json' ).
+      _m_response->set_cdata( lv_json ).
+      navigation->goto_page( '' ).
+      RETURN.
+
+    " ==================================================================
+    " 7. LOGOUT
     " ==================================================================
     WHEN 'LOGOUT'.
       navigation->exit( ).

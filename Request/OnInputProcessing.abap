@@ -157,6 +157,8 @@ TYPES: BEGIN OF ty_detail_json,
          qssys                  TYPE string,
          insptype               TYPE string,
          sernp                  TYPE string,
+         stawn                  TYPE string,
+         sales_text             TYPE string,
        END OF ty_detail_json.
 DATA: lt_detail_json TYPE TABLE OF ty_detail_json,
       ls_detail_json TYPE ty_detail_json.
@@ -314,6 +316,17 @@ CASE lv_action.
       ls_dtl-qssys      = request->get_form_field( |qssys_{ idx_str }| ).
       ls_dtl-insptype   = request->get_form_field( |insptype_{ idx_str }| ).
       ls_dtl-sernp      = request->get_form_field( |sernp_{ idx_str }| ).
+
+      FIELD-SYMBOLS: <fs_stawn> TYPE any, <fs_sales_text> TYPE any.
+      ASSIGN COMPONENT 'STAWN' OF STRUCTURE ls_dtl TO <fs_stawn>.
+      IF sy-subrc = 0 AND <fs_stawn> IS ASSIGNED.
+        <fs_stawn> = request->get_form_field( |stawn_{ idx_str }| ).
+      ENDIF.
+
+      ASSIGN COMPONENT 'SALES_TEXT' OF STRUCTURE ls_dtl TO <fs_sales_text>.
+      IF sy-subrc = 0 AND <fs_sales_text> IS ASSIGNED.
+        <fs_sales_text> = request->get_form_field( |sales_text_{ idx_str }| ).
+      ENDIF.
 
       lv_losgr_raw      = request->get_form_field( |losgr_{ idx_str }| ).
       REPLACE ALL OCCURRENCES OF ',' IN lv_losgr_raw WITH '.'.
@@ -489,6 +502,17 @@ CASE lv_action.
       ls_detail_json-qssys      = ls_dtl_db-qssys.
       ls_detail_json-insptype   = ls_dtl_db-insptype.
       ls_detail_json-sernp      = ls_dtl_db-sernp.
+
+      FIELD-SYMBOLS: <fs_db_stawn> TYPE any, <fs_db_sales_text> TYPE any.
+      ASSIGN COMPONENT 'STAWN' OF STRUCTURE ls_dtl_db TO <fs_db_stawn>.
+      IF sy-subrc = 0 AND <fs_db_stawn> IS ASSIGNED.
+        ls_detail_json-stawn = CONV #( <fs_db_stawn> ).
+      ENDIF.
+
+      ASSIGN COMPONENT 'SALES_TEXT' OF STRUCTURE ls_dtl_db TO <fs_db_sales_text>.
+      IF sy-subrc = 0 AND <fs_db_sales_text> IS ASSIGNED.
+        ls_detail_json-sales_text = CONV #( <fs_db_sales_text> ).
+      ENDIF.
 
       APPEND ls_detail_json TO lt_detail_json.
     ENDLOOP.

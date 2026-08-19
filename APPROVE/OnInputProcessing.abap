@@ -23,6 +23,21 @@ DATA: lv_action_ha TYPE string,
       lv_req_no_ha TYPE zmdg_req_hdr-req_no,
       lt_dtl_ha    TYPE TABLE OF zmdg_req_dtl.
 
+IF sy-uname <> 'ABAPER04'.
+  lv_action_ha = request->get_form_field( 'action' ).
+  IF lv_action_ha IS INITIAL.
+    lv_action_ha = request->get_form_field( 'OnInputProcessing' ).
+  ENDIF.
+  IF lv_action_ha IS NOT INITIAL.
+    lv_json_app = '{"status":"ERROR","message":"User cannot access this page."}'.
+    _m_response->set_status( code = 403 reason = 'Forbidden' ).
+    _m_response->set_content_type( 'application/json' ).
+    _m_response->set_cdata( lv_json_app ).
+    _m_navigation->response_complete( ).
+    RETURN.
+  ENDIF.
+ENDIF.
+
 lv_action_ha = request->get_form_field( 'action' ).
 IF lv_action_ha IS INITIAL.
   lv_action_ha = request->get_form_field( 'OnInputProcessing' ).

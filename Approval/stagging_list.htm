@@ -1,4 +1,62 @@
 <%@page language="ABAP" %>
+<%
+  IF sy-uname <> 'ABAPER04'.
+%>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Access Forbidden - Master Data Governance</title>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-emerald-700 via-emerald-800 to-teal-900 font-sans min-h-screen flex items-center justify-center p-4 antialiased selection:bg-emerald-500 selection:text-white">
+    <div class="relative w-full max-w-md">
+        <!-- Ambient Glow -->
+        <div class="absolute -top-12 -left-12 w-48 h-48 bg-emerald-400/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-12 -right-12 w-48 h-48 bg-amber-400/15 rounded-full blur-3xl pointer-events-none"></div>
+
+        <!-- Main Card with White Gradient -->
+        <div class="relative bg-gradient-to-b from-white via-slate-50 to-emerald-50/50 backdrop-blur-xl border border-white/80 rounded-3xl shadow-2xl p-8 sm:p-10 text-center space-y-6 overflow-hidden">
+            <!-- Top Gradient Accent Line -->
+            <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-500 via-teal-500 to-amber-400"></div>
+
+            <!-- Icon Accent Badge -->
+            <div class="w-16 h-16 bg-gradient-to-br from-amber-400 to-amber-500 text-slate-900 rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-amber-500/25">
+                <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+            </div>
+
+            <!-- Message Headings -->
+            <div class="space-y-2">
+                <h1 class="text-xl sm:text-2xl font-extrabold bg-gradient-to-r from-emerald-900 via-emerald-800 to-teal-900 bg-clip-text text-transparent tracking-tight leading-snug">
+                    MASTER DATA GOVERNANCE is forbidden
+                </h1>
+                <p class="text-sm font-medium text-emerald-900/80 bg-emerald-100/60 border border-emerald-200/80 py-2.5 px-4 rounded-2xl">
+                    Access to this page is very limited.
+                </p>
+            </div>
+
+            <!-- Logged In User Metadata -->
+            <div class="pt-4 border-t border-slate-200/60">
+                <p class="text-xs text-slate-500 font-medium">
+                    Logged in user: <span class="font-mono font-bold text-slate-800 bg-white border border-slate-200/80 px-2.5 py-1 rounded-lg inline-block ml-1 shadow-2xs"><%= sy-uname %></span>
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+<%
+    RETURN.
+  ENDIF.
+%>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -109,7 +167,7 @@
                 </div>
             </header>
 
-            <main class="max-w-[1900px] my-6 mx-auto px-4 sm:px-8 space-y-6 flex-1">
+            <main class="w-full max-w-[1900px] my-6 mx-auto px-4 sm:px-8 space-y-6 flex-1">
 
                 <!-- CENTERED PAGE HEADER -->
                 <div class="mb-8 text-center flex flex-col items-center justify-center">
@@ -238,28 +296,101 @@
 
             </main>
 
-            <!-- REJECTION REASON MODAL POPUP -->
-            <div id="rejectModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[10000] hidden flex items-center justify-center p-4">
-                <div class="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/80 max-w-md w-full overflow-hidden transform transition-all">
-                    <div class="bg-rose-500/10 border-b border-rose-500/20 px-6 py-4 flex items-center justify-between">
-                        <h3 class="text-xs font-extrabold text-rose-800 uppercase tracking-wider flex items-center gap-2">
-                            <span class="w-2 h-2 rounded-full bg-rose-500"></span> Reject Request
+            <!-- 1. ACTION CONFIRMATION MODAL (Approve & Reject) -->
+            <div id="actionConfirmModal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-[10000] hidden flex items-center justify-center p-4 transition-all duration-300">
+                <div class="bg-white/95 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/80 max-w-lg w-full overflow-hidden transform transition-all animate-in fade-in zoom-in-95 duration-200">
+                    <div id="confirmModalHeader" class="px-6 py-4 border-b flex items-center justify-between transition-colors">
+                        <h3 class="text-xs font-black uppercase tracking-wider flex items-center gap-2" id="confirmModalTitle">
+                            <!-- Title & Badge -->
                         </h3>
-                        <button type="button" onclick="closeRejectModal()" class="w-7 h-7 rounded-lg bg-white/80 hover:bg-white text-slate-400 hover:text-slate-700 font-bold text-base flex items-center justify-center transition border border-slate-200/80 cursor-pointer">&times;</button>
+                        <button type="button" onclick="closeConfirmModal()" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-700 font-bold text-lg flex items-center justify-center transition cursor-pointer">&times;</button>
                     </div>
-                    <div class="p-6 space-y-3">
-                        <input type="hidden" id="modalTargetReqNo" value="">
-                        <input type="hidden" id="modalMode" value="SINGLE">
 
-                        <label class="block text-[11px] font-extrabold text-slate-700 uppercase tracking-wider mb-1">Reason <span class="text-rose-600">*</span></label>
-                        <textarea id="rejectReasonInput" rows="3" placeholder="Enter rejection reason..." class="w-full p-3 border border-slate-200/80 rounded-xl text-xs outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 font-medium text-slate-800 bg-white/80 transition"></textarea>
+                    <div class="p-6 space-y-4">
+                        <div class="text-center space-y-2">
+                            <div id="confirmModalIcon" class="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center text-3xl shadow-xs transition-all"></div>
+                            <h4 id="confirmModalHeading" class="text-base font-black text-slate-900 tracking-tight"></h4>
+                            <p id="confirmModalSubtext" class="text-xs text-slate-600 font-medium leading-relaxed max-w-xs mx-auto"></p>
+                        </div>
+
+                        <!-- Target Request Details Box -->
+                        <div id="confirmTargetBox" class="bg-slate-50 border border-slate-200/80 rounded-2xl p-3.5 text-xs text-slate-700 space-y-1 font-mono break-all max-h-28 overflow-y-auto"></div>
+
+                        <!-- Rejection Input Area -->
+                        <div id="confirmRejectReasonGroup" class="hidden space-y-1.5 text-left">
+                            <label class="block text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">
+                                Alasan Penolakan / Rejection Reason <span class="text-rose-600">*</span>
+                            </label>
+                            <textarea id="confirmRejectReasonInput" rows="3" placeholder="Tuliskan alasan penolakan secara jelas..." class="w-full p-3 border border-slate-200/80 rounded-xl text-xs outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 font-medium text-slate-800 bg-white transition"></textarea>
+                        </div>
                     </div>
-                    <div class="bg-slate-100/90 backdrop-blur-xs px-6 py-4 border-t border-slate-200/80 flex justify-end gap-2">
-                        <button type="button" onclick="closeRejectModal()" class="px-4 py-2 rounded-full text-xs font-bold border border-slate-200/80 bg-white hover:bg-slate-50 text-slate-700 transition cursor-pointer">
-                            Cancel
+
+                    <div class="bg-slate-100/90 backdrop-blur-xs px-6 py-4 border-t border-slate-200/80 flex items-center justify-end gap-2.5">
+                        <button type="button" onclick="closeConfirmModal()" id="confirmCancelBtn" class="px-5 py-2.5 rounded-full text-xs font-bold border border-slate-200/80 bg-white hover:bg-slate-50 text-slate-700 transition cursor-pointer">
+                            Batal
                         </button>
-                        <button type="button" onclick="submitRejection()" class="px-5 py-2 rounded-full text-xs font-extrabold bg-rose-600 hover:bg-rose-700 text-white shadow-2xs transition cursor-pointer">
-                            Confirm Reject
+                        <button type="button" id="confirmSubmitBtn" onclick="executePendingAction()" class="px-6 py-2.5 rounded-full text-xs font-black text-white shadow-md transition transform active:scale-95 cursor-pointer">
+                            Confirm
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. SAP PROCESSING LOADING MODAL -->
+            <div id="sapProcessingModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[10001] hidden flex items-center justify-center p-4 transition-all duration-300">
+                <div class="bg-white/95 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/80 max-w-md w-full p-8 text-center space-y-5 animate-in fade-in zoom-in-95 duration-200">
+                    <div class="relative w-20 h-20 mx-auto flex items-center justify-center">
+                        <div class="absolute inset-0 rounded-full bg-emerald-500/20 animate-ping"></div>
+                        <div class="w-16 h-16 rounded-full border-4 border-emerald-200 border-t-emerald-600 animate-spin"></div>
+                        <span class="absolute text-2xl">⚡</span>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <h3 class="text-base font-black text-slate-900 tracking-tight" id="sapProcessingTitle">Processing Material into SAP...</h3>
+                        <p class="text-xs text-slate-500 font-medium leading-relaxed" id="sapProcessingSubtitle">
+                            Please wait while the material is being created and activated in SAP S/4HANA.
+                        </p>
+                    </div>
+
+                    <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                        <div class="bg-gradient-to-r from-emerald-500 to-teal-600 h-full w-2/3 animate-pulse rounded-full"></div>
+                    </div>
+
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Do not close window</p>
+                </div>
+            </div>
+
+            <!-- 3. ACTION RESULT MODAL (SUCCESS & ERROR) -->
+            <div id="actionResultModal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-[10002] hidden flex items-center justify-center p-4 transition-all duration-300">
+                <div class="bg-white/95 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/80 max-w-lg w-full overflow-hidden transform transition-all animate-in fade-in zoom-in-95 duration-200">
+                    <div id="resultModalHeader" class="px-6 py-4 border-b flex items-center justify-between">
+                        <h3 id="resultModalTitle" class="text-xs font-black uppercase tracking-wider flex items-center gap-2">
+                            <!-- Status Title -->
+                        </h3>
+                        <button type="button" onclick="closeActionResultModal()" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-700 font-bold text-lg flex items-center justify-center transition cursor-pointer">&times;</button>
+                    </div>
+
+                    <div class="p-6 space-y-4 text-center">
+                        <div id="resultModalIcon" class="w-16 h-16 rounded-full mx-auto flex items-center justify-center text-3xl shadow-lg transition-transform"></div>
+
+                        <div class="space-y-1">
+                            <h4 id="resultModalHeading" class="text-base font-black text-slate-900"></h4>
+                            <p id="resultModalSubtext" class="text-xs text-slate-600 font-medium leading-relaxed"></p>
+                        </div>
+
+                        <!-- Material Number Highlight Box -->
+                        <div id="resultMatnrBox" class="hidden bg-emerald-50 border border-emerald-200/80 rounded-2xl p-4 text-center space-y-1 shadow-2xs">
+                            <span class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-700 block">SAP Material Number Generated:</span>
+                            <span class="text-lg font-black text-emerald-900 font-mono tracking-wide" id="resultMatnrVal">-</span>
+                        </div>
+
+                        <!-- Technical Detail Box -->
+                        <div id="resultDetailBox" class="hidden text-left bg-slate-900 text-slate-200 p-4 rounded-2xl border border-slate-800 text-[11px] font-mono leading-relaxed max-h-48 overflow-y-auto shadow-inner"></div>
+                    </div>
+
+                    <div class="bg-slate-100/90 backdrop-blur-xs px-6 py-4 border-t border-slate-200/80 flex justify-center">
+                        <button type="button" onclick="closeActionResultModal()" class="px-8 py-2.5 rounded-full text-xs font-black bg-slate-900 hover:bg-slate-800 text-white shadow-md transition transform active:scale-95 cursor-pointer">
+                            OK, Mengerti
                         </button>
                     </div>
                 </div>
@@ -286,29 +417,6 @@
                     <div class="bg-slate-100/90 backdrop-blur-xs px-6 py-4 border-t border-slate-200/80 flex justify-end shrink-0">
                         <button type="button" onclick="closeMaterialDetailModal()" class="px-6 py-2.5 rounded-full text-xs font-extrabold bg-slate-900 hover:bg-slate-800 text-white shadow-xs transition transform active:scale-95 cursor-pointer">
                             Close
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- SAP UPLOAD RESULT NOTIFICATION MODAL -->
-            <div id="uploadResultModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[10000] hidden flex items-center justify-center p-4">
-                <div class="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/80 max-w-md w-full overflow-hidden transform transition-all">
-                    <div id="uploadResultHeader" class="px-6 py-4 border-b flex items-center justify-between">
-                        <h3 class="text-xs font-extrabold uppercase tracking-wider flex items-center gap-2" id="uploadResultTitle">
-                            SAP Upload Notification
-                        </h3>
-                        <button type="button" onclick="closeUploadResultModal()" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-600 font-bold text-base flex items-center justify-center transition cursor-pointer">&times;</button>
-                    </div>
-                    <div class="p-6 space-y-3 text-center">
-                        <div id="uploadResultIcon" class="w-14 h-14 rounded-full mx-auto flex items-center justify-center text-2xl font-bold shadow-inner"></div>
-                        <h4 class="text-sm font-extrabold text-slate-900" id="uploadResultHeading"></h4>
-                        <p class="text-xs text-slate-600 font-medium leading-relaxed" id="uploadResultMessage"></p>
-                        <div id="uploadResultDetailBox" class="hidden text-left bg-slate-50 p-3 rounded-2xl border border-slate-200/80 text-[11px] font-mono text-slate-700 max-h-36 overflow-y-auto"></div>
-                    </div>
-                    <div class="bg-slate-100/90 backdrop-blur-xs px-6 py-4 border-t border-slate-200/80 flex justify-center">
-                        <button type="button" onclick="closeUploadResultModal()" class="px-6 py-2.5 rounded-full text-xs font-extrabold bg-slate-900 hover:bg-slate-800 text-white shadow-xs transition transform active:scale-95 cursor-pointer">
-                            OK, Mengerti
                         </button>
                     </div>
                 </div>
@@ -350,6 +458,10 @@
     })
     .then(function(data) {
         fullStagingData = data || [];
+        console.group("🚀 [SAP MDG Debug] Staging List Loaded");
+        console.log("Total Requests in Staging Queue:", fullStagingData.length);
+        console.table(fullStagingData);
+        console.groupEnd();
         updateKPICards(fullStagingData);
         applyFilter();
     })
@@ -626,9 +738,14 @@
         .then(function(res) { return res.json(); })
         .then(function(data) {
             loadedBatchDetails[reqNo] = data || [];
+            console.group("📦 [SAP MDG Debug] Batch Items Loaded for REQ_NO: " + reqNo);
+            console.log("Total Items in Batch:", loadedBatchDetails[reqNo].length);
+            console.table(loadedBatchDetails[reqNo]);
+            console.groupEnd();
             renderExpandDetailTable(reqNo, loadedBatchDetails[reqNo]);
         })
-        .catch(function() {
+        .catch(function(err) {
+            console.error("[SAP MDG Debug] Error loading batch detail:", err);
             container.innerHTML = '<div class="p-3 text-center text-red-500 font-semibold italic text-xs">Failed to load items.</div>';
         });
     }
@@ -797,8 +914,82 @@
             bStr += field('Individual/Collective', row.kzkst || '2', false, true);
             bStr += '</div></div>';
 
+            // 6. SALES ORG & GENERAL PLANT DATA
+            bStr += '<div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">';
+            bStr += '<div class="bg-slate-100/70 border-b border-slate-200 px-4 py-2.5 font-bold text-brand-800 text-xs uppercase tracking-wider flex items-center gap-2">🏢 SALES ORG & GENERAL PLANT DATA</div>';
+            bStr += '<div class="p-3.5 grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 gap-3">';
+            bStr += field('Sales Org', row.vkorg || '1000', false, true);
+            bStr += field('Dist. Channel', row.vtweg || '10', false, true);
+            bStr += field('Delivering Plant', row.dwerk || row.werks || '1200', false, true);
+            bStr += field('Sales Unit', row.vrkme || row.meins || 'PC', false, true);
+            bStr += field('Item Cat. Group', row.mtpos || 'NORM', false, true);
+            bStr += field('Acct. Assignment', row.ktgrm || '01', false, true);
+            bStr += field('Mat. Group 1', row.mvgr1, false, true);
+            bStr += field('Mat. Group 2', row.mvgr2, false, true);
+            bStr += field('Mat. Group 3', row.mvgr3, false, true);
+            bStr += field('Mat. Group 4', row.mvgr4, false, true);
+            bStr += field('Mat. Group 5', row.mvgr5, false, true);
+            bStr += field('Sales Stat. Group', row.versg || '1', false, true);
+            bStr += '</div></div>';
+
+            // 7. QUALITY MANAGEMENT (QM)
+            bStr += '<div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">';
+            bStr += '<div class="bg-slate-100/70 border-b border-slate-200 px-4 py-2.5 font-bold text-brand-800 text-xs uppercase tracking-wider flex items-center gap-2">🔬 QUALITY MANAGEMENT (QM)</div>';
+            bStr += '<div class="p-3.5 grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 gap-3">';
+            bStr += field('QM Proc. Active', row.ssqss || 'X', false, false);
+            bStr += field('QM Control Key', row.qssys || '0001', false, true);
+            bStr += field('Inspection Type', row.insptype || '01', false, true);
+            bStr += field('Serial No. Profile', row.sernp, false, true);
+            bStr += '</div></div>';
+
+            // 8. COSTING 1 & 2
+            bStr += '<div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">';
+            bStr += '<div class="bg-slate-100/70 border-b border-slate-200 px-4 py-2.5 font-bold text-brand-800 text-xs uppercase tracking-wider flex items-center gap-2">💰 COSTING 1 & 2</div>';
+            bStr += '<div class="p-3.5 grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 gap-3">';
+            bStr += field('Costing Lot Size', row.losgr || '100', false, true);
+            bStr += field('With Qty Struct.', row.ekalr || 'X', false, false);
+            bStr += field('Do Not Cost', row.ncost, false, false);
+            bStr += field('Origin Group / Cost', row.hkmat || 'X', false, false);
+            bStr += field('Variance Key', row.klrab || '000001', false, true);
+            bStr += '</div></div>';
+
+            // 9. INTERNATIONAL TRADE / EXPORT
+            bStr += '<div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">';
+            bStr += '<div class="bg-slate-100/70 border-b border-slate-200 px-4 py-2.5 font-bold text-brand-800 text-xs uppercase tracking-wider flex items-center gap-2">🌐 INTERNATIONAL TRADE / EXPORT</div>';
+            bStr += '<div class="p-3.5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">';
+            bStr += field('Country of Origin', row.herkl || 'ID', false, true);
+            bStr += field('Commodity / HS Code', row.stawn || '-', false, true);
+            bStr += '</div></div>';
+
+            // 10. SALES TEXT & LONG TEXT
+            bStr += '<div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">';
+            bStr += '<div class="bg-slate-100/70 border-b border-slate-200 px-4 py-2.5 font-bold text-brand-800 text-xs uppercase tracking-wider flex items-center gap-2">📝 SALES TEXT & LONG TEXT</div>';
+            bStr += '<div class="p-3.5 grid grid-cols-1 gap-3">';
+            bStr += field('Sales Text', row.sales_text || '-', false, false);
+            bStr += '</div></div>';
+
             bStr += '</div>';
             body.innerHTML = bStr;
+
+            // Console Audit Logging
+            console.group("🔍 [SAP MDG Audit Log] Material Detail Inspection - " + (row.matnr_ext || row.matnr || row.maktx));
+            console.log("📄 Raw DB Record (zmdg_req_dtl):", row);
+            
+            var auditTable = [
+                { "SAP View": "Basic Data 1", "Key Fields": "MAKTX, MATKL, MEINS, SPART", "Status": (row.maktx && row.matkl && row.meins) ? "VALID" : "INCOMPLETE" },
+                { "SAP View": "Purchasing", "Key Fields": "EKGRP (Optional Empty)", "Status": "VALID" },
+                { "SAP View": "MRP 1 - 4", "Key Fields": "DISMM, DISPO, BESKZ, STRGR", "Status": (row.dismm || row.dispo) ? "VALID" : "INCOMPLETE" },
+                { "SAP View": "Work Scheduling", "Key Fields": "SFPRO, XCHPF, LGPRO", "Status": (row.sfpro || row.xchpf) ? "VALID" : "INCOMPLETE" },
+                { "SAP View": "Sales Org 1 & 2", "Key Fields": "VKORG, VTWEG, DWERK, VRKME", "Status": (row.vkorg || row.vtweg) ? "VALID" : "INCOMPLETE" },
+                { "SAP View": "Sales General/Plant", "Key Fields": "DWERK, TRAGR, LADGR, MTVFP", "Status": (row.dwerk || row.werks) ? "VALID" : "INCOMPLETE" },
+                { "SAP View": "Accounting 1", "Key Fields": "BKLAS, VPRSV, STPRS, PEINH", "Status": (row.bklas || row.vprsv) ? "VALID" : "INCOMPLETE" },
+                { "SAP View": "Costing 1 & 2", "Key Fields": "BKLAS, LOSGR, HKMAT, EKALR", "Status": (row.bklas || row.losgr) ? "VALID" : "INCOMPLETE" },
+                { "SAP View": "Quality Management", "Key Fields": "SSQSS, QSSYS, INSPTYPE", "Status": (row.ssqss || row.insptype || row.werks) ? "VALID" : "INCOMPLETE" },
+                { "SAP View": "Foreign Trade Export", "Key Fields": "HERKL, STAWN", "Status": (row.herkl || row.stawn) ? "VALID" : "OPTIONAL" },
+                { "SAP View": "Sales Text", "Key Fields": "SALES_TEXT", "Status": row.sales_text ? "VALID" : "OPTIONAL" }
+            ];
+            console.table(auditTable);
+            console.groupEnd();
         }
 
         var modalElem = document.getElementById("materialDetailModal");
@@ -856,125 +1047,235 @@
         }
     }
 
+    var pendingActionType = "";
+    var pendingTargetReqNos = "";
+
+    function quickApprove(reqNo) {
+        if (!reqNo) return;
+        pendingActionType = "APPROVE_SINGLE";
+        pendingTargetReqNos = reqNo;
+        openConfirmModal({
+            type: "APPROVE",
+            title: "Approve Material Request",
+            heading: "Approve Request " + reqNo + "?",
+            subtext: "Anda akan menyetujui request ini dan secara otomatis memproses pembuatan/pemuatan data ke SAP S/4HANA.",
+            targetInfo: "Request ID: " + reqNo,
+            submitLabel: "Approve & Upload to SAP",
+            btnClass: "bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold"
+        });
+    }
+
     function triggerBulkApprove() {
-        if (selectedReqNos.length === 0) return;
-        if (!confirm("Approve " + selectedReqNos.length + " selected request(s)?")) return;
-
-        var formData = new FormData();
-        formData.append("REQ_NOS", selectedReqNos.join(','));
-
-        fetch("?action=BULK_APPROVE", { method: "POST", body: formData })
-        .then(function(res) { return res.json(); })
-        .then(function(data) {
-            if (data.status === "SUCCESS") {
-                showToast(selectedReqNos.length + " request(s) approved.", "success");
-                showUploadResultNotification(true, "Approve Successful", "Request yang dipilih telah BERHASIL divalidasi dan TERUPLOAD ke SAP S/4HANA Master Data!", data.message);
-            } else {
-                showToast("Approval failed.", "error");
-                showUploadResultNotification(false, "Approve Failed", "Proses Upload Material ke SAP S/4HANA GAGAL:", data.message);
-            }
-        })
-        .catch(function(err) {
-            showToast("Bulk approval failed.", "error");
-            showUploadResultNotification(false, "System Error", "Terjadi kesalahan sistem saat melakukan upload ke SAP.", err.message);
+        if (selectedReqNos.length === 0) {
+            showToast("Pilih setidaknya satu request terlebih dahulu.", "info");
+            return;
+        }
+        pendingActionType = "APPROVE_BULK";
+        pendingTargetReqNos = selectedReqNos.join(',');
+        openConfirmModal({
+            type: "APPROVE",
+            title: "Bulk Approve Material Requests",
+            heading: "Approve " + selectedReqNos.length + " Selected Request(s)?",
+            subtext: "Semua request material yang dipilih akan divalidasi dan diunggah secara batch ke SAP S/4HANA.",
+            targetInfo: "Target Requests (" + selectedReqNos.length + "): " + selectedReqNos.join(', '),
+            submitLabel: "Approve All (" + selectedReqNos.length + ") to SAP",
+            btnClass: "bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold"
         });
     }
 
     function openRejectModal(mode, reqNo) {
-        if (!reqNo) reqNo = '';
-        document.getElementById("modalMode").value = mode;
-        document.getElementById("modalTargetReqNo").value = reqNo;
-        document.getElementById("rejectReasonInput").value = '';
-        document.getElementById("rejectModal").classList.remove("hidden");
-    }
-
-    function closeRejectModal() {
-        document.getElementById("rejectModal").classList.add("hidden");
-    }
-
-    function submitRejection() {
-        var mode = document.getElementById("modalMode").value;
-        var singleReqNo = document.getElementById("modalTargetReqNo").value;
-        var reason = document.getElementById("rejectReasonInput").value.trim();
-
-        if (!reason) {
-            showToast("Rejection reason is required.", "error");
+        if (mode === 'SINGLE' && !reqNo) return;
+        if (mode === 'BULK' && selectedReqNos.length === 0) {
+            showToast("Pilih setidaknya satu request untuk di-reject.", "info");
             return;
         }
 
-        var targetReqNos = (mode === 'SINGLE') ? singleReqNo : selectedReqNos.join(',');
-        if (!targetReqNos) {
-            showToast("No request selected.", "error");
-            return;
-        }
+        pendingActionType = (mode === 'SINGLE') ? "REJECT_SINGLE" : "REJECT_BULK";
+        pendingTargetReqNos = (mode === 'SINGLE') ? reqNo : selectedReqNos.join(',');
 
-        var formData = new FormData();
-        formData.append("REQ_NOS", targetReqNos);
-        formData.append("REJ_REASON", reason);
+        var infoText = (mode === 'SINGLE') ? ("Request ID: " + reqNo) : ("Selected Requests (" + selectedReqNos.length + "): " + selectedReqNos.join(', '));
 
-        fetch("?action=BULK_REJECT", { method: "POST", body: formData })
-        .then(function(res) { return res.json(); })
-        .then(function(data) {
-            showToast("Request rejected.", "info");
-            closeRejectModal();
-            loadStagingList();
-        })
-        .catch(function() { showToast("Rejection failed.", "error"); });
-    }
-
-    function quickApprove(reqNo) {
-        if (!confirm("Approve request " + reqNo + "?")) return;
-        var formData = new FormData();
-        formData.append("REQ_NO", reqNo);
-
-        fetch("?action=QUICK_APPROVE", { method: "POST", body: formData })
-        .then(function(res) { return res.json(); })
-        .then(function(data) {
-            if (data.status === "SUCCESS") {
-                showToast("Request " + reqNo + " approved.", "success");
-                showUploadResultNotification(true, "Approve Successful", "Request " + reqNo + " telah BERHASIL divalidasi dan SELURUH MATERIAL TERUPLOAD ke SAP S/4HANA Master Data!", data.message);
-            } else {
-                showToast("Approval failed.", "error");
-                showUploadResultNotification(false, "Approve Failed", "Proses Upload Material Request " + reqNo + " ke SAP S/4HANA GAGAL:", data.message);
-            }
-        })
-        .catch(function(err) {
-            showToast("Approval failed.", "error");
-            showUploadResultNotification(false, "System Error", "Terjadi kesalahan koneksi/sistem saat upload ke SAP.", err.message);
+        openConfirmModal({
+            type: "REJECT",
+            title: "Reject Material Request",
+            heading: (mode === 'SINGLE') ? ("Reject Request " + reqNo + "?") : ("Reject " + selectedReqNos.length + " Selected Request(s)?"),
+            subtext: "Data request yang ditolak tidak akan dikirim ke SAP. Silakan sertakan alasan penolakan.",
+            targetInfo: infoText,
+            submitLabel: "Confirm Rejection",
+            btnClass: "bg-rose-600 hover:bg-rose-700 text-white font-extrabold"
         });
     }
 
-    function showUploadResultNotification(isSuccess, title, message, details) {
-        var modal = document.getElementById("uploadResultModal");
-        var header = document.getElementById("uploadResultHeader");
-        var icon = document.getElementById("uploadResultIcon");
-        var heading = document.getElementById("uploadResultHeading");
-        var msg = document.getElementById("uploadResultMessage");
-        var detailBox = document.getElementById("uploadResultDetailBox");
+    function closeRejectModal() {
+        closeConfirmModal();
+    }
+
+    function submitRejection() {
+        executePendingAction();
+    }
+
+    function openConfirmModal(cfg) {
+        var modal = document.getElementById("actionConfirmModal");
+        var header = document.getElementById("confirmModalHeader");
+        var title = document.getElementById("confirmModalTitle");
+        var icon = document.getElementById("confirmModalIcon");
+        var heading = document.getElementById("confirmModalHeading");
+        var subtext = document.getElementById("confirmModalSubtext");
+        var targetBox = document.getElementById("confirmTargetBox");
+        var reasonGroup = document.getElementById("confirmRejectReasonGroup");
+        var reasonInput = document.getElementById("confirmRejectReasonInput");
+        var submitBtn = document.getElementById("confirmSubmitBtn");
+
+        if (!modal) return;
+
+        if (cfg.type === "APPROVE") {
+            header.className = "px-6 py-4 border-b border-emerald-200/80 bg-emerald-50/80 text-emerald-800 flex items-center justify-between";
+            title.innerHTML = '<span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> ' + cfg.title;
+            icon.className = "w-16 h-16 rounded-2xl mx-auto flex items-center justify-center text-3xl bg-emerald-100 text-emerald-600 border border-emerald-200 shadow-xs";
+            icon.innerHTML = "✅";
+            reasonGroup.classList.add("hidden");
+        } else {
+            header.className = "px-6 py-4 border-b border-rose-200/80 bg-rose-50/80 text-rose-800 flex items-center justify-between";
+            title.innerHTML = '<span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> ' + cfg.title;
+            icon.className = "w-16 h-16 rounded-2xl mx-auto flex items-center justify-center text-3xl bg-rose-100 text-rose-600 border border-rose-200 shadow-xs";
+            icon.innerHTML = "🚫";
+            reasonGroup.classList.remove("hidden");
+            reasonInput.value = "";
+        }
+
+        heading.innerText = cfg.heading;
+        subtext.innerText = cfg.subtext;
+        targetBox.innerText = cfg.targetInfo;
+        submitBtn.innerText = cfg.submitLabel;
+        submitBtn.className = "px-6 py-2.5 rounded-full text-xs font-black text-white shadow-md transition transform active:scale-95 cursor-pointer " + cfg.btnClass;
+
+        modal.classList.remove("hidden");
+    }
+
+    function closeConfirmModal() {
+        var modal = document.getElementById("actionConfirmModal");
+        if (modal) modal.classList.add("hidden");
+    }
+
+    function executePendingAction() {
+        if (!pendingActionType || !pendingTargetReqNos) return;
+
+        var reason = "";
+        if (pendingActionType === "REJECT_SINGLE" || pendingActionType === "REJECT_BULK") {
+            reason = document.getElementById("confirmRejectReasonInput").value.trim();
+            if (!reason) {
+                showToast("Alasan penolakan (Rejection Reason) wajib diisi!", "error");
+                return;
+            }
+        }
+
+        closeConfirmModal();
+        showProcessingModal(pendingActionType.startsWith("APPROVE"));
+
+        var formData = new FormData();
+        var actionUrl = "";
+
+        if (pendingActionType === "APPROVE_SINGLE") {
+            formData.append("REQ_NO", pendingTargetReqNos);
+            actionUrl = "?action=QUICK_APPROVE";
+        } else if (pendingActionType === "APPROVE_BULK") {
+            formData.append("REQ_NOS", pendingTargetReqNos);
+            actionUrl = "?action=BULK_APPROVE";
+        } else if (pendingActionType === "REJECT_SINGLE" || pendingActionType === "REJECT_BULK") {
+            formData.append("REQ_NOS", pendingTargetReqNos);
+            formData.append("REJ_REASON", reason);
+            actionUrl = "?action=BULK_REJECT";
+        }
+
+        fetch(actionUrl, { method: "POST", body: formData })
+        .then(function(res) {
+            if (!res.ok) throw new Error("HTTP error status: " + res.status);
+            return res.json();
+        })
+        .then(function(data) {
+            hideProcessingModal();
+
+            var isSuccess = (data.status === "SUCCESS");
+            if (isSuccess) {
+                var headingText = (pendingActionType.startsWith("APPROVE")) ?
+                    "Material Successfully Processed into SAP" : "Request Successfully Rejected";
+                var messageText = data.message || "Proses berhasil dilaksanakan pada SAP Master Data.";
+
+                // Extract Material Number if available
+                var matnrFound = data.matnr || data.matnr_ext || "";
+                if (!matnrFound && data.message) {
+                    var mMatch = data.message.match(/Material\s+([0-9A-Za-z_-]+)/i);
+                    if (mMatch && mMatch[1]) matnrFound = mMatch[1];
+                }
+
+                showActionResultModal(true, headingText, messageText, matnrFound, data.message);
+            } else {
+                var errHeading = (pendingActionType.startsWith("APPROVE")) ?
+                    "SAP Processing Failed" : "Rejection Failed";
+                showActionResultModal(false, errHeading, "Terjadi kesalahan saat memproses request ke SAP:", "", data.message || "SAP Error");
+            }
+        })
+        .catch(function(err) {
+            hideProcessingModal();
+            showActionResultModal(false, "System Communication Error", "Terjadi kegagalan komunikasi jaringan/sistem dengan SAP:", "", err.message);
+        });
+    }
+
+    function showProcessingModal(isApprove) {
+        var modal = document.getElementById("sapProcessingModal");
+        var title = document.getElementById("sapProcessingTitle");
+        var sub = document.getElementById("sapProcessingSubtitle");
+
+        if (title) title.innerText = isApprove ? "Processing Material into SAP..." : "Processing Rejection...";
+        if (sub) sub.innerText = isApprove ?
+            "Please wait while the material is being processed into SAP." :
+            "Mohon tunggu, status penolakan sedang diperbarui di sistem...";
+
+        if (modal) modal.classList.remove("hidden");
+    }
+
+    function hideProcessingModal() {
+        var modal = document.getElementById("sapProcessingModal");
+        if (modal) modal.classList.add("hidden");
+    }
+
+    function showActionResultModal(isSuccess, heading, message, matnr, details) {
+        var modal = document.getElementById("actionResultModal");
+        var header = document.getElementById("resultModalHeader");
+        var title = document.getElementById("resultModalTitle");
+        var icon = document.getElementById("resultModalIcon");
+        var headEl = document.getElementById("resultModalHeading");
+        var subEl = document.getElementById("resultModalSubtext");
+        var matBox = document.getElementById("resultMatnrBox");
+        var matVal = document.getElementById("resultMatnrVal");
+        var detailBox = document.getElementById("resultDetailBox");
 
         if (!modal) return;
 
         if (isSuccess) {
-            header.className = "px-5 py-4 border-b border-emerald-200 bg-emerald-50 " +
-                               "text-emerald-800 flex items-center justify-between";
-            icon.className = "w-14 h-14 rounded-full mx-auto flex items-center justify-center " +
-                             "text-2xl font-bold bg-emerald-100 text-emerald-600 border-2 " +
-                             "border-emerald-400 shadow-xs";
+            header.className = "px-6 py-4 border-b border-emerald-200/80 bg-emerald-50/80 text-emerald-800 flex items-center justify-between";
+            title.innerHTML = '<span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> SUCCESS';
+            icon.className = "w-16 h-16 rounded-full mx-auto flex items-center justify-center text-3xl bg-emerald-100 text-emerald-600 border-4 border-emerald-200 shadow-md";
             icon.innerHTML = "&#10003;";
-            heading.innerText = "BERHASIL DI-UPLOAD KE SAP S/4HANA!";
-            heading.className = "text-sm font-bold text-emerald-800 uppercase tracking-wide";
+            headEl.className = "text-base font-black text-emerald-900";
         } else {
-            header.className = "px-5 py-4 border-b border-rose-200 bg-rose-50 " +
-                               "text-rose-800 flex items-center justify-between";
-            icon.className = "w-14 h-14 rounded-full mx-auto flex items-center justify-center " +
-                             "text-2xl font-bold bg-rose-100 text-rose-600 border-2 " +
-                             "border-rose-400 shadow-xs";
+            header.className = "px-6 py-4 border-b border-rose-200/80 bg-rose-50/80 text-rose-800 flex items-center justify-between";
+            title.innerHTML = '<span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> ERROR / FAILED';
+            icon.className = "w-16 h-16 rounded-full mx-auto flex items-center justify-center text-3xl bg-rose-100 text-rose-600 border-4 border-rose-200 shadow-md";
             icon.innerHTML = "&#10005;";
-            heading.innerText = "GAGAL UPLOAD KE SAP S/4HANA!";
-            heading.className = "text-sm font-bold text-rose-800 uppercase tracking-wide";
+            headEl.className = "text-base font-black text-rose-900";
         }
 
-        msg.innerText = message || "";
+        headEl.innerText = heading;
+        subEl.innerText = message || "";
+
+        if (matnr) {
+            matVal.innerText = matnr;
+            matBox.classList.remove("hidden");
+        } else {
+            matBox.classList.add("hidden");
+        }
+
         if (details && details.trim() !== "") {
             detailBox.innerText = details;
             detailBox.classList.remove("hidden");
@@ -985,10 +1286,19 @@
         modal.classList.remove("hidden");
     }
 
-    function closeUploadResultModal() {
-        var modal = document.getElementById("uploadResultModal");
+    function closeActionResultModal() {
+        var modal = document.getElementById("actionResultModal");
         if (modal) modal.classList.add("hidden");
         loadStagingList();
+        loadSidebarCounters();
+    }
+
+    function showUploadResultNotification(isSuccess, title, message, details) {
+        showActionResultModal(isSuccess, title, message, "", details);
+    }
+
+    function closeUploadResultModal() {
+        closeActionResultModal();
     }
 
     function deleteDraft(reqNo) {

@@ -131,24 +131,130 @@
                 </p>
             </div>
 
+            <!-- 1. CONTAINER 1: MATERIAL SEARCH & REFERENCE (SAP MARA CONNECTION - 2 COLUMNS) -->
+            <section class="glass-panel rounded-3xl p-6 lg:p-7 mb-8 transition-all duration-300">
+                <!-- HEADER CONTAINER 1 -->
+                <div class="flex items-center justify-between pb-4 mb-6 border-b border-slate-200/60 flex-wrap gap-3">
+                    <div class="flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-xl bg-emerald-600 text-white font-extrabold text-xs flex items-center justify-center shadow-xs">01</span>
+                        <div>
+                            <h2 class="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                                Search Material
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/10 text-emerald-800 border border-emerald-500/20">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>LIVE TABLE
+                                </span>
+                            </h2>
+                            <p class="text-[11px] text-slate-500 font-medium">Validate material data before request.</p>
+                        </div>
+                    </div>
+                    <button type="button" onclick="resetMaraFilter()" class="text-xs text-slate-600 hover:text-emerald-700 font-bold px-3.5 py-1.5 rounded-full border border-slate-200/80 bg-white/60 hover:bg-white transition inline-flex items-center gap-1 cursor-pointer">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        Clear Filters
+                    </button>
+                </div>
+
+                <!-- 2-COLUMN LAYOUT GRID -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <!-- COLUMN 1: PARAMETER FILTER (Left Panel) -->
+                    <div class="lg:col-span-4 glass-subpanel rounded-2xl p-5 flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider mb-4 flex items-center gap-2 border-b border-slate-200/70 pb-2.5">
+                                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                                </svg>
+                                Query Parameters
+                            </h3>
+
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="block text-[11px] font-bold text-slate-700 mb-1">Material Code</label>
+                                    <input type="text" id="filterMatnr" placeholder="Filter MATNR (e.g. 50025217)..." onkeyup="handleFilterKeyup(event)" class="w-full p-2.5 text-xs border border-slate-200/80 rounded-xl focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 bg-white/80 text-slate-800 font-mono transition shadow-2xs">
+                                </div>
+
+                                <div>
+                                    <label class="block text-[11px] font-bold text-slate-700 mb-1">Material Description</label>
+                                    <input type="text" id="filterMaktx" placeholder="Filter description (e.g. BEARING)..." onkeyup="handleFilterKeyup(event)" class="w-full p-2.5 text-xs border border-slate-200/80 rounded-xl focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 bg-white/80 text-slate-800 font-medium transition shadow-2xs">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-6 pt-3.5 border-t border-slate-200/70">
+                            <button type="button" onclick="searchMaraSAP()" class="w-full py-3 px-4 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-black text-xs rounded-xl shadow-xs hover:shadow transition-all inline-flex items-center justify-center gap-2 cursor-pointer">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                                <span>Search SAP MARA</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- COLUMN 2: SAP MARA REFERENCE RESULTS (Right Panel) -->
+                    <div class="lg:col-span-8 glass-subpanel rounded-2xl p-5 flex flex-col justify-between min-h-[310px]">
+                        <div>
+                            <div class="flex items-center justify-between pb-3.5 mb-3.5 border-b border-slate-200/70 flex-wrap gap-2">
+                                <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                    </svg>
+                                    Material Master Result
+                                </h3>
+                                <span id="maraResultBadge" class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-white/80 text-slate-600 border border-slate-200">Ready</span>
+                            </div>
+
+                            <!-- MARA TABLE RESULTS -->
+                            <div class="overflow-x-auto max-h-[250px] rounded-xl border border-slate-200/80 bg-white/60">
+                                <table class="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr class="bg-slate-100/80 border-b border-slate-200 text-[10px] uppercase tracking-wider font-extrabold text-slate-600 sticky top-0 z-10 backdrop-blur-xs">
+                                            <th class="p-2.5 text-center w-8">No</th>
+                                            <th class="p-2.5">Material Code</th>
+                                            <th class="p-2.5">Description</th>
+                                            <th class="p-2.5 text-center">Type</th>
+                                            <th class="p-2.5 text-center">Group</th>
+                                            <th class="p-2.5 text-center">UoM</th>
+                                            <th class="p-2.5 text-center">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="maraResultTbody" class="text-xs divide-y divide-slate-100/80">
+                                        <tr>
+                                            <td colspan="7" class="p-8 text-center text-slate-400 font-medium">
+                                                Enter parameters and search to view records.
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- MARA PAGINATION FOOTER -->
+                            <div id="maraPaginationFooter" class="hidden mt-3 pt-2.5 border-t border-slate-200/60 flex items-center justify-between flex-wrap gap-2 text-xs">
+                                <span id="maraPaginationSummary" class="text-[11px] font-bold text-slate-500">Showing 1-5 of 20 items</span>
+                                <div id="maraPaginationControls" class="flex items-center gap-1"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <!-- KPI SUMMARY CARDS -->
             <!-- SUMMARY STATS BADGES BAR -->
             <div class="flex flex-wrap items-center justify-between gap-3 mb-4 px-1">
                 <div class="flex items-center gap-2.5 flex-wrap">
-                    <!-- Belum Approved -->
-                    <div class="inline-flex items-center gap-2 bg-white/80 backdrop-blur-md border border-slate-200/80 px-3.5 py-1.5 rounded-2xl shadow-2xs">
+                    <!-- On Check -->
+                    <div class="inline-flex items-center gap-2 bg-white/80 backdrop-blur-md border border-slate-200/80 px-3.5 py-1.5 rounded-2xl shadow-2xs cursor-pointer hover:bg-teal-50/50" onclick="setFilterStatusTab('SUBMITTED')">
                         <span class="w-2 h-2 rounded-full bg-teal-500 animate-pulse"></span>
-                        <span class="text-xs font-bold text-slate-600">Belum Approved:</span>
+                        <span class="text-xs font-bold text-slate-600">On Check:</span>
                         <span class="text-xs font-black text-teal-700 font-mono" id="statPendingCount">0</span>
                     </div>
                     <!-- Approved -->
-                    <div class="inline-flex items-center gap-2 bg-white/80 backdrop-blur-md border border-slate-200/80 px-3.5 py-1.5 rounded-2xl shadow-2xs">
+                    <div class="inline-flex items-center gap-2 bg-white/80 backdrop-blur-md border border-slate-200/80 px-3.5 py-1.5 rounded-2xl shadow-2xs cursor-pointer hover:bg-emerald-50/50" onclick="setFilterStatusTab('APPROVED')">
                         <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                        <span class="text-xs font-bold text-slate-600">Sudah Approved:</span>
+                        <span class="text-xs font-bold text-slate-600">Approved:</span>
                         <span class="text-xs font-black text-emerald-700 font-mono" id="statApprovedCount">0</span>
                     </div>
                     <!-- Rejected -->
-                    <div class="inline-flex items-center gap-2 bg-white/80 backdrop-blur-md border border-slate-200/80 px-3.5 py-1.5 rounded-2xl shadow-2xs">
+                    <div class="inline-flex items-center gap-2 bg-white/80 backdrop-blur-md border border-slate-200/80 px-3.5 py-1.5 rounded-2xl shadow-2xs cursor-pointer hover:bg-rose-50/50" onclick="setFilterStatusTab('REJECTED')">
                         <span class="w-2 h-2 rounded-full bg-rose-500"></span>
                         <span class="text-xs font-bold text-slate-600">Rejected:</span>
                         <span class="text-xs font-black text-rose-700 font-mono" id="statRejectedCount">0</span>
@@ -156,15 +262,34 @@
                 </div>
             </div>
 
-            <!-- FILTER & SEARCH BAR PANEL -->
+            <!-- STATUS BUTTON TABS & FILTER BAR PANEL -->
             <section class="glass-panel rounded-2xl p-4 mb-6 transition-all duration-300">
+                <!-- BUTTON TABS SELECTOR -->
+                <div class="flex items-center gap-2 border-b border-slate-200/70 pb-3 mb-3.5 overflow-x-auto">
+                    <button type="button" id="tabBtn_ALL" onclick="setFilterStatusTab('ALL')" class="status-tab-btn px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer bg-slate-900 text-white shadow-2xs flex items-center gap-1.5">
+                        All Statuses
+                    </button>
+                    <button type="button" id="tabBtn_SUBMITTED" onclick="setFilterStatusTab('SUBMITTED')" class="status-tab-btn px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer bg-white/80 text-slate-600 hover:bg-white border border-slate-200/80 flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-teal-500 animate-pulse"></span>
+                        On Check
+                    </button>
+                    <button type="button" id="tabBtn_APPROVED" onclick="setFilterStatusTab('APPROVED')" class="status-tab-btn px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer bg-white/80 text-slate-600 hover:bg-white border border-slate-200/80 flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                        Approved
+                    </button>
+                    <button type="button" id="tabBtn_REJECTED" onclick="setFilterStatusTab('REJECTED')" class="status-tab-btn px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer bg-white/80 text-slate-600 hover:bg-white border border-slate-200/80 flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+                        Rejected
+                    </button>
+                </div>
+
                 <div class="flex flex-col md:flex-row items-center justify-between gap-3">
                     <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 w-full md:w-auto">
                         <div>
-                            <label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Urutkan Tanggal</label>
+                            <label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Sort Date</label>
                             <select id="dateSortFilter" class="custom-select w-full px-3 py-2 border border-slate-200/80 rounded-xl text-xs outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 bg-white/80 font-semibold text-slate-700 cursor-pointer transition" onchange="applyFilter()">
-                                <option value="DESC">Terbaru &rarr; Terlama</option>
-                                <option value="ASC">Terlama &rarr; Terbaru</option>
+                                <option value="DESC">Newest First</option>
+                                <option value="ASC">Oldest First</option>
                             </select>
                         </div>
                         <div>
@@ -172,20 +297,20 @@
                             <select id="columnFilter" class="custom-select w-full px-3 py-2 border border-slate-200/80 rounded-xl text-xs outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 bg-white/80 font-semibold text-slate-700 cursor-pointer transition" onchange="applyFilter()">
                                 <option value="ALL">All Columns</option>
                                 <option value="req_no">Request ID</option>
-                                <option value="sub_reason">Permintaan (SUB_REASON)</option>
+                                <option value="sub_reason">Request Description</option>
                                 <option value="requestor">Requestor</option>
                                 <option value="rej_reason">Rejection Reason</option>
                             </select>
                         </div>
                         <div>
-                            <label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Status</label>
-                            <select id="statusFilter" class="custom-select w-full px-3 py-2 border border-slate-200/80 rounded-xl text-xs outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 bg-white/80 font-semibold text-slate-700 cursor-pointer transition" onchange="applyFilter()">
+                            <label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Filter Status</label>
+                            <select id="statusFilter" class="custom-select w-full px-3 py-2 border border-slate-200/80 rounded-xl text-xs outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 bg-white/80 font-semibold text-slate-700 cursor-pointer transition" onchange="onStatusSelectChanged()">
                                 <option value="ALL">All Statuses</option>
-                                <option value="SUBMITTED">Submitted</option>
+                                <option value="SUBMITTED">On Check</option>
                                 <option value="CHECKED">Ready for Approval</option>
                                 <option value="DRAFT">Draft</option>
-                                <option value="APPROVED">Approved / SAP Created</option>
-                                <option value="REJECTED">Returned / Rejected</option>
+                                <option value="APPROVED">Approved</option>
+                                <option value="REJECTED">Rejected</option>
                             </select>
                         </div>
                         <div>
@@ -213,7 +338,7 @@
                         <thead>
                             <tr class="bg-slate-100/80 border-b border-slate-200/80 text-[10px] font-black text-slate-600 uppercase tracking-wider backdrop-blur-xs">
                                 <th class="p-3.5 w-12 text-center">#</th>
-                                <th class="p-3.5">Permintaan</th>
+                                <th class="p-3.5">Request</th>
                                 <th class="p-3.5 w-36 text-center">Request Date</th>
                                 <th class="p-3.5 w-32 text-center">Requestor</th>
                                 <th class="p-3.5 w-32 text-center">Status</th>
@@ -226,6 +351,12 @@
                             </tr>
                         </tbody>
                     </table>
+                </div>
+
+                <!-- REQUEST PAGINATION FOOTER -->
+                <div id="requestPaginationFooter" class="px-6 py-4 bg-slate-50/60 border-t border-slate-200/80 flex items-center justify-between flex-wrap gap-2 text-xs">
+                    <span id="requestPaginationSummary" class="text-[11px] font-bold text-slate-500">Showing 0 requests</span>
+                    <div id="requestPaginationControls" class="flex items-center gap-1"></div>
                 </div>
             </section>
 
@@ -243,7 +374,7 @@
                         </div>
                         <div>
                             <h2 class="font-extrabold text-sm text-white flex items-center gap-2">
-                                <span>Review &amp; Pengecekan Request</span>
+                                <span>Request Review</span>
                                 <span class="bg-emerald-500/20 text-emerald-300 text-xs font-black px-3 py-0.5 rounded-full border border-emerald-500/30 uppercase font-mono" id="drawerReqIdLabel">REQ-0000</span>
                             </h2>
                             <p class="text-[11px] text-slate-400 font-medium mt-0.5" id="drawerSubLabel">Requestor: - | Date: -</p>
@@ -259,7 +390,7 @@
                     <div class="flex items-center gap-2">
                         <div class="relative w-80">
                             <svg class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                            <input type="text" id="modalItemSearch" onkeyup="filterModalItems()" placeholder="Cari item dalam review..." class="w-full pl-9 pr-3 py-1.5 border border-slate-200/80 rounded-xl text-xs outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 bg-white/90 text-slate-800 font-medium transition shadow-2xs">
+                            <input type="text" id="modalItemSearch" onkeyup="filterModalItems()" placeholder="Search item..." class="w-full pl-9 pr-3 py-1.5 border border-slate-200/80 rounded-xl text-xs outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 bg-white/90 text-slate-800 font-medium transition shadow-2xs">
                         </div>
                     </div>
 
@@ -279,7 +410,7 @@
                         <div class="flex items-center justify-between pb-2 mb-2 border-b border-rose-100/80 flex-wrap gap-2">
                             <h3 class="text-xs font-black text-rose-800 uppercase tracking-wider flex items-center gap-2">
                                 <svg class="w-4 h-4 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                                <span>HASIL VALIDASI / ALASAN REJECT:</span>
+                                <span>Validation / Rejection Reason:</span>
                             </h3>
                             <span id="drawerRejectBadge" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-100 text-rose-800 border border-rose-200 uppercase font-mono">
                                 REJECTED
@@ -298,7 +429,7 @@
                             </thead>
                             <tbody id="drawerItemTableBody" class="divide-y divide-slate-100">
                                 <tr>
-                                    <td colspan="140" class="p-6 text-center text-slate-400 font-medium">Loading item details...</td>
+                                    <td colspan="140" class="p-6 text-center text-slate-400 font-medium">Loading items...</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -309,10 +440,14 @@
                 <div class="px-6 py-4 bg-slate-100/90 backdrop-blur-xs border-t border-slate-200/80 flex items-center justify-between gap-3 shrink-0">
                     <button id="drawerReturnBtn" onclick="openReturnModal()" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 px-5 py-2.5 rounded-full font-extrabold text-xs flex items-center gap-1.5 transition active:scale-95 cursor-pointer shadow-2xs">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        Kembalikan ke Requestor
+                        Return Request
                     </button>
 
                     <div class="flex items-center gap-2">
+                        <button id="drawerCheckBtn" onclick="markAsCheckedDirect(currentReqNo)" class="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white px-5 py-2.5 rounded-full font-extrabold text-xs shadow-xs transition active:scale-95 flex items-center gap-1.5 cursor-pointer">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            Check Data
+                        </button>
                         <button onclick="closeCodeDrawer()" class="bg-slate-900 hover:bg-slate-800 text-white px-6 py-2.5 rounded-full font-extrabold text-xs shadow-xs transition active:scale-95 flex items-center gap-1.5 cursor-pointer">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                             Close
@@ -328,15 +463,15 @@
             <div class="bg-white/95 backdrop-blur-xl rounded-3xl max-w-md w-full p-6 shadow-2xl border border-white/80">
                 <h3 class="text-sm font-black text-slate-900 flex items-center gap-2 mb-2">
                     <svg class="w-5 h-5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                    Return Request to Purchasing <span id="returnModalReqId" class="text-rose-700 font-mono font-bold"></span>
+                    Return Request <span id="returnModalReqId" class="text-rose-700 font-mono font-bold"></span>
                 </h3>
-                <p class="text-xs text-slate-500 font-medium mb-4">Please specify the reason why this request is returned or rejected so Purchasing can revise it.</p>
+                <p class="text-xs text-slate-500 font-medium mb-4">Specify the reason for returning or rejecting this request.</p>
 
                 <label class="block text-xs font-extrabold text-slate-700 mb-1.5">
-                    Alasan Penolakan (Rejection Reason) <span class="text-rose-600 font-bold">*</span>
+                    Rejection Reason <span class="text-rose-600 font-bold">*</span>
                 </label>
-                <textarea id="returnReasonInput" rows="3" placeholder="Enter mandatory rejection reason (e.g. Incorrect material group, duplicate description...)" class="w-full p-3 border border-slate-200/80 rounded-xl text-xs outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 bg-white text-slate-800 font-medium transition shadow-2xs"></textarea>
-                <p id="returnReasonError" class="text-[11px] text-rose-600 font-bold hidden mt-1.5">⚠️ Alasan penolakan (Rejection Reason) wajib diisi!</p>
+                <textarea id="returnReasonInput" rows="3" placeholder="Enter rejection reason..." class="w-full p-3 border border-slate-200/80 rounded-xl text-xs outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 bg-white text-slate-800 font-medium transition shadow-2xs"></textarea>
+                <p id="returnReasonError" class="text-[11px] text-rose-600 font-bold hidden mt-1.5">⚠️ Rejection reason is required.</p>
 
                 <div class="flex items-center justify-end gap-2.5 mt-5">
                     <button onclick="closeReturnModal()" class="px-4 py-2 rounded-full text-xs font-bold text-slate-600 hover:bg-slate-100 transition cursor-pointer">Cancel</button>
@@ -347,35 +482,105 @@
             </div>
         </div>
 
-        <!-- MODAL VALIDATION FAILURE RESULT (EXCEL.ABAP AUTO-REJECT) -->
+        <!-- MODAL VALIDATION FAILURE / HOLD RESULT (EXCEL.ABAP CHECK) -->
         <div id="valResultModal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-            <div class="bg-white/95 backdrop-blur-xl rounded-3xl max-w-2xl w-full p-6 shadow-2xl border border-rose-200/80 overflow-hidden">
-                <div class="flex items-center gap-3 border-b border-rose-100 pb-4 mb-4">
-                    <div class="w-10 h-10 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center font-black text-lg shrink-0 shadow-2xs">
-                        ✕
+            <div class="bg-white/95 backdrop-blur-xl rounded-3xl max-w-2xl w-full p-6 shadow-2xl border border-amber-200/80 overflow-hidden">
+                <div class="flex items-center gap-3 border-b border-amber-100 pb-4 mb-4">
+                    <div class="w-10 h-10 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center font-black text-lg shrink-0 shadow-2xs" id="valModalIcon">
+                        ⚠️
                     </div>
                     <div>
                         <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-                            <span>Hasil Validasi: Dokumen Otomatis REJECTED</span>
-                            <span id="valModalReqNo" class="bg-rose-100 text-rose-800 font-mono text-xs px-2.5 py-0.5 rounded-full font-bold"></span>
+                            <span id="valModalTitle">Validation Result: Document On Hold</span>
+                            <span id="valModalReqNo" class="bg-amber-100 text-amber-800 font-mono text-xs px-2.5 py-0.5 rounded-full font-bold"></span>
                         </h3>
-                        <p class="text-[11px] text-slate-500 font-medium mt-0.5">Ditemukan kesalahan data/kolom berdasarkan aturan baku excel.abap.</p>
+                        <p class="text-[11px] text-slate-500 font-medium mt-0.5" id="valModalSubtitle">Validation failed based on rules.</p>
                     </div>
                 </div>
 
-                <div class="bg-rose-50/70 border border-rose-200/80 rounded-2xl p-4 mb-4 max-h-60 overflow-y-auto font-mono text-xs text-rose-900 whitespace-pre-wrap leading-relaxed shadow-2xs" id="valModalErrorDetail">
+                <div class="bg-amber-50/70 border border-amber-200/80 rounded-2xl p-4 mb-4 max-h-60 overflow-y-auto font-mono text-xs text-amber-900 whitespace-pre-wrap leading-relaxed shadow-2xs" id="valModalErrorDetail">
                 </div>
 
-                <div class="p-3.5 bg-amber-50/80 border border-amber-200/80 rounded-2xl text-amber-800 text-[11px] font-semibold flex items-center gap-2 mb-5 shadow-2xs">
+                <div class="p-3.5 bg-amber-50/80 border border-amber-200/80 rounded-2xl text-amber-900 text-[11px] font-semibold flex items-center gap-2 mb-5 shadow-2xs">
                     <svg class="w-4 h-4 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    <span>Dokumen ini <strong>tidak dikirim ke stagging_list.htm</strong> dan telah dikembalikan ke Requestor beserta alasan reject di atas.</span>
+                    <span id="valModalNote">Document is <strong>On Hold</strong> in system for review and not returned to requestor.</span>
                 </div>
 
                 <div class="flex items-center justify-end">
                     <button onclick="closeValModal()" class="bg-slate-900 hover:bg-slate-800 text-white px-6 py-2.5 rounded-full text-xs font-extrabold transition shadow-xs cursor-pointer">
-                        Tutup &amp; Refresh Queue
+                        Close &amp; Refresh
                     </button>
                 </div>
+            </div>
+        </div>
+
+        <!-- MODAL POPUP CONFIRMATION CHECK DATA -->
+        <div id="checkConfirmModal" class="fixed inset-0 z-[10000] hidden bg-slate-950/70 backdrop-blur-md flex items-center justify-center p-4">
+            <div class="bg-white/95 backdrop-blur-2xl rounded-3xl max-w-md w-full p-7 shadow-2xl border border-white/80 transform transition-all text-center">
+                <div class="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center text-3xl bg-emerald-100/80 text-emerald-600 border border-emerald-200/80 shadow-xs">
+                    📋
+                </div>
+                <h3 class="text-base font-black text-slate-900 mb-2 leading-snug">
+                    Konfirmasi Pengecekan Data
+                </h3>
+                <p class="text-xs font-bold text-emerald-800 bg-emerald-50/80 border border-emerald-200/80 rounded-2xl p-3.5 mb-3 shadow-2xs">
+                    Apakah Anda yakin ingin melakukan pengecekan data ini?
+                </p>
+                <p class="text-xs font-semibold text-slate-500 mb-6">
+                    Target Request: <span class="font-mono font-bold text-slate-800" id="checkConfirmReqId">-</span>
+                </p>
+                <div class="flex items-center justify-center gap-3">
+                    <button type="button" onclick="closeCheckConfirmModal()" class="w-1/2 py-2.5 px-4 rounded-full text-xs font-black text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200/80 transition cursor-pointer active:scale-95">
+                        No
+                    </button>
+                    <button type="button" onclick="executeCheckProcess()" class="w-1/2 py-2.5 px-4 rounded-full text-xs font-black text-white bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 shadow-md transition transform active:scale-95 cursor-pointer">
+                        Yes
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL POPUP PROCESSING CHECK STATE -->
+        <div id="checkProcessingModal" class="fixed inset-0 z-[10001] hidden bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+            <div class="bg-white/95 backdrop-blur-2xl rounded-3xl max-w-sm w-full p-8 shadow-2xl border border-white/80 text-center">
+                <div class="relative w-16 h-16 mx-auto mb-5 flex items-center justify-center">
+                    <div class="absolute inset-0 rounded-2xl bg-emerald-500/20 animate-ping"></div>
+                    <div class="w-14 h-14 rounded-2xl border-4 border-emerald-200 border-t-emerald-600 animate-spin"></div>
+                </div>
+                <h3 class="text-base font-black text-slate-900 mb-1">
+                    Memproses Pengecekan Data...
+                </h3>
+                <p class="text-xs font-semibold text-slate-500 mb-4">
+                    Mohon tunggu, sistem sedang memvalidasi data request.
+                </p>
+                <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                    <div class="bg-gradient-to-r from-emerald-500 to-teal-600 h-full w-full animate-pulse"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL POPUP SUCCESS CHECK RESULT -->
+        <div id="checkSuccessModal" class="fixed inset-0 z-[10002] hidden bg-slate-950/70 backdrop-blur-md flex items-center justify-center p-4">
+            <div class="bg-white/95 backdrop-blur-2xl rounded-3xl max-w-md w-full p-7 shadow-2xl border border-white/80 text-center">
+                <div class="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center text-3xl bg-emerald-100 text-emerald-600 border-4 border-emerald-200 shadow-md">
+                    ✓
+                </div>
+                <h3 class="text-base font-black text-emerald-900 mb-1">
+                    Pengecekan Data Berhasil!
+                </h3>
+                <p class="text-xs font-medium text-slate-600 mb-4" id="checkSuccessMessage">
+                    Proses pengecekan data material telah berhasil dilaksanakan.
+                </p>
+                <div class="bg-emerald-50/80 border border-emerald-200/80 rounded-2xl p-3.5 mb-6 text-left shadow-2xs">
+                    <div class="text-[11px] font-bold text-emerald-800 uppercase tracking-wider mb-1">Status Pengecekan</div>
+                    <div class="text-xs font-semibold text-emerald-900 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span>Data telah berhasil divalidasi dan siap untuk disetujui.</span>
+                    </div>
+                </div>
+                <button type="button" onclick="closeCheckSuccessModal()" class="w-full py-3 px-6 rounded-full text-xs font-black text-white bg-slate-900 hover:bg-slate-800 shadow-md transition transform active:scale-95 cursor-pointer">
+                    Close
+                </button>
             </div>
         </div>
 
@@ -387,6 +592,17 @@
             let allRequests = [];
             let currentReqNo = '';
             let currentItems = [];
+
+            // Status Filter Tabs & Request Pagination State
+            let currentStatusTab = 'ALL';
+            let requestCurrentPage = 1;
+            let requestPageSize = 10;
+            let filteredRequests = [];
+
+            // SAP MARA Search State
+            let maraSearchResults = [];
+            let maraCurrentPage = 1;
+            let maraPageSize = 5;
 
             document.addEventListener('DOMContentLoaded', () => {
                 fetchRequests();
@@ -431,6 +647,189 @@
                     .replace(/[\r\n]+/g, " ");
             }
 
+            // ==========================================
+            // SEARCH MATERIAL (SAP MARA CONNECTION)
+            // ==========================================
+            function searchMaraSAP() {
+                const matnr = document.getElementById('filterMatnr').value.trim();
+                const maktx = document.getElementById('filterMaktx').value.trim();
+                const tbody = document.getElementById('maraResultTbody');
+                const badge = document.getElementById('maraResultBadge');
+
+                if (!matnr && !maktx) {
+                    showToast('Please enter Material Code or Description.', 'warning');
+                    return;
+                }
+
+                tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-400 font-medium"><div class="inline-block animate-spin rounded-full h-5 w-5 border-2 border-emerald-600 border-t-transparent mr-2"></div> Searching SAP MARA database...</td></tr>`;
+                badge.className = "text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200";
+                badge.innerText = "Searching...";
+
+                const formData = new FormData();
+                formData.append('OnInputProcessing', 'SEARCH_MARA');
+                formData.append('FILTER_MATNR', matnr);
+                formData.append('FILTER_MAKTX', maktx);
+
+                fetch('?OnInputProcessing=SEARCH_MARA', { method: 'POST', body: formData })
+                    .then(res => res.json())
+                    .then(data => {
+                        maraSearchResults = data || [];
+                        maraCurrentPage = 1;
+                        renderMaraResults(maraSearchResults, 1);
+                        badge.className = "text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200";
+                        badge.innerText = `${maraSearchResults.length} Record(s) Found`;
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-rose-500 font-bold">SAP MARA search failed.</td></tr>`;
+                        badge.className = "text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200";
+                        badge.innerText = "Search Error";
+                    });
+            }
+
+            function handleFilterKeyup(e) {
+                if (e.key === 'Enter') {
+                    searchMaraSAP();
+                }
+            }
+
+            function resetMaraFilter() {
+                document.getElementById('filterMatnr').value = '';
+                document.getElementById('filterMaktx').value = '';
+                maraSearchResults = [];
+                maraCurrentPage = 1;
+                const tbody = document.getElementById('maraResultTbody');
+                tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-400 font-medium">Specify criteria in <b>Query Parameters</b> and execute search to view records.</td></tr>`;
+                const footer = document.getElementById('maraPaginationFooter');
+                if (footer) footer.classList.add('hidden');
+                const badge = document.getElementById('maraResultBadge');
+                if (badge) {
+                    badge.className = "text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-white/80 text-slate-600 border border-slate-200";
+                    badge.innerText = "Ready";
+                }
+            }
+
+            function renderMaraResults(list, page = 1) {
+                const tbody = document.getElementById('maraResultTbody');
+                const footer = document.getElementById('maraPaginationFooter');
+                const summary = document.getElementById('maraPaginationSummary');
+                const controls = document.getElementById('maraPaginationControls');
+
+                if (!list || list.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-400 font-medium">No matching SAP MARA records found.</td></tr>`;
+                    if (footer) footer.classList.add('hidden');
+                    return;
+                }
+
+                const total = list.length;
+                const totalPages = Math.ceil(total / maraPageSize);
+                maraCurrentPage = Math.max(1, Math.min(page, totalPages));
+
+                const startIdx = (maraCurrentPage - 1) * maraPageSize;
+                const endIdx = Math.min(startIdx + maraPageSize, total);
+                const pageList = list.slice(startIdx, endIdx);
+
+                let html = '';
+                pageList.forEach((row, idx) => {
+                    const rowIdx = startIdx + idx;
+                    const matnrClean = escapeHtml((row.matnr || '').replace(/^0+/, '') || row.matnr);
+                    const maktxClean = escapeHtml(row.maktx);
+                    const mtartClean = escapeHtml(row.mtart);
+                    const matklClean = escapeHtml(row.matkl);
+                    const meinsClean = escapeHtml(row.meins);
+
+                    html += `
+                        <tr class="hover:bg-slate-50 transition border-b border-slate-100">
+                            <td class="p-2.5 text-center font-mono text-slate-400 text-[11px]">${rowIdx + 1}</td>
+                            <td class="p-2.5 font-mono font-bold text-emerald-800 text-xs">${matnrClean}</td>
+                            <td class="p-2.5 font-medium text-slate-800 text-xs max-w-[220px] truncate" title="${maktxClean}">${maktxClean}</td>
+                            <td class="p-2.5 text-center font-mono text-slate-600 text-[11px]">${mtartClean || '-'}</td>
+                            <td class="p-2.5 text-center font-mono text-slate-600 text-[11px]">${matklClean || '-'}</td>
+                            <td class="p-2.5 text-center font-mono text-slate-600 text-[11px]">${meinsClean || '-'}</td>
+                            <td class="p-2.5 text-center">
+                                <button type="button" onclick="useMaraIndex(${rowIdx})" class="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-lg text-[10px] font-extrabold transition cursor-pointer inline-flex items-center gap-1">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                    Use as Ref
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                tbody.innerHTML = html;
+
+                if (footer && summary && controls) {
+                    footer.classList.remove('hidden');
+                    summary.innerText = 'Showing ' + (startIdx + 1) + '-' + endIdx + ' of ' + total + ' MARA records';
+
+                    const isPrevDisabled = (maraCurrentPage === 1);
+                    const isNextDisabled = (maraCurrentPage === totalPages);
+
+                    const prevClass = isPrevDisabled 
+                        ? 'px-2 py-1 text-[11px] font-bold rounded-lg border border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed'
+                        : 'px-2 py-1 text-[11px] font-bold rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition cursor-pointer';
+
+                    const nextClass = isNextDisabled 
+                        ? 'px-2 py-1 text-[11px] font-bold rounded-lg border border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed'
+                        : 'px-2 py-1 text-[11px] font-bold rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition cursor-pointer';
+
+                    const prevAttr = isPrevDisabled ? 'disabled ' : '';
+                    const nextAttr = isNextDisabled ? 'disabled ' : '';
+
+                    const ctrlHtml = '<button type="button" onclick="changeMaraPage(' + (maraCurrentPage - 1) + ')" ' + prevAttr + 'class="' + prevClass + '">&laquo; Prev</button> ' +
+                        '<span class="px-2.5 py-1 text-[11px] font-mono font-bold text-slate-700">Page ' + maraCurrentPage + ' / ' + totalPages + '</span> ' +
+                        '<button type="button" onclick="changeMaraPage(' + (maraCurrentPage + 1) + ')" ' + nextAttr + 'class="' + nextClass + '">Next &raquo;</button>';
+
+                    controls.innerHTML = ctrlHtml;
+                }
+            }
+
+            function changeMaraPage(newPage) {
+                renderMaraResults(maraSearchResults, newPage);
+            }
+
+            function useMaraIndex(idx) {
+                const item = maraSearchResults[idx];
+                if (!item) return;
+                const matnrClean = (item.matnr || '').replace(/^0+/, '') || item.matnr;
+                showToast(`Selected Reference: ${matnrClean} - ${item.maktx || ''}`, 'success');
+            }
+
+            // ==========================================
+            // STATUS BUTTON TABS LOGIC
+            // ==========================================
+            function setFilterStatusTab(status) {
+                currentStatusTab = status;
+                updateStatusTabStyles(status);
+
+                const statusFilter = document.getElementById('statusFilter');
+                if (statusFilter) statusFilter.value = status;
+
+                applyFilter();
+            }
+
+            function updateStatusTabStyles(activeStatus) {
+                const tabs = ['ALL', 'SUBMITTED', 'APPROVED', 'REJECTED'];
+                tabs.forEach(tab => {
+                    const btn = document.getElementById(`tabBtn_${tab}`);
+                    if (!btn) return;
+
+                    if (tab === activeStatus) {
+                        btn.className = "status-tab-btn px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer bg-slate-900 text-white shadow-2xs flex items-center gap-1.5";
+                    } else {
+                        btn.className = "status-tab-btn px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer bg-white/80 text-slate-600 hover:bg-white border border-slate-200/80 flex items-center gap-1.5";
+                    }
+                });
+            }
+
+            function onStatusSelectChanged() {
+                const statusFilter = document.getElementById('statusFilter');
+                const status = statusFilter ? statusFilter.value : 'ALL';
+                currentStatusTab = status;
+                updateStatusTabStyles(status);
+                applyFilter();
+            }
+
             // 2. Update Summary Stats Badges
             function updateKpis() {
                 const total = allRequests.length;
@@ -450,26 +849,18 @@
                 if (elRejected) elRejected.innerText = (rejected + failed);
             }
 
-            // 3. Filter by KPI card click
-            function filterByStatus(status) {
-                const statusFilter = document.getElementById('statusFilter');
-                if (statusFilter) statusFilter.value = status;
-                applyFilter();
-            }
-
             // 4. Apply Filter, Search & Date Sort
             function applyFilter() {
-                const statusFilter = document.getElementById('statusFilter');
                 const columnFilter = document.getElementById('columnFilter');
                 const dateSortFilter = document.getElementById('dateSortFilter');
                 const searchInput = document.getElementById('searchInput');
 
-                const status = statusFilter ? statusFilter.value : 'ALL';
+                const status = currentStatusTab;
                 const column = columnFilter ? columnFilter.value : 'ALL';
                 const dateSort = dateSortFilter ? dateSortFilter.value : 'DESC';
                 const search = (searchInput ? searchInput.value : '').toLowerCase().trim();
 
-                const filtered = allRequests.filter(r => {
+                filteredRequests = allRequests.filter(r => {
                     let matchSearch = false;
                     if (column === 'ALL') {
                         matchSearch = !search ||
@@ -486,12 +877,20 @@
                         matchSearch = !search || (r[column] && r[column].toLowerCase().includes(search));
                     }
 
-                    const matchStatus = (status === 'ALL') || (r.status === status);
+                    let matchStatus = false;
+                    if (status === 'ALL') {
+                        matchStatus = true;
+                    } else if (status === 'SUBMITTED') {
+                        matchStatus = (r.status === 'SUBMITTED' || r.status === 'DRAFT');
+                    } else {
+                        matchStatus = (r.status === status);
+                    }
+
                     return matchStatus && matchSearch;
                 });
 
                 // Date sorting logic: ASC = Terlama ke Terbaru, DESC = Terbaru ke Terlama
-                filtered.sort((a, b) => {
+                filteredRequests.sort((a, b) => {
                     const dateA = (a.req_date || '') + (a.req_time || '');
                     const dateB = (b.req_date || '') + (b.req_time || '');
 
@@ -502,26 +901,45 @@
                     }
                 });
 
-                renderTable(filtered);
+                requestCurrentPage = 1;
+                renderTable(filteredRequests, requestCurrentPage);
             }
 
-            // 5. Render Table Rows
-            function renderTable(list) {
+            // 5. Render Table Rows with 10-Item Pagination
+            function renderTable(list, page = 1) {
                 const tbody = document.getElementById('requestTableBody');
                 if (!tbody) return;
-                document.getElementById('queueSummaryLabel').innerText = `Showing ${list.length} of ${allRequests.length} requests`;
 
-                if (list.length === 0) {
+                const summaryLabel = document.getElementById('queueSummaryLabel');
+                const totalItems = list.length;
+
+                if (totalItems === 0) {
                     tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400 font-medium">No matching requests found in queue.</td></tr>`;
+                    if (summaryLabel) summaryLabel.innerText = `Showing 0 of ${allRequests.length} requests`;
+                    renderRequestPaginationControls(0, 1, requestPageSize);
                     return;
                 }
 
+                const totalPages = Math.ceil(totalItems / requestPageSize);
+                requestCurrentPage = Math.max(1, Math.min(page, totalPages));
+
+                const startIdx = (requestCurrentPage - 1) * requestPageSize;
+                const endIdx = Math.min(startIdx + requestPageSize, totalItems);
+                const pageList = list.slice(startIdx, endIdx);
+
+                if (summaryLabel) {
+                    summaryLabel.innerText = `Showing ${startIdx + 1}-${endIdx} of ${totalItems} requests (Total Queue: ${allRequests.length})`;
+                }
+
                 let html = '';
-                list.forEach((r, idx) => {
+                pageList.forEach((r, idx) => {
+                    const rowNum = startIdx + idx + 1;
                     let badge = '<span class="inline-flex items-center gap-1.5 bg-slate-500/10 text-slate-700 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-slate-500/20">DRAFT</span>';
 
                     if (r.status === 'SUBMITTED' || r.status === 'CHECKED' || r.status === 'CODED') {
                         badge = `<span class="inline-flex items-center gap-1.5 bg-teal-500/10 text-teal-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-teal-500/20"><span class="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse"></span>Ready</span>`;
+                    } else if (r.status === 'HOLD') {
+                        badge = `<span class="inline-flex items-center gap-1.5 bg-amber-500/10 text-amber-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-amber-500/20"><span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>ON HOLD</span>`;
                     } else if (r.status === 'APPROVED') {
                         badge = `<span class="inline-flex items-center gap-1.5 bg-emerald-500/10 text-emerald-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-emerald-500/20"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>APPROVED</span>`;
                     } else if (r.status === 'FAILED') {
@@ -531,7 +949,7 @@
                     }
 
                     const reqNoEsc = escapeHtml(r.req_no);
-                    const subReasonEsc = escapeHtml(r.sub_reason || (r.remarks && r.remarks.indexOf('.') === -1 ? r.remarks : '') || 'Permintaan Material Master');
+                    const subReasonEsc = escapeHtml(r.sub_reason || (r.remarks && r.remarks.indexOf('.') === -1 ? r.remarks : '') || 'Material Request');
                     const filenameEsc = escapeHtml(r.remarks || '');
                     const requestorEsc = escapeHtml(r.requestor);
                     const rejReasonEsc = escapeHtml(r.rej_reason);
@@ -541,17 +959,19 @@
                     const dateTimeStr = fDate + (fTime ? ' ' + fTime : '');
 
                     let reasonHtml = '';
-                    if (r.status === 'REJECTED' && rejReasonEsc) {
+                    if (r.status === 'HOLD' && rejReasonEsc) {
+                        reasonHtml = `<div class="text-[11px] text-amber-800 font-medium mt-1.5 bg-amber-50/90 p-2 rounded-xl border border-amber-200/80 shadow-2xs"><strong class="font-extrabold">Hold Note (Validation Check):</strong> ${rejReasonEsc}</div>`;
+                    } else if (r.status === 'REJECTED' && rejReasonEsc) {
                         reasonHtml = `<div class="text-[11px] text-rose-800 font-medium mt-1.5 bg-rose-50/90 p-2 rounded-xl border border-rose-200/80 shadow-2xs"><strong class="font-extrabold">Reason:</strong> ${rejReasonEsc}</div>`;
                     } else if (r.status === 'FAILED' && rejReasonEsc) {
                         reasonHtml = `<div class="text-[11px] text-rose-800 font-medium mt-1.5 bg-rose-50/90 p-2 rounded-xl border border-rose-200/80 shadow-2xs"><strong class="font-extrabold">SAP Upload Error:</strong> ${rejReasonEsc}</div>`;
                     }
 
-                    const isActionable = r.status === 'SUBMITTED' || r.status === 'DRAFT';
+                    const isActionable = r.status === 'SUBMITTED' || r.status === 'DRAFT' || r.status === 'HOLD';
 
                     html += `
                         <tr class="hover:bg-slate-50/80 transition border-b border-slate-100">
-                            <td class="p-3 text-center text-slate-400 font-medium">${idx + 1}</td>
+                            <td class="p-3 text-center text-slate-400 font-medium">${rowNum}</td>
                             <td class="p-3 font-medium text-slate-800 max-w-[340px]">
                                 <div class="font-extrabold text-slate-900 text-xs leading-snug">${subReasonEsc}</div>
                                 <div class="flex items-center gap-2 mt-1 flex-wrap">
@@ -581,6 +1001,49 @@
                 });
 
                 tbody.innerHTML = html;
+                renderRequestPaginationControls(totalItems, requestCurrentPage, requestPageSize);
+            }
+
+            function renderRequestPaginationControls(totalItems, currentPage, pageSize) {
+                const summary = document.getElementById('requestPaginationSummary');
+                const controls = document.getElementById('requestPaginationControls');
+                if (!summary || !controls) return;
+
+                if (totalItems === 0) {
+                    summary.innerText = "Showing 0 requests";
+                    controls.innerHTML = "";
+                    return;
+                }
+
+                const totalPages = Math.ceil(totalItems / pageSize);
+                const startIdx = (currentPage - 1) * pageSize + 1;
+                const endIdx = Math.min(currentPage * pageSize, totalItems);
+
+                summary.innerText = 'Showing ' + startIdx + '-' + endIdx + ' of ' + totalItems + ' requests';
+
+                const isPrevDisabled = (currentPage === 1);
+                const isNextDisabled = (currentPage === totalPages);
+
+                const prevClass = isPrevDisabled
+                    ? 'px-3 py-1.5 text-xs font-bold rounded-xl border border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed'
+                    : 'px-3 py-1.5 text-xs font-bold rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition cursor-pointer';
+
+                const nextClass = isNextDisabled
+                    ? 'px-3 py-1.5 text-xs font-bold rounded-xl border border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed'
+                    : 'px-3 py-1.5 text-xs font-bold rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition cursor-pointer';
+
+                const prevAttr = isPrevDisabled ? 'disabled ' : '';
+                const nextAttr = isNextDisabled ? 'disabled ' : '';
+
+                const ctrlHtml = '<button type="button" onclick="changeRequestPage(' + (currentPage - 1) + ')" ' + prevAttr + 'class="' + prevClass + '">&laquo; Prev</button> ' +
+                    '<span class="px-3 py-1.5 text-xs font-mono font-bold text-slate-700">Page ' + currentPage + ' / ' + totalPages + '</span> ' +
+                    '<button type="button" onclick="changeRequestPage(' + (currentPage + 1) + ')" ' + nextAttr + 'class="' + nextClass + '">Next &raquo;</button>';
+
+                controls.innerHTML = ctrlHtml;
+            }
+
+            function changeRequestPage(newPage) {
+                renderTable(filteredRequests, newPage);
             }
 
             // 6. Open Modal for Material Data Review
@@ -589,7 +1052,7 @@
                 const req = allRequests.find(r => r.req_no === reqNo) || { req_no: reqNo, requestor: '-', req_date: '-' };
 
                 document.getElementById('drawerReqIdLabel').innerText = req.requestor || reqNo;
-                document.getElementById('drawerSubLabel').innerText = `Request ID: ${reqNo} | Requestor: ${req.requestor || '-'} | Date: ${req.req_date || '-'} ${req.req_time || ''} | Status: ${req.status || '-'} | Catatan: ${req.remarks || '-'}`;
+                document.getElementById('drawerSubLabel').innerText = `Request ID: ${reqNo} | Requestor: ${req.requestor || '-'} | Date: ${req.req_date || '-'} ${req.req_time || ''} | Status: ${req.status || '-'} | Remarks: ${req.remarks || '-'}`;
 
                 // Handle Reject Reason / Error Message Banner Display
                 const bannerEl = document.getElementById('drawerRejectBanner');
@@ -598,25 +1061,35 @@
 
                 if (req && req.rej_reason && req.rej_reason.trim() !== '') {
                     if (textEl) textEl.innerText = req.rej_reason;
-                    if (badgeEl) badgeEl.innerText = (req.status === 'REJECTED' ? 'DATA STEWARD / AUTO REJECT' : (req.status || 'REJECTED'));
+                    if (badgeEl) {
+                        if (req.status === 'HOLD') badgeEl.innerText = 'ON HOLD';
+                        else if (req.status === 'REJECTED') badgeEl.innerText = 'AUTO REJECTED';
+                        else badgeEl.innerText = (req.status || 'REJECTED');
+                    }
                     if (bannerEl) bannerEl.classList.remove('hidden');
                 } else if (req && req.status === 'REJECTED') {
-                    if (textEl) textEl.innerText = 'Request ini berstatus REJECTED / RETURNED.';
+                    if (textEl) textEl.innerText = 'Request status: REJECTED.';
                     if (badgeEl) badgeEl.innerText = 'REJECTED';
+                    if (bannerEl) bannerEl.classList.remove('hidden');
+                } else if (req && req.status === 'HOLD') {
+                    if (textEl) textEl.innerText = 'Request status: ON HOLD.';
+                    if (badgeEl) badgeEl.innerText = 'ON HOLD';
                     if (bannerEl) bannerEl.classList.remove('hidden');
                 } else {
                     if (bannerEl) bannerEl.classList.add('hidden');
                 }
 
-                // Handle Footer Action Buttons (Hide Return button for completed/non-actionable requests)
-                const isActionable = req.status === 'SUBMITTED' || req.status === 'DRAFT';
+                // Handle Footer Action Buttons
+                const isActionable = req.status === 'SUBMITTED' || req.status === 'DRAFT' || req.status === 'HOLD';
                 const returnBtn = document.getElementById('drawerReturnBtn');
+                const checkBtn = document.getElementById('drawerCheckBtn');
                 if (returnBtn) {
-                    if (!isActionable) {
-                        returnBtn.classList.add('hidden');
-                    } else {
-                        returnBtn.classList.remove('hidden');
-                    }
+                    if (!isActionable) returnBtn.classList.add('hidden');
+                    else returnBtn.classList.remove('hidden');
+                }
+                if (checkBtn) {
+                    if (!isActionable) checkBtn.classList.add('hidden');
+                    else checkBtn.classList.remove('hidden');
                 }
 
                 const drawer = document.getElementById('codeDrawer');
@@ -627,7 +1100,7 @@
 
                 // Fetch Items
                 const tbody = document.getElementById('drawerItemTableBody');
-                tbody.innerHTML = `<tr><td colspan="15" class="p-8 text-center text-slate-400 font-medium"><div class="inline-block animate-spin rounded-full h-5 w-5 border-2 border-emerald-600 border-t-transparent mr-2"></div> Memuat rincian item material...</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="15" class="p-8 text-center text-slate-400 font-medium"><div class="inline-block animate-spin rounded-full h-5 w-5 border-2 border-emerald-600 border-t-transparent mr-2"></div> Loading item details...</td></tr>`;
 
                 const formData = new FormData();
                 formData.append('OnInputProcessing', 'GET_REQUEST_DETAIL');
@@ -641,7 +1114,7 @@
                     })
                     .catch(err => {
                         console.error(err);
-                        tbody.innerHTML = `<tr><td colspan="15" class="p-8 text-center text-rose-500 font-bold">Gagal memuat rincian item.</td></tr>`;
+                        tbody.innerHTML = `<tr><td colspan="15" class="p-8 text-center text-rose-500 font-bold">Failed to load item details.</td></tr>`;
                     });
             }
 
@@ -702,7 +1175,7 @@
                 { label: "Volume unit", field: "voleh" },
                 { label: "Proportion Units", field: "kzwsm" },
                 { label: "Class", field: "class" },
-                { label: "Warna", field: "warna" },
+                { label: "Color", field: "warna" },
                 { label: "Volume Product", field: "vol_prod" },
                 { label: "MRP Type", field: "dismm" },
                 { label: "MRP Group", field: "disgr" },
@@ -801,7 +1274,7 @@
                 theadTr.innerHTML = html;
             }
 
-            // 7. Render Items in Review Modal Table (Extended Excel Data for All Columns)
+            // 7. Render Items in Review Modal Table
             function renderDrawerItems() {
                 const tbody = document.getElementById('drawerItemTableBody');
                 const search = (document.getElementById('modalItemSearch')?.value || '').toLowerCase().trim();
@@ -809,7 +1282,7 @@
                 renderTableHeader();
 
                 if (currentItems.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="${ALL_COLUMNS.length + 1}" class="p-6 text-center text-slate-400 font-medium">Tidak ada item dalam request ini.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="${ALL_COLUMNS.length + 1}" class="p-6 text-center text-slate-400 font-medium">No items found in this request.</td></tr>`;
                     updateDrawerCodedCount();
                     return;
                 }
@@ -825,7 +1298,7 @@
                 }
 
                 if (filtered.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="${ALL_COLUMNS.length + 1}" class="p-6 text-center text-slate-400 font-medium">Tidak ada item yang sesuai pencarian.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="${ALL_COLUMNS.length + 1}" class="p-6 text-center text-slate-400 font-medium">No matching items found.</td></tr>`;
                     updateDrawerCodedCount();
                     return;
                 }
@@ -848,7 +1321,6 @@
                         const displayVal = (rawVal !== null && rawVal !== undefined && rawVal !== '') ? rawVal : '-';
 
                         if (colIdx === 0) {
-                            // Material Code / Material
                             html += `
                                 <td class="p-2.5 bg-emerald-50/90 border-r border-emerald-200/80 font-mono font-extrabold text-emerald-900">
                                     ${displayVal}
@@ -891,11 +1363,29 @@
                 document.getElementById('codeDrawer').classList.add('hidden');
             }
 
-            function showValResultModal(reqNo, errorDetail) {
+            function showValResultModal(reqNo, errorDetail, isHold = false) {
                 const reqNoEl = document.getElementById('valModalReqNo');
                 const errDetailEl = document.getElementById('valModalErrorDetail');
+                const titleEl = document.getElementById('valModalTitle');
+                const noteEl = document.getElementById('valModalNote');
+                const iconEl = document.getElementById('valModalIcon');
+                const subtitleEl = document.getElementById('valModalSubtitle');
+
                 if (reqNoEl) reqNoEl.innerText = reqNo || '';
-                if (errDetailEl) errDetailEl.innerText = errorDetail || 'Detail kesalahan validasi tidak tersedia.';
+                if (errDetailEl) errDetailEl.innerText = errorDetail || 'Validation details unavailable.';
+
+                if (isHold) {
+                    if (titleEl) titleEl.innerText = 'Validation Result: Document On Hold';
+                    if (subtitleEl) subtitleEl.innerText = 'Validation failed based on rules.';
+                    if (iconEl) iconEl.innerText = '⚠️';
+                    if (noteEl) noteEl.innerHTML = 'Document is <strong>On Hold</strong> in system for review and not returned.';
+                } else {
+                    if (titleEl) titleEl.innerText = 'Validation Result: Rejected';
+                    if (subtitleEl) subtitleEl.innerText = 'Data validation rules failed.';
+                    if (iconEl) iconEl.innerText = '✕';
+                    if (noteEl) noteEl.innerHTML = 'Document is <strong>returned to Requestor</strong> with reasons above.';
+                }
+
                 const modal = document.getElementById('valResultModal');
                 if (modal) modal.classList.remove('hidden');
             }
@@ -934,44 +1424,104 @@
                             showToast(data.message, 'success');
                             closeCodeDrawer();
                             fetchRequests();
+                        } else if (data.status === 'HOLD') {
+                            showToast(data.message || 'Document placed On Hold.', 'warning');
+                            showValResultModal(currentReqNo, data.rej_reason || data.message, true);
                         } else if (data.status === 'REJECTED') {
-                            showToast(data.message || 'Dokumen gagal validasi excel.abap dan di-reject.', 'error');
-                            showValResultModal(currentReqNo, data.rej_reason || data.message);
+                            showToast(data.message || 'Document failed validation and rejected.', 'error');
+                            showValResultModal(currentReqNo, data.rej_reason || data.message, false);
                         } else {
-                            showToast(data.message || 'Gagal menyimpan catatan pengecekan', 'error');
-                        }
-                    })
-                    .catch(err => {
-                        console.error(err);
-                        showToast('Terjadi kesalahan koneksi server.', 'error');
-                    });
-            }
-
-            // 12b. Direct Mark as Checked by Data Steward
-            function markAsCheckedDirect(reqNo) {
-                if (!confirm(`Menjalankan validasi excel.abap dan verifikasi Data Steward untuk Request ${reqNo}?`)) return;
-
-                const formData = new FormData();
-                formData.append('OnInputProcessing', 'CHECK_AND_FORWARD');
-                formData.append('REQ_NO', reqNo);
-
-                fetch('?OnInputProcessing=CHECK_AND_FORWARD', { method: 'POST', body: formData })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.status === 'SUCCESS') {
-                            showToast(data.message, 'success');
-                            fetchRequests();
-                        } else if (data.status === 'REJECTED') {
-                            showToast(data.message || 'Dokumen gagal validasi excel.abap dan di-reject.', 'error');
-                            showValResultModal(reqNo, data.rej_reason || data.message);
-                        } else {
-                            showToast(data.message || 'Verification failed.', 'error');
+                            showToast(data.message || 'Failed to save review notes.', 'error');
                         }
                     })
                     .catch(err => {
                         console.error(err);
                         showToast('Server connection error.', 'error');
                     });
+            }
+
+            // 12b. Direct Mark as Checked by Data Steward
+            let pendingCheckReqNo = '';
+
+            function markAsCheckedDirect(reqNo) {
+                if (!reqNo) return;
+                pendingCheckReqNo = reqNo;
+
+                const reqIdEl = document.getElementById('checkConfirmReqId');
+                if (reqIdEl) reqIdEl.innerText = reqNo;
+
+                const modal = document.getElementById('checkConfirmModal');
+                if (modal) modal.classList.remove('hidden');
+            }
+
+            function closeCheckConfirmModal() {
+                const modal = document.getElementById('checkConfirmModal');
+                if (modal) modal.classList.add('hidden');
+            }
+
+            function executeCheckProcess() {
+                if (!pendingCheckReqNo) return;
+                const reqNo = pendingCheckReqNo;
+
+                closeCheckConfirmModal();
+                showCheckProcessingModal();
+
+                const formData = new FormData();
+                formData.append('OnInputProcessing', 'CHECK_AND_FORWARD');
+                formData.append('REQ_NO', reqNo);
+
+                fetch('?OnInputProcessing=CHECK_AND_FORWARD', { method: 'POST', body: formData })
+                    .then(res => {
+                        if (!res.ok) throw new Error("HTTP error status: " + res.status);
+                        return res.json();
+                    })
+                    .then(data => {
+                        hideCheckProcessingModal();
+
+                        if (data.status === 'SUCCESS') {
+                            showToast(data.message || 'Pengecekan data berhasil.', 'success');
+                            showCheckSuccessModal(data.message || 'Proses pengecekan data telah berhasil divalidasi dan diteruskan.');
+                        } else if (data.status === 'HOLD') {
+                            showToast(data.message || 'Dokumen status On Hold.', 'warning');
+                            showValResultModal(reqNo, data.rej_reason || data.message, true);
+                        } else if (data.status === 'REJECTED') {
+                            showToast(data.message || 'Dokumen gagal validasi dan ditolak.', 'error');
+                            showValResultModal(reqNo, data.rej_reason || data.message, false);
+                        } else {
+                            showToast(data.message || 'Pengecekan gagal.', 'error');
+                            showValResultModal(reqNo, data.message || 'Terjadi kesalahan saat pengecekan data.', false);
+                        }
+                    })
+                    .catch(err => {
+                        hideCheckProcessingModal();
+                        console.error(err);
+                        showToast('Koneksi server terganggu.', 'error');
+                        showValResultModal(reqNo, 'Terjadi kesalahan sistem atau koneksi: ' + err.message, false);
+                    });
+            }
+
+            function showCheckProcessingModal() {
+                const modal = document.getElementById('checkProcessingModal');
+                if (modal) modal.classList.remove('hidden');
+            }
+
+            function hideCheckProcessingModal() {
+                const modal = document.getElementById('checkProcessingModal');
+                if (modal) modal.classList.add('hidden');
+            }
+
+            function showCheckSuccessModal(msg) {
+                const modal = document.getElementById('checkSuccessModal');
+                const msgEl = document.getElementById('checkSuccessMessage');
+                if (msgEl && msg) msgEl.innerText = msg;
+                if (modal) modal.classList.remove('hidden');
+            }
+
+            function closeCheckSuccessModal() {
+                const modal = document.getElementById('checkSuccessModal');
+                if (modal) modal.classList.add('hidden');
+                closeCodeDrawer();
+                fetchRequests();
             }
 
             // 13. Return to Purchasing Modal
@@ -1004,12 +1554,12 @@
                 if (!reason) {
                     inputEl.classList.add('border-rose-500', 'ring-2', 'ring-rose-500/10');
                     if (errEl) errEl.classList.remove('hidden');
-                    showToast('Alasan penolakan (Rejection Reason) wajib diisi!', 'warning');
+                    showToast('Rejection reason is required.', 'warning');
                     return;
                 }
 
                 if (!currentReqNo) {
-                    showToast('Request ID tidak valid!', 'error');
+                    showToast('Invalid Request ID.', 'error');
                     return;
                 }
 
@@ -1028,12 +1578,12 @@
                             closeCodeDrawer();
                             fetchRequests();
                         } else {
-                            showToast(data.message || 'Gagal menolak request', 'error');
+                            showToast(data.message || 'Failed to return request.', 'error');
                         }
                     })
                     .catch(err => {
                         console.error(err);
-                        showToast('Terjadi kesalahan koneksi server.', 'error');
+                        showToast('Server connection error.', 'error');
                     });
             }
 

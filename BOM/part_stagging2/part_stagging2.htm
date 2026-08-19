@@ -1,0 +1,754 @@
+<%@page language="ABAP" %>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAP Material Master - Staging Review & Auto Binding</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4', 100: '#dcfce7', 200: '#bbf7d0',
+                            500: '#10b981', 600: '#059669', 700: '#047857',
+                            800: '#065f46', 900: '#022c22',
+                        },
+                        app: {
+                            bg: '#f8fafc', card: '#ffffff', border: '#e2e8f0',
+                            'border-strong': '#cbd5e1', text: '#0f172a', muted: '#64748b',
+                            danger: '#dc2626', 'danger-bg': '#fef2f2'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="bg-app-bg text-app-text text-[13px] font-sans leading-relaxed m-0 p-0 antialiased selection:bg-brand-100 selection:text-brand-900">
+
+    <!-- DATA INJECTION FROM ABAP -->
+    <script id="mtart-data" type="application/json"><%= gt_mtart_json %></script>
+    <script id="plant-data" type="application/json"><%= gt_plant_json %></script>
+    <script id="matkl-data" type="application/json"><%= gt_matkl_json %></script>
+
+    <!-- TOP NAVIGATION BAR -->
+    <header class="bg-white h-14 border-b border-app-border sticky top-0 z-50 shadow-sm px-4 lg:px-8 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-brand-800 text-white flex items-center justify-center font-bold text-xs tracking-wider shadow-sm">
+                STG
+            </div>
+            <span class="font-semibold text-sm text-slate-800">Material Master System - Staging Review & Binding</span>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-full">
+                <div class="w-6 h-6 rounded-full bg-brand-100 text-brand-800 flex items-center justify-center font-bold text-[11px]" id="userAvatarInitial">•</div>
+                <span class="text-xs font-semibold text-slate-700" id="userNameLabel"><%= sy-uname %></span>
+            </div>
+            <a href="?OnInputProcessing=LOGOUT" class="text-xs font-medium text-slate-600 hover:text-brand-700 px-2.5 py-1 rounded-md transition hover:bg-slate-100">Sign Out</a>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="max-w-[1850px] my-6 mx-auto px-4 sm:px-6">
+        <input type="hidden" id="CURRENT_UPLOAD_ID" value="">
+
+        <!-- PAGE HEADER -->
+        <div class="mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-3">
+            <div>
+                <h1 class="text-lg font-bold text-slate-900 tracking-tight">Staging Review & Auto Binding</h1>
+                <p class="text-xs text-app-muted">Review data dari ZBOM_STG_PART, generate nomor Material Code otomatis, & siapkan integrasi SAP.</p>
+            </div>
+            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium bg-brand-50 text-brand-700 border border-brand-200">
+                <span class="w-1.5 h-1.5 rounded-full bg-brand-600 mr-1.5 animate-pulse"></span> Staging Ready
+            </span>
+        </div>
+
+        <!-- SECTION 1: MATERIAL CODE GENERATOR & BINDING CONTROL -->
+        <section class="bg-white rounded-lg border border-app-border shadow-sm mb-5">
+            <div class="bg-slate-50/80 px-5 py-3 border-b border-app-border flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-5 h-5 rounded bg-brand-700 text-white text-[11px] font-bold flex items-center justify-center">1</span>
+                    <h2 class="text-xs font-bold uppercase tracking-wider text-slate-700">Auto Material Code Generator & Binding Rule</h2>
+                </div>
+            </div>
+
+            <div class="p-5">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                    <!-- Material Type (Searchable Dropdown) -->
+                    <div class="flex flex-col gap-1.5 relative" id="grp_mtart">
+                        <label class="text-[11px] font-bold text-slate-600 uppercase tracking-wider">
+                            Material Type <span class="text-app-danger">*</span>
+                        </label>
+                        <div class="search-select-box border border-app-border-strong rounded-md px-3 py-2 bg-white cursor-pointer flex justify-between items-center text-xs min-h-[36px] transition hover:border-brand-600" id="mtart_select_box"
+onclick="toggleDropdown('mtart_popup')">
+                            <span id="mtart_select_label" class="text-slate-400">-- Pilih Material Type / Kode --</span>
+                            <span class="chevron text-[10px] text-slate-400 transition-transform duration-150">▼</span>
+                        </div>
+                        <input type="hidden" id="header_mtart" value="">
+                        <div class="dropdown-popup bg-white border border-app-border rounded-lg shadow-xl hidden p-2 z-[99999]" id="mtart_popup">
+                            <div class="relative mb-2">
+                                <span class="absolute left-2.5 top-2 text-xs text-slate-400">🔍</span>
+                                <input type="text" placeholder="Cari kode atau deskripsi type..." onkeyup="filterDropdownByDescription(this, 'mtart_list')" class="w-full pl-7 pr-2.5 py-1.5 border border-slate-300 rounded text-xs outline-none
+focus:border-brand-600">
+                            </div>
+                            <div class="dropdown-list max-h-[200px] overflow-y-auto flex flex-col gap-0.5" id="mtart_list"></div>
+                        </div>
+                    </div>
+
+                    <!-- Material Group (Searchable Dropdown) -->
+                    <div class="flex flex-col gap-1.5 relative" id="grp_matkl">
+                        <label class="text-[11px] font-bold text-slate-600 uppercase tracking-wider">
+                            Material Group <span class="text-app-danger">*</span>
+                        </label>
+                        <div class="search-select-box border border-app-border-strong rounded-md px-3 py-2 bg-white cursor-pointer flex justify-between items-center text-xs min-h-[36px] transition hover:border-brand-600" id="matkl_select_box"
+onclick="toggleDropdown('matkl_popup')">
+                            <span id="matkl_select_label" class="text-slate-400">-- Pilih Material Group / Kode --</span>
+                            <span class="chevron text-[10px] text-slate-400 transition-transform duration-150">▼</span>
+                        </div>
+                        <input type="hidden" id="header_matkl" value="">
+                        <div class="dropdown-popup bg-white border border-app-border rounded-lg shadow-xl hidden p-2 z-[99999]" id="matkl_popup">
+                            <div class="relative mb-2">
+                                <span class="absolute left-2.5 top-2 text-xs text-slate-400">🔍</span>
+                                <input type="text" placeholder="Cari kode atau deskripsi group..." onkeyup="filterDropdownByDescription(this, 'matkl_list')" class="w-full pl-7 pr-2.5 py-1.5 border border-slate-300 rounded text-xs outline-none
+focus:border-brand-600">
+                            </div>
+                            <div class="dropdown-list max-h-[200px] overflow-y-auto flex flex-col gap-0.5" id="matkl_list"></div>
+                        </div>
+                    </div>
+
+                    <!-- Plant (Searchable Dropdown) -->
+                    <div class="flex flex-col gap-1.5 relative" id="grp_werks">
+                        <label class="text-[11px] font-bold text-slate-600 uppercase tracking-wider">
+                            Plant <span class="text-app-danger">*</span>
+                        </label>
+                        <div class="search-select-box border border-app-border-strong rounded-md px-3 py-2 bg-white cursor-pointer flex justify-between items-center text-xs min-h-[36px] transition hover:border-brand-600" id="plant_select_box"
+onclick="toggleDropdown('plant_popup')">
+                            <span id="plant_select_label" class="text-slate-400">-- Pilih Plant / Kode --</span>
+                            <span class="chevron text-[10px] text-slate-400 transition-transform duration-150">▼</span>
+                        </div>
+                        <input type="hidden" id="header_werks" value="">
+                        <div class="dropdown-popup bg-white border border-app-border rounded-lg shadow-xl hidden p-2 z-[99999]" id="plant_popup">
+                            <div class="relative mb-2">
+                                <span class="absolute left-2.5 top-2 text-xs text-slate-400">🔍</span>
+                                <input type="text" placeholder="Cari kode atau nama plant..." onkeyup="filterDropdownByDescription(this, 'plant_list')" class="w-full pl-7 pr-2.5 py-1.5 border border-slate-300 rounded text-xs outline-none
+focus:border-brand-600">
+                            </div>
+                            <div class="dropdown-list max-h-[200px] overflow-y-auto flex flex-col gap-0.5" id="plant_list"></div>
+                        </div>
+                    </div>
+
+                    <!-- Generate & Bind Button -->
+                    <div>
+                        <button type="button" onclick="generateAndBindMaterialCode()" id="btnBindCode" class="w-full bg-brand-700 hover:bg-brand-800 text-white py-2 px-4 rounded-md font-bold text-xs flex items-center justify-center gap-2 shadow-sm
+transition disabled:bg-slate-300">
+                            <span class="spinner hidden w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
+                            <span>⚙️ Generate & Auto Bind Material Code</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Banner Base Material Code -->
+                <div class="mt-4 p-3 rounded-md bg-brand-50 border border-brand-200 hidden items-center justify-between" id="genCodeBanner">
+                    <div class="flex items-center gap-2 text-xs text-brand-800 font-medium">
+                        <span>✅</span>
+                        <span>Generated MARA Base Material Code: <code id="genCodeBannerText" class="bg-white px-2 py-0.5 rounded font-mono font-bold text-brand-700 border border-brand-200">-</code></span>
+                    </div>
+                    <button type="button" onclick="prepareForSAP()" class="bg-emerald-800 hover:bg-emerald-900 text-white px-4 py-1.5 rounded text-xs font-bold transition shadow-sm">
+                        🚀 Lock & Siapkan Data ke SAP
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: DATA STAGING REVIEW TABLE (READ ONLY) -->
+        <section class="bg-white rounded-lg border border-app-border shadow-sm mb-5">
+            <div class="bg-slate-50/80 px-5 py-3 border-b border-app-border flex items-center justify-between flex-wrap gap-2">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-5 h-5 rounded bg-brand-700 text-white text-[11px] font-bold flex items-center justify-center">2</span>
+                    <h2 class="text-xs font-bold uppercase tracking-wider text-slate-700">Review Data Staging ZBOM_STG_PART</h2>
+                </div>
+                <div class="flex items-center gap-2">
+                    <input type="text" id="searchInput" onkeyup="filterStagingTable()" placeholder="🔍 Cari Part Name / Code..." class="px-3 py-1 border border-slate-300 rounded text-xs outline-none">
+                    <span class="text-xs font-semibold text-brand-800 bg-brand-50 px-2.5 py-1 rounded-full border border-brand-200" id="stagingCounterChip">0 Items</span>
+                </div>
+            </div>
+
+            <div class="p-5">
+                <div class="overflow-x-auto border border-app-border rounded-lg">
+                    <table class="w-full border-collapse text-xs min-w-[3400px]" id="stagingTable">
+                        <thead>
+                            <tr class="text-left text-slate-700 font-bold text-[11px] uppercase tracking-wider bg-slate-100">
+                                <th rowspan="2" class="p-2 border-b border-r border-app-border text-center sticky top-0 bg-slate-100" style="width:2.5%;">Pos</th>
+                                <th rowspan="2" class="p-2 border-b border-r border-app-border text-center sticky top-0 bg-slate-100" style="width:3.5%;">Code Num</th>
+                                <th rowspan="2" class="p-2 border-b border-r border-app-border sticky top-0 bg-slate-100" style="width:8%;">Bound Material Code (MATNR)</th>
+                                <th rowspan="2" class="p-2 border-b border-r border-app-border sticky top-0 bg-slate-100" style="width:12%;">Part Name (MAKTX)</th>
+
+                                <!-- HEADER ROUGH SIZE (6 SUB-KOLOM) -->
+                                <th colspan="6" class="p-1.5 border-b border-r border-sky-300 bg-sky-200 text-center text-[11px] text-slate-800 tracking-wider font-bold">ROUGH SIZE</th>
+
+                                <!-- HEADER FINISH SIZE (3 KOLOM) -->
+                                <th colspan="3" class="p-1.5 border-b border-r border-brand-200 bg-emerald-100/80 text-center text-[10.5px] text-emerald-900 tracking-wider font-bold">FINISH SIZE (MM)</th>
+
+                                <th rowspan="2" class="p-2 border-b border-r border-app-border text-center sticky top-0 bg-slate-100" style="width:3.5%;">QTY ITEM</th>
+                                <th rowspan="2" class="p-2 border-b border-r border-app-border text-center sticky top-0 bg-slate-100" style="width:3.5%;">QTY ORD</th>
+                                <th rowspan="2" class="p-2 border-b border-r border-app-border text-center sticky top-0 bg-slate-100" style="width:3.5%;">M3</th>
+                                <th rowspan="2" class="p-2 border-b border-r border-app-border sticky top-0 bg-slate-100" style="width:8%;">Material (WRKST)</th>
+                                <th rowspan="2" class="p-2 border-b border-r border-app-border sticky top-0 bg-slate-100" style="width:8%;">Note</th>
+                                <th rowspan="2" class="p-2 border-b border-r border-app-border sticky top-0 bg-slate-100" style="width:5%;">Finishing</th>
+
+                                <!-- KOLOM TAMBAHAN REFERENSI -->
+                                <th rowspan="2" class="p-2 border-b border-r border-app-border sticky top-0 bg-slate-100 text-slate-800" style="width:12%;">Description</th>
+                                <th rowspan="2" class="p-2 border-b border-r border-app-border text-center sticky top-0 bg-slate-100 text-slate-800" style="width:5%;">MRP Group</th>
+                                <th rowspan="2" class="p-2 border-b border-r border-app-border text-center sticky top-0 bg-slate-100 text-slate-800" style="width:5%;">MRP Controller</th>
+                                <th rowspan="2" class="p-2 border-b border-r border-app-border text-center sticky top-0 bg-slate-100 text-slate-800" style="width:4.5%;">SLOC 1</th>
+                                <th rowspan="2" class="p-2 border-b border-r border-app-border text-center sticky top-0 bg-slate-100 text-slate-800" style="width:4.5%;">SLOC 2</th>
+                                <th rowspan="2" class="p-2 border-b border-r border-app-border text-center sticky top-0 bg-slate-100 text-slate-800" style="width:4.5%;">Plant</th>
+                                <th rowspan="2" class="p-2 border-b border-r border-app-border text-center sticky top-0 bg-slate-100 text-slate-800" style="width:4%;">M3</th>
+                                <th rowspan="2" class="p-2 border-b border-r border-app-border text-center sticky top-0 bg-slate-100 text-slate-800" style="width:4%;">M2</th>
+                                <th rowspan="2" class="p-2 border-b border-r border-app-border text-center sticky top-0 bg-slate-100 text-slate-800" style="width:4.5%;">Activity</th>
+                                <th rowspan="2" class="p-2 border-b border-r border-app-border text-center sticky top-0 bg-slate-100 text-slate-800" style="width:4%;">Satuan</th>
+                                <th rowspan="2" class="p-2 border-b border-r border-app-border text-center sticky top-0 bg-slate-100 text-slate-800" style="width:6%;">UOM Konversi</th>
+                                <th rowspan="2" class="p-2 border-b border-r border-app-border text-center sticky top-0 bg-slate-100 text-slate-800" style="width:7%;">Rough Size</th>
+                                <th rowspan="2" class="p-2 border-b border-r border-app-border text-center sticky top-0 bg-slate-100 text-slate-800" style="width:5.5%;">Material Type</th>
+                                <th rowspan="2" class="p-2 border-b border-r border-app-border text-center sticky top-0 bg-slate-100 text-slate-800" style="width:6%;">Material Group</th>
+
+                                <th rowspan="2" class="p-2 border-b border-app-border text-center sticky top-0 bg-slate-100" style="width:4.5%;">Status</th>
+                            </tr>
+                            <tr class="text-center text-[10px] uppercase font-bold tracking-wider">
+                                <!-- ROUGH SIZE SUB-HEADER T, W, L -->
+                                <th colspan="2" class="p-1 border-b border-r border-sky-300 bg-sky-100 text-slate-800 font-bold" style="min-width: 80px;">T</th>
+                                <th colspan="2" class="p-1 border-b border-r border-sky-300 bg-sky-100 text-slate-800 font-bold" style="min-width: 90px;">W</th>
+                                <th colspan="2" class="p-1 border-b border-r border-sky-400 bg-sky-100 text-slate-800 font-bold" style="min-width: 100px;">L</th>
+
+                                <!-- FINISH SIZE SUB-HEADER T, W, L -->
+                                <th class="p-1 border-b border-r border-brand-200 bg-emerald-50 text-emerald-800 font-bold" style="min-width: 45px;">T</th>
+                                <th class="p-1 border-b border-r border-brand-200 bg-emerald-50 text-emerald-800 font-bold" style="min-width: 45px;">W</th>
+                                <th class="p-1 border-b border-r border-brand-300 bg-emerald-50 text-emerald-800 font-bold" style="min-width: 55px;">L</th>
+                            </tr>
+                        </thead>
+                        <tbody id="stagingTableBody" class="divide-y divide-app-border">
+                            <tr>
+                                <td colspan="34" class="p-4 text-center text-slate-400 italic">Pilih batch pada riwayat upload untuk mereview data...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: RIWAYAT BATCH STAGING -->
+        <section class="bg-white rounded-lg border border-app-border shadow-sm mb-8 overflow-hidden">
+            <div class="bg-slate-50/80 px-5 py-3 border-b border-app-border flex items-center justify-between flex-wrap gap-2">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-5 h-5 rounded bg-slate-800 text-white text-[11px] font-bold flex items-center justify-center">3</span>
+                    <h2 class="text-xs font-bold uppercase tracking-wider text-slate-800">Daftar Paket Batch Staging (Hasil Upload)</h2>
+                </div>
+                <button type="button" onclick="loadUploadHistory()" class="text-xs text-brand-700 font-semibold hover:underline flex items-center gap-1">
+                    🔄 Refresh Riwayat
+                </button>
+            </div>
+
+            <div class="p-5">
+                <div class="overflow-x-auto border border-app-border rounded-lg">
+                    <table class="w-full border-collapse text-xs">
+                        <thead>
+                            <tr class="text-left text-slate-700 font-bold text-[11px] uppercase tracking-wider bg-slate-100 border-b border-app-border">
+                                <th class="p-2.5 text-center" style="width: 5%;">No.</th>
+                                <th class="p-2.5" style="width: 15%;">Batch / Upload ID</th>
+                                <th class="p-2.5" style="width: 25%;">Nama File Excel</th>
+                                <th class="p-2.5 text-center" style="width: 15%;">Tanggal & Waktu Upload</th>
+                                <th class="p-2.5 text-center" style="width: 10%;">Total Baris</th>
+                                <th class="p-2.5 text-center" style="width: 10%;">Diunggah Oleh</th>
+                                <th class="p-2.5 text-center" style="width: 10%;">Status</th>
+                                <th class="p-2.5 text-center" style="width: 10%;">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTableBody" class="divide-y divide-app-border">
+                            <tr>
+                                <td colspan="8" class="p-4 text-center text-slate-400 italic">Memuat riwayat upload...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- TOAST NOTIFICATION -->
+    <div class="fixed bottom-5 right-5 flex flex-col gap-2 z-[10000]" id="toastStack"></div>
+
+    <script>
+        let currentStagingData = [];
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const nameLabel = document.getElementById("userNameLabel");
+            if (nameLabel && nameLabel.innerText.trim()) {
+                document.getElementById("userAvatarInitial").innerText = nameLabel.innerText.trim().charAt(0).toUpperCase();
+            }
+
+            // Render Searchable Dropdowns
+            renderMtartDropdownList();
+            renderPlantDropdownList();
+            renderMatklDropdownList();
+
+            loadUploadHistory();
+
+            // Close dropdowns on outside click
+            document.addEventListener("click", function(e) {
+                if (!e.target.closest('.search-select-box') && !e.target.closest('.dropdown-popup')) {
+                    closeAllDropdowns();
+                }
+            });
+
+            window.addEventListener('scroll', function(e) {
+                if (e.target.classList && !e.target.classList.contains('dropdown-list')) {
+                    closeAllDropdowns();
+                }
+            }, true);
+
+            window.addEventListener('resize', closeAllDropdowns);
+        });
+
+        function closeAllDropdowns() {
+            document.querySelectorAll('.dropdown-popup').forEach(p => p.classList.add('hidden'));
+            document.querySelectorAll('.chevron').forEach(c => c.classList.remove('rotate-180'));
+        }
+
+        function toggleDropdown(popupId) {
+            const popup = document.getElementById(popupId);
+            if (!popup) return;
+            const isHidden = popup.classList.contains('hidden');
+            closeAllDropdowns();
+
+            if (isHidden) {
+                const triggerBox = popup.parentElement.querySelector('.search-select-box');
+                if (triggerBox) {
+                    const rect = triggerBox.getBoundingClientRect();
+                    popup.style.position = 'fixed';
+                    popup.style.top = (rect.bottom + 4) + 'px';
+                    popup.style.left = rect.left + 'px';
+                    popup.style.width = Math.max(rect.width, 260) + 'px';
+                }
+                popup.classList.remove('hidden');
+                const chevron = popup.parentElement.querySelector('.chevron');
+                if (chevron) chevron.classList.add('rotate-180');
+                const searchInput = popup.querySelector('input[type="text"]');
+                if (searchInput) setTimeout(() => searchInput.focus(), 50);
+            }
+        }
+
+        function filterDropdownByDescription(input, listId) {
+            const filter = (input.value || "").trim().toLowerCase();
+            const items = document.querySelectorAll('#' + listId + ' > div');
+            items.forEach(function(item) {
+                const desc = (item.getAttribute("data-desc") || "").toLowerCase();
+                const code = (item.getAttribute("data-code") || "").toLowerCase();
+                if (desc.indexOf(filter) !== -1 || code.indexOf(filter) !== -1) {
+                    item.classList.remove("hidden");
+                    item.classList.add("flex");
+                } else {
+                    item.classList.remove("flex");
+                    item.classList.add("hidden");
+                }
+            });
+        }
+
+        // ================= RENDER DROPDOWNS =================
+        function renderMtartDropdownList() {
+            const listContainer = document.getElementById("mtart_list");
+            if (!listContainer) return;
+            listContainer.innerHTML = "";
+
+            let mtartMaster = [];
+            try {
+                const el = document.getElementById('mtart-data');
+                if (el) mtartMaster = JSON.parse(el.textContent || '[]');
+            } catch (e) { console.error("Error MTART JSON:", e); }
+
+            if (!mtartMaster || mtartMaster.length === 0) {
+                listContainer.innerHTML = '<div class="p-2 text-center text-app-muted text-xs">Data MTART kosong</div>';
+                return;
+            }
+
+            mtartMaster.forEach(function(item) {
+                const code = item.code || item.CODE || "";
+                const name = item.name || item.NAME || code;
+
+                const div = document.createElement("div");
+                div.className = "flex items-center justify-between p-2 rounded cursor-pointer text-xs transition hover:bg-brand-50 text-slate-700";
+                div.setAttribute("data-desc", name.toLowerCase());
+                div.setAttribute("data-code", code.toLowerCase());
+                div.innerHTML = `<span class="font-semibold text-slate-800">${name}</span> <span class="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-mono text-[11px] ml-2">${code}</span>`;
+
+                div.onclick = function() {
+                    document.getElementById("header_mtart").value = code;
+                    const label = document.getElementById("mtart_select_label");
+                    label.innerText = `${code} – ${name}`;
+                    label.classList.remove("text-slate-400");
+                    label.classList.add("text-slate-800", "font-semibold");
+                    closeAllDropdowns();
+                };
+                listContainer.appendChild(div);
+            });
+        }
+
+        function renderPlantDropdownList() {
+            const listContainer = document.getElementById("plant_list");
+            if (!listContainer) return;
+            listContainer.innerHTML = "";
+
+            let plantMaster = [];
+            try {
+                const el = document.getElementById('plant-data');
+                if (el) plantMaster = JSON.parse(el.textContent || '[]');
+            } catch (e) { console.error("Error Plant JSON:", e); }
+
+            if (!plantMaster || plantMaster.length === 0) {
+                listContainer.innerHTML = '<div class="p-2 text-center text-app-muted text-xs">Data Plant kosong</div>';
+                return;
+            }
+
+            plantMaster.forEach(function(item) {
+                const code = item.code || item.CODE || "";
+                const name = item.name || item.NAME || code;
+
+                const div = document.createElement("div");
+                div.className = "flex items-center justify-between p-2 rounded cursor-pointer text-xs transition hover:bg-brand-50 text-slate-700";
+                div.setAttribute("data-desc", name.toLowerCase());
+                div.setAttribute("data-code", code.toLowerCase());
+                div.innerHTML = `<span class="font-semibold text-slate-800">${name}</span> <span class="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-mono text-[11px] ml-2">${code}</span>`;
+
+                div.onclick = function() {
+                    document.getElementById("header_werks").value = code;
+                    const label = document.getElementById("plant_select_label");
+                    label.innerText = `${code} – ${name}`;
+                    label.classList.remove("text-slate-400");
+                    label.classList.add("text-slate-800", "font-semibold");
+                    closeAllDropdowns();
+                };
+                listContainer.appendChild(div);
+            });
+        }
+
+        function renderMatklDropdownList() {
+            const listContainer = document.getElementById("matkl_list");
+            if (!listContainer) return;
+            listContainer.innerHTML = "";
+
+            let matklMaster = [];
+            try {
+                const el = document.getElementById('matkl-data');
+                if (el) matklMaster = JSON.parse(el.textContent || '[]');
+            } catch (e) { console.error("Error MATKL JSON:", e); }
+
+            if (!matklMaster || matklMaster.length === 0) {
+                listContainer.innerHTML = '<div class="p-2 text-center text-app-muted text-xs">Data Material Group kosong</div>';
+                return;
+            }
+
+            matklMaster.forEach(function(item) {
+                const code = item.code || item.CODE || "";
+                const name = item.name || item.NAME || code;
+
+                const div = document.createElement("div");
+                div.className = "flex items-center justify-between p-2 rounded cursor-pointer text-xs transition hover:bg-brand-50 text-slate-700";
+                div.setAttribute("data-desc", name.toLowerCase());
+                div.setAttribute("data-code", code.toLowerCase());
+                div.innerHTML = `<span class="font-semibold text-slate-800">${name}</span> <span class="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-mono text-[11px] ml-2">${code}</span>`;
+
+                div.onclick = function() {
+                    document.getElementById("header_matkl").value = code;
+                    const label = document.getElementById("matkl_select_label");
+                    label.innerText = `${code} – ${name}`;
+                    label.classList.remove("text-slate-400");
+                    label.classList.add("text-slate-800", "font-semibold");
+                    closeAllDropdowns();
+                };
+                listContainer.appendChild(div);
+            });
+        }
+
+        // ============ PARSER ROUGH SIZE DETAIL ============
+        function parseRoughSizeDetail(groesStr) {
+            if (!groesStr || groesStr.trim() === '' || groesStr === '-') {
+                return { t1: '-', t2: '-', w1: '-', w2: '-', l1: '-', l2: '-' };
+            }
+
+            const parts = groesStr.trim().split(/X|x/i);
+            const rawT = parts[0] ? parts[0].trim() : '';
+            const rawW = parts[1] ? parts[1].trim() : '';
+            const rawL = parts[2] ? parts[2].trim() : '';
+
+            function splitSlash(raw, defaultVal1 = '0') {
+                if (!raw) return { v1: '-', v2: '-' };
+                if (raw.includes('/')) {
+                    const s = raw.split('/');
+                    return { v1: s[0].trim().replace('.', ','), v2: s[1].trim().replace('.', ',') };
+                } else {
+                    return { v1: defaultVal1, v2: raw.trim().replace('.', ',') };
+                }
+            }
+
+            const t = splitSlash(rawT, '0');
+            const w = splitSlash(rawW, '-');
+            const l = splitSlash(rawL, '-');
+
+            return { t1: t.v1, t2: t.v2, w1: w.v1, w2: w.v2, l1: l.v1, l2: l.v2 };
+        }
+
+        function loadUploadHistory() {
+            const tbody = document.getElementById("historyTableBody");
+            tbody.innerHTML = '<tr><td colspan="8" class="p-4 text-center text-slate-400 italic">Memuat riwayat...</td></tr>';
+
+            fetch("?OnInputProcessing=GET_HISTORY")
+            .then(res => res.json())
+            .then(data => {
+                tbody.innerHTML = "";
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="8" class="p-4 text-center text-slate-400 italic">Belum ada data staging.</td></tr>';
+                    return;
+                }
+
+                data.forEach((item, idx) => {
+                    const tr = document.createElement("tr");
+                    tr.className = "hover:bg-slate-50 transition-colors";
+                    const formattedDate = item.erdat ? (item.erdat.substring(6,8) + '/' + item.erdat.substring(4,6) + '/' + item.erdat.substring(0,4)) : "-";
+                    const formattedTime = item.ertim ? (item.ertim.substring(0,2) + ':' + item.ertim.substring(2,4)) : "";
+
+                    tr.innerHTML = `
+                        <td class="p-2.5 text-center font-bold text-slate-700">${idx + 1}</td>
+                        <td class="p-2.5 font-mono text-slate-800 font-semibold">${item.upload_id || '-'}</td>
+                        <td class="p-2.5 font-semibold text-slate-800">${item.filename || 'File_RND.xlsx'}</td>
+                        <td class="p-2.5 text-center text-slate-600 font-mono">${formattedDate} ${formattedTime}</td>
+                        <td class="p-2.5 text-center font-bold text-brand-800 bg-brand-50/50">${item.total_row || 0} Line</td>
+                        <td class="p-2.5 text-center text-slate-700 font-medium">${item.ernam || '-'}</td>
+                        <td class="p-2.5 text-center"><span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-amber-200">${item.status}</span></td>
+                        <td class="p-2.5 text-center">
+                            <button type="button" onclick="loadUploadDetail('${item.upload_id}')" class="bg-brand-700 hover:bg-brand-800 text-white text-[11px] font-semibold px-2.5 py-1 rounded shadow-sm transition">
+                                👁 Review & Bind
+                            </button>
+                        </td>`;
+                    tbody.appendChild(tr);
+                });
+
+                if (data.length > 0 && !document.getElementById("CURRENT_UPLOAD_ID").value) {
+                    loadUploadDetail(data[0].upload_id);
+                }
+            });
+        }
+
+        function loadUploadDetail(uploadId) {
+            if (!uploadId) return;
+            document.getElementById("CURRENT_UPLOAD_ID").value = uploadId;
+            showToast("Memuat isi data batch: " + uploadId, "info");
+
+            const formData = new FormData();
+            formData.append("UPLOAD_ID", uploadId);
+
+            fetch("?OnInputProcessing=GET_UPLOAD_DETAIL", {
+                method: "POST",
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                currentStagingData = data || [];
+                renderStagingTable(currentStagingData);
+            });
+        }
+
+        function renderStagingTable(data) {
+            const tbody = document.getElementById("stagingTableBody");
+            tbody.innerHTML = "";
+
+            if (!data || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="34" class="p-4 text-center text-slate-400 italic">Tidak ada data staging untuk ditampilkan.</td></tr>';
+                document.getElementById("stagingCounterChip").innerText = "0 Items";
+                return;
+            }
+
+            document.getElementById("stagingCounterChip").innerText = data.length + " Items";
+
+            data.forEach((item, idx) => {
+                const codeNum = (item.code_num || item.CODE_NUM || "SF").toUpperCase();
+                let trClass = "bg-white hover:bg-slate-50 transition-colors";
+                let codeBadge = "bg-slate-100 text-slate-700 border-slate-300";
+
+                if (codeNum === 'PF') {
+                    trClass = "bg-emerald-50/70 font-semibold border-t-2 border-emerald-300";
+                    codeBadge = "bg-emerald-700 text-white font-bold";
+                } else if (codeNum === 'CMB') {
+                    trClass = "bg-blue-50/70 font-semibold border-t border-blue-200";
+                    codeBadge = "bg-blue-600 text-white font-bold";
+                }
+
+                const rawGroes = item.groes || item.GROES || "";
+                const rough = parseRoughSizeDetail(rawGroes);
+
+                let ft = "-", fw = "-", fl = "-";
+                if (item.groes_fin || item.GROES_FIN) {
+                    const fp = (item.groes_fin || item.GROES_FIN).split(/X|x/i);
+                    ft = fp[0] ? fp[0].trim().replace('.', ',') : "-";
+                    fw = fp[1] ? fp[1].trim().replace('.', ',') : "-";
+                    fl = fp[2] ? fp[2].trim().replace('.', ',') : "-";
+                }
+
+                const tr = document.createElement("tr");
+                tr.className = trClass;
+                tr.innerHTML = `
+                    <td class="p-2 border-r border-app-border text-center font-bold text-slate-700">${item.posnr || (idx+1)*10}</td>
+                    <td class="p-2 border-r border-app-border text-center"><span class="px-2 py-0.5 rounded text-[11px] ${codeBadge}">${codeNum}</span></td>
+                    <td class="p-2 border-r border-app-border font-mono font-bold text-brand-800 bg-brand-50/30">${item.matnr || item.MATNR || '-'}</td>
+                    <td class="p-2 border-r border-app-border font-medium text-slate-900">${item.maktx || item.MAKTX || '-'}</td>
+
+                    <td class="p-1.5 border-r border-sky-100 bg-sky-50/20 text-center font-mono font-bold text-red-600">${rough.t1}</td>
+                    <td class="p-1.5 border-r border-sky-200 bg-sky-50/20 text-center font-mono font-bold text-slate-900">${rough.t2}</td>
+                    <td class="p-1.5 border-r border-sky-100 bg-sky-50/20 text-center font-mono font-bold text-red-600">${rough.w1}</td>
+                    <td class="p-1.5 border-r border-sky-200 bg-sky-50/20 text-center font-mono font-bold text-slate-900">${rough.w2}</td>
+                    <td class="p-1.5 border-r border-sky-100 bg-sky-50/20 text-center font-mono font-bold text-red-600">${rough.l1}</td>
+                    <td class="p-1.5 border-r border-sky-300 bg-sky-50/40 text-center font-mono font-bold text-slate-900">${rough.l2}</td>
+
+                    <td class="p-1 border-r border-brand-200 bg-brand-50/20 text-center font-mono">${ft}</td>
+                    <td class="p-1 border-r border-brand-200 bg-brand-50/20 text-center font-mono">${fw}</td>
+                    <td class="p-1 border-r border-brand-300 bg-brand-50/30 text-center font-mono">${fl}</td>
+
+                    <td class="p-2 border-r border-app-border text-center font-bold font-mono">${item.menge || item.MENGE || 0}</td>
+                    <td class="p-2 border-r border-app-border text-center font-bold font-mono text-blue-700">${item.menge_ord || item.MENGE_ORD || '-'}</td>
+                    <td class="p-2 border-r border-app-border text-center font-mono">${item.vol_m3 || item.VOL_M3 || '-'}</td>
+                    <td class="p-2 border-r border-app-border">${item.wrkst || item.WRKST || '-'}</td>
+                    <td class="p-2 border-r border-app-border">${item.note || item.NOTE || '-'}</td>
+                    <td class="p-2 border-r border-app-border text-center font-semibold">${item.finishing || item.FINISHING || '-'}</td>
+
+                    <td class="p-2 border-r border-app-border font-medium text-slate-800">${item.description || item.DESCRIPTION || item.maktx || item.MAKTX || '-'}</td>
+                    <td class="p-2 border-r border-app-border text-center font-mono">${item.mrp_group || item.MRP_GROUP || item.dispo_grp || item.DISPO_GRP || '-'}</td>
+                    <td class="p-2 border-r border-app-border text-center font-mono">${item.mrp_ctrl || item.MRP_CTRL || item.dispo || item.DISPO || '-'}</td>
+                    <td class="p-2 border-r border-app-border text-center font-mono">${item.sloc1 || item.SLOC1 || item.lgort1 || item.LGORT1 || item.lgort || item.LGORT || '-'}</td>
+                    <td class="p-2 border-r border-app-border text-center font-mono">${item.sloc2 || item.SLOC2 || item.lgort2 || item.LGORT2 || '-'}</td>
+                    <td class="p-2 border-r border-app-border text-center font-mono">${item.plant || item.PLANT || item.werks || item.WERKS || '-'}</td>
+                    <td class="p-2 border-r border-app-border text-center font-mono">${item.m3 || item.M3 || item.vol_m3 || item.VOL_M3 || '-'}</td>
+                    <td class="p-2 border-r border-app-border text-center font-mono">${item.m2 || item.M2 || item.vol_m2 || item.VOL_M2 || '-'}</td>
+                    <td class="p-2 border-r border-app-border text-center font-mono">${item.activity || item.ACTIVITY || '-'}</td>
+                    <td class="p-2 border-r border-app-border text-center font-mono">${item.satuan || item.SATUAN || item.meins || item.MEINS || '-'}</td>
+                    <td class="p-2 border-r border-app-border text-center font-mono">${item.uom_konversi || item.UOM_KONVERSI || item.umrez || item.UMREZ || '-'}</td>
+                    <td class="p-2 border-r border-app-border text-center font-mono">${rawGroes || '-'}</td>
+                    <td class="p-2 border-r border-app-border text-center font-mono">${item.material_type || item.MATERIAL_TYPE || item.mtart || item.MTART || '-'}</td>
+                    <td class="p-2 border-r border-app-border text-center font-mono">${item.material_group || item.MATERIAL_GROUP || item.matkl || item.MATKL || '-'}</td>
+
+                    <td class="p-2 text-center font-bold text-[10px]">${item.status || item.STATUS || 'SUBMITTED'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filterStagingTable() {
+            const query = document.getElementById("searchInput").value.toLowerCase();
+            const filtered = currentStagingData.filter(item => {
+                const matchMaktx = (item.maktx || item.MAKTX || '').toLowerCase().includes(query);
+                const matchMatnr = (item.matnr || item.MATNR || '').toLowerCase().includes(query);
+                return matchMaktx || matchMatnr;
+            });
+            renderStagingTable(filtered);
+        }
+
+        function generateAndBindMaterialCode() {
+            const uploadId = document.getElementById("CURRENT_UPLOAD_ID").value;
+            const mtart = document.getElementById("header_mtart").value;
+            const matkl = document.getElementById("header_matkl").value;
+            const werks = document.getElementById("header_werks").value;
+
+            if (!uploadId) {
+                showToast("Pilih Batch Upload terlebih dahulu dari tabel bawah!", "error");
+                return;
+            }
+            if (!mtart || !matkl || !werks) {
+                showToast("Material Type, Material Group, dan Plant wajib dipilih!", "error");
+                return;
+            }
+
+            const btn = document.getElementById("btnBindCode");
+            btn.disabled = true;
+            btn.querySelector('.spinner').classList.remove('hidden');
+
+            const formData = new FormData();
+            formData.append("UPLOAD_ID", uploadId);
+            formData.append("MTART", mtart);
+            formData.append("MATKL", matkl);
+            formData.append("WERKS", werks);
+
+            fetch("?OnInputProcessing=GENERATE_AND_BIND_MATNR", {
+                method: "POST",
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === "SUCCESS") {
+                    showToast("Base Material Code " + data.base_matnr + " berhasil di-generate & di-binding!", "success");
+                    document.getElementById("genCodeBannerText").innerText = data.base_matnr;
+                    document.getElementById("genCodeBanner").classList.remove("hidden");
+                    document.getElementById("genCodeBanner").classList.add("flex");
+
+                    currentStagingData = data.data || [];
+                    renderStagingTable(currentStagingData);
+                } else {
+                    showToast(data.message || "Gagal meng-generate kode.", "error");
+                }
+            })
+            .catch(() => showToast("Terjadi kesalahan koneksi.", "error"))
+            .finally(() => {
+                btn.disabled = false;
+                btn.querySelector('.spinner').classList.add('hidden');
+            });
+        }
+
+        function prepareForSAP() {
+            const uploadId = document.getElementById("CURRENT_UPLOAD_ID").value;
+            if (!uploadId) return;
+
+            const formData = new FormData();
+            formData.append("UPLOAD_ID", uploadId);
+
+            fetch("?OnInputProcessing=PREPARE_FOR_SAP", {
+                method: "POST",
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === "SUCCESS") {
+                    showToast(data.message, "success");
+                    loadUploadHistory();
+                }
+            });
+        }
+
+        function showToast(message, type = "info") {
+            const icons = { success: "✅", error: "⛔", info: "ℹ️" };
+            const bgClasses = {
+                success: "bg-slate-900 border-l-4 border-brand-500",
+                error: "bg-slate-900 border-l-4 border-red-500",
+                info: "bg-slate-900 border-l-4 border-blue-500"
+            };
+            const stack = document.getElementById("toastStack");
+            const toast = document.createElement("div");
+            toast.className = `min-w-[280px] max-w-[380px] ${bgClasses[type] || bgClasses.info} text-white p-3 rounded-md text-xs flex items-start gap-2.5 shadow-lg transition-all duration-300 opacity-100 translate-y-0`;
+            toast.innerHTML = `<span class="shrink-0 text-sm">${icons[type] || icons.info}</span><span class="font-medium">${message}</span>`;
+            stack.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.add("opacity-0", "translate-y-2");
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+    </script>
+</body>
+</html>

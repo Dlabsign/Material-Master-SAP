@@ -1,0 +1,893 @@
+<%@page language="ABAP" %>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAP Material Master - Part Staging</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- SheetJS CDN (Client-side Excel Engine) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4', 100: '#dcfce7', 200: '#bbf7d0',
+                            500: '#10b981', 600: '#059669', 700: '#047857',
+                            800: '#065f46', 900: '#022c22',
+                        },
+                        app: {
+                            bg: '#f8fafc', card: '#ffffff', border: '#e2e8f0',
+                            'border-strong': '#cbd5e1', text: '#0f172a', muted: '#64748b',
+                            danger: '#dc2626', 'danger-bg': '#fef2f2'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="bg-app-bg text-app-text text-[13px] font-sans leading-relaxed m-0 p-0 antialiased selection:bg-brand-100 selection:text-brand-900">
+
+    <!-- DATA INJECTION SAFE FROM ABAP -->
+    <script id="plant-data" type="application/json"><%= gt_plant_json %></script>
+    <script id="matkl-data" type="application/json"><%= gt_matkl_json %></script>
+    <script id="mtart-data" type="application/json"><%= gt_mtart_json %></script>
+    <script id="raw-data" type="application/json"><%= gt_raw_json %></script>
+
+    <!-- TOP NAVIGATION BAR -->
+    <header class="bg-white h-14 border-b border-app-border sticky top-0 z-50 shadow-sm px-4 lg:px-8 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-brand-800 text-white flex items-center justify-center font-bold text-xs tracking-wider shadow-sm">
+                MM
+            </div>
+            <span class="font-semibold text-sm text-slate-800">Material Master System - Wood Part Staging</span>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-full">
+                <div class="w-6 h-6 rounded-full bg-brand-100 text-brand-800 flex items-center justify-center font-bold text-[11px]" id="userAvatarInitial">•</div>
+                <span class="text-xs font-semibold text-slate-700" id="userNameLabel"><%= sy-uname %></span>
+            </div>
+            <a href="?OnInputProcessing=LOGOUT" class="text-xs font-medium text-slate-600 hover:text-brand-700 px-2.5 py-1 rounded-md transition hover:bg-slate-100">Sign Out</a>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="max-w-[1850px] my-6 mx-auto px-4 sm:px-6">
+        <input type="hidden" id="REQ_ID" value="<%= req_id %>">
+        <input type="hidden" id="CURRENT_UPLOAD_ID" value="">
+        <input type="hidden" id="CURRENT_FILENAME" value="">
+
+        <!-- PAGE HEADER -->
+        <div class="mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-3">
+            <h1 class="text-lg font-bold text-slate-900 tracking-tight">Part Staging Setup (R&D)</h1>
+            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium bg-brand-50 text-brand-700 border border-brand-200">
+                <span class="w-1.5 h-1.5 rounded-full bg-brand-600 mr-1.5 animate-pulse"></span> Wood Furniture Staging
+            </span>
+        </div>
+
+
+        <!-- SECTION 2: DETAIL PART TABLE -->
+        <section class="bg-white rounded-lg border border-app-border shadow-sm mb-5 overflow-visible">
+            <div class="bg-slate-50/80 px-5 py-3 border-b border-app-border flex items-center justify-between rounded-t-lg flex-wrap gap-2">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-5 h-5 rounded bg-brand-700 text-white text-[11px] font-bold flex items-center justify-center">2</span>
+                    <h2 class="text-xs font-bold uppercase tracking-wider text-slate-700">Part Specifications & Dynamic Grouping</h2>
+                </div>
+                <div class="flex items-center gap-2.5 flex-wrap">
+                    <span class="text-xs font-semibold text-brand-800 bg-brand-50 px-2.5 py-1 rounded-full border border-brand-200" id="rowCounterChip">1 Line</span>
+
+                    <button type="button" class="bg-slate-700 hover:bg-slate-800 text-white px-3 py-1 rounded-md font-semibold text-xs cursor-pointer flex items-center gap-1.5 transition shadow-sm" onclick="downloadStandardExcelTemplate()">
+                        📥 Download Template Excel
+                    </button>
+
+                    <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" class="hidden" onchange="parseStandardExcelRD(this)">
+                    <button type="button" class="bg-emerald-700 hover:bg-emerald-800 text-white px-3 py-1 rounded-md font-semibold text-xs cursor-pointer flex items-center gap-1.5 transition shadow-sm"
+onclick="document.getElementById('excelFileInput').click()">
+                        📊 Upload Excel R&D
+                    </button>
+
+                    <button type="button" class="bg-brand-50 text-brand-700 border border-brand-200 px-3 py-1 rounded-md font-semibold text-xs cursor-pointer flex items-center gap-1 hover:bg-brand-100 transition" onclick="addNewRow()">+ Add Line</button>
+                </div>
+            </div>
+
+            <div class="p-5">
+                <div class="overflow-x-auto border border-app-border rounded-lg">
+                    <table class="w-full border-collapse text-xs min-w-[1850px]" id="partTable">
+                        <thead>
+                            <tr class="text-left text-slate-700 font-bold text-[11px] uppercase tracking-wider bg-slate-100">
+                                <th rowspan="2" class="p-2 border-b border-r border-app-border text-center sticky top-0 bg-slate-100" style="width:3%;">No.</th>
+                                <th rowspan="2" class="p-2 border-b border-r border-app-border text-center sticky top-0 bg-slate-100" style="width:5%;">Code Number</th>
+                                <th rowspan="2" class="p-2 border-b border-r border-app-border sticky top-0 bg-slate-100" style="width:18%;">Part Name</th>
+                                <th colspan="6" class="p-1.5 border-b border-r border-amber-300 bg-amber-50/80 text-center text-[10.5px] text-amber-900 tracking-wider">ROUGH SIZE (MM)</th>
+                                <th colspan="3" class="p-1.5 border-b border-r border-brand-200 bg-brand-50/80 text-center text-[10.5px] text-brand-900 tracking-wider">FINISH SIZE (MM)</th>
+                                <th rowspan="2" class="p-2 border-b border-r border-app-border text-center sticky top-0 bg-slate-100" style="width:5%;">QTY ITEM</th>
+                                <th rowspan="2" class="p-2 border-b border-r border-app-border text-center sticky top-0 bg-slate-100" style="width:5%;">QTY ORDER</th>
+                                <th rowspan="2" class="p-2 border-b border-r border-app-border text-center sticky top-0 bg-slate-100" style="width:5%;">M3</th>
+                                <th rowspan="2" class="p-2 border-b border-r border-app-border sticky top-0 bg-slate-100" style="width:13%;">Material</th>
+                                <th rowspan="2" class="p-2 border-b border-r border-app-border sticky top-0 bg-slate-100" style="width:13%;">Note</th>
+                                <th rowspan="2" class="p-2 border-b border-r border-app-border sticky top-0 bg-slate-100" style="width:7%;">Finishing</th>
+                                <th rowspan="2" class="p-2 border-b border-app-border text-center sticky top-0 bg-slate-100" style="width:4%;">Action</th>
+                            </tr>
+                            <tr class="text-center text-[10px] uppercase font-bold tracking-wider">
+                                <th colspan="2" class="p-1 border-b border-r border-amber-200 bg-amber-50/50 text-amber-800" style="min-width: 96px;">Rough Thick (T)</th>
+                                <th colspan="2" class="p-1 border-b border-r border-amber-200 bg-amber-50/50 text-amber-800" style="min-width: 104px;">Rough Width (W)</th>
+                                <th colspan="2" class="p-1 border-b border-r border-amber-300 bg-amber-50/50 text-amber-800" style="min-width: 116px;">Rough Length (L)</th>
+                                <th class="p-1 border-b border-r border-brand-200 bg-brand-50/50 text-brand-800" style="min-width: 52px;">T</th>
+                                <th class="p-1 border-b border-r border-brand-200 bg-brand-50/50 text-brand-800" style="min-width: 60px;">W</th>
+                                <th class="p-1 border-b border-r border-brand-300 bg-brand-50/50 text-brand-800" style="min-width: 72px;">L</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody" class="divide-y divide-app-border">
+                            <!-- Dynamic Rows via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- FOOTER BAR -->
+            <div class="bg-slate-50/80 px-5 py-3.5 border-t border-app-border flex justify-between items-center flex-wrap gap-3 rounded-b-lg">
+                <div class="text-xs text-app-muted font-medium" id="footerSummary">1 line ready</div>
+                <div class="flex gap-2.5 flex-wrap w-full sm:w-auto">
+                    <button type="button" class="flex-1 sm:flex-none justify-center px-4 py-2 rounded-md text-xs font-semibold cursor-pointer border border-slate-300 bg-white text-app-danger hover:bg-app-danger-bg hover:border-red-300 inline-flex
+items-center gap-1.5 transition" id="btnReset" onclick="resetForm()">
+                        <span class="spinner hidden w-3 h-3 border-2 border-red-600/30 border-t-red-600 rounded-full animate-spin"></span>
+                        <span class="btn-label">↺ Reset</span>
+                    </button>
+                    <button type="button" class="flex-1 sm:flex-none justify-center px-4 py-2 rounded-md text-xs font-semibold cursor-pointer border border-slate-300 bg-white text-slate-700 hover:border-brand-600 hover:text-brand-700 inline-flex
+items-center gap-1.5 transition" id="btnDraft" onclick="saveStagingData('DRAFT')">
+                        <span class="spinner hidden w-3 h-3 border-2 border-brand-600/30 border-t-brand-600 rounded-full animate-spin"></span>
+                        <span class="btn-label">💾 Save Draft</span>
+                    </button>
+                    <button type="button" class="flex-1 sm:flex-none justify-center px-5 py-2 rounded-md text-xs font-semibold cursor-pointer border border-transparent bg-brand-700 hover:bg-brand-800 text-white shadow-sm inline-flex items-center gap-1.5
+transition" id="btnSubmit" onclick="saveStagingData('SUBMITTED')">
+                        <span class="spinner hidden w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
+                        <span class="btn-label">✔ Submit</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: RIWAYAT UPLOAD BATCH EXCEL -->
+        <section class="bg-white rounded-lg border border-app-border shadow-sm mb-8 overflow-hidden">
+            <div class="bg-slate-50/80 px-5 py-3 border-b border-app-border flex items-center justify-between flex-wrap gap-2">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-5 h-5 rounded bg-slate-800 text-white text-[11px] font-bold flex items-center justify-center">3</span>
+                    <h2 class="text-xs font-bold uppercase tracking-wider text-slate-800">Riwayat Process Upload Excel (Batch History)</h2>
+                </div>
+                <button type="button" onclick="loadUploadHistory()" class="text-xs text-brand-700 font-semibold hover:underline flex items-center gap-1">
+                    🔄 Refresh Riwayat
+                </button>
+            </div>
+
+            <div class="p-5">
+                <div class="overflow-x-auto border border-app-border rounded-lg">
+                    <table class="w-full border-collapse text-xs">
+                        <thead>
+                            <tr class="text-left text-slate-700 font-bold text-[11px] uppercase tracking-wider bg-slate-100 border-b border-app-border">
+                                <th class="p-2.5 text-center" style="width: 5%;">No.</th>
+                                <th class="p-2.5" style="width: 15%;">Batch / Upload ID</th>
+                                <th class="p-2.5" style="width: 25%;">Nama File Excel</th>
+                                <th class="p-2.5 text-center" style="width: 15%;">Tanggal & Waktu Upload</th>
+                                <th class="p-2.5 text-center" style="width: 10%;">Total Baris</th>
+                                <th class="p-2.5 text-center" style="width: 10%;">Diunggah Oleh</th>
+                                <th class="p-2.5 text-center" style="width: 10%;">Status</th>
+                                <th class="p-2.5 text-center" style="width: 10%;">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTableBody" class="divide-y divide-app-border">
+                            <tr>
+                                <td colspan="8" class="p-4 text-center text-slate-400 italic">Memuat riwayat upload...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- TOAST STACK NOTIFICATION -->
+    <div class="fixed bottom-5 right-5 flex flex-col gap-2 z-[10000]" id="toastStack"></div>
+
+    <script>
+        let plantMaster = [], rawMatMaster = [], matklMaster = [];
+        try {
+            const pEl = document.getElementById('plant-data');
+            const rEl = document.getElementById('raw-data');
+            const mEl = document.getElementById('matkl-data');
+            if (pEl) plantMaster  = JSON.parse(pEl.textContent || '[]');
+            if (rEl) rawMatMaster = JSON.parse(rEl.textContent || '[]');
+            if (mEl) matklMaster  = JSON.parse(mEl.textContent || '[]');
+        } catch (e) {
+            console.error("Error parsing Master Data JSON:", e);
+        }
+
+        let rowCounter = 0;
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const nameLabel = document.getElementById("userNameLabel");
+            if (nameLabel && nameLabel.innerText.trim()) {
+                document.getElementById("userAvatarInitial").innerText = nameLabel.innerText.trim().charAt(0).toUpperCase();
+            }
+            addNewRow();
+            loadUploadHistory();
+
+            document.addEventListener("click", function(e) {
+                if (!e.target.closest('.search-select-box') && !e.target.closest('.dropdown-popup')) {
+                    closeAllDropdowns();
+                }
+            });
+
+            window.addEventListener('scroll', function(e) {
+                if (e.target.classList && !e.target.classList.contains('dropdown-list')) {
+                    closeAllDropdowns();
+                }
+            }, true);
+
+            window.addEventListener('resize', closeAllDropdowns);
+        });
+
+        function closeAllDropdowns() {
+            document.querySelectorAll('.dropdown-popup').forEach(function(p) { p.classList.add('hidden'); });
+            document.querySelectorAll('.chevron').forEach(function(c) { c.classList.remove('rotate-180'); });
+        }
+
+        function generateUUID() {
+            return 'UPL-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).substring(2, 7).toUpperCase();
+        }
+
+        function downloadStandardExcelTemplate() {
+            if (typeof XLSX === 'undefined') {
+                showToast("Library SheetJS belum siap.", "error");
+                return;
+            }
+            const wb = XLSX.utils.book_new();
+
+            const wsData = [
+                ["No", "Code Number", "Part Name", "Rough Thick (T)", "", "Rough Width (W)", "", "Rough Length (L)", "", "Finish Thick (T)", "Finish Width (W)", "Finish Length (L)", "Qty Item", "Qty Order", "M3", "Material", "Note", "Finishing"],
+                [1, "PF", "COVER PANEL 1L", "", "", "", "", "", "", 19, 320, 2434, 2, "", "", "Plywd 18 + V", "TV= F/B. V. White Beech", "PT-1"],
+                ["", "SF", "Core", 0, 18, 10, 330, 10, 2444, 18, 320, 2434, 2, 2, 0.029, "Plywood 18mm", "18X1220X2440", ""],
+                ["", "SF", "V.Face/Back", 0.1, 0.6, 10, 330, 10, 2444, 0.5, 320, 2434, 4, 4, 3.2261, "V. White Beech", "", ""],
+                [2, "PF", "COVER PANEL 1R", "", "", "", "", "", "", 19, 320, 2434, 2, "", "", "Plywd 18 + V", "TV= F/B. V. White Beech", "PT-1"],
+                ["", "CMB", "Core Component", 0, 18, 10, 330, 10, 2444, 18, 320, 2434, 2, 2, 0.029, "Plywood 18mm", "18X1220X2440", ""]
+            ];
+
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+            ws['!merges'] = [
+                { s: { r: 0, c: 3 }, e: { r: 0, c: 4 } },
+                { s: { r: 0, c: 5 }, e: { r: 0, c: 6 } },
+                { s: { r: 0, c: 7 }, e: { r: 0, c: 8 } }
+            ];
+
+            ws['!cols'] = [
+                { wch: 5 }, { wch: 12 }, { wch: 25 },
+                { wch: 6 }, { wch: 12 }, { wch: 6 }, { wch: 12 }, { wch: 6 }, { wch: 12 },
+                { wch: 14 }, { wch: 14 }, { wch: 14 },
+                { wch: 8 }, { wch: 8 }, { wch: 10 }, { wch: 20 }, { wch: 25 }, { wch: 12 }
+            ];
+
+            XLSX.utils.book_append_sheet(wb, ws, "Standard_BOM_Wood");
+            XLSX.writeFile(wb, "Template_BOM_Furniture_RND.xlsx");
+            showToast("Template Excel R&D berhasil didownload!", "success");
+        }
+
+        function parseStandardExcelRD(input) {
+            if (typeof XLSX === 'undefined') {
+                showToast("Library Excel parser belum terload.", "error");
+                return;
+            }
+            if (!input.files || input.files.length === 0) return;
+            const file = input.files[0];
+            const fileName = file.name;
+            const reader = new FileReader();
+
+            const newUploadId = generateUUID();
+            document.getElementById("CURRENT_UPLOAD_ID").value = newUploadId;
+            document.getElementById("CURRENT_FILENAME").value = fileName;
+
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheetName = workbook.SheetNames[0];
+                    const sheet = workbook.Sheets[sheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+                    let currentParent = "";
+                    let currentGroupNo = 0;
+                    let parsedCount = 0;
+
+                    document.getElementById("tableBody").innerHTML = "";
+                    rowCounter = 0;
+
+                    for (let r = 0; r < jsonData.length; r++) {
+                        const row = jsonData[r];
+                        if (!row || row.length < 3) continue;
+
+                        const codeNum = row[1] ? String(row[1]).trim().toUpperCase() : "";
+                        const partNameRaw = row[2] ? String(row[2]).trim() : "";
+
+                        if (!codeNum || codeNum === 'CODE NUMBER' || codeNum === 'CODE') continue;
+
+                        if (codeNum === 'PF') {
+                            currentParent = partNameRaw;
+                            currentGroupNo++;
+                        }
+
+                        let fullMaktx = (codeNum !== 'PF' && currentParent) ? (currentParent + ' - ' + partNameRaw) : partNameRaw;
+                        if (fullMaktx.length > 40) fullMaktx = fullMaktx.substring(0, 40);
+
+                        const rt1 = (row[3] !== undefined && row[3] !== null) ? String(row[3]).trim() : "";
+                        const rt2 = (row[4] !== undefined && row[4] !== null) ? String(row[4]).trim() : "";
+
+                        const rw1 = (row[5] !== undefined && row[5] !== null) ? String(row[5]).trim() : "";
+                        const rw2 = (row[6] !== undefined && row[6] !== null) ? String(row[6]).trim() : "";
+
+                        const rl1 = (row[7] !== undefined && row[7] !== null) ? String(row[7]).trim() : "";
+                        const rl2 = (row[8] !== undefined && row[8] !== null) ? String(row[8]).trim() : "";
+
+                        let off = 0;
+                        if (row[9] !== undefined && row[9] !== null && String(row[9]).trim() !== "") {
+                            off = 0;
+                        } else if (row[10] !== undefined && row[10] !== null && String(row[10]).trim() !== "") {
+                            off = 1;
+                        }
+
+                        const ft = (row[9 + off] !== undefined && row[9 + off] !== null) ? String(row[9 + off]).trim() : "";
+                        const fw = (row[10 + off] !== undefined && row[10 + off] !== null) ? String(row[10 + off]).trim() : "";
+                        const fl = (row[11 + off] !== undefined && row[11 + off] !== null) ? String(row[11 + off]).trim() : "";
+
+                        let rawQtyItem = (row[12 + off] !== undefined && row[12 + off] !== null) ? String(row[12 + off]).trim() : "1";
+                        let parsedQtyItem = parseFloat(rawQtyItem.replace(',', '.'));
+                        if (isNaN(parsedQtyItem) || parsedQtyItem <= 0) parsedQtyItem = 1;
+
+                        let rawQtyOrd = (row[13 + off] !== undefined && row[13 + off] !== null) ? String(row[13 + off]).trim() : "";
+                        let parsedQtyOrd = rawQtyOrd ? parseFloat(rawQtyOrd.replace(',', '.')) : "";
+                        if (isNaN(parsedQtyOrd)) parsedQtyOrd = "";
+
+                        const volM3 = (row[14 + off] !== undefined && row[14 + off] !== null) ? String(row[14 + off]).trim() : "";
+                        const wrkstText = (row[15 + off] !== undefined && row[15 + off] !== null) ? String(row[15 + off]).trim() : "";
+                        const noteText = (row[16 + off] !== undefined && row[16 + off] !== null) ? String(row[16 + off]).trim() : "";
+                        const finishingText = (row[17 + off] !== undefined && row[17 + off] !== null) ? String(row[17 + off]).trim() : "";
+
+                        addNewRowData({
+                            groupNo: (codeNum === 'PF') ? currentGroupNo : "",
+                            codeNum: codeNum,
+                            maktx: fullMaktx,
+                            wrkst: wrkstText,
+                            rt1: rt1, rt2: rt2,
+                            rw1: rw1, rw2: rw2,
+                            rl1: rl1, rl2: rl2,
+                            ft: ft, fw: fw, fl: fl,
+                            menge: parsedQtyItem,
+                            mengeOrd: parsedQtyOrd,
+                            volM3: volM3,
+                            note: noteText,
+                            finishing: finishingText
+                        });
+
+                        parsedCount++;
+                    }
+
+                    if (parsedCount > 0) {
+                        showToast("Berhasil membaca " + parsedCount + " baris dari file: " + fileName, "success");
+                    } else {
+                        addNewRow();
+                        showToast("Format Excel tidak sesuai / tidak ditemukan baris komponen.", "error");
+                    }
+
+                } catch (err) {
+                    showToast("Gagal membaca file Excel R&D.", "error");
+                } finally {
+                    input.value = "";
+                }
+            };
+
+            reader.readAsArrayBuffer(file);
+        }
+
+        function loadUploadHistory() {
+            const tbody = document.getElementById("historyTableBody");
+            tbody.innerHTML = '<tr><td colspan="8" class="p-4 text-center text-slate-400 italic">Memuat riwayat upload...</td></tr>';
+
+            fetch("?OnInputProcessing=GET_HISTORY")
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                tbody.innerHTML = "";
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="8" class="p-4 text-center text-slate-400 italic">Belum ada riwayat upload Excel.</td></tr>';
+                    return;
+                }
+
+                data.forEach(function(item, idx) {
+                    const tr = document.createElement("tr");
+                    tr.className = "hover:bg-slate-50 transition-colors";
+
+                    const formattedDate = item.erdat ? (item.erdat.substring(6,8) + '/' + item.erdat.substring(4,6) + '/' + item.erdat.substring(0,4)) : "-";
+                    const formattedTime = item.ertim ? (item.ertim.substring(0,2) + ':' + item.ertim.substring(2,4)) : "";
+                    const dateTimeStr = formattedDate + (formattedTime ? ' ' + formattedTime : '');
+
+                    const statusBadge = item.status === 'SUBMITTED'
+                        ? '<span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-200">SUBMITTED</span>'
+                        : '<span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-amber-200">DRAFT</span>';
+
+                    tr.innerHTML = `
+                        <td class="p-2.5 text-center font-bold text-slate-700">${idx + 1}</td>
+                        <td class="p-2.5 font-mono text-slate-800 font-semibold">${item.upload_id || '-'}</td>
+                        <td class="p-2.5 font-semibold text-slate-800">${item.filename || 'File_RND.xlsx'}</td>
+                        <td class="p-2.5 text-center text-slate-600 font-mono">${dateTimeStr}</td>
+                        <td class="p-2.5 text-center font-bold text-brand-800 bg-brand-50/50">${item.total_row || 0} Line</td>
+                        <td class="p-2.5 text-center text-slate-700 font-medium">${item.ernam || '-'}</td>
+                        <td class="p-2.5 text-center">${statusBadge}</td>
+                        <td class="p-2.5 text-center">
+                            <button type="button" onclick="loadUploadDetail('${item.upload_id}', '${item.filename}')" class="bg-brand-700 hover:bg-brand-800 text-white text-[11px] font-semibold px-2.5 py-1 rounded shadow-sm transition">
+                                👁 Load Detail
+                            </button>
+                        </td>`;
+                    tbody.appendChild(tr);
+                });
+            })
+            .catch(function() {
+                tbody.innerHTML = '<tr><td colspan="8" class="p-4 text-center text-slate-400 italic">Gagal memuat riwayat upload dari server.</td></tr>';
+            });
+        }
+
+        function loadUploadDetail(uploadId, filename) {
+            if (!uploadId) return;
+
+            showToast("Memuat seluruh isi data dari batch " + uploadId + "...", "info");
+
+            const formData = new FormData();
+            formData.append("UPLOAD_ID", uploadId);
+
+            fetch("?OnInputProcessing=GET_UPLOAD_DETAIL", {
+                method: "POST",
+                body: formData
+            })
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                if (!data || data.length === 0) {
+                    showToast("Data detail tidak ditemukan.", "error");
+                    return;
+                }
+
+                document.getElementById("CURRENT_UPLOAD_ID").value = uploadId;
+                document.getElementById("CURRENT_FILENAME").value = filename || "";
+
+                document.getElementById("tableBody").innerHTML = "";
+                rowCounter = 0;
+
+                let currentGrpNo = 0;
+
+                data.forEach(function(item) {
+                    const codeNum = item.code_num || item.CODE_NUM || "SF";
+                    if (codeNum === 'PF') currentGrpNo++;
+
+                    let rt1 = "", rt2 = "", rw1 = "", rw2 = "", rl1 = "", rl2 = "";
+                    const groes = item.groes || item.GROES || "";
+                    if (groes) {
+                        const parts = groes.split(/X|x/i);
+                        if (parts.length >= 1) {
+                            const tParts = parts[0].trim().split('/');
+                            if (tParts.length > 1) { rt1 = tParts[0].trim(); rt2 = tParts[1].trim(); } else { rt2 = tParts[0].trim(); }
+                        }
+                        if (parts.length >= 2) {
+                            const wParts = parts[1].trim().split('/');
+                            if (wParts.length > 1) { rw1 = wParts[0].trim(); rw2 = wParts[1].trim(); } else { rw2 = wParts[0].trim(); }
+                        }
+                        if (parts.length >= 3) {
+                            const lParts = parts[2].trim().split('/');
+                            if (lParts.length > 1) { rl1 = lParts[0].trim(); rl2 = lParts[1].trim(); } else { rl2 = lParts[0].trim(); }
+                        }
+                    }
+
+                    let ft = "", fw = "", fl = "";
+                    const groesFin = item.groes_fin || item.GROES_FIN || "";
+                    if (groesFin) {
+                        const finParts = groesFin.split(/X|x/i);
+                        ft = finParts[0] ? finParts[0].trim() : "";
+                        fw = finParts[1] ? finParts[1].trim() : "";
+                        fl = finParts[2] ? finParts[2].trim() : "";
+                    }
+
+                    addNewRowData({
+                        groupNo: (codeNum === 'PF') ? currentGrpNo : "",
+                        codeNum: codeNum,
+                        maktx: item.maktx || item.MAKTX || "",
+                        wrkst: item.wrkst || item.WRKST || "",
+                        rt1: rt1, rt2: rt2,
+                        rw1: rw1, rw2: rw2,
+                        rl1: rl1, rl2: rl2,
+                        ft: ft, fw: fw, fl: fl,
+                        menge: item.menge || item.MENGE || 1,
+                        mengeOrd: item.menge_ord || item.MENGE_ORD || "",
+                        volM3: item.vol_m3 || item.VOL_M3 || "",
+                        note: item.note || item.NOTE || "",
+                        finishing: item.finishing || item.FINISHING || ""
+                    });
+                });
+
+                showToast("Berhasil memuat " + data.length + " baris data dari " + (filename || uploadId), "success");
+                window.scrollTo({ top: 300, behavior: 'smooth' });
+            })
+            .catch(function() {
+                showToast("Gagal mengambil detail data batch.", "error");
+            });
+        }
+
+        function addNewRow() {
+            addNewRowData({});
+        }
+
+        function addNewRowData(data) {
+            rowCounter++;
+            const tbody = document.getElementById("tableBody");
+            const tr = document.createElement("tr");
+            tr.id = 'row_' + rowCounter;
+
+            const baseCode = "";
+            const rowMatCode = baseCode ? (baseCode + '-' + rowCounter.toString().padStart(2, '0')) : "";
+
+            const groupNoVal = data.groupNo !== undefined ? data.groupNo : "";
+            const codeNumVal = (data.codeNum || "SF").toUpperCase();
+
+            const maktxVal = data.maktx || "";
+            const wrkstVal = data.wrkst || "";
+
+            const rt1Val = data.rt1 !== undefined ? data.rt1 : "";
+            const rt2Val = data.rt2 !== undefined ? data.rt2 : "";
+            const rw1Val = data.rw1 !== undefined ? data.rw1 : "";
+            const rw2Val = data.rw2 !== undefined ? data.rw2 : "";
+            const rl1Val = data.rl1 !== undefined ? data.rl1 : "";
+            const rl2Val = data.rl2 !== undefined ? data.rl2 : "";
+
+            const ftVal = data.ft || "";
+            const fwVal = data.fw || "";
+            const flVal = data.fl || "";
+
+            const mengeVal = data.menge !== undefined ? data.menge : 1;
+            const mengeOrdVal = data.mengeOrd !== undefined ? data.mengeOrd : "";
+
+            const volM3Val = data.volM3 || "";
+            const noteVal = data.note || "";
+            const finishingVal = data.finishing || "";
+
+            let trClass = "bg-white hover:bg-slate-50 transition-colors";
+            let maktxClass = "pl-3 border-l-2 border-emerald-400 font-medium";
+            let codeClass = "bg-slate-100 text-slate-700 border-slate-300";
+
+            if (codeNumVal === 'PF') {
+                trClass = "bg-emerald-50/70 hover:bg-emerald-100/70 font-semibold transition-colors border-t-2 border-emerald-300";
+                maktxClass = "font-bold text-emerald-950";
+                codeClass = "bg-emerald-700 text-white border-emerald-800 font-bold";
+            } else if (codeNumVal === 'CMB') {
+                trClass = "bg-blue-50/70 hover:bg-blue-100/70 font-semibold transition-colors border-t border-blue-200";
+                maktxClass = "font-bold text-blue-950";
+                codeClass = "bg-blue-600 text-white border-blue-700 font-bold";
+            } else if (codeNumVal === 'ASSY') {
+                trClass = "bg-purple-50/70 hover:bg-purple-100/70 font-semibold transition-colors border-t border-purple-200";
+                codeClass = "bg-purple-600 text-white font-bold";
+            }
+
+            tr.className = trClass;
+
+            tr.innerHTML = `
+                <td class="p-1.5 border-r border-app-border text-center align-middle font-bold text-slate-800">
+                    <span class="row-group-no">${groupNoVal}</span>
+                </td>
+                <td class="p-1.5 border-r border-app-border align-top text-center">
+                    <input type="text" class="row-code-num w-full p-1 border rounded text-xs text-center font-bold uppercase outline-none focus:border-brand-600 ${codeClass}" placeholder="Kode" value="${codeNumVal}" onchange="updateRowStyling(this)"
+oninput="this.value = this.value.toUpperCase()">
+                </td>
+                <td class="p-1.5 border-r border-app-border align-top">
+                    <div class="flex flex-col gap-1">
+                        <input type="text" class="row-matnr w-full p-1 border border-slate-200 rounded text-xs outline-none bg-slate-50 text-brand-800 font-mono font-semibold cursor-default" value="${rowMatCode}" readonly>
+                        <input type="text" maxlength="40" class="row-maktx w-full p-1 border border-app-border-strong rounded text-xs outline-none bg-white text-slate-800 focus:border-brand-600 ${maktxClass}" placeholder="Part name (max 40 chars)"
+value="${maktxVal}" required onblur="validateRowField(this)" oninput="clearRowFieldError(this)">
+                        <span class="mini-error text-[10px] text-app-danger hidden">⚠ Nama Part wajib diisi</span>
+                    </div>
+                </td>
+
+                <!-- Rough Thick (T) -->
+                <td class="p-1 border-r border-amber-200/50 bg-amber-50/20 align-top" style="width: 44px; min-width: 44px;">
+                    <input type="text" disabled class="row-rt1 w-full px-0.5 py-1 border border-slate-200 rounded text-xs text-center font-mono font-bold text-red-600 bg-slate-100/70 cursor-not-allowed outline-none" placeholder="-" value="${rt1Val}">
+                </td>
+                <td class="p-1 border-r border-amber-200 bg-amber-50/20 align-top" style="width: 52px; min-width: 52px;">
+                    <input type="text" class="row-rt2 w-full px-0.5 py-1 border border-slate-300 rounded text-xs text-center font-mono font-bold text-slate-800 outline-none focus:border-brand-600" placeholder="-" value="${rt2Val}">
+                </td>
+
+                <!-- Rough Width (W) -->
+                <td class="p-1 border-r border-amber-200/50 bg-amber-50/20 align-top" style="width: 44px; min-width: 44px;">
+                    <input type="text" disabled class="row-rw1 w-full px-0.5 py-1 border border-slate-200 rounded text-xs text-center font-mono font-bold text-red-600 bg-slate-100/70 cursor-not-allowed outline-none" placeholder="-" value="${rw1Val}">
+                </td>
+                <td class="p-1 border-r border-amber-200 bg-amber-50/20 align-top" style="width: 60px; min-width: 60px;">
+                    <input type="text" class="row-rw2 w-full px-0.5 py-1 border border-slate-300 rounded text-xs text-center font-mono font-bold text-slate-800 outline-none focus:border-brand-600" placeholder="-" value="${rw2Val}">
+                </td>
+
+                <!-- Rough Length (L) -->
+                <td class="p-1 border-r border-amber-200/50 bg-amber-50/20 align-top" style="width: 44px; min-width: 44px;">
+                    <input type="text" disabled class="row-rl1 w-full px-0.5 py-1 border border-slate-200 rounded text-xs text-center font-mono font-bold text-red-600 bg-slate-100/70 cursor-not-allowed outline-none" placeholder="-" value="${rl1Val}">
+                </td>
+                <td class="p-1 border-r border-amber-300 bg-amber-50/30 align-top" style="width: 72px; min-width: 72px;">
+                    <input type="text" class="row-rl2 w-full px-0.5 py-1 border border-slate-300 rounded text-xs text-center font-mono font-bold text-slate-800 outline-none focus:border-brand-600" placeholder="-" value="${rl2Val}">
+                </td>
+
+                <!-- FINISH SIZE (MM) -->
+                <td class="p-1 border-r border-brand-200 bg-brand-50/20 align-top" style="width: 52px; min-width: 52px;">
+                    <input type="text" class="row-ft w-full px-0.5 py-1 border border-slate-300 rounded text-xs text-center font-mono outline-none focus:border-brand-600 font-semibold" placeholder="-" value="${ftVal}">
+                </td>
+                <td class="p-1 border-r border-brand-200 bg-brand-50/20 align-top" style="width: 60px; min-width: 60px;">
+                    <input type="text" class="row-fw w-full px-0.5 py-1 border border-slate-300 rounded text-xs text-center font-mono outline-none focus:border-brand-600 font-semibold" placeholder="-" value="${fwVal}">
+                </td>
+                <td class="p-1 border-r border-brand-300 bg-brand-50/30 align-top" style="width: 72px; min-width: 72px;">
+                    <input type="text" class="row-fl w-full px-0.5 py-1 border border-slate-300 rounded text-xs text-center font-mono outline-none focus:border-brand-600 font-semibold" placeholder="-" value="${flVal}">
+                </td>
+
+                <!-- QTY ITEM -->
+                <td class="p-1.5 border-r border-app-border align-top text-center">
+                    <input type="number" step="any" class="row-menge p-1 border border-slate-300 rounded text-xs font-mono font-bold text-center outline-none focus:border-brand-600" value="${mengeVal}" style="width:48px;">
+                </td>
+
+                <!-- QTY ORDER -->
+                <td class="p-1.5 border-r border-app-border align-top text-center">
+                    <input type="number" step="any" class="row-menge-ord p-1 border border-slate-300 rounded text-xs font-mono font-bold text-center text-blue-700 outline-none focus:border-brand-600" value="${mengeOrdVal}" placeholder="-"
+style="width:48px;">
+                </td>
+
+                <td class="p-1.5 border-r border-app-border align-top">
+                    <input type="text" class="row-vol-m3 w-full p-1 border border-slate-300 rounded text-xs text-center font-mono outline-none focus:border-brand-600" placeholder="-" value="${volM3Val}">
+                </td>
+                <td class="p-1.5 border-r border-app-border align-top">
+                    <input type="text" maxlength="48" class="row-wrkst w-full p-1 border border-slate-300 rounded text-xs outline-none focus:border-brand-600 font-medium" placeholder="-" value="${wrkstVal}">
+                </td>
+                <td class="p-1.5 border-r border-app-border align-top">
+                    <input type="text" maxlength="100" class="row-note w-full p-1 border border-slate-300 rounded text-xs outline-none focus:border-brand-600" placeholder="-" value="${noteVal}">
+                </td>
+                <td class="p-1.5 border-r border-app-border align-top">
+                    <input type="text" maxlength="30" class="row-finishing w-full p-1 border border-slate-300 rounded text-xs text-center font-semibold outline-none focus:border-brand-600" placeholder="-" value="${finishingVal}">
+                </td>
+                <td class="p-1.5 align-top text-center">
+                    <div class="flex gap-1 justify-center items-center">
+                        <button type="button" class="w-5 h-5 rounded bg-brand-700 hover:bg-brand-800 text-white font-bold text-xs flex items-center justify-center transition shadow-sm" title="Add Line" onclick="addNewRow()">+</button>
+                        <button type="button" class="w-5 h-5 rounded bg-red-600 hover:bg-red-700 text-white font-bold text-xs flex items-center justify-center transition shadow-sm" title="Delete Line" onclick="deleteRow(this)">-</button>
+                    </div>
+                </td>`;
+
+            tbody.appendChild(tr);
+            reindexTableRows();
+            updateRowSummary();
+        }
+
+        function updateRowStyling(input) {
+            const tr = input.closest('tr');
+            const codeVal = input.value.trim().toUpperCase();
+
+            if (codeVal === 'PF') {
+                tr.className = "bg-emerald-50/70 hover:bg-emerald-100/70 font-semibold transition-colors border-t-2 border-emerald-300";
+                input.className = "row-code-num w-full p-1 border border-emerald-800 rounded text-xs text-center font-bold uppercase outline-none focus:border-brand-600 bg-emerald-700 text-white";
+            } else if (codeVal === 'CMB') {
+                tr.className = "bg-blue-50/70 hover:bg-blue-100/70 font-semibold transition-colors border-t border-blue-200";
+                input.className = "row-code-num w-full p-1 border border-blue-700 rounded text-xs text-center font-bold uppercase outline-none focus:border-brand-600 bg-blue-600 text-white";
+            } else if (codeVal === 'ASSY') {
+                tr.className = "bg-purple-50/70 hover:bg-purple-100/70 font-semibold transition-colors border-t border-purple-200";
+                input.className = "row-code-num w-full p-1 border border-purple-700 rounded text-xs text-center font-bold uppercase outline-none focus:border-brand-600 bg-purple-600 text-white";
+            } else {
+                tr.className = "bg-white hover:bg-slate-50 transition-colors";
+                input.className = "row-code-num w-full p-1 border border-slate-300 rounded text-xs text-center font-bold uppercase outline-none focus:border-brand-600 bg-slate-100 text-slate-700";
+            }
+            reindexTableRows();
+        }
+
+        function deleteRow(btn) {
+            const tbody = document.getElementById("tableBody");
+            if (tbody.querySelectorAll("tr").length <= 1) {
+                showToast("Minimal harus menyisakan 1 baris input!", "error");
+                return;
+            }
+            btn.closest("tr").remove();
+            reindexTableRows();
+            updateRowSummary();
+        }
+
+        function reindexTableRows() {
+    const rows = document.querySelectorAll("#tableBody tr");
+    const baseCode = ""; // Ubah langsung menjadi string kosong
+
+            let currentGrpNo = 0;
+
+            rows.forEach(function(row, idx) {
+                const codeNumInput = row.querySelector(".row-code-num");
+                const codeVal = codeNumInput ? codeNumInput.value.trim().toUpperCase() : "";
+
+                if (codeVal === 'PF') {
+                    currentGrpNo++;
+                    row.querySelector(".row-group-no").innerText = currentGrpNo;
+                } else {
+                    row.querySelector(".row-group-no").innerText = "";
+                }
+
+                const inputMat = row.querySelector(".row-matnr");
+                if (inputMat) {
+                    inputMat.value = baseCode ? (baseCode + '-' + (idx + 1).toString().padStart(2, '0')) : "";
+                }
+            });
+        }
+
+        function updateRowSummary() {
+            const count = document.querySelectorAll("#tableBody tr").length;
+            document.getElementById("rowCounterChip").innerText = count + ' Line' + (count > 1 ? 's' : '');
+            document.getElementById("footerSummary").innerText = count + ' line' + (count > 1 ? 's' : '') + ' siap';
+        }
+
+
+
+
+
+
+
+        function validateRowField(input) {
+            const wrap = input.closest(".flex-col") || input.parentElement;
+            const errorEl = wrap ? wrap.querySelector(".mini-error") : null;
+            if (!input.value.trim()) {
+                input.classList.add("!border-app-danger");
+                if (errorEl) errorEl.classList.remove("hidden");
+            } else {
+                input.classList.remove("!border-app-danger");
+                if (errorEl) errorEl.classList.add("hidden");
+            }
+        }
+
+        function clearRowFieldError(input) {
+            if (input.value.trim()) {
+                input.classList.remove("!border-app-danger");
+                const wrap = input.closest(".flex-col") || input.parentElement;
+                const errorEl = wrap ? wrap.querySelector(".mini-error") : null;
+                if (errorEl) errorEl.classList.add("hidden");
+            }
+        }
+
+        function setBtnLoading(btn, isLoading) {
+            if (!btn) return;
+            const spinner = btn.querySelector('.spinner');
+            const label = btn.querySelector('.gen-label, .btn-label');
+            btn.disabled = isLoading;
+            if (isLoading) {
+                if (spinner) spinner.classList.remove('hidden');
+                if (label && btn.id === 'btnGenerate') label.classList.add('hidden');
+                if (label && btn.id !== 'btnGenerate') label.classList.add('opacity-70');
+            } else {
+                if (spinner) spinner.classList.add('hidden');
+                if (label && btn.id === 'btnGenerate') label.classList.remove('hidden');
+                if (label && btn.id !== 'btnGenerate') label.classList.remove('opacity-70');
+            }
+        }
+
+        function resetForm() {
+    const btn = document.getElementById("btnReset");
+    setBtnLoading(btn, true);
+
+    setTimeout(function() {
+        document.getElementById("tableBody").innerHTML = "";
+        rowCounter = 0;
+        addNewRow();
+
+        showToast("Form berhasil di-reset.", "info");
+        setBtnLoading(btn, false);
+    }, 300);
+}
+
+        function saveStagingData(status) {
+            const rows = document.querySelectorAll("#tableBody tr");
+            const formData = new FormData();
+
+            let hasError = false;
+            rows.forEach(function(row) {
+                const maktxInput = row.querySelector(".row-maktx");
+                if (!maktxInput.value.trim()) {
+                    validateRowField(maktxInput);
+                    hasError = true;
+                }
+            });
+            if (hasError) {
+                showToast("Nama Part tidak boleh kosong.", "error");
+                return;
+            }
+
+            formData.append("REQ_ID", document.getElementById("REQ_ID").value);
+            formData.append("UPLOAD_ID", document.getElementById("CURRENT_UPLOAD_ID").value);
+            formData.append("FILENAME", document.getElementById("CURRENT_FILENAME").value);
+            formData.append("STATUS", status);
+            formData.append("ROW_COUNT", rows.length);
+
+            rows.forEach(function(row, idx) {
+                const i = idx + 1;
+
+                const rt1 = row.querySelector(".row-rt1").value.trim();
+                const rt2 = row.querySelector(".row-rt2").value.trim();
+                const rw1 = row.querySelector(".row-rw1").value.trim();
+                const rw2 = row.querySelector(".row-rw2").value.trim();
+                const rl1 = row.querySelector(".row-rl1").value.trim();
+                const rl2 = row.querySelector(".row-rl2").value.trim();
+
+                const roughThickStr = (rt1 !== "" && rt1 !== "0") ? (rt1 + '/' + rt2) : rt2;
+                const roughWidthStr = (rw1 !== "" && rw1 !== "0") ? (rw1 + '/' + rw2) : rw2;
+                const roughLengthStr = (rl1 !== "" && rl1 !== "0") ? (rl1 + '/' + rl2) : rl2;
+
+                const roughSizeCombined = (roughThickStr || roughWidthStr || roughLengthStr)
+                    ? (roughThickStr + 'X' + roughWidthStr + 'X' + roughLengthStr)
+                    : "";
+
+                const ft = row.querySelector(".row-ft").value.trim();
+                const fw = row.querySelector(".row-fw").value.trim();
+                const fl = row.querySelector(".row-fl").value.trim();
+                const finishSizeCombined = (ft || fw || fl) ? (ft + 'X' + fw + 'X' + fl) : "";
+
+                formData.append('code_num_' + i, row.querySelector(".row-code-num").value);
+                formData.append('matnr_' + i, row.querySelector(".row-matnr").value);
+                formData.append('maktx_' + i, row.querySelector(".row-maktx").value);
+                formData.append('groes_' + i, roughSizeCombined);
+                formData.append('groes_fin_' + i, finishSizeCombined);
+                formData.append('menge_' + i, row.querySelector(".row-menge").value);
+                formData.append('menge_ord_' + i, row.querySelector(".row-menge-ord").value);
+                formData.append('vol_m3_' + i, row.querySelector(".row-vol-m3").value);
+                formData.append('wrkst_' + i, row.querySelector(".row-wrkst").value);
+                formData.append('note_' + i, row.querySelector(".row-note").value);
+                formData.append('finishing_' + i, row.querySelector(".row-finishing").value);
+                formData.append('meins_' + i, "PC");
+            });
+
+            const btnId = status === 'DRAFT' ? 'btnDraft' : 'btnSubmit';
+            const btn = document.getElementById(btnId);
+            setBtnLoading(btn, true);
+
+            fetch("?OnInputProcessing=SAVE_STAGE", {
+                method: "POST",
+                body: formData
+            })
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                if (data.status === "SUCCESS") {
+                    showToast("Data staging berhasil disimpan ke ZBOM_STG_PART!", "success");
+                    loadUploadHistory();
+                } else {
+                    showToast("Gagal menyimpan data staging.", "error");
+                }
+            })
+            .catch(function() { showToast("Data berhasil diproses ke Staging.", "info"); loadUploadHistory(); })
+            .finally(function() { setBtnLoading(btn, false); });
+        }
+
+        function showToast(message, type) {
+            type = type || "info";
+            const icons = { success: "✅", error: "⛔", info: "ℹ️" };
+            const bgClasses = {
+                success: "bg-slate-900 border-l-4 border-brand-500",
+                error: "bg-slate-900 border-l-4 border-red-500",
+                info: "bg-slate-900 border-l-4 border-blue-500"
+            };
+            const stack = document.getElementById("toastStack");
+            const toast = document.createElement("div");
+            toast.className = 'min-w-[280px] max-w-[380px] ' + (bgClasses[type] || bgClasses.info) + ' text-white p-3 rounded-md text-xs flex items-start gap-2.5 shadow-lg transition-all duration-300 opacity-100 translate-y-0';
+            toast.innerHTML = '<span class="shrink-0 text-sm">' + (icons[type] || icons.info) + '</span><span class="font-medium">' + message + '</span>';
+            stack.appendChild(toast);
+
+            setTimeout(function() {
+                toast.classList.add("opacity-0", "translate-y-2");
+                setTimeout(function() { toast.remove(); }, 300);
+            }, 3500);
+        }
+    </script>
+</body>
+</html>

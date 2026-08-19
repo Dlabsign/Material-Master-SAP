@@ -1,13 +1,74 @@
 <%@page language="ABAP" %>
 <%
+  IF sy-uname <> 'ABAPER04'.
+%>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Access Forbidden - Master Data Governance</title>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 font-sans min-h-screen flex items-center justify-center p-4 antialiased selection:bg-emerald-500 selection:text-white">
+    <div class="relative w-full max-w-md">
+        <!-- Background Ambient Glow -->
+        <div class="absolute -top-10 -left-10 w-44 h-44 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-10 -right-10 w-44 h-44 bg-teal-500/20 rounded-full blur-3xl pointer-events-none"></div>
+
+        <!-- Main Container Card -->
+        <div class="relative bg-slate-900/90 backdrop-blur-2xl border border-emerald-500/20 rounded-3xl shadow-2xl p-8 text-center space-y-6 overflow-hidden">
+            <!-- Top Gradient Accent Line -->
+            <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-600"></div>
+
+            <!-- Shield Icon Badge -->
+            <div class="w-16 h-16 bg-gradient-to-br from-emerald-500/20 to-teal-500/10 border border-emerald-500/30 text-emerald-400 rounded-2xl flex items-center justify-center mx-auto shadow-inner">
+                <svg class="w-8 h-8 stroke-current" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+            </div>
+
+            <!-- Message Headings -->
+            <div class="space-y-2">
+                <h1 class="text-xl sm:text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 via-teal-200 to-emerald-400 tracking-tight leading-snug">
+                    MASTER DATA GOVERNANCE is forbidden
+                </h1>
+                <p class="text-sm font-medium text-emerald-100/70">
+                    Access to this page is very limited.
+                </p>
+            </div>
+
+            <!-- Logged In User Metadata -->
+            <div class="pt-4 border-t border-emerald-900/60">
+                <div class="inline-flex items-center gap-2 bg-emerald-950/80 border border-emerald-500/20 px-3.5 py-1.5 rounded-full text-xs text-emerald-300/80">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span>Logged in user: <strong class="font-mono text-emerald-200"><%= sy-uname %></strong></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+<%
+    RETURN.
+  ENDIF.
+%>
+<%
   TYPES: BEGIN OF ty_staging_list,
            req_no     TYPE string,
            remarks    TYPE string,
+           sub_reason TYPE string,
            req_date   TYPE string,
            req_time   TYPE string,
            requestor  TYPE string,
            status     TYPE string,
            total_item TYPE i,
+           matnr_gen  TYPE string,
            rej_reason TYPE string,
          END OF ty_staging_list.
 
@@ -28,14 +89,14 @@
 
   " Handler AJAX: GET_COUNTERS
   IF lv_action_h = 'GET_COUNTERS'.
-    DATA: lv_cnt_p TYPE i, lv_cnt_a TYPE i, lv_cnt_r TYPE i.
+    DATA: lv_cnt_p TYPE i, lv_cnt_a TYPE i, lv_cnt_r TYPE i, lv_json_cnt TYPE string.
     SELECT COUNT( * ) FROM zmdg_req_hdr WHERE status IN ( 'CHECKED', 'CODED', 'SUBMITTED' ) INTO @lv_cnt_p.
     SELECT COUNT( * ) FROM zmdg_req_hdr WHERE status = 'APPROVED' INTO @lv_cnt_a.
     SELECT COUNT( * ) FROM zmdg_req_hdr WHERE status IN ( 'REJECTED', 'FAILED' ) INTO @lv_cnt_r.
 
-    lv_json_rej = '{"pending":' && lv_cnt_p && ',"approved":' && lv_cnt_a && ',"rejected":' && lv_cnt_r && '}'.
+    lv_json_cnt = '{"pending":' && lv_cnt_p && ',"approved":' && lv_cnt_a && ',"rejected":' && lv_cnt_r && '}'.
     _m_response->set_content_type( 'application/json' ).
-    _m_response->set_cdata( lv_json_rej ).
+    _m_response->set_cdata( lv_json_cnt ).
     _m_navigation->response_complete( ).
     RETURN.
   ENDIF.
@@ -52,6 +113,7 @@
       CLEAR ls_list_rej.
       ls_list_rej-req_no     = CONV #( ls_hdr_rej-req_no ).
       ls_list_rej-remarks    = CONV #( ls_hdr_rej-remarks ).
+      ls_list_rej-sub_reason = CONV #( ls_hdr_rej-sub_reason ).
       ls_list_rej-req_date   = CONV #( ls_hdr_rej-req_date ).
       ls_list_rej-req_time   = CONV #( ls_hdr_rej-req_time ).
       ls_list_rej-requestor  = CONV #( ls_hdr_rej-requestor ).
@@ -59,6 +121,31 @@
       ls_list_rej-rej_reason = CONV #( ls_hdr_rej-rej_reason ).
 
       SELECT COUNT( * ) FROM zmdg_req_dtl WHERE req_no = @ls_hdr_rej-req_no INTO @ls_list_rej-total_item.
+
+      " Gather generated/assigned material codes without leading zeros
+      DATA: lt_dtl_temp TYPE TABLE OF zmdg_req_dtl,
+            ls_dtl_temp TYPE zmdg_req_dtl,
+            lv_codes_str TYPE string.
+      CLEAR: lt_dtl_temp, lv_codes_str.
+      SELECT * FROM zmdg_req_dtl WHERE req_no = @ls_hdr_rej-req_no INTO TABLE @lt_dtl_temp.
+      LOOP AT lt_dtl_temp INTO ls_dtl_temp.
+        IF ls_dtl_temp-matnr_ext IS NOT INITIAL.
+          DATA: lv_clean_code TYPE string.
+          lv_clean_code = ls_dtl_temp-matnr_ext.
+          SHIFT lv_clean_code LEFT DELETING LEADING '0'.
+          IF lv_clean_code IS INITIAL AND ls_dtl_temp-matnr_ext IS NOT INITIAL.
+            lv_clean_code = '0'.
+          ENDIF.
+
+          IF lv_codes_str IS INITIAL.
+            lv_codes_str = lv_clean_code.
+          ELSE.
+            lv_codes_str = lv_codes_str && ', ' && lv_clean_code.
+          ENDIF.
+        ENDIF.
+      ENDLOOP.
+      ls_list_rej-matnr_gen = lv_codes_str.
+
       APPEND ls_list_rej TO lt_list_rej.
     ENDLOOP.
 
@@ -95,6 +182,7 @@
     CLEAR ls_list_rej.
     ls_list_rej-req_no     = CONV #( ls_hdr_rej-req_no ).
     ls_list_rej-remarks    = CONV #( ls_hdr_rej-remarks ).
+    ls_list_rej-sub_reason = CONV #( ls_hdr_rej-sub_reason ).
     ls_list_rej-req_date   = CONV #( ls_hdr_rej-req_date ).
     ls_list_rej-req_time   = CONV #( ls_hdr_rej-req_time ).
     ls_list_rej-requestor  = CONV #( ls_hdr_rej-requestor ).
@@ -102,6 +190,27 @@
     ls_list_rej-rej_reason = CONV #( ls_hdr_rej-rej_reason ).
 
     SELECT COUNT( * ) FROM zmdg_req_dtl WHERE req_no = @ls_hdr_rej-req_no INTO @ls_list_rej-total_item.
+
+    CLEAR: lt_dtl_temp, lv_codes_str.
+    SELECT * FROM zmdg_req_dtl WHERE req_no = @ls_hdr_rej-req_no INTO TABLE @lt_dtl_temp.
+    LOOP AT lt_dtl_temp INTO ls_dtl_temp.
+      IF ls_dtl_temp-matnr_ext IS NOT INITIAL.
+        DATA: lv_clean_code2 TYPE string.
+        lv_clean_code2 = ls_dtl_temp-matnr_ext.
+        SHIFT lv_clean_code2 LEFT DELETING LEADING '0'.
+        IF lv_clean_code2 IS INITIAL AND ls_dtl_temp-matnr_ext IS NOT INITIAL.
+          lv_clean_code2 = '0'.
+        ENDIF.
+
+        IF lv_codes_str IS INITIAL.
+          lv_codes_str = lv_clean_code2.
+        ELSE.
+          lv_codes_str = lv_codes_str && ', ' && lv_clean_code2.
+        ENDIF.
+      ENDIF.
+    ENDLOOP.
+    ls_list_rej-matnr_gen = lv_codes_str.
+
     APPEND ls_list_rej TO lt_list_rej.
   ENDLOOP.
 
@@ -229,7 +338,7 @@
             </header>
 
             <!-- MAIN CONTENT BODY -->
-            <main class="max-w-[1900px] my-6 mx-auto px-4 sm:px-8 space-y-6">
+            <main class="w-full max-w-[1900px] my-6 mx-auto px-4 sm:px-8 space-y-6 flex-1">
 
                 <!-- CENTERED PAGE HEADER -->
                 <div class="mb-8 text-center flex flex-col items-center justify-center">
@@ -238,7 +347,7 @@
                     </h1>
                     <p class="text-xs font-semibold text-slate-500 text-center mt-1">
                         View all historical material master requests that have been rejected or returned to Purchasing with feedback
-                    </p>
+                    </p> 
                 </div>
 
                 <!-- KPI STATS CARDS -->
@@ -269,52 +378,25 @@
                 <!-- TABLE -->
                 <section class="glass-panel rounded-3xl overflow-hidden mb-8 transition-all duration-300">
                     <div class="overflow-x-auto min-h-[350px]">
-                        <table class="w-full text-left border-collapse">
+                        <table class="w-full min-w-full text-left border-collapse">
                             <thead>
                                 <tr class="bg-slate-100/80 border-b border-slate-200/80 text-[10px] font-black text-slate-600 uppercase tracking-wider backdrop-blur-xs">
-                                    <th class="p-3.5 text-center w-12">Details</th>
-                                    <th class="p-3.5 text-center w-12">#</th>
-                                    <th class="p-3.5">Request ID</th>
-                                    <th class="p-3.5">File / Remarks &amp; Rejection Reason</th>
-                                    <th class="p-3.5 text-center">Rejection Date</th>
-                                    <th class="p-3.5 text-center">Total Item</th>
-                                    <th class="p-3.5 text-center">Requestor</th>
-                                    <th class="p-3.5 text-center">Status</th>
+                                    <th class="p-3.5 text-center" style="width: 55px;">Detail</th>
+                                    <th class="p-3.5">Permintaan</th>
+                                    <th class="p-3.5 text-center" style="width: 140px;">Request Date</th>
+                                    <th class="p-3.5 text-center" style="width: 120px;">Requestor</th>
+                                    <th class="p-3.5 text-center" style="width: 110px;">Status</th>
+                                    <th class="p-3.5 text-center" style="width: 120px;">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="stagingTableBody" class="divide-y divide-slate-100 text-xs">
-                                <tr><td colspan="8" class="p-8 text-center text-slate-400 font-medium">Loading rejected history...</td></tr>
+                                <tr><td colspan="6" class="p-8 text-center text-slate-400 font-medium">Loading rejected history...</td></tr>
                             </tbody>
                         </table>
                     </div>
                 </section>
 
             </main>
-        </div>
-    </div>
-
-    <!-- MATERIAL FULL DETAIL MODAL POPUP -->
-    <div id="materialDetailModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[10000] hidden flex items-center justify-center p-4">
-        <div class="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/80 max-w-5xl w-full overflow-hidden transform transition-all flex flex-col max-h-[90vh]">
-            <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between shadow-md shrink-0 border-b border-slate-800">
-                <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center font-black text-white text-xs shadow-xs">
-                        📋
-                    </div>
-                    <div>
-                        <h3 class="text-sm font-extrabold text-white tracking-wide" id="detailModalTitle">MATERIAL DETAILS</h3>
-                        <div class="flex items-center gap-2 mt-0.5 text-[11px] text-slate-400 font-medium flex-wrap" id="detailModalSubTitle"></div>
-                    </div>
-                </div>
-                <button type="button" onclick="closeMaterialDetailModal()" class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white font-bold text-lg flex items-center justify-center transition cursor-pointer">&times;</button>
-            </div>
-            <div class="p-6 overflow-y-auto space-y-4 text-xs bg-slate-50/50" id="detailModalBody">
-            </div>
-            <div class="bg-slate-100/90 backdrop-blur-xs px-6 py-4 border-t border-slate-200/80 flex justify-end shrink-0">
-                <button type="button" onclick="closeMaterialDetailModal()" class="px-6 py-2.5 rounded-full text-xs font-extrabold bg-slate-900 hover:bg-slate-800 text-white shadow-xs transition transform active:scale-95 cursor-pointer">
-                    Close
-                </button>
-            </div>
         </div>
     </div>
 
@@ -327,6 +409,21 @@
             loadRejectedHistory();
             loadSidebarCounters();
         });
+
+        function formatMaterialCode(code) {
+            if (!code) return '-';
+            var str = String(code).trim();
+            var clean = str.replace(/^0+/, '');
+            return clean || '0';
+        }
+
+        function formatMaterialCodeList(codesStr) {
+            if (!codesStr) return '';
+            return codesStr.split(',').map(function(c) {
+                var trimmed = c.trim();
+                return trimmed ? (trimmed.replace(/^0+/, '') || '0') : '';
+            }).filter(Boolean).join(', ');
+        }
 
         function loadSidebarCounters() {
             fetch("?action=GET_COUNTERS", { method: "POST" })
@@ -345,7 +442,7 @@
         function loadRejectedHistory() {
             var tbody = document.getElementById("stagingTableBody");
             if (tbody) {
-                tbody.innerHTML = '<tr><td colspan="8" class="p-6 text-center text-slate-400 italic">Loading rejected requests...</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-slate-400 italic">Loading rejected requests...</td></tr>';
             }
 
             fetch("?action=GET_REJECTED_LIST", { method: "POST" })
@@ -358,7 +455,7 @@
             .catch(err => {
                 console.error(err);
                 if (tbody) {
-                    tbody.innerHTML = '<tr><td colspan="8" class="p-6 text-center text-red-500 italic">Failed to load rejected history.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-red-500 italic">Failed to load rejected history.</td></tr>';
                 }
             });
         }
@@ -376,6 +473,7 @@
                 return !search ||
                     (item.req_no || '').toLowerCase().includes(search) ||
                     (item.remarks || '').toLowerCase().includes(search) ||
+                    (item.sub_reason || '').toLowerCase().includes(search) ||
                     (item.requestor || '').toLowerCase().includes(search) ||
                     (item.rej_reason || '').toLowerCase().includes(search);
             });
@@ -398,7 +496,7 @@
             }
 
             if (!data || data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" class="p-6 text-center text-slate-400 italic">No rejected requests found.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-slate-400 italic">No rejected requests found.</td></tr>';
                 return;
             }
 
@@ -407,67 +505,63 @@
                 tr.className = "hover:bg-slate-50/80 transition-colors border-b border-slate-100";
 
                 var reqNoEsc = escapeHtml(item.req_no);
+                var matGenFormatted = formatMaterialCodeList(item.matnr_gen);
+                var matGenEsc = escapeHtml(matGenFormatted);
                 var remarksEsc = escapeHtml(item.remarks);
                 var requestorEsc = escapeHtml(item.requestor);
                 var rejReasonEsc = escapeHtml(item.rej_reason);
+                var subReasonEsc = escapeHtml(item.sub_reason || (item.remarks && item.remarks.indexOf('.') === -1 ? item.remarks : '') || 'Permintaan Material Master');
 
                 var fDate = (item.req_date && item.req_date.length === 8) ? (item.req_date.substring(6,8) + '/' + item.req_date.substring(4,6) + '/' + item.req_date.substring(0,4)) : (escapeHtml(item.req_date) || "-");
                 var fTime = (item.req_time && item.req_time.length >= 4) ? (item.req_time.substring(0,2) + ':' + item.req_time.substring(2,4)) : "";
                 var dateTimeStr = fDate + (fTime ? ' ' + fTime : '');
 
-                // 1. Expand Button Column
-                var tdExpand = document.createElement("td");
-                tdExpand.className = "p-3 text-center";
+                // 1. Detail (Expand Button)
+                var tdDetail = document.createElement("td");
+                tdDetail.className = "p-3 text-center";
                 var btnExpand = document.createElement("button");
                 btnExpand.type = "button";
                 btnExpand.id = "expand_btn_" + item.req_no;
-                btnExpand.className = "w-7 h-7 rounded-full bg-slate-100 hover:bg-rose-100 text-slate-700 hover:text-rose-800 font-extrabold flex items-center justify-center transition shadow-2xs text-[10px] cursor-pointer";
+                btnExpand.className = "w-7 h-7 rounded-full bg-slate-100 hover:bg-rose-100 text-slate-700 hover:text-rose-800 font-extrabold flex items-center justify-center transition shadow-2xs text-[10px] cursor-pointer mx-auto";
                 btnExpand.innerHTML = "&#9660;";
                 btnExpand.onclick = (function(rNo) {
                     return function() { toggleExpandRow(rNo); };
                 })(item.req_no);
-                tdExpand.appendChild(btnExpand);
+                tdDetail.appendChild(btnExpand);
 
-                // 2. Index Column
-                var tdIdx = document.createElement("td");
-                tdIdx.className = "p-3 text-center font-bold text-slate-400";
-                tdIdx.innerText = idx + 1;
-
-                // 3. Request ID Column
-                var tdReqNo = document.createElement("td");
-                tdReqNo.className = "p-3 font-mono font-extrabold text-rose-800";
-                tdReqNo.innerText = item.req_no || "-";
-
-                // 4. Remarks & Reason Column
-                var tdRemarks = document.createElement("td");
-                tdRemarks.className = "p-3 font-medium text-slate-800 max-w-[320px]";
-                var remSpan = document.createElement("span");
-                remSpan.innerText = item.remarks || "-";
-                tdRemarks.appendChild(remSpan);
+                // 2. Permintaan
+                var tdPermintaan = document.createElement("td");
+                tdPermintaan.className = "p-3 font-medium text-slate-800 max-w-[340px]";
+                var pStr = '<div class="font-extrabold text-slate-900 text-xs leading-snug">' + subReasonEsc + '</div>';
+                pStr += '<div class="flex items-center gap-2 mt-1 flex-wrap">';
+                if (reqNoEsc) {
+                    pStr += '<span class="text-[10px] font-mono text-rose-800 font-bold">ID: ' + reqNoEsc + ' (' + (item.total_item || 0) + ' items)</span>';
+                }
+                if (matGenEsc) {
+                    pStr += '<span class="inline-flex items-center bg-rose-500/10 text-rose-800 border border-rose-500/20 px-2 py-0.5 rounded-full font-mono text-[10px] font-extrabold">Mat Code: ' + matGenEsc + '</span>';
+                }
+                if (remarksEsc) {
+                    pStr += '<span class="text-[10px] text-slate-500 font-semibold bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200" title="File Name">File: ' + remarksEsc + '</span>';
+                }
+                pStr += '</div>';
 
                 if (rejReasonEsc) {
-                    var reasonDiv = document.createElement("div");
-                    reasonDiv.className = "text-[11px] text-rose-800 font-medium mt-1.5 bg-rose-50/90 p-2.5 rounded-xl border border-rose-200/80 shadow-2xs";
-                    reasonDiv.innerHTML = "<strong class='font-extrabold'>Reason:</strong> " + rejReasonEsc;
-                    tdRemarks.appendChild(reasonDiv);
+                    pStr += '<div class="text-[11px] text-rose-800 font-medium mt-1.5 bg-rose-50/90 p-2 rounded-xl border border-rose-200/80 shadow-2xs">';
+                    pStr += '<strong class="font-extrabold">Reason:</strong> ' + rejReasonEsc + '</div>';
                 }
+                tdPermintaan.innerHTML = pStr;
 
-                // 5. Date & Time Column
+                // 3. Request Date
                 var tdDate = document.createElement("td");
                 tdDate.className = "p-3 text-center font-mono text-slate-600 text-[11px]";
                 tdDate.innerText = dateTimeStr;
 
-                // 6. Total Items Column
-                var tdTotal = document.createElement("td");
-                tdTotal.className = "p-3 text-center font-extrabold text-slate-800";
-                tdTotal.innerText = item.total_item || 0;
-
-                // 7. Requestor Column
+                // 4. Requestor
                 var tdUser = document.createElement("td");
                 tdUser.className = "p-3 text-center font-extrabold text-emerald-800 font-mono";
-                tdUser.innerText = item.requestor || "-";
+                tdUser.innerText = requestorEsc || "-";
 
-                // 8. Status Badge Column
+                // 5. Status
                 var tdBadge = document.createElement("td");
                 tdBadge.className = "p-3 text-center";
                 var badgeSpan = document.createElement("span");
@@ -480,14 +574,24 @@
                 }
                 tdBadge.appendChild(badgeSpan);
 
-                tr.appendChild(tdExpand);
-                tr.appendChild(tdIdx);
-                tr.appendChild(tdReqNo);
-                tr.appendChild(tdRemarks);
+                // 6. Actions
+                var tdActions = document.createElement("td");
+                tdActions.className = "p-3 text-center";
+                var btnAction = document.createElement("button");
+                btnAction.type = "button";
+                btnAction.className = "bg-slate-100 hover:bg-rose-100 text-slate-700 hover:text-rose-800 border border-slate-200 text-[11px] font-extrabold px-3 py-1 rounded-full shadow-2xs transition cursor-pointer flex items-center gap-1 mx-auto";
+                btnAction.innerText = "View Items";
+                btnAction.onclick = (function(rNo) {
+                    return function() { toggleExpandRow(rNo); };
+                })(item.req_no);
+                tdActions.appendChild(btnAction);
+
+                tr.appendChild(tdDetail);
+                tr.appendChild(tdPermintaan);
                 tr.appendChild(tdDate);
-                tr.appendChild(tdTotal);
                 tr.appendChild(tdUser);
                 tr.appendChild(tdBadge);
+                tr.appendChild(tdActions);
 
                 tbody.appendChild(tr);
 
@@ -497,7 +601,7 @@
                 expandTr.className = "hidden bg-slate-50/90 border-b border-app-border";
 
                 var tdExp = document.createElement("td");
-                tdExp.colSpan = 8;
+                tdExp.colSpan = 6;
                 tdExp.className = "p-2 sm:p-3 max-w-0";
 
                 var cardDiv = document.createElement("div");
@@ -566,6 +670,144 @@
             });
         }
 
+        var detailColumnsConfig = [
+            { label: '#', width: '40px', align: 'center', sticky: true, left: '0px' },
+            { label: 'Material Code', width: '140px', align: 'left', fontClass: 'font-mono font-bold text-red-800' },
+            { label: 'Industry Sector', width: '90px', align: 'center' },
+            { label: 'Old Material Number', width: '130px', align: 'left' },
+            { label: 'Material Type', width: '90px', align: 'center' },
+            { label: 'Material Group', width: '100px', align: 'center' },
+            { label: 'Base Unit of Measure', width: '120px', align: 'center' },
+            { label: 'Material Description', width: '220px', align: 'left' },
+            { label: 'Division', width: '70px', align: 'center' },
+            { label: 'General item cat. group', width: '120px', align: 'center' },
+            { label: 'Prod./insp. memo', width: '110px', align: 'left' },
+            { label: 'Document num.', width: '110px', align: 'left' },
+            { label: 'Industry Standard Desc.', width: '130px', align: 'left' },
+            { label: 'Dimensions', width: '90px', align: 'left' },
+            { label: 'Plant', width: '60px', align: 'center' },
+            { label: 'Storage Location', width: '90px', align: 'center' },
+            { label: 'Sales Organization', width: '110px', align: 'center' },
+            { label: 'Distribution Channel', width: '120px', align: 'center' },
+            { label: 'Delivering Plant', width: '90px', align: 'center' },
+            { label: 'Sales Unit', width: '70px', align: 'center' },
+            { label: 'Country of Origin', width: '100px', align: 'center' },
+            { label: 'Tax Class', width: '70px', align: 'center' },
+            { label: 'Tax Category', width: '80px', align: 'center' },
+            { label: 'Item Category Group', width: '110px', align: 'center' },
+            { label: 'Account Assignment', width: '110px', align: 'center' },
+            { label: 'Mat Group 1', width: '80px', align: 'center' },
+            { label: 'Mat Group 2', width: '80px', align: 'center' },
+            { label: 'Mat Group 3', width: '80px', align: 'center' },
+            { label: 'Mat Group 4', width: '80px', align: 'center' },
+            { label: 'Mat Group 5', width: '80px', align: 'center' },
+            { label: 'Transportation Group', width: '120px', align: 'center' },
+            { label: 'Loading Group', width: '90px', align: 'center' },
+            { label: 'Material Package', width: '100px', align: 'center' },
+            { label: 'Material Pack. Type', width: '110px', align: 'center' },
+            { label: 'Batch Management', width: '110px', align: 'center' },
+            { label: 'Profit Center', width: '90px', align: 'center' },
+            { label: 'Valuation Class', width: '90px', align: 'center' },
+            { label: 'Standard price', width: '90px', align: 'right' },
+            { label: 'Moving Average Price', width: '120px', align: 'right' },
+            { label: 'Price Unit', width: '70px', align: 'center' },
+            { label: 'Price Control', width: '80px', align: 'center' },
+            { label: 'Price Unit Hard Currency', width: '140px', align: 'center' },
+            { label: 'Denominator', width: '80px', align: 'center' },
+            { label: 'Alternative UoM', width: '90px', align: 'center' },
+            { label: 'Numerator', width: '70px', align: 'center' },
+            { label: 'Length', width: '60px', align: 'center' },
+            { label: 'Width', width: '60px', align: 'center' },
+            { label: 'Height', width: '60px', align: 'center' },
+            { label: 'Unit of Dimension', width: '100px', align: 'center' },
+            { label: 'Gross weight', width: '80px', align: 'right' },
+            { label: 'Weight Unit', width: '70px', align: 'center' },
+            { label: 'Net weight', width: '70px', align: 'right' },
+            { label: 'Volume', width: '70px', align: 'right' },
+            { label: 'Purchasing Group', width: '100px', align: 'center' },
+            { label: 'Volume unit', width: '80px', align: 'center' },
+            { label: 'Proportion Units', width: '100px', align: 'center' },
+            { label: 'Class', width: '70px', align: 'center' },
+            { label: 'Warna', width: '70px', align: 'center' },
+            { label: 'Volume Product', width: '100px', align: 'center' },
+            { label: 'MRP Type', width: '80px', align: 'center' },
+            { label: 'MRP Group', width: '80px', align: 'center' },
+            { label: 'MRP Controller', width: '90px', align: 'center' },
+            { label: 'Lot Sizing', width: '80px', align: 'center' },
+            { label: 'Min. Lot Size', width: '90px', align: 'center' },
+            { label: 'Max. Lot Size', width: '90px', align: 'center' },
+            { label: 'Rounding Value', width: '90px', align: 'center' },
+            { label: 'Procurement Type', width: '100px', align: 'center' },
+            { label: 'Special procurement type', width: '130px', align: 'center' },
+            { label: 'Backflush Indicator', width: '110px', align: 'center' },
+            { label: 'In-house production', width: '110px', align: 'center' },
+            { label: 'Plan. Delivery Time', width: '110px', align: 'center' },
+            { label: 'GR Processing Time', width: '110px', align: 'center' },
+            { label: 'Scheduling Margin Key', width: '130px', align: 'center' },
+            { label: 'Safety stock', width: '80px', align: 'center' },
+            { label: 'Strategy Group', width: '90px', align: 'center' },
+            { label: 'Consumption mode', width: '110px', align: 'center' },
+            { label: 'Forward Consumption period', width: '140px', align: 'center' },
+            { label: 'Backward Consumption period', width: '140px', align: 'center' },
+            { label: 'period indicator', width: '90px', align: 'center' },
+            { label: 'fiscal year', width: '70px', align: 'center' },
+            { label: 'Availability Check', width: '100px', align: 'center' },
+            { label: 'Selection Method', width: '100px', align: 'center' },
+            { label: 'Individual Collective', width: '110px', align: 'center' },
+            { label: 'Unit of issue', width: '80px', align: 'center' },
+            { label: 'Production Storage Location', width: '150px', align: 'center' },
+            { label: 'Storage Location for EP', width: '130px', align: 'center' },
+            { label: 'Prod. Scheduling Profile', width: '130px', align: 'center' },
+            { label: 'Underdelivery Tolerance', width: '130px', align: 'center' },
+            { label: 'Overdelivery Tolerance', width: '130px', align: 'center' },
+            { label: 'Unlimited Overdelivery', width: '130px', align: 'center' },
+            { label: 'Material-related Origin Ind.', width: '150px', align: 'center' },
+            { label: 'Qty Structure Indicator', width: '130px', align: 'center' },
+            { label: 'Costing Lot Size', width: '90px', align: 'center' },
+            { label: 'Do Not Cost', width: '80px', align: 'center' },
+            { label: 'Block Plant-Specific Mat. Stat', width: '160px', align: 'center' },
+            { label: 'Stock Determination Group', width: '140px', align: 'center' },
+            { label: 'Origin Group', width: '80px', align: 'center' },
+            { label: 'Variance Key', width: '80px', align: 'center' },
+            { label: 'Production Version', width: '100px', align: 'center' },
+            { label: 'Period Indicator', width: '90px', align: 'center' },
+            { label: 'Valuation Area', width: '90px', align: 'center' },
+            { label: 'Material Statistics Group', width: '130px', align: 'center' },
+            { label: 'QM in Procurement is Active', width: '150px', align: 'center' },
+            { label: 'Control Key for QM in Procurement', width: '180px', align: 'center' },
+            { label: 'Inspection Type', width: '100px', align: 'center' },
+            { label: 'Inspection Type - Material Combination is Active', width: '220px', align: 'center' },
+            { label: 'Inspection with Task List', width: '140px', align: 'center' },
+            { label: 'Inspect with Material Specification', width: '190px', align: 'center' },
+            { label: 'Inspection Specifications from Configuration', width: '220px', align: 'center' },
+            { label: 'Inspection Specifications from Batch Determination', width: '240px', align: 'center' },
+            { label: 'Automatic Specification Assignment', width: '190px', align: 'center' },
+            { label: 'Inspect by Characteristics', width: '140px', align: 'center' },
+            { label: 'Post to Inspection Stock', width: '130px', align: 'center' },
+            { label: 'Automatic Usage Decision Planned', width: '190px', align: 'center' },
+            { label: 'Sampling Procedure', width: '120px', align: 'center' },
+            { label: 'Dynamic Modification Rule', width: '140px', align: 'center' },
+            { label: 'Inspection Percentage', width: '130px', align: 'center' },
+            { label: '100% Inspection', width: '100px', align: 'center' },
+            { label: 'Skips Allowed', width: '90px', align: 'center' },
+            { label: 'Enter the Sample Manually', width: '140px', align: 'center' },
+            { label: 'Trigger Sample Calculation Manually', width: '200px', align: 'center' },
+            { label: 'Serial Number Management Possible', width: '190px', align: 'center' },
+            { label: 'Average Inspection Duration', width: '150px', align: 'center' },
+            { label: 'Control of Inspection Lot Creation (Lot Summary)', width: '230px', align: 'center' },
+            { label: 'Procedure for Calculating Quality Score', width: '210px', align: 'center' },
+            { label: 'Allowed Share of Scrap (Percent) in Inspection Lot', width: '240px', align: 'center' },
+            { label: 'Record Appraisal Costs in Individual QM Order', width: '220px', align: 'center' },
+            { label: 'Order Number for Recording Appraisal Costs', width: '220px', align: 'center' },
+            { label: 'Preferred Inspection Type', width: '140px', align: 'center' },
+            { label: 'Inspection types to be deleted (QM ALE distribution)', width: '240px', align: 'center' },
+            { label: 'Long Material Number for MATERIAL Field', width: '220px', align: 'center' },
+            { label: 'External GUID for MATERIAL Field', width: '200px', align: 'center' },
+            { label: 'Version Number for MATERIAL Field', width: '200px', align: 'center' },
+            { label: 'Inspection for Handling Unit', width: '160px', align: 'center' },
+            { label: 'Indicator: Multiple Specifications', width: '190px', align: 'center' }
+        ];
+
         function renderExpandDetailTable(reqNo, items) {
             var container = document.getElementById("expand_content_" + reqNo);
             if (!container) return;
@@ -579,56 +821,23 @@
             table.className = "w-full text-xs text-slate-700 border-collapse whitespace-nowrap";
 
             var thead = document.createElement("thead");
-            var thStr = '<tr class="text-left font-bold uppercase tracking-wider bg-slate-100 text-slate-700 border-b border-slate-200 sticky top-0 z-10 text-[11px]">' +
-                '<th class="p-2 border-r border-slate-200 text-center sticky left-0 bg-slate-100 z-20" style="min-width: 40px;">#</th>' +
-                '<th class="p-2 border-r border-slate-200 text-center sticky left-[40px] bg-slate-100 z-20" style="min-width: 75px;">Action</th>' +
-                '<th class="p-2 border-r border-slate-200 font-bold text-red-800" style="min-width: 140px;">Material Code</th>' +
-                '<th class="p-2 border-r border-slate-200 text-center" style="min-width: 80px;">Industry Sector</th>' +
-                '<th class="p-2 border-r border-slate-200" style="min-width: 120px;">Old Mat. No.</th>' +
-                '<th class="p-2 border-r border-slate-200 text-center" style="min-width: 90px;">Material Type</th>' +
-                '<th class="p-2 border-r border-slate-200 text-center" style="min-width: 90px;">Material Group</th>' +
-                '<th class="p-2 border-r border-slate-200 text-center" style="min-width: 70px;">Base UoM</th>' +
-                '<th class="p-2 border-r border-slate-200" style="min-width: 200px;">Material Description</th>' +
-                '<th class="p-2 border-r border-slate-200 text-center" style="min-width: 70px;">Division</th>' +
-                '<th class="p-2 border-r border-slate-200 text-center" style="min-width: 100px;">Gen. Item Cat.</th>' +
-                '<th class="p-2 border-r border-slate-200" style="min-width: 100px;">Prod/Insp Memo</th>' +
-                '<th class="p-2 border-r border-slate-200" style="min-width: 100px;">Document Num.</th>' +
-                '<th class="p-2 border-r border-slate-200" style="min-width: 110px;">Ind. Std. Desc</th>' +
-                '<th class="p-2 border-r border-slate-200" style="min-width: 90px;">Dimensions</th>' +
-                '<th class="p-2 border-r border-slate-200 text-center" style="min-width: 60px;">Plant</th>' +
-                '<th class="p-2 border-r border-slate-200 text-center" style="min-width: 60px;">S.Loc</th>' +
-                '<th class="p-2 border-r border-slate-200 text-center" style="min-width: 90px;">Country Origin</th>' +
-                '<th class="p-2 border-r border-slate-200 text-center" style="min-width: 70px;">Tax Class</th>' +
-                '<th class="p-2 border-r border-slate-200 text-center" style="min-width: 80px;">Tax Category</th>' +
-                '<th class="p-2 border-r border-slate-200 text-center" style="min-width: 100px;">Item Cat. Group</th>' +
-                '<th class="p-2 border-r border-slate-200 text-center" style="min-width: 100px;">Transport. Grp</th>' +
-                '<th class="p-2 border-r border-slate-200 text-center" style="min-width: 90px;">Loading Grp</th>' +
-                '<th class="p-2 border-r border-slate-200 text-center" style="min-width: 60px;">Batch</th>' +
-                '<th class="p-2 border-r border-slate-200 text-center" style="min-width: 90px;">Profit Center</th>' +
-                '<th class="p-2 border-r border-slate-200 text-center" style="min-width: 80px;">Val. Class</th>' +
-                '<th class="p-2 border-r border-slate-200 text-right" style="min-width: 80px;">Std Price</th>' +
-                '<th class="p-2 border-r border-slate-200 text-right" style="min-width: 80px;">Moving Avg</th>' +
-                '<th class="p-2 border-r border-slate-200 text-center" style="min-width: 60px;">Price Unit</th>' +
-                '<th class="p-2 border-r border-slate-200 text-center" style="min-width: 60px;">Price Ctrl</th>' +
-                '<th class="p-2 border-r border-slate-200 text-center" style="min-width: 90px;">Purch. Group</th>' +
-                '<th class="p-2 border-r border-slate-200 text-center" style="min-width: 80px;">MRP Type</th>' +
-                '<th class="p-2 border-r border-slate-200 text-center" style="min-width: 80px;">MRP Group</th>' +
-                '<th class="p-2 border-r border-slate-200 text-center" style="min-width: 90px;">MRP Controller</th>' +
-                '<th class="p-2 border-r border-slate-200 text-center" style="min-width: 80px;">Lot Sizing</th>' +
-                '<th class="p-2 border-r border-slate-200 text-center" style="min-width: 70px;">Proc. Type</th>' +
-                '<th class="p-2 border-r border-slate-200 text-center" style="min-width: 80px;">Backflush</th>' +
-                '<th class="p-2 border-r border-slate-200 text-center" style="min-width: 90px;">Sched. Margin</th>' +
-                '<th class="p-2 border-r border-slate-200 text-center" style="min-width: 90px;">Safety Stock</th>' +
-                '<th class="p-2 border-r border-slate-200 text-center" style="min-width: 90px;">Period Ind.</th>' +
-                '<th class="p-2 border-r border-slate-200 text-center" style="min-width: 80px;">Fiscal Year</th>' +
-                '<th class="p-2 border-r border-slate-200 text-center" style="min-width: 100px;">Avail. Check</th>' +
-                '<th class="p-2 border-r border-slate-200 text-center" style="min-width: 90px;">Ind/Coll.</th>' +
-                '<th class="p-2 border-r border-slate-200 text-center" style="min-width: 90px;">Prod. SLoc</th>' +
-                '<th class="p-2 border-r border-slate-200 text-center" style="min-width: 90px;">Costing Lot</th>' +
-                '<th class="p-2 border-r border-slate-200 text-center" style="min-width: 90px;">Origin Ind.</th>' +
-                '<th class="p-2 text-center" style="min-width: 100px;">Qty Struct.</th>' +
-                '</tr>';
-            thead.innerHTML = thStr;
+            var thRow = document.createElement("tr");
+            thRow.className = "text-left font-bold uppercase tracking-wider bg-slate-100 text-slate-700 border-b border-slate-200 sticky top-0 z-10 text-[11px]";
+
+            detailColumnsConfig.forEach(function(col) {
+                var th = document.createElement("th");
+                var cls = "p-2 border-r border-slate-200 " + (col.fontClass || "");
+                if (col.align === 'center') cls += " text-center";
+                else if (col.align === 'right') cls += " text-right";
+                if (col.sticky) cls += " sticky bg-slate-100 z-20";
+                th.className = cls;
+                if (col.width) th.style.minWidth = col.width;
+                if (col.left) th.style.left = col.left;
+                th.innerText = col.label;
+                thRow.appendChild(th);
+            });
+
+            thead.appendChild(thRow);
             table.appendChild(thead);
 
             var tbody = document.createElement("tbody");
@@ -653,21 +862,12 @@
                 // 1. Index
                 tr.appendChild(cTd(row.item_no || (i + 1), 'center', 'font-bold text-slate-700', true, '0px'));
 
-                // 2. Action Button
-                var tdAct = document.createElement("td");
-                tdAct.className = "p-2 border-r border-slate-200 text-center sticky left-[40px] bg-white z-10";
-                var btnDet = document.createElement("button");
-                btnDet.type = "button";
-                btnDet.className = "bg-red-700 hover:bg-red-800 text-white px-2 py-0.5 rounded font-bold text-[10px] shadow-2xs transition";
-                btnDet.innerText = "Modal";
-                btnDet.onclick = (function(rNo, idx) {
-                    return function() { showMaterialDetailModal(rNo, idx); };
-                })(reqNo, i);
-                tdAct.appendChild(btnDet);
-                tr.appendChild(tdAct);
+                // 2. Material Code (Cleaned without leading zeros)
+                var rawMat = row.matnr_ext || row.matnr;
+                var cleanMat = formatMaterialCode(rawMat);
+                tr.appendChild(cTd(cleanMat, 'left', 'font-mono font-bold text-red-800'));
 
-                // 3. Material Fields
-                tr.appendChild(cTd(row.matnr_ext || row.matnr, 'left', 'font-mono font-bold text-red-800'));
+                // All SAP Material attributes in order
                 tr.appendChild(cTd(row.mbrsh || 'F', 'center'));
                 tr.appendChild(cTd(row.bismt, 'left', 'font-mono'));
                 tr.appendChild(cTd(row.mtart || 'ZOS3', 'center', 'font-bold'));
@@ -682,12 +882,24 @@
                 tr.appendChild(cTd(row.groes, 'left'));
                 tr.appendChild(cTd(row.werks || '1200', 'center', 'font-mono'));
                 tr.appendChild(cTd(row.lgort || '1201', 'center', 'font-mono'));
+                tr.appendChild(cTd(row.vkorg, 'center', 'font-mono'));
+                tr.appendChild(cTd(row.vtweg || '1', 'center'));
+                tr.appendChild(cTd(row.dwerk, 'center', 'font-mono'));
+                tr.appendChild(cTd(row.vrkme, 'center'));
                 tr.appendChild(cTd(row.herkl || 'ID', 'center'));
                 tr.appendChild(cTd(row.taxkm || '1', 'center'));
                 tr.appendChild(cTd(row.tatyp || 'MWST', 'center'));
                 tr.appendChild(cTd(row.mtpos || 'NORM', 'center'));
+                tr.appendChild(cTd(row.ktgrm || 'M6', 'center'));
+                tr.appendChild(cTd(row.mvgr1, 'center'));
+                tr.appendChild(cTd(row.mvgr2, 'center'));
+                tr.appendChild(cTd(row.mvgr3, 'center'));
+                tr.appendChild(cTd(row.mvgr4, 'center'));
+                tr.appendChild(cTd(row.mvgr5, 'center'));
                 tr.appendChild(cTd(row.tragr || '0001', 'center'));
                 tr.appendChild(cTd(row.ladgr || '0001', 'center'));
+                tr.appendChild(cTd(row.magrv || 'ZMG1', 'center'));
+                tr.appendChild(cTd(row.vhart, 'center'));
                 tr.appendChild(cTd(row.xchpf || 'X', 'center'));
                 tr.appendChild(cTd(row.prctr || '200201', 'center', 'font-mono'));
                 tr.appendChild(cTd(row.bklas || 'OS01', 'center', 'font-mono'));
@@ -695,23 +907,100 @@
                 tr.appendChild(cTd(row.verpr || '0', 'right'));
                 tr.appendChild(cTd(row.peinh || '1', 'center'));
                 tr.appendChild(cTd(row.vprsv || 'V', 'center'));
+                tr.appendChild(cTd(row.peinh_2, 'center'));
+                tr.appendChild(cTd(row.umren, 'center'));
+                tr.appendChild(cTd(row.meinh, 'center'));
+                tr.appendChild(cTd(row.umrez, 'center'));
+                tr.appendChild(cTd(row.laeng, 'center'));
+                tr.appendChild(cTd(row.breit, 'center'));
+                tr.appendChild(cTd(row.hoehe, 'center'));
+                tr.appendChild(cTd(row.meabm, 'center'));
+                tr.appendChild(cTd(row.brgew, 'right'));
+                tr.appendChild(cTd(row.gewei, 'center'));
+                tr.appendChild(cTd(row.ntgew, 'right'));
+                tr.appendChild(cTd(row.volum, 'right'));
                 tr.appendChild(cTd(row.ekgrp || 'K01', 'center'));
+                tr.appendChild(cTd(row.voleh, 'center'));
+                tr.appendChild(cTd(row.kzwsm, 'center'));
+                tr.appendChild(cTd(row.class, 'center'));
+                tr.appendChild(cTd(row.warna, 'center'));
+                tr.appendChild(cTd(row.vol_prod, 'center'));
                 tr.appendChild(cTd(row.dismm || 'PD', 'center'));
                 tr.appendChild(cTd(row.disgr || 'ZWH5', 'center'));
                 tr.appendChild(cTd(row.dispo || 'RW8', 'center'));
                 tr.appendChild(cTd(row.disls || 'PB', 'center'));
+                tr.appendChild(cTd(row.bstmi, 'center'));
+                tr.appendChild(cTd(row.bstma, 'center'));
+                tr.appendChild(cTd(row.bstrf, 'center'));
                 tr.appendChild(cTd(row.beskz || 'F', 'center'));
+                tr.appendChild(cTd(row.sobsl, 'center'));
                 tr.appendChild(cTd(row.rgekz || '1', 'center'));
+                tr.appendChild(cTd(row.dzeit, 'center'));
+                tr.appendChild(cTd(row.plifz, 'center'));
+                tr.appendChild(cTd(row.webaz, 'center'));
                 tr.appendChild(cTd(row.fhori || '000', 'center'));
                 tr.appendChild(cTd(row.eisbe, 'center'));
+                tr.appendChild(cTd(row.strgr, 'center'));
+                tr.appendChild(cTd(row.vrmod, 'center'));
+                tr.appendChild(cTd(row.vint1, 'center'));
+                tr.appendChild(cTd(row.vint2, 'center'));
                 tr.appendChild(cTd(row.perkz || 'M', 'center'));
                 tr.appendChild(cTd(row.periv || 'C1', 'center'));
                 tr.appendChild(cTd(row.mtvfp || 'KP', 'center'));
+                tr.appendChild(cTd(row.altsl, 'center'));
                 tr.appendChild(cTd(row.kzkst || '2', 'center'));
+                tr.appendChild(cTd(row.ausme, 'center'));
                 tr.appendChild(cTd(row.lgpro || '1201', 'center'));
-                tr.appendChild(cTd(row.losgr || '100', 'center'));
+                tr.appendChild(cTd(row.lgpro_ep || row.lgpro || '1201', 'center'));
+                tr.appendChild(cTd(row.sfpro, 'center'));
+                tr.appendChild(cTd(row.uneto, 'center'));
+                tr.appendChild(cTd(row.ueeto, 'center'));
+                tr.appendChild(cTd(row.ueetk, 'center'));
                 tr.appendChild(cTd(row.hkmat || 'X', 'center'));
                 tr.appendChild(cTd(row.ekalr || 'X', 'center'));
+                tr.appendChild(cTd(row.losgr || '100', 'center'));
+                tr.appendChild(cTd(row.ncost, 'center'));
+                tr.appendChild(cTd(row.mmsta, 'center'));
+                tr.appendChild(cTd(row.eprio || '0001', 'center'));
+                tr.appendChild(cTd(row.herbl, 'center'));
+                tr.appendChild(cTd(row.klrab, 'center'));
+                tr.appendChild(cTd(row.verid, 'center'));
+                tr.appendChild(cTd(row.perkz_2 || row.perkz || 'M', 'center'));
+                tr.appendChild(cTd(row.bwkey || '1000', 'center'));
+                tr.appendChild(cTd(row.versg, 'center'));
+                tr.appendChild(cTd(row.ssqss, 'center'));
+                tr.appendChild(cTd(row.qssys, 'center'));
+                tr.appendChild(cTd(row.insptype, 'center'));
+                tr.appendChild(cTd(row.insptype_comb, 'center'));
+                tr.appendChild(cTd(row.insp_task, 'center'));
+                tr.appendChild(cTd(row.insp_mat, 'center'));
+                tr.appendChild(cTd(row.insp_conf, 'center'));
+                tr.appendChild(cTd(row.insp_batch, 'center'));
+                tr.appendChild(cTd(row.auto_spec, 'center'));
+                tr.appendChild(cTd(row.insp_char, 'center'));
+                tr.appendChild(cTd(row.post_insp, 'center'));
+                tr.appendChild(cTd(row.auto_ud, 'center'));
+                tr.appendChild(cTd(row.sample_proc, 'center'));
+                tr.appendChild(cTd(row.dyn_mod, 'center'));
+                tr.appendChild(cTd(row.insp_pct, 'center'));
+                tr.appendChild(cTd(row.insp_100, 'center'));
+                tr.appendChild(cTd(row.skips_allow, 'center'));
+                tr.appendChild(cTd(row.sample_man, 'center'));
+                tr.appendChild(cTd(row.sample_trig, 'center'));
+                tr.appendChild(cTd(row.sernp, 'center'));
+                tr.appendChild(cTd(row.insp_dur, 'center'));
+                tr.appendChild(cTd(row.lot_summary, 'center'));
+                tr.appendChild(cTd(row.qual_score, 'center'));
+                tr.appendChild(cTd(row.scrap_pct, 'center'));
+                tr.appendChild(cTd(row.qm_order_rec, 'center'));
+                tr.appendChild(cTd(row.qm_order_num, 'center'));
+                tr.appendChild(cTd(row.pref_insptype, 'center'));
+                tr.appendChild(cTd(row.insptype_del, 'center'));
+                tr.appendChild(cTd(row.matnr_long, 'center'));
+                tr.appendChild(cTd(row.matnr_guid, 'center'));
+                tr.appendChild(cTd(row.matnr_ver, 'center'));
+                tr.appendChild(cTd(row.insp_hu, 'center'));
+                tr.appendChild(cTd(row.mult_spec, 'center'));
 
                 tbody.appendChild(tr);
             });
@@ -719,123 +1008,6 @@
             table.appendChild(tbody);
             container.innerHTML = "";
             container.appendChild(table);
-        }
-
-        function showMaterialDetailModal(reqNo, itemIndex) {
-            var items = loadedBatchDetails[reqNo];
-            if (!items || !items[itemIndex]) return;
-            var row = items[itemIndex];
-
-            var matName = row.matnr_ext || row.matnr || '-';
-            var matDesc = escapeHtml(row.maktx || '-');
-            var reqNoEsc = escapeHtml(reqNo);
-
-            var titleElem = document.getElementById("detailModalTitle");
-            if (titleElem) titleElem.innerText = 'MATERIAL: ' + matName;
-
-            var subTitleElem = document.getElementById("detailModalSubTitle");
-            if (subTitleElem) {
-                var subStr = '<span class="bg-slate-800 text-red-400 font-mono font-bold px-2 py-0.5 rounded border border-slate-700">Batch: ' + reqNoEsc + '</span> ' +
-                    '<span class="bg-slate-800 text-slate-200 font-semibold px-2 py-0.5 rounded border border-slate-700">Line #' + (row.item_no || (itemIndex + 1)) + '</span> ' +
-                    '<span class="text-slate-300 font-medium truncate max-w-md">' + matDesc + '</span>';
-                subTitleElem.innerHTML = subStr;
-            }
-
-            function field(label, val, isHighlight, isMono) {
-                var fStr = '<div class="bg-white p-3.5 rounded-xl border border-slate-200/80 hover:bg-white hover:border-red-500/40 transition-colors shadow-2xs">' +
-                    '<span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">' + escapeHtml(label) + '</span>' +
-                    '<span class="text-xs font-bold ' + (isHighlight ? 'text-red-700 font-bold' : 'text-slate-800') + ' ' + (isMono ? 'font-mono' : '') + '">' + (escapeHtml(val) || '-') + '</span>' +
-                    '</div>';
-                return fStr;
-            }
-
-            var body = document.getElementById("detailModalBody");
-            if (body) {
-                var bStr = '<div class="space-y-4">';
-
-                bStr += '<div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">';
-                bStr += '<div class="bg-slate-100/70 border-b border-slate-200 px-4 py-2.5 font-bold text-red-800 text-xs uppercase tracking-wider flex items-center gap-2">📌 BASIC DATA</div>';
-                bStr += '<div class="p-3.5 grid grid-cols-1 sm:grid-cols-3 md:grid-cols-3 gap-3">';
-                bStr += field('Material Temp', row.matnr_ext || row.matnr, true, true);
-                bStr += field('Old Material No.', row.bismt, false, true);
-                bStr += field('Material Description', row.maktx, true, false);
-                bStr += field('Material Type', row.mtart || 'ZOS3', false, false);
-                bStr += field('Industry Sector', row.mbrsh || 'F', false, false);
-                bStr += field('Material Group', row.matkl, false, true);
-                bStr += field('Base UoM', row.meins || 'PC', false, false);
-                bStr += field('Division', row.spart || 'M1', false, true);
-                bStr += field('Gen. Item Cat. Group', row.mtpos_mara || 'NORM', false, true);
-                bStr += field('Prod./Insp. Memo', row.ferth, false, false);
-                bStr += field('Document Num.', row.zeinr, false, true);
-                bStr += field('Industry Std. Desc.', row.normt, false, false);
-                bStr += field('Dimensions', row.groes, false, false);
-                bStr += '</div></div>';
-
-                bStr += '<div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">';
-                bStr += '<div class="bg-slate-100/70 border-b border-slate-200 px-4 py-2.5 font-bold text-red-800 text-xs uppercase tracking-wider flex items-center gap-2">🏭 PLANT & STORAGE DATA</div>';
-                bStr += '<div class="p-3.5 grid grid-cols-1 sm:grid-cols-3 md:grid-cols-3 gap-3">';
-                bStr += field('Plant', row.werks || '1200', false, true);
-                bStr += field('Storage Location', row.lgort || '1201', false, true);
-                bStr += field('Country Origin', row.herkl || 'ID', false, true);
-                bStr += field('Prod. Storage Loc', row.lgpro || '1201', false, true);
-                bStr += field('Prod. Sched Profile', row.sfpro, false, true);
-                bStr += field('Batch Management', row.xchpf || 'X', false, false);
-                bStr += '</div></div>';
-
-                bStr += '<div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">';
-                bStr += '<div class="bg-slate-100/70 border-b border-slate-200 px-4 py-2.5 font-bold text-red-800 text-xs uppercase tracking-wider flex items-center gap-2">🛒 PURCHASING & LOGISTICS</div>';
-                bStr += '<div class="p-3.5 grid grid-cols-1 sm:grid-cols-3 md:grid-cols-3 gap-3">';
-                bStr += field('Purchasing Group', row.ekgrp || 'K01', false, true);
-                bStr += field('Transportation Group', row.tragr || '0001', false, true);
-                bStr += field('Loading Group', row.ladgr || '0001', false, true);
-                bStr += field('Tax Class', row.taxkm || '1', false, true);
-                bStr += field('Tax Category', row.tatyp || 'MWST', false, true);
-                bStr += field('Item Category Group', row.mtpos || 'NORM', false, true);
-                bStr += '</div></div>';
-
-                bStr += '<div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">';
-                bStr += '<div class="bg-slate-100/70 border-b border-slate-200 px-4 py-2.5 font-bold text-red-800 text-xs uppercase tracking-wider flex items-center gap-2">📊 ACCOUNTING & VALUATION</div>';
-                bStr += '<div class="p-3.5 grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 gap-3">';
-                bStr += field('Valuation Class', row.bklas || 'OS01', false, true);
-                bStr += field('Price Unit', row.peinh || '1', false, true);
-                bStr += field('Price Control', row.vprsv || 'V', false, false);
-                bStr += field('Profit Center', row.prctr || '200201', false, true);
-                bStr += field('Origin Indicator', row.hkmat || 'X', false, false);
-                bStr += field('Qty Struct. Ind.', row.ekalr || 'X', false, false);
-                bStr += field('Costing Lot Size', row.losgr || '100', false, true);
-                bStr += field('Stock Determ. Group', row.eprio || '0001', false, true);
-                bStr += '</div></div>';
-
-                bStr += '<div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">';
-                bStr += '<div class="bg-slate-100/70 border-b border-slate-200 px-4 py-2.5 font-bold text-red-800 text-xs uppercase tracking-wider flex items-center gap-2">⚙️ MRP & PLANNING</div>';
-                bStr += '<div class="p-3.5 grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 gap-3">';
-                bStr += field('MRP Type', row.dismm || 'PD', false, true);
-                bStr += field('MRP Group', row.disgr || 'ZWH5', false, true);
-                bStr += field('MRP Controller', row.dispo || 'RW8', false, true);
-                bStr += field('Lot Sizing Procedure', row.disls || 'PB', false, true);
-                bStr += field('Procurement Type', row.beskz || 'F', false, true);
-                bStr += field('Backflush Indicator', row.rgekz || '1', false, true);
-                bStr += field('Sched. Margin Key', row.fhori || '000', false, true);
-                bStr += field('Safety Stock', row.eisbe, false, true);
-                bStr += field('Strategy Group', row.strgr, false, true);
-                bStr += field('Consumption Mode', row.vrmod, false, true);
-                bStr += field('Fwd Consum. Period', row.vint1, false, true);
-                bStr += field('Bwd Consum. Period', row.vint2, false, true);
-                bStr += field('Period Indicator', row.perkz || 'M', false, true);
-                bStr += field('Fiscal Year Variant', row.periv || 'C1', false, true);
-                bStr += field('Availability Check', row.mtvfp || 'KP', false, true);
-                bStr += field('Individual/Collective', row.kzkst || '2', false, true);
-                bStr += '</div></div></div>';
-                body.innerHTML = bStr;
-            }
-
-            var modalElem = document.getElementById("materialDetailModal");
-            if (modalElem) modalElem.classList.remove("hidden");
-        }
-
-        function closeMaterialDetailModal() {
-            var modalElem = document.getElementById("materialDetailModal");
-            if (modalElem) modalElem.classList.add("hidden");
         }
     </script>
 </body>
