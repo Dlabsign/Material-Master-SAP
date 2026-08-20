@@ -999,7 +999,7 @@ text-slate-800 resize-none font-sans"></textarea>
             "PC", "BEARING BALL 6205 ZZ-C3", "M1", "NORM", "",
             "", "", "", "1200", "1201",
             "1000", "10", "1200", "PC", "ID",
-            "1", "MWST", "NORM", "01", "",
+            "", "", "", "NORM", "01", "",
             "", "", "", "", "0001",
             "0001", "", "", "X", "200201",
             "OS01", "", "", "1", "V",
@@ -1298,8 +1298,8 @@ text-slate-800 resize-none font-sans"></textarea>
                         dwerk: getCellStr(row, 17, "1200"),
                         vrkme: getCellStr(row, 18, ""),
                         herkl: getCellStr(row, 19, "ID"),
-                        taxkm: getCellStr(row, 20, "1"),
-                        tatyp: getCellStr(row, 21, "MWST"),
+                        taxkm: getCellStr(row, 20, ""),
+                        tatyp: getCellStr(row, 21, ""),
                         mtpos: getCellStr(row, 22, ""),
                         ktgrm: getCellStr(row, 23, ""),
                         mvgr1: getCellStr(row, 24, ""),
@@ -1522,8 +1522,8 @@ text-slate-800 resize-none font-sans"></textarea>
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-dwerk w-full text-center font-mono" value="' + (data.dwerk || '1200') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-vrkme w-full text-center font-mono" value="' + (data.vrkme || 'PC') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="3" class="row-herkl w-full text-center font-mono" value="' + (data.herkl || 'ID') + '"></td>';
-        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="1" class="row-taxkm w-full text-center font-mono" value="' + (data.taxkm || '1') + '"></td>';
-        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="4" class="row-tatyp w-full text-center font-mono" value="' + (data.tatyp || 'MWST') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="1" class="row-taxkm w-full text-center font-mono" value="' + (data.taxkm || '') + '" placeholder="Tax Class"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="4" class="row-tatyp w-full text-center font-mono" value="' + (data.tatyp || '') + '" placeholder="Tax Type"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="4" class="row-mtpos w-full text-center font-mono" value="' + (data.mtpos || 'NORM') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-ktgrm w-full text-center font-mono" value="' + (data.ktgrm || '01') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-mvgr1 w-full text-center font-mono" value="' + (data.mvgr1 || '') + '"></td>';

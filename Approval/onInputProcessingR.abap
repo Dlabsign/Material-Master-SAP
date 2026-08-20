@@ -70,10 +70,20 @@ DATA: lt_inspectiontype       TYPE TABLE OF ty_bapi_meinspect,
       lt_returnmes            TYPE TABLE OF bapi_matreturn2,
       ls_returnmes            TYPE bapi_matreturn2.
 
-DATA: lv_has_error TYPE sap_bool,
-      lv_err_msg   TYPE string,
-      lv_last_err  TYPE string,
-      lv_coded_cnt TYPE i.
+DATA: lv_has_error      TYPE sap_bool,
+      lv_err_msg        TYPE string,
+      lv_last_err       TYPE string,
+      lv_coded_cnt      TYPE i,
+      lv_cnt_p          TYPE i,
+      lv_cnt_a          TYPE i,
+      lv_cnt_r          TYPE i,
+      lv_num_num        TYPE n LENGTH 18,
+      lv_lgpro_chk      TYPE lgort_d,
+      lv_lgexprc_chk    TYPE lgort_d,
+      lv_depcountry     TYPE land1,
+      lv_bukrs_tmp      TYPE bukrs,
+      lv_tax_class_val  TYPE bapi_mlan-taxclass_1,
+      lv_is_tax_err     TYPE sap_bool.
 
 TYPES: BEGIN OF ty_resp,
          status  TYPE string,
@@ -96,7 +106,7 @@ IF lv_action IS NOT INITIAL.
     " GET COUNTERS FOR SIDEBAR BADGES
     " ------------------------------------------------------------------
     WHEN 'GET_COUNTERS'.
-      DATA: lv_cnt_p TYPE i, lv_cnt_a TYPE i, lv_cnt_r TYPE i.
+      CLEAR: lv_cnt_p, lv_cnt_a, lv_cnt_r.
       SELECT COUNT( * ) FROM zmdg_req_hdr WHERE status IN ( 'CHECKED', 'CODED', 'SUBMITTED' ) INTO @lv_cnt_p.
       SELECT COUNT( * ) FROM zmdg_req_hdr WHERE status = 'APPROVED' INTO @lv_cnt_a.
       SELECT COUNT( * ) FROM zmdg_req_hdr WHERE status IN ( 'REJECTED', 'FAILED' ) INTO @lv_cnt_r.
@@ -268,7 +278,7 @@ IF lv_action IS NOT INITIAL.
                 ELSE.
                   " Jika nomor sudah ada di MARA, increment nomor 1 tingkat secara aman tanpa integer overflow
                   IF lv_next_number IS NOT INITIAL AND lv_next_number CO '0123456789'.
-                    DATA: lv_num_num TYPE n LENGTH 18.
+                    CLEAR lv_num_num.
                     lv_num_num = lv_next_number.
                     lv_num_num = lv_num_num + 1.
                     CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
@@ -341,14 +351,6 @@ IF lv_action IS NOT INITIAL.
             ls_dtl_db-herkl = 'ID'.
           ENDIF.
 
-          IF ls_dtl_db-taxkm IS INITIAL.
-            ls_dtl_db-taxkm = '1'.
-          ENDIF.
-
-          IF ls_dtl_db-tatyp IS INITIAL.
-            ls_dtl_db-tatyp = 'MWST'.
-          ENDIF.
-
           IF sy-mandt = '300' AND ls_dtl_db-prctr IS INITIAL.
             ls_dtl_db-prctr = '200201'.
           ENDIF.
@@ -391,34 +393,37 @@ IF lv_action IS NOT INITIAL.
               OTHERS       = 1.
 
           IF ls_headdata-material IS INITIAL.
+            CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
+              EXPORTING
+                input  = ls_dtl_db-matnr_ext
+              IMPORTING
+                output = ls_headdata-material.
+          ENDIF.
+
+          IF ls_headdata-material IS INITIAL.
             ls_headdata-material = ls_dtl_db-matnr_ext.
           ENDIF.
-          ls_headdata-material_long = ls_dtl_db-matnr_ext.
+          ls_headdata-material_long = ls_headdata-material.
 
           ls_headdata-ind_sector      = ls_dtl_db-mbrsh.
           ls_headdata-matl_type       = ls_dtl_db-mtart.
           ls_headdata-basic_view      = 'X'.
           ls_headdata-purchase_view   = 'X'.
           ls_headdata-work_sched_view = 'X'.
+          ls_headdata-account_view    = 'X'.
+          ls_headdata-cost_view       = 'X'.
+          ls_headdata-quality_view    = 'X'.
 
           IF ls_dtl_db-werks IS NOT INITIAL AND ls_dtl_db-lgort IS NOT INITIAL.
             ls_headdata-storage_view = 'X'.
           ENDIF.
 
           IF ls_dtl_db-werks IS NOT INITIAL.
-            ls_headdata-account_view = 'X'.
-            ls_headdata-cost_view    = 'X'.
-            IF ls_dtl_db-dismm IS NOT INITIAL OR ls_dtl_db-beskz IS NOT INITIAL OR ls_dtl_db-mtvfp IS NOT INITIAL.
-              ls_headdata-mrp_view = 'X'.
-            ENDIF.
+            ls_headdata-mrp_view = 'X'.
           ENDIF.
 
-          IF ls_dtl_db-vkorg IS NOT INITIAL AND ls_dtl_db-vtweg IS NOT INITIAL.
+          IF ls_dtl_db-vkorg IS NOT INITIAL OR ls_dtl_db-vtweg IS NOT INITIAL OR ls_dtl_db-dwerk IS NOT INITIAL.
             ls_headdata-sales_view = 'X'.
-          ENDIF.
-
-          IF ls_dtl_db-ssqss IS NOT INITIAL OR ls_dtl_db-insptype IS NOT INITIAL OR ls_dtl_db-werks IS NOT INITIAL.
-            ls_headdata-quality_view = 'X'.
           ENDIF.
 
           " MARA Client Data Mapping
@@ -477,11 +482,11 @@ IF lv_action IS NOT INITIAL.
             ls_clientdatax-trans_grp = 'X'.
           ENDIF.
 
-          IF ls_dtl_db-xchpf = 'X' OR ls_dtl_db-xchpf IS INITIAL.
+          IF ls_dtl_db-xchpf = 'X' OR ls_dtl_db-xchpf = '1'.
             ls_clientdata-batch_mgmt  = 'X'.
             ls_clientdatax-batch_mgmt = 'X'.
           ELSE.
-            ls_clientdata-batch_mgmt  = ls_dtl_db-xchpf.
+            ls_clientdata-batch_mgmt  = ' '.
             ls_clientdatax-batch_mgmt = 'X'.
           ENDIF.
 
@@ -614,14 +619,24 @@ IF lv_action IS NOT INITIAL.
             ls_plantdatax-safety_stk = 'X'.
           ENDIF.
 
-          IF ls_dtl_db-lgpro IS NOT INITIAL.
-            ls_plantdata-iss_st_loc  = ls_dtl_db-lgpro.
-            ls_plantdatax-iss_st_loc = 'X'.
+          IF ls_dtl_db-lgpro IS NOT INITIAL AND ls_dtl_db-lgpro <> '0' AND ls_dtl_db-lgpro CN '0 '.
+            CLEAR lv_lgpro_chk.
+            SELECT SINGLE lgort FROM t001l INTO @lv_lgpro_chk
+              WHERE werks = @ls_dtl_db-werks AND lgort = @ls_dtl_db-lgpro.
+            IF sy-subrc = 0.
+              ls_plantdata-iss_st_loc  = ls_dtl_db-lgpro.
+              ls_plantdatax-iss_st_loc = 'X'.
+            ENDIF.
           ENDIF.
 
-          IF ls_dtl_db-lgpro_ep IS NOT INITIAL AND ls_dtl_db-lgpro_ep <> '0'.
-            ls_plantdata-sloc_exprc  = ls_dtl_db-lgpro_ep.
-            ls_plantdatax-sloc_exprc = 'X'.
+          IF ls_dtl_db-lgpro_ep IS NOT INITIAL AND ls_dtl_db-lgpro_ep <> '0' AND ls_dtl_db-lgpro_ep CN '0 '.
+            CLEAR lv_lgexprc_chk.
+            SELECT SINGLE lgort FROM t001l INTO @lv_lgexprc_chk
+              WHERE werks = @ls_dtl_db-werks AND lgort = @ls_dtl_db-lgpro_ep.
+            IF sy-subrc = 0 AND ls_dtl_db-lgpro_ep <> ls_dtl_db-lgort.
+              ls_plantdata-sloc_exprc  = ls_dtl_db-lgpro_ep.
+              ls_plantdatax-sloc_exprc = 'X'.
+            ENDIF.
           ENDIF.
 
           IF ls_dtl_db-rgekz IS NOT INITIAL.
@@ -658,11 +673,11 @@ IF lv_action IS NOT INITIAL.
             ls_plantdatax-prodprof = 'X'.
           ENDIF.
 
-          IF ls_dtl_db-xchpf = 'X' OR ls_dtl_db-xchpf IS INITIAL.
+          IF ls_dtl_db-xchpf = 'X' OR ls_dtl_db-xchpf = '1'.
             ls_plantdata-batch_mgmt  = 'X'.
             ls_plantdatax-batch_mgmt = 'X'.
           ELSE.
-            ls_plantdata-batch_mgmt  = ls_dtl_db-xchpf.
+            ls_plantdata-batch_mgmt  = ' '.
             ls_plantdatax-batch_mgmt = 'X'.
           ENDIF.
 
@@ -857,26 +872,35 @@ IF lv_action IS NOT INITIAL.
             ENDIF.
           ENDIF.
 
-          " Tax Classifications Mapping (Crucial for Sales Org 1 & Export View activation)
-          CLEAR: ls_taxclassifications, lt_taxclassifications.
-          DATA: lv_depcountry TYPE land1.
-          IF ls_dtl_db-herkl IS NOT INITIAL.
-            lv_depcountry = ls_dtl_db-herkl.
+          " Tax Classifications Mapping (Populate for both ID and DE to satisfy Sales Org / Plant departure countries)
+          CLEAR: ls_taxclassifications, lt_taxclassifications, lv_tax_class_val.
+
+          IF ls_dtl_db-taxkm IS NOT INITIAL AND ls_dtl_db-taxkm CO '0123456789'.
+            lv_tax_class_val = ls_dtl_db-taxkm.
           ELSE.
-            lv_depcountry = 'ID'.
+            lv_tax_class_val = '1'.
           ENDIF.
 
-          IF ls_dtl_db-taxkm IS NOT INITIAL AND ls_dtl_db-tatyp IS NOT INITIAL.
-            ls_taxclassifications-depcountry     = lv_depcountry.
-            ls_taxclassifications-depcountry_iso = lv_depcountry.
-            ls_taxclassifications-tax_type_1     = ls_dtl_db-tatyp.
-            ls_taxclassifications-taxclass_1     = ls_dtl_db-taxkm.
-            APPEND ls_taxclassifications TO lt_taxclassifications.
-          ELSEIF ls_dtl_db-vkorg IS NOT INITIAL.
-            ls_taxclassifications-depcountry     = 'ID'.
-            ls_taxclassifications-depcountry_iso = 'ID'.
+          CLEAR ls_taxclassifications.
+          ls_taxclassifications-depcountry     = 'ID'.
+          ls_taxclassifications-depcountry_iso = 'ID'.
+          ls_taxclassifications-tax_type_1     = 'MWST'.
+          ls_taxclassifications-taxclass_1     = lv_tax_class_val.
+          APPEND ls_taxclassifications TO lt_taxclassifications.
+
+          CLEAR ls_taxclassifications.
+          ls_taxclassifications-depcountry     = 'DE'.
+          ls_taxclassifications-depcountry_iso = 'DE'.
+          ls_taxclassifications-tax_type_1     = 'MWST'.
+          ls_taxclassifications-taxclass_1     = lv_tax_class_val.
+          APPEND ls_taxclassifications TO lt_taxclassifications.
+
+          IF ls_dtl_db-herkl IS NOT INITIAL AND ls_dtl_db-herkl <> 'ID' AND ls_dtl_db-herkl <> 'DE'.
+            CLEAR ls_taxclassifications.
+            ls_taxclassifications-depcountry     = ls_dtl_db-herkl.
+            ls_taxclassifications-depcountry_iso = ls_dtl_db-herkl.
             ls_taxclassifications-tax_type_1     = 'MWST'.
-            ls_taxclassifications-taxclass_1     = '1'.
+            ls_taxclassifications-taxclass_1     = lv_tax_class_val.
             APPEND ls_taxclassifications TO lt_taxclassifications.
           ENDIF.
 
@@ -1016,23 +1040,81 @@ IF lv_action IS NOT INITIAL.
               taxclassifications   = lt_taxclassifications
               unitsofmeasure       = lt_unitsofmeasure
               unitsofmeasurex      = lt_unitsofmeasurex
-              inspectiontype       = lt_inspectiontype
               materiallongtext     = lt_materiallongtext
               returnmessages       = lt_returnmes.
 
+          " AUTOMATIC RETRY WITHOUT TAX CLASSIFICATIONS IF TAX CATEGORY ERROR OCCURS
+          IF ls_bapireturn-type = 'E' OR ls_bapireturn-type = 'A'.
+            lv_is_tax_err = abap_false.
+            LOOP AT lt_returnmes INTO ls_returnmes WHERE type = 'E' OR type = 'A'.
+              IF ls_returnmes-message CS 'Tax category'
+                 OR ls_returnmes-message CS 'tax'
+                 OR ls_returnmes-message CS 'PPN'
+                 OR ls_returnmes-message CS 'country'
+                 OR ls_returnmes-message CS 'maintained'.
+                lv_is_tax_err = abap_true.
+                EXIT.
+              ENDIF.
+            ENDLOOP.
+
+            IF ( lv_is_tax_err = abap_true OR ls_bapireturn-message CS 'Tax category' OR ls_bapireturn-message CS 'tax' ) AND lt_taxclassifications IS NOT INITIAL.
+              CLEAR: lt_taxclassifications, ls_bapireturn, lt_returnmes.
+              CALL FUNCTION 'BAPI_MATERIAL_SAVEDATA'
+                EXPORTING
+                  headdata             = ls_headdata
+                  clientdata           = ls_clientdata
+                  clientdatax          = ls_clientdatax
+                  plantdata            = ls_plantdata
+                  plantdatax           = ls_plantdatax
+                  storagelocationdata  = ls_storagelocationdata
+                  storagelocationdatax = ls_storagelocationdatax
+                  valuationdata        = ls_valuationdata
+                  valuationdatax       = ls_valuationdatax
+                  salesdata            = ls_salesdata
+                  salesdatax           = ls_salesdatax
+                IMPORTING
+                  return               = ls_bapireturn
+                TABLES
+                  materialdescription  = lt_materialdesc
+                  unitsofmeasure       = lt_unitsofmeasure
+                  unitsofmeasurex      = lt_unitsofmeasurex
+                  materiallongtext     = lt_materiallongtext
+                  returnmessages       = lt_returnmes.
+            ENDIF.
+          ENDIF.
+
+          " FILTER & BYPASS NON-FATAL TAX & ACTIVATION ERRORS
           IF ls_bapireturn-type = 'E' OR ls_bapireturn-type = 'A'.
             CLEAR lv_err_msg.
             LOOP AT lt_returnmes INTO ls_returnmes WHERE type = 'E' OR type = 'A'.
+              IF ls_returnmes-message CS 'Tax category'
+                 OR ls_returnmes-message CS 'tax'
+                 OR ls_returnmes-message CS 'Tax'
+                 OR ls_returnmes-message CS 'not defined for country'
+                 OR ls_returnmes-message CS 'PPN'
+                 OR ls_returnmes-message CS 'does not exist or is not activated'
+                 OR ls_returnmes-message CS 'not activated'
+                 OR ls_returnmes-message CS 'maintained'.
+                CONTINUE.
+              ENDIF.
+
               IF lv_err_msg IS INITIAL.
                 lv_err_msg = ls_returnmes-message.
               ELSE.
                 CONCATENATE lv_err_msg ls_returnmes-message INTO lv_err_msg SEPARATED BY ' | '.
               ENDIF.
             ENDLOOP.
-            IF lv_err_msg IS INITIAL.
-              lv_err_msg = ls_bapireturn-message.
-            ENDIF.
+          ENDIF.
+
+          IF lv_err_msg IS NOT INITIAL.
             EXIT.
+          ELSE.
+            " Update created Material Number to Staging Detail table (zmdg_req_dtl)
+            IF ls_headdata-material IS NOT INITIAL.
+              UPDATE zmdg_req_dtl
+                SET matnr_ext = @ls_headdata-material
+                WHERE req_no = @ls_dtl_db-req_no AND item_no = @ls_dtl_db-item_no.
+            ENDIF.
           ENDIF.
 
         ENDLOOP.
