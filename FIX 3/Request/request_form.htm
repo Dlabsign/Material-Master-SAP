@@ -1,0 +1,2855 @@
+<%@page language="ABAP" %>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Material Master Request Governance</title>
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- SheetJS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+                    colors: {
+                        emerald: {
+                            50:  '#ecfdf5',
+                            100: '#d1fae5',
+                            200: '#a7f3d0',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065f46',
+                            900: '#064e3b',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background-color: #eef2f6;
+            background-image:
+                radial-gradient(at 10% 10%, rgba(16, 185, 129, 0.08) 0px, transparent 40%),
+                radial-gradient(at 90% 15%, rgba(100, 116, 139, 0.08) 0px, transparent 45%),
+                radial-gradient(at 50% 85%, rgba(16, 185, 129, 0.05) 0px, transparent 50%);
+            background-attachment: fixed;
+            color: #0f172a;
+        }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(241, 245, 249, 0.6); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #10b981; }
+
+        /* Glassmorphic Custom Inputs */
+        #partTable input[type=text], #partTable input[type=number] {
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(4px);
+            color: #0f172a;
+            font-size: 11px;
+            padding: 4px 6px;
+            transition: all .15s ease;
+            width: 100%;
+        }
+        #partTable input[type=text]:focus, #partTable input[type=number]:focus {
+            outline: none;
+            border-color: #059669;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
+            background: #ffffff;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.72);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.05);
+        }
+
+        .glass-subpanel {
+            background: rgba(248, 250, 252, 0.65);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(226, 232, 240, 0.7);
+        }
+
+        @keyframes progressGlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .animated-progress-bar {
+            background-size: 200% 200%;
+            animation: progressGlow 2s ease infinite;
+        }
+    </style>
+</head>
+<body class="text-[13px] font-sans leading-relaxed m-0 p-0 antialiased min-h-screen">
+
+    <!-- TOP NAVIGATION BAR -->
+    <header class="bg-white/70 backdrop-blur-xl h-14 border-b border-white/60 sticky top-0 z-50 px-6 lg:px-10 flex items-center justify-between shadow-xs">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 text-white flex items-center justify-center font-bold text-xs shadow-xs">
+                MM
+            </div>
+            <div>
+                <span class="font-extrabold text-sm text-slate-900 block leading-none">Material Master Governance</span>
+                <span class="text-[10px] text-emerald-700 font-semibold tracking-wide">SAP S/4HANA Staging Platform</span>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2 bg-white/80 border border-slate-200/80 px-3 py-1 rounded-full shadow-2xs">
+                <div class="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-[10px]" id="userAvatarInitial">?</div>
+                <span class="text-xs font-bold text-slate-800" id="userNameLabel"><%= sy-uname %></span>
+            </div>
+            <a href="?OnInputProcessing=LOGOUT" class="text-xs font-semibold text-slate-600 hover:text-emerald-700 px-3 py-1 rounded-full border border-slate-200/80 bg-white/50 hover:bg-white transition">Sign Out</a>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="max-w-[1900px] my-6 mx-auto px-4 sm:px-8">
+        <input type="hidden" id="REQ_ID" value="<%= request->get_form_field( 'req_id' ) %>">
+        <input type="hidden" id="CURRENT_UPLOAD_ID" value="">
+        <input type="hidden" id="CURRENT_FILENAME" value="">
+
+        <!-- CENTERED PAGE HEADER -->
+        <div class="mb-8 text-center flex flex-col items-center justify-center">
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight text-center leading-tight">
+                Material Master <span class="bg-gradient-to-r from-emerald-600 to-emerald-800 bg-clip-text text-transparent">Creation &amp; Staging</span>
+            </h1>
+            <p class="text-xs font-semibold text-slate-500 text-center mt-1">
+                Enterprise Material Master Request Governance
+            </p>
+        </div>
+
+        <!-- 1. CONTAINER 1: MATERIAL SEARCH & REFERENCE (SAP MARA CONNECTION - 2 COLUMNS) -->
+        <section class="glass-panel rounded-3xl p-6 lg:p-7 mb-8 transition-all duration-300">
+            <!-- HEADER CONTAINER 1 -->
+            <div class="flex items-center justify-between pb-4 mb-6 border-b border-slate-200/60 flex-wrap gap-3">
+                <div class="flex items-center gap-3">
+                    <span class="w-8 h-8 rounded-xl bg-emerald-600 text-white font-extrabold text-xs flex items-center justify-center shadow-xs">01</span>
+                    <div>
+                        <h2 class="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                            Search Material
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/10 text-emerald-800 border border-emerald-500/20">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>LIVE TABLE
+                            </span>
+                        </h2>
+                        <p class="text-[11px] text-slate-500 font-medium">Query reference records from SAP MARA to prefill request forms.</p>
+                    </div>
+                </div>
+                <button type="button" onclick="resetFilter()" class="text-xs text-slate-600 hover:text-emerald-700 font-bold px-3.5 py-1.5 rounded-full border border-slate-200/80 bg-white/60 hover:bg-white transition inline-flex items-center gap-1
+cursor-pointer">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003
+0 01-15.357-2m15.357 2H15"/></svg>
+                    Clear Filters
+                </button>
+            </div>
+
+            <!-- 2-COLUMN LAYOUT GRID -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- COLUMN 1: PARAMETER FILTER (Left Panel) -->
+                <div class="lg:col-span-4 glass-subpanel rounded-2xl p-5 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider mb-4 flex items-center gap-2 border-b border-slate-200/70 pb-2.5">
+                            <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0
+01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+                            Query Parameters
+                        </h3>
+
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-700 mb-1">Kode Material</label>
+                                <input type="text" id="filterMatnr" placeholder="Filter MATNR (e.g. 50025217)..." onkeyup="handleFilterKeyup(event)" class="w-full p-2.5 text-xs border border-slate-200/80 rounded-xl focus:outline-none
+focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 bg-white/80 text-slate-800 font-mono transition shadow-2xs">
+                            </div>
+
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-700 mb-1">Deskripsi Material</label>
+                                <input type="text" id="filterMaktx" placeholder="Filter description (e.g. BEARING)..." onkeyup="handleFilterKeyup(event)" class="w-full p-2.5 text-xs border border-slate-200/80 rounded-xl focus:outline-none
+focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 bg-white/80 text-slate-800 font-medium transition shadow-2xs">
+                            </div>
+
+
+                        </div>
+                    </div>
+
+                    <div class="mt-6 pt-3.5 border-t border-slate-200/70">
+                        <button type="button" onclick="searchMaraSAP()" class="w-full py-3 px-4 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-black text-xs rounded-xl shadow-xs hover:shadow
+transition-all inline-flex items-center justify-center gap-2 cursor-pointer">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                            <span>Search SAP MARA</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- COLUMN 2: SAP MARA REFERENCE RESULTS (Right Panel) -->
+                <div class="lg:col-span-8 glass-subpanel rounded-2xl p-5 flex flex-col justify-between min-h-[310px]">
+                    <div>
+                        <div class="flex items-center justify-between pb-3.5 mb-3.5 border-b border-slate-200/70 flex-wrap gap-2">
+                            <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2
+0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                                Material Master Result
+                            </h3>
+                        </div>
+
+                        <!-- MARA TABLE RESULTS -->
+                        <div class="overflow-x-auto max-h-[250px] rounded-xl border border-slate-200/80 bg-white/60">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-100/80 border-b border-slate-200 text-[10px] uppercase tracking-wider font-extrabold text-slate-600 sticky top-0 z-10 backdrop-blur-xs">
+                                        <th class="p-2.5 text-center w-8">No</th>
+                                        <th class="p-2.5">Kode Material</th>
+                                        <th class="p-2.5">Description </th>
+                                        <th class="p-2.5 text-center">Type</th>
+                                        <th class="p-2.5 text-center">Group</th>
+                                        <th class="p-2.5 text-center">UoM</th>
+                                        <th class="p-2.5 text-center">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="maraResultTbody" class="text-xs divide-y divide-slate-100/80">
+                                    <tr>
+                                        <td colspan="7" class="p-8 text-center text-slate-400 font-medium">
+                                            Specify criteria in <b>Query Parameters</b> and execute search to view records.
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- MARA PAGINATION FOOTER -->
+                        <div id="maraPaginationFooter" class="hidden mt-3 pt-2.5 border-t border-slate-200/60 flex flex-col sm:flex-row items-center justify-between gap-2.5 text-xs">
+                            <span id="maraPaginationSummary" class="text-[11px] font-bold text-slate-500 shrink-0">Showing 1-10 of 20 items</span>
+                            <div id="maraPaginationControls" class="flex items-center gap-1 flex-wrap justify-center sm:justify-end max-w-full overflow-hidden"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. CONTAINER 2: BULK INGESTION -->
+        <section class="glass-panel rounded-3xl p-6 lg:p-7 mb-8 transition-all duration-300">
+            <!-- HEADER CONTAINER 2 -->
+            <div class="flex items-center justify-between pb-4 mb-5 border-b border-slate-200/60 flex-wrap gap-3">
+                <div class="flex items-center gap-3">
+                    <span class="w-8 h-8 rounded-xl bg-emerald-600 text-white font-extrabold text-xs flex items-center justify-center shadow-xs">02</span>
+                    <div>
+                        <h2 class="text-xs font-black text-slate-900 uppercase tracking-wider">Upload Excel</h2>
+                        <p class="text-[11px] text-slate-500 font-medium">Uplaod Excel template (.xlsx, .csv).</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DROPZONE CARD -->
+            <div id="dropzoneArea" onclick="document.getElementById('excelFileInput').click()" class="relative border-2 border-dashed border-emerald-400/60 hover:border-emerald-600 rounded-2xl bg-emerald-50/20 hover:bg-emerald-50/40 backdrop-blur-xs
+transition-all duration-300 cursor-pointer p-7 text-center group overflow-hidden shadow-2xs">
+                <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" class="hidden" onchange="handleFileSelect(this)">
+
+                <div class="relative z-10 flex flex-col items-center justify-center gap-2.5">
+                    <div class="w-12 h-12 rounded-2xl bg-white/80 border border-emerald-200 flex items-center justify-center text-emerald-600 group-hover:scale-105 transition-all duration-300 shadow-xs">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3
+3m3-3v12"/></svg>
+                    </div>
+
+                    <div>
+                        <p class="text-xs font-black text-slate-900">Drop Excel or browse from device</p>
+                        <p class="text-[10px] text-slate-500 font-semibold mt-0.5">Supported formats: .xlsx, .xls, .csv</p>
+                    </div>
+
+                    <button type="button" class="mt-1.5 rounded-full bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-700 text-white font-extrabold text-xs px-6 py-2.5 shadow-xs hover:shadow transition-all inline-flex items-center gap-1.5
+cursor-pointer">
+                        <span>Select File</span>
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- UPLOAD STATUS CARD -->
+            <div id="fileListCard" class="hidden mt-4 glass-subpanel rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3 transition-all">
+                <div class="flex items-center gap-3 w-full sm:w-auto">
+                    <span id="fileNameText" class="text-xs font-black text-slate-900 truncate">File.xlsx</span>
+                    <span id="fileStatusBadge" class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-200">Parsing...</span>
+                    <span id="fileSizeText" class="text-[10px] text-slate-500 font-medium">0 KB</span>
+                </div>
+
+                <div class="w-full sm:w-64 flex items-center gap-2 shrink-0">
+                    <div class="flex-1 bg-slate-200/80 rounded-full h-2.5 overflow-hidden">
+                        <div id="fileProgressBar" class="bg-gradient-to-r from-emerald-400 to-emerald-700 animated-progress-bar h-2.5 rounded-full transition-all duration-300" style="width: 0%;"></div>
+                    </div>
+                    <span id="fileProgressPercent" class="text-xs font-black text-emerald-700 font-mono">0%</span>
+                </div>
+
+                <button type="button" onclick="deleteUploadedFile()" class="px-3.5 py-1.5 text-[10px] font-extrabold text-rose-600 hover:text-white bg-rose-50 hover:bg-rose-600 border border-rose-200 rounded-full transition cursor-pointer">
+                    Remove File
+                </button>
+            </div>
+        </section>
+
+        <!-- 3. CONTAINER 3: MATERIAL SPECIFICATION STAGING -->
+        <section class="glass-panel rounded-3xl mb-8 overflow-hidden transition-all duration-300">
+            <!-- HEADER CONTAINER 3 -->
+            <div class="bg-white/40 px-6 py-4 border-b border-slate-200/60 flex items-center justify-between flex-wrap gap-3">
+                <div class="flex items-center gap-3">
+                    <span class="w-8 h-8 rounded-xl bg-emerald-600 text-white font-extrabold text-xs flex items-center justify-center shadow-xs">03</span>
+                        <h2 class="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                            PREVIEW DATA TABLE
+                            <span class="text-xs font-extrabold text-emerald-700 bg-emerald-100/80 px-3 py-0.5 rounded-full border border-emerald-200" id="rowCounterChip">1 Line</span>
+                        </h2>
+                </div>
+                <div class="flex items-center gap-2.5">
+                    <button type="button" class="bg-white/80 hover:bg-white text-slate-700 border border-slate-200/80 px-4 py-2 rounded-full font-extrabold text-xs transition shadow-2xs cursor-pointer" onclick="downloadStandardExcelTemplate()">
+                        Download Template
+                    </button>
+                    <button type="button" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-full font-extrabold text-xs transition shadow-2xs cursor-pointer inline-flex items-center gap-1.5" onclick="downloadPreviewDataExcel()">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                        <span>Download Excel Data</span>
+                    </button>
+                    <button type="button" class="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-full font-extrabold text-xs transition shadow-xs cursor-pointer" onclick="addNewRow()">
+                        + Add Line
+                    </button>
+                </div>
+            </div>
+
+            <!-- TABLE PREVIEW -->
+            <div class="overflow-x-auto max-h-[500px] bg-white/40 backdrop-blur-xs">
+                <table class="w-full border-collapse text-xs min-w-[18000px]" id="partTable">
+                    <thead>
+                        <tr class="text-left text-slate-700 font-bold text-[11px] uppercase tracking-wider bg-slate-100/90 border-b border-slate-200 backdrop-blur-xs">
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:45px;">Item</th>
+                            <th class="p-2 border-b border-r border-slate-200 sticky top-0 bg-slate-100/95 z-10" style="min-width:110px;">Material</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:60px;">Industry Sector</th>
+                            <th class="p-2 border-b border-r border-slate-200 sticky top-0 bg-slate-100/95 z-10" style="min-width:130px;">Old Material No.</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:70px;">Material Type</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:90px;">Material Group</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:70px;">Base UoM</th>
+                            <th class="p-2 border-b border-r border-slate-200 sticky top-0 bg-slate-100/95 z-10" style="min-width:220px;">Material Description *</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:70px;">Division</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:100px;">Gen. Item Cat. Grp</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:90px;">Prod./Insp. Memo</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:90px;">Doc. Num</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:110px;">Ind. Standard Desc</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:90px;">Dimensions</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:60px;">Plant</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:60px;">S.Loc</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:90px;">Sales Org</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:90px;">Dist. Channel</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:90px;">Delivering Plant</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:80px;">Sales Unit</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:100px;">Country of Origin</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:70px;">Tax Class</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:80px;">Tax Category</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:100px;">Item Cat. Group</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:100px;">Account Assignment</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:80px;">Mat Group 1</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:80px;">Mat Group 2</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:80px;">Mat Group 3</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:80px;">Mat Group 4</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:80px;">Mat Group 5</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:100px;">Transport. Grp</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:90px;">Loading Grp</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:90px;">Material Package</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:90px;">Mat. Pack. Type</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:60px;">Batch</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:90px;">Profit Ctr</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:80px;">Val. Class</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:80px;">Std. Price</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:80px;">Moving Avg. Price</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:60px;">P.Unit</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:60px;">P.Ctrl</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:90px;">P.Unit Hard Curr</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:80px;">Denominator</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:80px;">Alt. UoM</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:80px;">Numerator</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:70px;">Length</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:70px;">Width</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:70px;">Height</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:80px;">Unit Dim</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:80px;">Gross Wt</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:70px;">Wt Unit</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:80px;">Net Wt</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:80px;">Volume</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:80px;">Purch. Grp</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:80px;">Vol Unit</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:80px;">Prop. Units</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:80px;">Class</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:80px;">Color</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:90px;">Vol Product</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:80px;">MRP Type</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:80px;">MRP Group</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:100px;">MRP Controller</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:80px;">Lot Sizing</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:80px;">Min. Lot Size</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:80px;">Max. Lot Size</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:70px;">Rounding Val</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:70px;">Proc.Type</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:90px;">Special Proc</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:90px;">Backflush Indicator</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:90px;">In-house Prod</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:90px;">Plan Deliv Time</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:90px;">GR Proc Time</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:100px;">Sched. Margin Key</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:90px;">Safety Stock</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:90px;">Strategy Group</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:100px;">Consumption Mode</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:110px;">Fwd Consum. Period</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:110px;">Bwd Consum. Period</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:90px;">Period Indicator</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:80px;">Fiscal Year</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:100px;">Availability Check</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:90px;">Selection Method</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:90px;">Individual/Coll.</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:80px;">Unit of Issue</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:100px;">Prod. Storage Loc.</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:100px;">SLoc for EP</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:100px;">Prod. Sched. Profile</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:90px;">Underdel. Tol</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:90px;">Overdeliv. Tol</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:80px;">Unlimited Tol</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:90px;">Origin Cost</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:90px;">With Qty Struct.</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:100px;">Base Quantity / Lot Size</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:80px;">Do Not Cost</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:90px;">Plant Mat Status</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:90px;">Effective Date</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:110px;">Stock Determination Group</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:100px;">Quality Rebate</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:100px;">Prod. Version</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:80px;">Period Ind 2</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:80px;">Valuation Area</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:90px;">Acc Spec Stock</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:100px;">QM Proc. Active</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:100px;">QM Control Key</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:90px;">Insp. Type</th>
+                            <th class="p-2 border-b border-r border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:90px;">Serial No. Profile</th>
+                            <th class="p-2 border-b border-slate-200 text-center sticky top-0 bg-slate-100/95 z-10" style="min-width:60px;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody" class="divide-y divide-slate-100">
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- ACTION FOOTER BAR -->
+            <div class="bg-white/40 px-6 py-4 border-t border-slate-200/60 flex flex-wrap items-center justify-between gap-3">
+                <span class="text-xs text-slate-500 font-extrabold" id="footerSummary">0 item(s) ready</span>
+                <div class="flex items-center gap-3">
+                    <button type="button" class="bg-white/80 hover:bg-white text-slate-700 border border-slate-200/80 px-5 py-2.5 rounded-full font-bold text-xs transition shadow-2xs cursor-pointer" onclick="resetForm()">
+                        Reset Form
+                    </button>
+                    <button type="button" class="bg-slate-800 hover:bg-slate-900 text-white border border-slate-700 px-5 py-2.5 rounded-full font-extrabold text-xs transition shadow-2xs cursor-pointer" onclick="saveStagingData('DRAFT')">
+                        Save Draft
+                    </button>
+                    <button type="button" class="rounded-full bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-700 hover:from-emerald-600 hover:to-emerald-800 text-white font-black text-xs px-7 py-3 shadow-md hover:shadow-lg transition-all
+inline-flex items-center gap-2 cursor-pointer" onclick="openSubmitReasonModal()">
+                        <span>Submit Request</span>
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. CONTAINER 4: MATERIAL REQUEST HISTORY & STATUS TRACKER -->
+        <section class="glass-panel rounded-3xl mb-8 overflow-hidden transition-all duration-300">
+            <!-- HEADER CONTAINER 4 -->
+            <div class="p-6 border-b border-slate-200/60 bg-white/40">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="w-8 h-8 rounded-xl bg-emerald-600 text-white font-extrabold text-xs flex items-center justify-center shadow-xs">04</span>
+
+                        <h2 class="text-xs font-black text-slate-900 uppercase tracking-wider">Request History &amp; Approval</h2>
+
+                </div>
+
+                <!-- STAT MINI CARDS -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="glass-subpanel p-4.5 rounded-2xl border border-emerald-500/20 flex items-center justify-between hover:border-emerald-500/40 transition">
+                        <div>
+                            <p class="text-[10px] font-black text-slate-500 uppercase tracking-wider">Approved Requests</p>
+                            <h3 class="text-xl font-black text-slate-900 mt-0.5" id="approvedCountCard">0 Request</h3>
+                        </div>
+                        <span class="text-xs font-black text-emerald-800 bg-emerald-100/80 px-3 py-1 rounded-full border border-emerald-200 shadow-2xs">APPROVED</span>
+                    </div>
+
+                    <div class="glass-subpanel p-4.5 rounded-2xl border border-rose-500/20 flex items-center justify-between hover:border-rose-500/40 transition">
+                        <div>
+                            <p class="text-[10px] font-black text-slate-500 uppercase tracking-wider">Rejected Requests</p>
+                            <h3 class="text-xl font-black text-slate-900 mt-0.5" id="rejectedCountCard">0 Request</h3>
+                        </div>
+                        <span class="text-xs font-black text-rose-800 bg-rose-100/80 px-3 py-1 rounded-full border border-rose-200 shadow-2xs">REJECTED</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB PILL SWITCHER BAR -->
+            <div class="bg-white/50 px-6 py-4 border-b border-slate-200/60 flex items-center justify-between flex-wrap gap-3">
+                <div class="flex items-center gap-2.5">
+                    <button type="button" id="tabPendingBtn" onclick="switchHistoryTab('PENDING')" class="px-4.5 py-2 rounded-full font-extrabold text-xs bg-gradient-to-r from-emerald-500 to-emerald-700 text-white shadow-xs transition-all cursor-pointer">
+                        Pending
+                    </button>
+                    <button type="button" id="tabApprovedBtn" onclick="switchHistoryTab('APPROVED')" class="px-4.5 py-2 rounded-full font-extrabold text-xs text-slate-600 hover:text-slate-900 bg-white/80 hover:bg-white border border-slate-200/80 transition-all cursor-pointer">
+                        Approved List
+                    </button>
+                    <button type="button" id="tabRejectedBtn" onclick="switchHistoryTab('REJECTED')" class="px-4.5 py-2 rounded-full font-extrabold text-xs text-slate-600 hover:text-slate-900 bg-white/80 hover:bg-white border border-slate-200/80 transition-all cursor-pointer">
+                        Rejected List
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="exportApprovedHistoryToExcel()" class="text-xs text-emerald-700 font-extrabold bg-emerald-50/80 hover:bg-emerald-100 border border-emerald-200 px-4 py-2 rounded-full transition flex items-center gap-1.5 cursor-pointer shadow-2xs">
+                        <svg class="w-3.5 h-3.5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                        <span>Export Excel List</span>
+                    </button>
+                    <button type="button" onclick="loadUploadHistory()" class="text-xs text-emerald-700 font-extrabold hover:underline bg-emerald-50/80 hover:bg-emerald-100 border border-emerald-200 px-4 py-2 rounded-full transition flex items-center gap-1.5 cursor-pointer shadow-2xs">
+                        <svg class="w-3.5 h-3.5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        Refresh Log
+                    </button>
+                </div>
+            </div>
+
+            <!-- TABLE HISTORY -->
+            <div class="p-0 bg-white/30 backdrop-blur-xs">
+                <div class="overflow-x-auto max-h-[350px]">
+                    <table class="w-full border-collapse text-xs">
+                        <thead>
+                            <tr class="text-left text-slate-700 font-bold text-[11px] uppercase tracking-wider bg-slate-100/80 border-b border-slate-200 backdrop-blur-xs">
+                                <th class="p-3.5 text-center" style="width: 4%;">#</th>
+                                <th class="p-3.5" style="width: 18%;">Batch / Request ID</th>
+                                <th class="p-3.5" style="width: 16%;">File Name</th>
+                                <th class="p-3.5 text-center" style="width: 25%;">Timestamp</th>
+                                <th class="p-3.5 text-center" style="width: 8%;">Total Lines</th>
+                                <th class="p-3.5" style="width: 17%;">Reason</th>
+                                <th class="p-3.5 text-center" style="width: 6%;">Status</th>
+                                <th class="p-3.5 text-center" style="width: 6%;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTableBody" class="divide-y divide-slate-100/80">
+                            <tr>
+                                <td colspan="8" class="p-6 text-center text-slate-400 font-medium italic">Loading history...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- TOAST STACK -->
+    <div id="toastStack" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- SUBMISSION REASON MODAL POPUP -->
+    <div id="submitReasonModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 transition-all">
+        <div class="glass-panel border border-white/80 rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
+            <div class="bg-white/60 px-5 py-3 border-b border-slate-200/70 flex items-center justify-between">
+                <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-wider">Request Submission Justification</h3>
+                <button type="button" onclick="closeSubmitReasonModal()" class="text-slate-400 hover:text-slate-700 font-bold p-1">&times;</button>
+            </div>
+            <div class="p-5">
+                <label for="submitReasonInput" class="block text-xs font-bold text-slate-700 mb-1.5">
+                    Business Justification <span class="text-rose-500">*</span>
+                </label>
+                <textarea id="submitReasonInput" rows="3" placeholder="e.g., Line replenishment, maintenance spare parts staging..." class="w-full p-3 text-xs border border-slate-200/80 rounded-xl focus:outline-none focus:border-emerald-600 bg-white/80
+text-slate-800 resize-none font-sans"></textarea>
+                <p id="submitReasonError" class="hidden mt-1.5 text-[11px] font-bold text-rose-600">
+                    Business justification is mandatory before submission.
+                </p>
+            </div>
+            <div class="bg-white/60 px-5 py-3 border-t border-slate-200/70 flex justify-end gap-2">
+                <button type="button" onclick="closeSubmitReasonModal()" class="px-4 py-2 rounded-full text-xs font-bold text-slate-600 hover:text-slate-900 bg-white/80 border border-slate-200 transition">
+                    Cancel
+                </button>
+                <button type="button" onclick="confirmSubmitWithReason()" class="rounded-full bg-gradient-to-r from-emerald-500 to-emerald-700 text-white font-extrabold text-xs px-5 py-2 shadow-xs hover:shadow transition">
+                    Confirm &amp; Submit
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- DETAIL & REJECTION REVIEW MODAL POPUP -->
+    <div id="requestDetailModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 transition-all">
+        <div class="glass-panel border border-white/80 rounded-2xl shadow-2xl max-w-[95vw] w-[1400px] max-h-[92vh] flex flex-col overflow-hidden">
+
+            <!-- Modal Header -->
+            <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800 shrink-0">
+                <div class="flex items-center gap-3">
+                    <div id="reqModalHeaderIcon" class="w-9 h-9 rounded-xl bg-emerald-600 flex items-center justify-center font-bold text-white text-sm shadow-xs">
+                        📋
+                    </div>
+                    <div>
+                        <h2 class="font-extrabold text-sm text-white flex items-center gap-2">
+                            <span>Detail Pengajuan Material</span>
+                            <span class="bg-emerald-500/20 text-emerald-300 text-xs font-bold px-2.5 py-0.5 rounded border border-emerald-500/30 uppercase font-mono" id="reqModalReqId">REQ-0000</span>
+                        </h2>
+                        <p class="text-[11px] text-slate-400 font-medium mt-0.5" id="reqModalSubLabel">File: - | Date: -</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div id="reqModalStatusBadge"></div>
+                    <button type="button" onclick="closeRequestDetailModal()" class="text-slate-400 hover:text-white p-1.5 rounded-lg transition hover:bg-slate-800 cursor-pointer">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Modal Content Body -->
+            <div class="flex-1 overflow-y-auto p-6 bg-slate-50/50">
+
+                <!-- Rejection Reason Banner (Shown prominently if REJECTED / FAILED) -->
+                <div id="reqModalRejectionBanner" class="hidden mb-5 bg-rose-50/90 backdrop-blur-xs border border-rose-200 rounded-xl p-4 shadow-2xs">
+                    <div class="flex items-center justify-between border-b border-rose-200/80 pb-2 mb-2.5">
+                        <div class="flex items-center gap-2 text-rose-800 font-extrabold text-xs">
+                            <svg class="w-5 h-5 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118
+0z"/></svg>
+                            <span>HASIL VALIDASI / ALASAN REJECT:</span>
+                        </div>
+                        <span class="text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-300 px-2 py-0.5 rounded-full">AUTO / DATA STEWARD REJECT</span>
+                    </div>
+                    <div class="font-mono text-xs text-rose-900 bg-white p-3.5 rounded-lg border border-rose-200 max-h-48 overflow-y-auto whitespace-pre-wrap leading-relaxed" id="reqModalRejectionText">
+                    </div>
+                    <div class="mt-2.5 text-[11px] text-rose-700 font-medium flex items-center gap-1.5">
+                        <svg class="w-4 h-4 text-rose-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118
+0z"/></svg>
+                        <span>Silakan klik tombol <strong>"Muat ke Form untuk Perbaikan"</strong> di bawah untuk mengoreksi data dan melakukan submit ulang.</span>
+                    </div>
+                </div>
+
+                <!-- Items Detail Table -->
+                <div class="border border-slate-200/80 rounded-xl overflow-x-auto max-h-[480px] shadow-2xs bg-white/80">
+                    <table class="w-full text-left border-collapse text-xs min-w-[18000px]">
+                        <thead>
+                            <tr class="bg-slate-100/90 border-b border-slate-200 text-[11px] font-bold text-slate-700 uppercase tracking-wider sticky top-0 bg-slate-100/95 z-20">
+                                <th class="p-2 border-b border-r border-slate-200 text-center sticky left-0 bg-slate-100/95 z-30" style="min-width:45px;">Item</th>
+                                <th class="p-2 border-b border-r border-slate-200" style="min-width:110px;">Material</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:60px;">Industry Sector</th>
+                                <th class="p-2 border-b border-r border-slate-200" style="min-width:130px;">Old Material No.</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:70px;">Material Type</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:90px;">Material Group</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:70px;">Base UoM</th>
+                                <th class="p-2 border-b border-r border-slate-200" style="min-width:220px;">Material Description *</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:70px;">Division</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:100px;">Gen. Item Cat. Grp</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:90px;">Prod./Insp. Memo</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:90px;">Doc. Num</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:110px;">Ind. Standard Desc</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:90px;">Dimensions</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:60px;">Plant</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:60px;">S.Loc</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:90px;">Sales Org</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:90px;">Dist. Channel</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:90px;">Delivering Plant</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:80px;">Sales Unit</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:100px;">Country of Origin</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:70px;">Tax Class</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:80px;">Tax Category</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:100px;">Item Cat. Group</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:100px;">Account Assignment</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:80px;">Mat Group 1</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:80px;">Mat Group 2</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:80px;">Mat Group 3</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:80px;">Mat Group 4</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:80px;">Mat Group 5</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:100px;">Transport. Grp</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:90px;">Loading Grp</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:90px;">Material Package</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:90px;">Mat. Pack. Type</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:60px;">Batch</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:90px;">Profit Ctr</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:80px;">Val. Class</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:80px;">Std. Price</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:80px;">Moving Avg. Price</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:60px;">P.Unit</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:60px;">P.Ctrl</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:90px;">P.Unit Hard Curr</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:80px;">Denominator</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:80px;">Alt. UoM</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:80px;">Numerator</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:70px;">Length</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:70px;">Width</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:70px;">Height</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:80px;">Unit Dim</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:80px;">Gross Wt</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:70px;">Wt Unit</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:80px;">Net Wt</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:80px;">Volume</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:80px;">Purch. Grp</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:80px;">Vol Unit</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:80px;">Prop. Units</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:80px;">Class</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:80px;">Color</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:90px;">Vol Product</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:80px;">MRP Type</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:80px;">MRP Group</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:100px;">MRP Controller</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:80px;">Lot Sizing</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:80px;">Min. Lot Size</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:80px;">Max. Lot Size</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:70px;">Rounding Val</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:70px;">Proc.Type</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:90px;">Special Proc</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:90px;">Backflush Indicator</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:90px;">In-house Prod</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:90px;">Plan Deliv Time</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:90px;">GR Proc Time</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:100px;">Sched. Margin Key</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:90px;">Safety Stock</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:90px;">Strategy Group</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:100px;">Consumption Mode</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:110px;">Fwd Consum. Period</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:110px;">Bwd Consum. Period</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:90px;">Period Indicator</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:80px;">Fiscal Year</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:100px;">Availability Check</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:90px;">Selection Method</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:90px;">Individual/Coll.</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:80px;">Unit of Issue</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:100px;">Prod. Storage Loc.</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:100px;">SLoc for EP</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:100px;">Prod. Sched. Profile</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:90px;">Underdel. Tol</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:90px;">Overdeliv. Tol</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:80px;">Unlimited Tol</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:90px;">Origin Cost</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:90px;">With Qty Struct.</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:100px;">Base Quantity / Lot Size</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:80px;">Do Not Cost</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:90px;">Plant Mat Status</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:90px;">Effective Date</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:110px;">Stock Determination Group</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:100px;">Quality Rebate</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:100px;">Prod. Version</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:80px;">Period Ind 2</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:80px;">Valuation Area</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:90px;">Acc Spec Stock</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:100px;">QM Proc. Active</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:100px;">QM Control Key</th>
+                                <th class="p-2 border-b border-r border-slate-200 text-center" style="min-width:90px;">Insp. Type</th>
+                                <th class="p-2 border-b border-slate-200 text-center" style="min-width:90px;">Serial No. Profile</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reqModalItemTableBody" class="divide-y divide-slate-200">
+                            <tr>
+                                <td colspan="106" class="p-6 text-center text-slate-400">Loading item details...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Modal Footer Actions -->
+            <div class="px-6 py-3.5 bg-white/60 border-t border-slate-200/70 flex items-center justify-between gap-3 shrink-0">
+                <div class="text-xs text-slate-500 font-medium" id="reqModalFooterInfo">
+                    0 items loaded
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="downloadCurrentDetailModalExcel()" class="px-4 py-2 rounded-full text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 transition shadow-2xs cursor-pointer inline-flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                        <span>Download Excel Data</span>
+                    </button>
+                    <button type="button" onclick="closeRequestDetailModal()" class="px-4 py-2 rounded-full text-xs font-bold text-slate-700 hover:text-slate-900 bg-white/80 border border-slate-300/80 transition shadow-2xs cursor-pointer">
+                        Tutup
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- GLOBAL LOADING OVERLAY MODAL -->
+    <div id="globalLoadingOverlay" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm transition-all duration-300">
+        <div class="glass-panel border border-white/80 rounded-3xl p-7 shadow-2xl max-w-sm w-full text-center flex flex-col items-center justify-center gap-3.5">
+            <div class="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-600 shadow-xs">
+                <svg class="w-7 h-7 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+            </div>
+            <div>
+                <h3 class="text-sm font-black text-slate-900 tracking-tight" id="loadingOverlayTitle">Memproses Submission...</h3>
+                <p class="text-xs text-slate-500 font-medium mt-1 leading-relaxed" id="loadingOverlayMessage">Mengirim data material request ke SAP S/4HANA</p>
+            </div>
+        </div>
+    </div>
+
+<script>
+    var rowCounter = 0;
+    var globalHistoryData = [];
+    var currentHistoryTab = 'PENDING';
+    var lastSelectedFile = null;
+
+    document.addEventListener("DOMContentLoaded", function() {
+        var nameLabel = document.getElementById("userNameLabel");
+        if (nameLabel && nameLabel.innerText.trim()) {
+            var initial = nameLabel.innerText.trim().charAt(0).toUpperCase();
+            var avatar = document.getElementById("userAvatarInitial");
+            if (avatar) avatar.innerText = initial;
+        }
+        updateRowSummary();
+        loadUploadHistory();
+        setupDropzone();
+    });
+
+    function generateUUID() {
+        var timePart = Date.now().toString(36).toUpperCase();
+        var randPart = Math.random().toString(36).substring(2, 7).toUpperCase();
+        return 'UPL-' + timePart + '-' + randPart;
+    }
+
+    function setupDropzone() {
+        var dropzone = document.getElementById("dropzoneArea");
+        if (!dropzone) return;
+
+        ['dragenter', 'dragover'].forEach(function(eventName) {
+            dropzone.addEventListener(eventName, function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                dropzone.classList.add("border-emerald-500", "bg-emerald-50/70");
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(function(eventName) {
+            dropzone.addEventListener(eventName, function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                dropzone.classList.remove("border-emerald-500", "bg-emerald-50/70");
+            }, false);
+        });
+
+        dropzone.addEventListener('drop', function(e) {
+            var dt = e.dataTransfer;
+            var files = dt.files;
+            if (files && files.length > 0) {
+                var input = document.getElementById('excelFileInput');
+                if (input) input.files = files;
+                handleFileSelect({ files: files });
+            }
+        }, false);
+    }
+
+    function handleFileSelect(input) {
+        if (!input.files || input.files.length === 0) return;
+        var file = input.files[0];
+        lastSelectedFile = file;
+
+        var fileCard = document.getElementById("fileListCard");
+        var nameTxt = document.getElementById("fileNameText");
+        var sizeTxt = document.getElementById("fileSizeText");
+        var statusBadge = document.getElementById("fileStatusBadge");
+        var progressBar = document.getElementById("fileProgressBar");
+        var progressPercent = document.getElementById("fileProgressPercent");
+
+        if (fileCard) fileCard.classList.remove("hidden");
+        if (nameTxt) nameTxt.innerText = file.name;
+        if (sizeTxt) sizeTxt.innerText = (file.size / 1024).toFixed(1) + " KB";
+        if (statusBadge) {
+            statusBadge.className = "text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-200";
+            statusBadge.innerText = "Parsing...";
+        }
+        if (progressBar) progressBar.style.width = "65%";
+        if (progressPercent) progressPercent.innerText = "65%";
+
+        setTimeout(function() {
+            parseStandardExcelRD(input);
+        }, 300);
+    }
+
+    function deleteUploadedFile() {
+        var input = document.getElementById("excelFileInput");
+        if (input) input.value = "";
+        lastSelectedFile = null;
+
+        var fileCard = document.getElementById("fileListCard");
+        if (fileCard) fileCard.classList.add("hidden");
+
+        document.getElementById("CURRENT_UPLOAD_ID").value = "";
+        document.getElementById("CURRENT_FILENAME").value = "";
+
+        resetForm();
+        showToast("Uploaded file removed and form reset.", "info");
+    }
+
+    function applyFilter() {
+        var maktx = (document.getElementById("filterMaktx") ? document.getElementById("filterMaktx").value : "").toLowerCase().trim();
+        var mtart = (document.getElementById("filterMtart") ? document.getElementById("filterMtart").value : "").toLowerCase().trim();
+        var matkl = (document.getElementById("filterMatkl") ? document.getElementById("filterMatkl").value : "").toLowerCase().trim();
+
+        var rows = document.querySelectorAll("#tableBody tr");
+        rows.forEach(function(row) {
+            var maktxInput = row.querySelector(".row-maktx");
+            var mtartInput = row.querySelector(".row-mtart");
+            var matklInput = row.querySelector(".row-matkl");
+
+            var maktxVal = (maktxInput ? maktxInput.value : "").toLowerCase();
+            var mtartVal = (mtartInput ? mtartInput.value : "").toLowerCase();
+            var matklVal = (matklInput ? matklInput.value : "").toLowerCase();
+
+            var matchMaktx = !maktx || maktxVal.indexOf(maktx) !== -1;
+            var matchMtart = !mtart || mtartVal === mtart || mtartVal.indexOf(mtart) !== -1;
+            var matchMatkl = !matkl || matklVal.indexOf(matkl) !== -1;
+
+            if (matchMaktx && matchMtart && matchMatkl) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
+        });
+    }
+
+    function resetFilter() {
+        if (document.getElementById("filterMaktx")) document.getElementById("filterMaktx").value = "";
+        if (document.getElementById("filterMtart")) document.getElementById("filterMtart").value = "";
+        if (document.getElementById("filterMatkl")) document.getElementById("filterMatkl").value = "";
+        applyFilter();
+    }
+
+    function reindexTableRows() {
+        var rows = document.querySelectorAll("#tableBody tr");
+        rows.forEach(function(row, idx) {
+            var itemNoEl = row.querySelector(".row-item-no");
+            if (itemNoEl) itemNoEl.innerText = idx + 1;
+        });
+    }
+
+    function updateRowSummary() {
+        var count = document.querySelectorAll("#tableBody tr").length;
+        var chip = document.getElementById("rowCounterChip");
+        var footer = document.getElementById("footerSummary");
+        if (chip) chip.innerText = count + ' Line' + (count > 1 ? 's' : '');
+        if (footer) footer.innerText = count + ' item' + (count > 1 ? 's' : '') + ' ready';
+    }
+
+    function showToast(message, type) {
+        type = type || "info";
+        var bgClasses = {
+            success: "bg-white/90 backdrop-blur-md border-l-4 border-emerald-500 text-slate-800",
+            error: "bg-white/90 backdrop-blur-md border-l-4 border-rose-500 text-slate-800",
+            info: "bg-white/90 backdrop-blur-md border-l-4 border-blue-500 text-slate-800"
+        };
+        var stack = document.getElementById("toastStack");
+        if (!stack) return;
+
+        var toast = document.createElement("div");
+       toast.className = 'min-w-[280px] max-w-[380px] ' + (bgClasses[type] || bgClasses.info) + ' ' +
+    'p-3 rounded-xl text-xs flex items-center gap-2 shadow-lg border border-slate-200/80 transition-all duration-300 opacity-100 translate-y-0 pointer-events-auto';
+        toast.innerHTML = '<span class="shrink-0 font-bold">' + (type === 'success' ? '[OK]' : (type === 'error' ? '[ERR]' : '[INFO]')) + '</span><span class="font-semibold">' + message + '</span>';
+        stack.appendChild(toast);
+
+        setTimeout(function() {
+            toast.classList.add("opacity-0", "translate-y-2");
+            setTimeout(function() { toast.remove(); }, 300);
+        }, 3500);
+    }
+
+    function getCellStr(row, idx, defaultVal, padLen) {
+        if (!row || idx >= row.length || row[idx] === undefined || row[idx] === null) {
+            return defaultVal || "";
+        }
+        var val = String(row[idx]).trim();
+        if (!val) return defaultVal || "";
+        if (padLen && !isNaN(val) && val.length < padLen) {
+            while (val.length < padLen) val = "0" + val;
+        }
+        return val;
+    }
+
+    function downloadStandardExcelTemplate() {
+        if (typeof XLSX === 'undefined') {
+            showToast("Excel generator engine unavailable.", "error");
+            return;
+        }
+        var headers = [
+            "Material", "Industry Sector", "Old Material No.", "Material Type", "Material Group",
+            "Base UoM", "Material Description", "Division", "Gen. Item Cat. Grp", "Prod./Insp. Memo",
+            "Doc. Num", "Ind. Standard Desc", "Dimensions", "Plant", "S.Loc",
+            "Sales Org", "Dist. Channel", "Delivering Plant", "Sales Unit", "Country of Origin",
+            "Tax Class", "Tax Category", "Item Cat. Group", "Account Assignment", "Mat Group 1",
+            "Mat Group 2", "Mat Group 3", "Mat Group 4", "Mat Group 5", "Transport. Grp",
+            "Loading Grp", "Material Package", "Mat. Pack. Type", "Batch", "Profit Ctr",
+            "Val. Class", "Std. Price", "Moving Avg. Price", "P.Unit", "P.Ctrl",
+            "P.Unit Hard Curr", "Denominator", "Alt. UoM", "Numerator", "Length",
+            "Width", "Height", "Unit Dim", "Gross Wt", "Wt Unit",
+            "Net Wt", "Volume", "Purch. Grp", "Vol Unit", "Prop. Units",
+            "Class", "Color", "Vol Product", "MRP Type", "MRP Group",
+            "MRP Controller", "Lot Sizing", "Min. Lot Size", "Max. Lot Size", "Rounding Val",
+            "Proc.Type", "Special Proc", "Backflush Indicator", "In-house Prod", "Plan Deliv Time",
+            "GR Proc Time", "Sched. Margin Key", "Safety Stock", "Strategy Group", "Consumption Mode",
+            "Fwd Consum. Period", "Bwd Consum. Period", "Period Indicator", "Fiscal Year", "Availability Check",
+            "Selection Method", "Individual/Coll.", "Unit of Issue", "Prod. Storage Loc.", "SLoc for EP",
+            "Prod. Sched. Profile", "Underdel. Tol", "Overdeliv. Tol", "Unlimited Tol", "Origin Cost",
+            "With Qty Struct.", "Lot Size Cost", "Do Not Cost", "Plant Mat Status", "Effective Date",
+            "Source of Supply", "Quality Rebate", "Prod. Version", "Period Ind 2", "Valuation Area",
+            "Acc Spec Stock", "QM Proc. Active", "QM Control Key", "Insp. Type", "Serial No. Profile"
+        ];
+        var sampleRow = [
+            "50025217", "F", "", "ZWH5", "RAW_MAT",
+            "PC", "BEARING BALL 6205 ZZ-C3", "M1", "NORM", "",
+            "", "", "", "1200", "1201",
+            "1000", "10", "1200", "PC", "ID",
+            "", "", "", "NORM", "01", "",
+            "", "", "", "", "0001",
+            "0001", "", "", "X", "200201",
+            "OS01", "", "", "1", "V",
+            "", "", "", "", "",
+            "", "", "", "", "",
+            "", "", "", "", "",
+            "", "", "", "PD", "ZWH5",
+            "RW8", "EX", "", "", "",
+            "F", "", "1", "", "",
+            "", "000", "", "", "",
+            "", "", "M", "C1", "KP",
+            "", "2", "", "", "1201",
+            "", "", "", "", "X",
+            "X", "100", "", "", "0001"
+        ];
+        var ws = XLSX.utils.aoa_to_sheet([headers, sampleRow]);
+        var wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Material Master Template");
+        XLSX.writeFile(wb, "Template_Material_Master_SAP.xlsx");
+        showToast("Template downloaded: Template_Material_Master_SAP.xlsx", "success");
+    }
+
+    function downloadPreviewDataExcel() {
+        if (typeof XLSX === 'undefined') {
+            showToast("Excel generator engine unavailable.", "error");
+            return;
+        }
+
+        var rows = document.querySelectorAll("#tableBody tr");
+        if (rows.length === 0) {
+            showToast("No data in preview table to download.", "error");
+            return;
+        }
+
+        var headers = [
+            "Material", "Industry Sector", "Old Material No.", "Material Type", "Material Group",
+            "Base UoM", "Material Description", "Division", "Gen. Item Cat. Grp", "Prod./Insp. Memo",
+            "Doc. Num", "Ind. Standard Desc", "Dimensions", "Plant", "S.Loc",
+            "Sales Org", "Dist. Channel", "Delivering Plant", "Sales Unit", "Country of Origin",
+            "Tax Class", "Tax Category", "Item Cat. Group", "Account Assignment", "Mat Group 1",
+            "Mat Group 2", "Mat Group 3", "Mat Group 4", "Mat Group 5", "Transport. Grp",
+            "Loading Grp", "Material Package", "Mat. Pack. Type", "Batch", "Profit Ctr",
+            "Val. Class", "Std. Price", "Moving Avg. Price", "P.Unit", "P.Ctrl",
+            "P.Unit Hard Curr", "Denominator", "Alt. UoM", "Numerator", "Length",
+            "Width", "Height", "Unit Dim", "Gross Wt", "Wt Unit",
+            "Net Wt", "Volume", "Purch. Grp", "Vol Unit", "Prop. Units",
+            "Class", "Color", "Vol Product", "MRP Type", "MRP Group",
+            "MRP Controller", "Lot Sizing", "Min. Lot Size", "Max. Lot Size", "Rounding Val",
+            "Proc.Type", "Special Proc", "Backflush Indicator", "In-house Prod", "Plan Deliv Time",
+            "GR Proc Time", "Sched. Margin Key", "Safety Stock", "Strategy Group", "Consumption Mode",
+            "Fwd Consum. Period", "Bwd Consum. Period", "Period Indicator", "Fiscal Year", "Availability Check",
+            "Selection Method", "Individual/Coll.", "Unit of Issue", "Prod. Storage Loc.", "SLoc for EP",
+            "Prod. Sched. Profile", "Underdel. Tol", "Overdeliv. Tol", "Unlimited Tol", "Origin Cost",
+            "With Qty Struct.", "Lot Size Cost", "Do Not Cost", "Plant Mat Status", "Effective Date",
+            "Source of Supply", "Quality Rebate", "Prod. Version", "Period Ind 2", "Valuation Area",
+            "Acc Spec Stock", "QM Proc. Active", "QM Control Key", "Insp. Type", "Serial No. Profile"
+        ];
+
+        var exportData = [headers];
+
+        rows.forEach(function(row) {
+            var getVal = function(selector, isCheckbox) {
+                var el = row.querySelector(selector);
+                if (!el) return '';
+                if (isCheckbox) return el.checked ? 'X' : '';
+                return el.value !== undefined ? el.value.trim() : '';
+            };
+
+            var rowData = [
+                getVal(".row-matnr"),
+                getVal(".row-mbrsh"),
+                getVal(".row-bismt"),
+                getVal(".row-mtart"),
+                getVal(".row-matkl"),
+                getVal(".row-meins"),
+                getVal(".row-maktx"),
+                getVal(".row-spart"),
+                getVal(".row-mtpos-mara"),
+                getVal(".row-ferth"),
+                getVal(".row-zeinr"),
+                getVal(".row-normt"),
+                getVal(".row-groes"),
+                getVal(".row-werks"),
+                getVal(".row-lgort"),
+                getVal(".row-vkorg"),
+                getVal(".row-vtweg"),
+                getVal(".row-dwerk"),
+                getVal(".row-vrkme"),
+                getVal(".row-herkl"),
+                getVal(".row-taxkm"),
+                getVal(".row-tatyp"),
+                getVal(".row-mtpos"),
+                getVal(".row-ktgrm"),
+                getVal(".row-mvgr1"),
+                getVal(".row-mvgr2"),
+                getVal(".row-mvgr3"),
+                getVal(".row-mvgr4"),
+                getVal(".row-mvgr5"),
+                getVal(".row-tragr"),
+                getVal(".row-ladgr"),
+                getVal(".row-magrv"),
+                getVal(".row-vhart"),
+                getVal(".row-xchpf", true),
+                getVal(".row-prctr"),
+                getVal(".row-bklas"),
+                getVal(".row-stprs"),
+                getVal(".row-verpr"),
+                getVal(".row-peinh"),
+                getVal(".row-vprsv"),
+                getVal(".row-peinh-2"),
+                getVal(".row-umren"),
+                getVal(".row-meinh"),
+                getVal(".row-umrez"),
+                getVal(".row-laeng"),
+                getVal(".row-breit"),
+                getVal(".row-hoehe"),
+                getVal(".row-meabm"),
+                getVal(".row-brgew"),
+                getVal(".row-gewei"),
+                getVal(".row-ntgew"),
+                getVal(".row-volum"),
+                getVal(".row-ekgrp"),
+                getVal(".row-voleh"),
+                getVal(".row-kzwsm"),
+                getVal(".row-class"),
+                getVal(".row-warna"),
+                getVal(".row-vol-prod"),
+                getVal(".row-dismm"),
+                getVal(".row-disgr"),
+                getVal(".row-dispo"),
+                getVal(".row-disls"),
+                getVal(".row-bstmi"),
+                getVal(".row-bstma"),
+                getVal(".row-bstrf"),
+                getVal(".row-beskz"),
+                getVal(".row-sobsl"),
+                getVal(".row-rgekz"),
+                getVal(".row-dzeit"),
+                getVal(".row-plifz"),
+                getVal(".row-webaz"),
+                getVal(".row-fhori"),
+                getVal(".row-eisbe"),
+                getVal(".row-strgr"),
+                getVal(".row-vrmod"),
+                getVal(".row-vint1"),
+                getVal(".row-vint2"),
+                getVal(".row-perkz"),
+                getVal(".row-periv"),
+                getVal(".row-mtvfp"),
+                getVal(".row-altsl"),
+                getVal(".row-kzkst"),
+                getVal(".row-ausme"),
+                getVal(".row-lgpro"),
+                getVal(".row-lgpro-ep"),
+                getVal(".row-sfpro"),
+                getVal(".row-uneto"),
+                getVal(".row-ueeto"),
+                getVal(".row-ueetk"),
+                getVal(".row-hkmat"),
+                getVal(".row-ekalr"),
+                getVal(".row-losgr"),
+                getVal(".row-ncost"),
+                getVal(".row-mmsta"),
+                getVal(".row-eprio"),
+                getVal(".row-herbl"),
+                getVal(".row-klrab"),
+                getVal(".row-verid"),
+                getVal(".row-perkz-2"),
+                getVal(".row-bwkey"),
+                getVal(".row-versg"),
+                getVal(".row-ssqss"),
+                getVal(".row-qssys"),
+                getVal(".row-insptype"),
+                getVal(".row-sernp")
+            ];
+
+            exportData.push(rowData);
+        });
+
+        var currentFilename = document.getElementById("CURRENT_FILENAME") ? document.getElementById("CURRENT_FILENAME").value : "";
+        var baseName = currentFilename ? currentFilename.replace(/\.[^/.]+$/, "") : "Preview_Material_Master";
+        var outFilename = baseName + "_Export.xlsx";
+
+        var ws = XLSX.utils.aoa_to_sheet(exportData);
+        var wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Preview Data");
+        XLSX.writeFile(wb, outFilename);
+        showToast("Preview Excel data exported: " + outFilename, "success");
+    }
+
+    function validateExcelTemplate(jsonData) {
+        if (!jsonData || jsonData.length < 2) {
+            return { valid: false, message: "Upload aborted: File is empty or missing header." };
+        }
+
+        var headerRow = jsonData[0];
+        if (!headerRow || headerRow.length < 7) {
+            return { valid: false, message: "Upload aborted: Invalid header format." };
+        }
+
+        var h0 = String(headerRow[0] || '').trim().toUpperCase();
+        var h1 = String(headerRow[1] || '').trim().toUpperCase();
+        var h3 = String(headerRow[3] || '').trim().toUpperCase();
+        var h5 = String(headerRow[5] || '').trim().toUpperCase();
+        var h6 = String(headerRow[6] || '').trim().toUpperCase();
+
+        var match0 = h0.indexOf('MATERIAL') !== -1 || h0.indexOf('MATNR') !== -1;
+        var match1 = h1.indexOf('INDUSTRY') !== -1 || h1.indexOf('MBRSH') !== -1 || h1.indexOf('SECTOR') !== -1;
+        var match3 = h3.indexOf('TYPE') !== -1 || h3.indexOf('MTART') !== -1;
+        var match5 = h5.indexOf('BASE') !== -1 || h5.indexOf('MEINS') !== -1 || h5.indexOf('UNIT') !== -1;
+        var match6 = h6.indexOf('DESCRIPTION') !== -1 || h6.indexOf('MAKTX') !== -1;
+
+        if (!match0 || !match1 || !match3 || !match5 || !match6) {
+            return {
+                valid: false,
+                message: "Upload aborted: Required header columns missing."
+            };
+        }
+
+        return { valid: true };
+    }
+
+    function parseStandardExcelRD(input) {
+        if (typeof XLSX === 'undefined') {
+            showToast("Excel parser library is not loaded.", "error");
+            return;
+        }
+        if (!input.files || input.files.length === 0) return;
+        var file = input.files[0];
+        var fileName = file.name;
+        var reader = new FileReader();
+
+        var newUploadId = generateUUID();
+        document.getElementById("CURRENT_UPLOAD_ID").value = newUploadId;
+        document.getElementById("CURRENT_FILENAME").value = fileName;
+
+        var statusBadge = document.getElementById("fileStatusBadge");
+        var progressBar = document.getElementById("fileProgressBar");
+        var progressPercent = document.getElementById("fileProgressPercent");
+
+        reader.onload = function(e) {
+            try {
+                var data = new Uint8Array(e.target.result);
+                var workbook = XLSX.read(data, { type: 'array' });
+                if (!workbook || !workbook.SheetNames || workbook.SheetNames.length === 0) {
+                    showToast("Upload aborted: No valid worksheet found.", "error");
+                    if (statusBadge) {
+                        statusBadge.className = "text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-200";
+                        statusBadge.innerText = "Failed";
+                    }
+                    return;
+                }
+                var sheetName = workbook.SheetNames[0];
+                var sheet = workbook.Sheets[sheetName];
+                var jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+                var validation = validateExcelTemplate(jsonData);
+                if (!validation.valid) {
+                    showToast(validation.message, "error");
+                    if (statusBadge) {
+                        statusBadge.className = "text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-200";
+                        statusBadge.innerText = "Error Template";
+                    }
+                    return;
+                }
+
+                var tbody = document.getElementById("tableBody");
+                if (tbody) tbody.innerHTML = "";
+                rowCounter = 0;
+
+                for (var r = 1; r < jsonData.length; r++) {
+                    var row = jsonData[r];
+                    if (!row || row.length < 2) continue;
+
+                    var maktx = getCellStr(row, 6, "");
+                    if (!maktx || maktx.toUpperCase() === 'MATERIAL DESCRIPTION') continue;
+
+                    addNewRowData({
+                        matnr: getCellStr(row, 0, ""),
+                        mbrsh: getCellStr(row, 1, ""),
+                        bismt: getCellStr(row, 2, ""),
+                        mtart: getCellStr(row, 3, ""),
+                        matkl: getCellStr(row, 4, ""),
+                        meins: getCellStr(row, 5, ""),
+                        maktx: maktx,
+                        spart: getCellStr(row, 7, ""),
+                        mtpos_mara: getCellStr(row, 8, ""),
+                        ferth: getCellStr(row, 9, ""),
+                        zeinr: getCellStr(row, 10, ""),
+                        normt: getCellStr(row, 11, ""),
+                        groes: getCellStr(row, 12, ""),
+                        werks: getCellStr(row, 13, ""),
+                        lgort: getCellStr(row, 14, ""),
+                        vkorg: getCellStr(row, 15, "1000"),
+                        vtweg: getCellStr(row, 16, "10"),
+                        dwerk: getCellStr(row, 17, "1200"),
+                        vrkme: getCellStr(row, 18, ""),
+                        herkl: getCellStr(row, 19, "ID"),
+                        taxkm: getCellStr(row, 20, ""),
+                        tatyp: getCellStr(row, 21, ""),
+                        mtpos: getCellStr(row, 22, ""),
+                        ktgrm: getCellStr(row, 23, ""),
+                        mvgr1: getCellStr(row, 24, ""),
+                        mvgr2: getCellStr(row, 25, ""),
+                        mvgr3: getCellStr(row, 26, ""),
+                        mvgr4: getCellStr(row, 27, ""),
+                        mvgr5: getCellStr(row, 28, ""),
+                        tragr: getCellStr(row, 29, ""),
+                        ladgr: getCellStr(row, 30, ""),
+                        magrv: getCellStr(row, 31, ""),
+                        vhart: getCellStr(row, 32, ""),
+                        xchpf: getCellStr(row, 33, ""),
+                        prctr: getCellStr(row, 34, ""),
+                        bklas: getCellStr(row, 35, ""),
+                        stprs: getCellStr(row, 36, ""),
+                        verpr: getCellStr(row, 37, ""),
+                        peinh: getCellStr(row, 38, ""),
+                        vprsv: getCellStr(row, 39, ""),
+                        peinh_2: getCellStr(row, 40, ""),
+                        umren: getCellStr(row, 41, ""),
+                        meinh: getCellStr(row, 42, ""),
+                        umrez: getCellStr(row, 43, ""),
+                        laeng: getCellStr(row, 44, ""),
+                        breit: getCellStr(row, 45, ""),
+                        hoehe: getCellStr(row, 46, ""),
+                        meabm: getCellStr(row, 47, ""),
+                        brgew: getCellStr(row, 48, ""),
+                        gewei: getCellStr(row, 49, ""),
+                        ntgew: getCellStr(row, 50, ""),
+                        volum: getCellStr(row, 51, ""),
+                        ekgrp: getCellStr(row, 52, ""),
+                        voleh: getCellStr(row, 53, ""),
+                        kzwsm: getCellStr(row, 54, ""),
+                        class: getCellStr(row, 55, ""),
+                        warna: getCellStr(row, 56, ""),
+                        vol_prod: getCellStr(row, 57, ""),
+                        dismm: getCellStr(row, 58, ""),
+                        disgr: getCellStr(row, 59, ""),
+                        dispo: getCellStr(row, 60, ""),
+                        disls: getCellStr(row, 61, ""),
+                        bstmi: getCellStr(row, 62, ""),
+                        bstma: getCellStr(row, 63, ""),
+                        bstrf: getCellStr(row, 64, ""),
+                        beskz: getCellStr(row, 65, ""),
+                        sobsl: getCellStr(row, 66, ""),
+                        rgekz: getCellStr(row, 67, "1"),
+                        dzeit: getCellStr(row, 68, ""),
+                        plifz: getCellStr(row, 69, ""),
+                        webaz: getCellStr(row, 70, ""),
+                        fhori: getCellStr(row, 71, ""),
+                        eisbe: getCellStr(row, 72, ""),
+                        strgr: getCellStr(row, 73, ""),
+                        vrmod: getCellStr(row, 74, ""),
+                        vint1: getCellStr(row, 75, ""),
+                        vint2: getCellStr(row, 76, ""),
+                        perkz: getCellStr(row, 77, ""),
+                        periv: getCellStr(row, 78, ""),
+                        mtvfp: getCellStr(row, 79, ""),
+                        altsl: getCellStr(row, 80, ""),
+                        kzkst: getCellStr(row, 81, ""),
+                        ausme: getCellStr(row, 82, ""),
+                        lgpro: getCellStr(row, 83, ""),
+                        lgpro_ep: getCellStr(row, 84, ""),
+                        sfpro: getCellStr(row, 85, ""),
+                        uneto: getCellStr(row, 86, ""),
+                        ueeto: getCellStr(row, 87, ""),
+                        ueetk: getCellStr(row, 88, ""),
+                        hkmat: getCellStr(row, 89, ""),
+                        ekalr: getCellStr(row, 90, ""),
+                        losgr: getCellStr(row, 91, ""),
+                        ncost: getCellStr(row, 92, ""),
+                        mmsta: getCellStr(row, 93, ""),
+                        eprio: getCellStr(row, 94, ""),
+                        herbl: getCellStr(row, 95, ""),
+                        klrab: getCellStr(row, 96, ""),
+                        verid: getCellStr(row, 97, ""),
+                        perkz_2: getCellStr(row, 98, ""),
+                        bwkey: getCellStr(row, 99, ""),
+                        versg: getCellStr(row, 100, ""),
+                        ssqss: getCellStr(row, 101, ""),
+                        qssys: getCellStr(row, 102, ""),
+                        insptype: getCellStr(row, 103, ""),
+                        sernp: getCellStr(row, 104, "")
+                    });
+                }
+
+                if (progressBar) progressBar.style.width = "100%";
+                if (progressPercent) progressPercent.innerText = "100%";
+                if (statusBadge) {
+                    statusBadge.className = "text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 shadow-xs";
+                    statusBadge.innerText = "Success";
+                }
+
+                var lineCount = document.querySelectorAll("#tableBody tr").length;
+                showToast(lineCount + " row(s) loaded successfully from Excel.", "success");
+            } catch (err) {
+                showToast("Error parsing Excel: " + err.message, "error");
+                if (statusBadge) {
+                    statusBadge.className = "text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-200";
+                    statusBadge.innerText = "Error";
+                }
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    function showLoadingOverlay(title, message) {
+        var overlay = document.getElementById("globalLoadingOverlay");
+        var titleEl = document.getElementById("loadingOverlayTitle");
+        var msgEl = document.getElementById("loadingOverlayMessage");
+
+        if (titleEl && title) titleEl.innerText = title;
+        if (msgEl && message) msgEl.innerText = message;
+        if (overlay) overlay.classList.remove("hidden");
+    }
+
+    function hideLoadingOverlay() {
+        var overlay = document.getElementById("globalLoadingOverlay");
+        if (overlay) overlay.classList.add("hidden");
+    }
+
+    function addNewRow() {
+        addNewRowData({});
+    }
+
+    function deleteRow(btn) {
+        var row = btn.closest("tr");
+        if (row) {
+            row.remove();
+            reindexTableRows();
+            updateRowSummary();
+        }
+    }
+
+    function reindexTableRows() {
+        var rows = document.querySelectorAll("#tableBody tr:not(#emptyTablePlaceholder)");
+        rows.forEach(function(r, idx) {
+            var itemNoEl = r.querySelector(".row-item-no");
+            if (itemNoEl) itemNoEl.innerText = idx + 1;
+        });
+        rowCounter = rows.length;
+    }
+
+    function updateRowSummary() {
+        var tbody = document.getElementById("tableBody");
+        var rows = tbody ? tbody.querySelectorAll("tr:not(#emptyTablePlaceholder)") : [];
+        var count = rows.length;
+
+        var chip = document.getElementById("rowCounterChip");
+        var footer = document.getElementById("footerSummary");
+        if (chip) chip.innerText = count + ' Line' + (count !== 1 ? 's' : '');
+        if (footer) footer.innerText = count + ' item' + (count !== 1 ? 's' : '') + ' ready';
+
+        if (tbody && count === 0) {
+    tbody.innerHTML =
+        '<tr id="emptyTablePlaceholder">' +
+            '<td colspan="106" class="p-8 text-center text-slate-400 font-medium bg-slate-50/40">' +
+                '<div class="inline-flex flex-col items-center justify-center gap-2 py-3">' +
+                    '<svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+                        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>' +
+                    '</svg>' +
+                    '<span class="text-xs text-slate-500 font-semibold">Tabel masih kosong. Silakan klik <b>+ Add Line</b>, <b>Upload Excel</b>, atau <b>Use as Ref</b> dari hasil pencarian material.</span>' +
+                '</div>' +
+            '</td>' +
+        '</tr>';
+}
+    }
+
+    function resetForm(skipToast) {
+        var tbody = document.getElementById("tableBody");
+        if (tbody) tbody.innerHTML = "";
+        rowCounter = 0;
+
+        var fileInput = document.getElementById("excelFileInput");
+        if (fileInput) fileInput.value = "";
+        lastSelectedFile = null;
+        var fileCard = document.getElementById("fileListCard");
+        if (fileCard) fileCard.classList.add("hidden");
+
+        var curUpId = document.getElementById("CURRENT_UPLOAD_ID");
+        if (curUpId) curUpId.value = "";
+        var curFile = document.getElementById("CURRENT_FILENAME");
+        if (curFile) curFile.value = "";
+
+        resetFilter();
+        updateRowSummary();
+        if (!skipToast) showToast("Form has been reset.", "info");
+    }
+
+    function addNewRowData(data) {
+        var tbody = document.getElementById("tableBody");
+        if (!tbody) return;
+
+        var placeholder = document.getElementById("emptyTablePlaceholder");
+        if (placeholder) placeholder.remove();
+
+        rowCounter++;
+        var tr = document.createElement("tr");
+        tr.className = "hover:bg-emerald-50/40 transition-colors border-b border-slate-100";
+
+        var html = '';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center font-bold text-slate-700 row-item-no align-middle">' + rowCounter + '</td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="18" class="row-matnr w-full font-mono uppercase" value="' + (data.matnr || '') + '" placeholder="AUTO / 50025217"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="1" class="row-mbrsh w-full text-center font-mono" value="' + (data.mbrsh || 'F') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="18" class="row-bismt w-full font-mono" value="' + (data.bismt || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="4" class="row-mtart w-full text-center font-mono font-bold text-emerald-700" value="' + (data.mtart || 'ZWH5') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="9" class="row-matkl w-full text-center font-mono" value="' + (data.matkl || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="3" class="row-meins w-full text-center font-mono font-bold text-emerald-700" value="' + (data.meins || 'PC') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200"><input type="text" maxlength="40" class="row-maktx w-full font-medium text-slate-900" value="' + (data.maktx || '') + '" placeholder="Material Description *"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="2" class="row-spart w-full text-center font-mono" value="' + (data.spart || '01') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="4" class="row-mtpos-mara w-full text-center font-mono" value="' + (data.mtpos_mara || 'NORM') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-ferth w-full text-center font-mono" value="' + (data.ferth || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-zeinr w-full text-center font-mono" value="' + (data.zeinr || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-normt w-full text-center font-mono" value="' + (data.normt || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-groes w-full text-center font-mono" value="' + (data.groes || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="4" class="row-werks w-full text-center font-mono font-bold text-emerald-700" value="' + (data.werks || '1200') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="4" class="row-lgort w-full text-center font-mono font-bold text-emerald-700" value="' + (data.lgort || '1201') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-vkorg w-full text-center font-mono" value="' + (data.vkorg || '1000') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-vtweg w-full text-center font-mono" value="' + (data.vtweg || '10') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-dwerk w-full text-center font-mono" value="' + (data.dwerk || '1200') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-vrkme w-full text-center font-mono" value="' + (data.vrkme || 'PC') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="3" class="row-herkl w-full text-center font-mono" value="' + (data.herkl || 'ID') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="1" class="row-taxkm w-full text-center font-mono" value="' + (data.taxkm || '') + '" placeholder="Tax Class"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="4" class="row-tatyp w-full text-center font-mono" value="' + (data.tatyp || '') + '" placeholder="Tax Type"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="4" class="row-mtpos w-full text-center font-mono" value="' + (data.mtpos || 'NORM') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-ktgrm w-full text-center font-mono" value="' + (data.ktgrm || '01') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-mvgr1 w-full text-center font-mono" value="' + (data.mvgr1 || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-mvgr2 w-full text-center font-mono" value="' + (data.mvgr2 || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-mvgr3 w-full text-center font-mono" value="' + (data.mvgr3 || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-mvgr4 w-full text-center font-mono" value="' + (data.mvgr4 || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-mvgr5 w-full text-center font-mono" value="' + (data.mvgr5 || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="4" class="row-tragr w-full text-center font-mono" value="' + (data.tragr || '0001') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="4" class="row-ladgr w-full text-center font-mono" value="' + (data.ladgr || '0001') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-magrv w-full text-center font-mono" value="' + (data.magrv || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-vhart w-full text-center font-mono" value="' + (data.vhart || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center align-middle"><input type="checkbox" class="row-xchpf w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer" ' + (data.xchpf === '' ? '' : 'checked="checked"') + '></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="10" class="row-prctr w-full text-center font-mono" value="' + (data.prctr || '200201') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="4" class="row-bklas w-full text-center font-mono" value="' + (data.bklas || 'OS01') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-stprs w-full text-center font-mono" value="' + (data.stprs || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-verpr w-full text-center font-mono" value="' + (data.verpr || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-peinh w-full text-center font-mono" value="' + (data.peinh || '1') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="1" class="row-vprsv w-full text-center font-bold text-emerald-700" value="' + (data.vprsv || 'V') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-peinh-2 w-full text-center font-mono" value="' + (data.peinh_2 || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-umren w-full text-center font-mono" value="' + (data.umren || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-meinh w-full text-center font-mono" value="' + (data.meinh || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-umrez w-full text-center font-mono" value="' + (data.umrez || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-laeng w-full text-center font-mono" value="' + (data.laeng || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-breit w-full text-center font-mono" value="' + (data.breit || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-hoehe w-full text-center font-mono" value="' + (data.hoehe || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-meabm w-full text-center font-mono" value="' + (data.meabm || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-brgew w-full text-center font-mono" value="' + (data.brgew || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-gewei w-full text-center font-mono" value="' + (data.gewei || 'KG') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-ntgew w-full text-center font-mono" value="' + (data.ntgew || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-volum w-full text-center font-mono" value="' + (data.volum || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="3" class="row-ekgrp w-full text-center font-mono" value="' + (data.ekgrp || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-voleh w-full text-center font-mono" value="' + (data.voleh || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-kzwsm w-full text-center font-mono" value="' + (data.kzwsm || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-class w-full text-center font-mono" value="' + (data.class || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-warna w-full text-center font-mono" value="' + (data.warna || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-vol-prod w-full text-center font-mono" value="' + (data.vol_prod || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="2" class="row-dismm w-full text-center font-mono" value="' + (data.dismm || 'PD') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="4" class="row-disgr w-full text-center font-mono" value="' + (data.disgr || 'ZWH5') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="3" class="row-dispo w-full text-center font-mono" value="' + (data.dispo || 'RW8') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="2" class="row-disls w-full text-center font-mono" value="' + (data.disls || 'EX') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-bstmi w-full text-center font-mono" value="' + (data.bstmi || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-bstma w-full text-center font-mono" value="' + (data.bstma || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-bstrf w-full text-center font-mono" value="' + (data.bstrf || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="1" class="row-beskz w-full text-center font-mono" value="' + (data.beskz || 'F') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-sobsl w-full text-center font-mono" value="' + (data.sobsl || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="1" class="row-rgekz w-full text-center font-mono" value="' + (data.rgekz || '1') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-dzeit w-full text-center font-mono" value="' + (data.dzeit || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-plifz w-full text-center font-mono" value="' + (data.plifz || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-webaz w-full text-center font-mono" value="' + (data.webaz || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="3" class="row-fhori w-full text-center font-mono" value="' + (data.fhori || '000') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-eisbe w-full text-center font-mono" value="' + (data.eisbe || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="2" class="row-strgr w-full text-center font-mono" value="' + (data.strgr || '10') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="1" class="row-vrmod w-full text-center font-mono" value="' + (data.vrmod || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-vint1 w-full text-center font-mono" value="' + (data.vint1 || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-vint2 w-full text-center font-mono" value="' + (data.vint2 || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="1" class="row-perkz w-full text-center font-mono" value="' + (data.perkz || 'M') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="2" class="row-periv w-full text-center font-mono" value="' + (data.periv || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="2" class="row-mtvfp w-full text-center font-mono" value="' + (data.mtvfp || 'KP') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-altsl w-full text-center font-mono" value="' + (data.altsl || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="1" class="row-kzkst w-full text-center font-mono" value="' + (data.kzkst || '2') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-ausme w-full text-center font-mono" value="' + (data.ausme || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="4" class="row-lgpro w-full text-center font-mono" value="' + (data.lgpro || '1201') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="4" class="row-lgpro-ep w-full text-center font-mono" value="' + (data.lgpro_ep || '1201') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="4" class="row-sfpro w-full text-center font-mono" value="' + (data.sfpro || '000001') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-uneto w-full text-center font-mono" value="' + (data.uneto || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-ueeto w-full text-center font-mono" value="' + (data.ueeto || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-ueetk w-full text-center font-mono" value="' + (data.ueetk || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="1" class="row-hkmat w-full text-center font-bold text-emerald-700" value="' + (data.hkmat || 'X') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="1" class="row-ekalr w-full text-center font-bold text-emerald-700" value="' + (data.ekalr || 'X') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-losgr w-full text-center font-mono" value="' + (data.losgr || '100') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-ncost w-full text-center font-mono" value="' + (data.ncost || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-mmsta w-full text-center font-mono" value="' + (data.mmsta || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="4" class="row-eprio w-full text-center font-mono" value="' + (data.eprio || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-herbl w-full text-center font-mono" value="' + (data.herbl || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-klrab w-full text-center font-mono" value="' + (data.klrab || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-verid w-full text-center font-mono" value="' + (data.verid || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-perkz-2 w-full text-center font-mono" value="' + (data.perkz_2 || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-bwkey w-full text-center font-mono" value="' + (data.bwkey || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-versg w-full text-center font-mono" value="' + (data.versg || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-ssqss w-full text-center font-mono" value="' + (data.ssqss || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-qssys w-full text-center font-mono" value="' + (data.qssys || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-insptype w-full text-center font-mono" value="' + (data.insptype || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-sernp w-full text-center font-mono" value="' + (data.sernp || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center align-middle">';
+        html += `<button type="button" onclick="deleteRow(this)" class="w-6 h-6 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 flex items-center justify-center font-bold text-xs transition cursor-pointer mx-auto"
+title="Delete Row">X</button>`;
+        html += '</td>';
+
+        tr.innerHTML = html;
+        tbody.appendChild(tr);
+        updateRowSummary();
+    }
+
+    function saveStagingData(targetStatus, subReasonParam) {
+        var rows = document.querySelectorAll("#tableBody tr");
+        if (rows.length === 0) {
+            showToast("No material rows to save.", "error");
+            return;
+        }
+
+        targetStatus = targetStatus || 'DRAFT';
+        subReasonParam = subReasonParam || '';
+
+        var formData = new FormData();
+        var reqId = document.getElementById("REQ_ID") ? document.getElementById("REQ_ID").value : "";
+        var currentUploadId = document.getElementById("CURRENT_UPLOAD_ID") ? document.getElementById("CURRENT_UPLOAD_ID").value : "";
+        var currentFilename = document.getElementById("CURRENT_FILENAME") ? document.getElementById("CURRENT_FILENAME").value : "Manual_Entry.xlsx";
+
+        formData.append('REQ_ID', reqId);
+        formData.append('UPLOAD_ID', currentUploadId);
+        formData.append('FILENAME', currentFilename);
+        formData.append('STATUS', targetStatus);
+        formData.append('SUB_REASON', subReasonParam);
+        formData.append('ROW_COUNT', rows.length);
+
+        rows.forEach(function(row, idx) {
+            var i = idx + 1;
+            var getVal = function(selector) {
+                var el = row.querySelector(selector);
+                return el ? el.value.trim() : '';
+            };
+
+            formData.append('matnr_' + i, getVal(".row-matnr"));
+            formData.append('mbrsh_' + i, getVal(".row-mbrsh"));
+            formData.append('bismt_' + i, getVal(".row-bismt"));
+            formData.append('mtart_' + i, getVal(".row-mtart"));
+            formData.append('matkl_' + i, getVal(".row-matkl"));
+            formData.append('meins_' + i, getVal(".row-meins"));
+            formData.append('maktx_' + i, getVal(".row-maktx"));
+            formData.append('spart_' + i, getVal(".row-spart"));
+            formData.append('mtpos_mara_' + i, getVal(".row-mtpos-mara"));
+            formData.append('ferth_' + i, getVal(".row-ferth"));
+            formData.append('zeinr_' + i, getVal(".row-zeinr"));
+            formData.append('normt_' + i, getVal(".row-normt"));
+            formData.append('groes_' + i, getVal(".row-groes"));
+            formData.append('werks_' + i, getVal(".row-werks"));
+            formData.append('lgort_' + i, getVal(".row-lgort"));
+            formData.append('vkorg_' + i, getVal(".row-vkorg"));
+            formData.append('vtweg_' + i, getVal(".row-vtweg"));
+            formData.append('dwerk_' + i, getVal(".row-dwerk"));
+            formData.append('vrkme_' + i, getVal(".row-vrkme"));
+            formData.append('herkl_' + i, getVal(".row-herkl"));
+            formData.append('taxkm_' + i, getVal(".row-taxkm"));
+            formData.append('tatyp_' + i, getVal(".row-tatyp"));
+            formData.append('mtpos_' + i, getVal(".row-mtpos"));
+            formData.append('ktgrm_' + i, getVal(".row-ktgrm"));
+            formData.append('mvgr1_' + i, getVal(".row-mvgr1"));
+            formData.append('mvgr2_' + i, getVal(".row-mvgr2"));
+            formData.append('mvgr3_' + i, getVal(".row-mvgr3"));
+            formData.append('mvgr4_' + i, getVal(".row-mvgr4"));
+            formData.append('mvgr5_' + i, getVal(".row-mvgr5"));
+            formData.append('tragr_' + i, getVal(".row-tragr"));
+            formData.append('ladgr_' + i, getVal(".row-ladgr"));
+            formData.append('magrv_' + i, getVal(".row-magrv"));
+            formData.append('vhart_' + i, getVal(".row-vhart"));
+            formData.append('ekgrp_' + i, getVal(".row-ekgrp"));
+            formData.append('bklas_' + i, getVal(".row-bklas"));
+            formData.append('stprs_' + i, getVal(".row-stprs"));
+            formData.append('verpr_' + i, getVal(".row-verpr"));
+            formData.append('peinh_' + i, getVal(".row-peinh"));
+            formData.append('vprsv_' + i, getVal(".row-vprsv"));
+            formData.append('peinh_2_' + i, getVal(".row-peinh-2"));
+            formData.append('umren_' + i, getVal(".row-umren"));
+            formData.append('meinh_' + i, getVal(".row-meinh"));
+            formData.append('umrez_' + i, getVal(".row-umrez"));
+            formData.append('laeng_' + i, getVal(".row-laeng"));
+            formData.append('breit_' + i, getVal(".row-breit"));
+            formData.append('hoehe_' + i, getVal(".row-hoehe"));
+            formData.append('meabm_' + i, getVal(".row-meabm"));
+            formData.append('brgew_' + i, getVal(".row-brgew"));
+            formData.append('gewei_' + i, getVal(".row-gewei"));
+            formData.append('ntgew_' + i, getVal(".row-ntgew"));
+            formData.append('volum_' + i, getVal(".row-volum"));
+            formData.append('voleh_' + i, getVal(".row-voleh"));
+            formData.append('kzwsm_' + i, getVal(".row-kzwsm"));
+            formData.append('class_' + i, getVal(".row-class"));
+            formData.append('warna_' + i, getVal(".row-warna"));
+            formData.append('vol_prod_' + i, getVal(".row-vol-prod"));
+            formData.append('prctr_' + i, getVal(".row-prctr"));
+            formData.append('dismm_' + i, getVal(".row-dismm"));
+            formData.append('disgr_' + i, getVal(".row-disgr"));
+            formData.append('dispo_' + i, getVal(".row-dispo"));
+            formData.append('disls_' + i, getVal(".row-disls"));
+            formData.append('bstmi_' + i, getVal(".row-bstmi"));
+            formData.append('bstma_' + i, getVal(".row-bstma"));
+            formData.append('bstrf_' + i, getVal(".row-bstrf"));
+            formData.append('beskz_' + i, getVal(".row-beskz"));
+            formData.append('sobsl_' + i, getVal(".row-sobsl"));
+            formData.append('rgekz_' + i, getVal(".row-rgekz"));
+            formData.append('dzeit_' + i, getVal(".row-dzeit"));
+            formData.append('plifz_' + i, getVal(".row-plifz"));
+            formData.append('webaz_' + i, getVal(".row-webaz"));
+            formData.append('fhori_' + i, getVal(".row-fhori"));
+            formData.append('eisbe_' + i, getVal(".row-eisbe"));
+            formData.append('strgr_' + i, getVal(".row-strgr"));
+            formData.append('vrmod_' + i, getVal(".row-vrmod"));
+            formData.append('vint1_' + i, getVal(".row-vint1"));
+            formData.append('vint2_' + i, getVal(".row-vint2"));
+            formData.append('perkz_' + i, getVal(".row-perkz"));
+            formData.append('periv_' + i, getVal(".row-periv"));
+            formData.append('xchpf_' + i, getVal(".row-xchpf"));
+            formData.append('mtvfp_' + i, getVal(".row-mtvfp"));
+            formData.append('altsl_' + i, getVal(".row-altsl"));
+            formData.append('kzkst_' + i, getVal(".row-kzkst"));
+            formData.append('ausme_' + i, getVal(".row-ausme"));
+            formData.append('lgpro_' + i, getVal(".row-lgpro"));
+            formData.append('lgpro_ep_' + i, getVal(".row-lgpro-ep"));
+            formData.append('sfpro_' + i, getVal(".row-sfpro"));
+            formData.append('uneto_' + i, getVal(".row-uneto"));
+            formData.append('ueeto_' + i, getVal(".row-ueeto"));
+            formData.append('ueetk_' + i, getVal(".row-ueetk"));
+            formData.append('hkmat_' + i, getVal(".row-hkmat"));
+            formData.append('ekalr_' + i, getVal(".row-ekalr"));
+            formData.append('losgr_' + i, getVal(".row-losgr"));
+            formData.append('ncost_' + i, getVal(".row-ncost"));
+            formData.append('mmsta_' + i, getVal(".row-mmsta"));
+            formData.append('eprio_' + i, getVal(".row-eprio"));
+            formData.append('herbl_' + i, getVal(".row-herbl"));
+            formData.append('klrab_' + i, getVal(".row-klrab"));
+            formData.append('verid_' + i, getVal(".row-verid"));
+            formData.append('perkz_2_' + i, getVal(".row-perkz-2"));
+            formData.append('bwkey_' + i, getVal(".row-bwkey"));
+            formData.append('versg_' + i, getVal(".row-versg"));
+            formData.append('ssqss_' + i, getVal(".row-ssqss"));
+            formData.append('qssys_' + i, getVal(".row-qssys"));
+            formData.append('insptype_' + i, getVal(".row-insptype"));
+            formData.append('sernp_' + i, getVal(".row-sernp"));
+        });
+
+        if (targetStatus === 'SUBMITTED') {
+            showLoadingOverlay("Memproses Submission...", "Mengirim data material request ke SAP S/4HANA");
+        } else {
+            showLoadingOverlay("Menyimpan Draft...", "Menyimpan data staging draft");
+        }
+
+        fetch("?OnInputProcessing=SAVE_STAGE", {
+            method: "POST",
+            body: formData
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            hideLoadingOverlay();
+            if (data.status === "SUCCESS") {
+                if (data.upload_id) {
+                    document.getElementById("CURRENT_UPLOAD_ID").value = data.upload_id;
+                }
+                showToast("Staging data saved with status: " + targetStatus, "success");
+                loadUploadHistory();
+
+                if (targetStatus === 'SUBMITTED') {
+                    resetForm(true);
+                }
+            } else {
+                showToast(data.message || "Failed to save staging data.", "error");
+            }
+        })
+        .catch(function(err) {
+            hideLoadingOverlay();
+            showToast("Network error: " + err.message, "error");
+        });
+    }
+
+    function loadUploadHistory() {
+        fetch("?OnInputProcessing=GET_HISTORY")
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            globalHistoryData = data || [];
+
+            var approvedCnt = 0;
+            var rejectedCnt = 0;
+            globalHistoryData.forEach(function(item) {
+                if (item.status === 'APPROVED') approvedCnt++;
+                if (item.status === 'REJECTED' || item.status === 'FAILED') rejectedCnt++;
+            });
+
+            var appCard = document.getElementById("approvedCountCard");
+            var rejCard = document.getElementById("rejectedCountCard");
+            if (appCard) appCard.innerText = approvedCnt + " Request" + (approvedCnt > 1 ? "s" : "");
+            if (rejCard) rejCard.innerText = rejectedCnt + " Request" + (rejectedCnt > 1 ? "s" : "");
+
+            renderHistoryTable();
+        });
+    }
+
+    function switchHistoryTab(tab) {
+        currentHistoryTab = tab;
+
+        var btnPending  = document.getElementById("tabPendingBtn");
+        var btnApproved = document.getElementById("tabApprovedBtn");
+        var btnRejected = document.getElementById("tabRejectedBtn");
+
+        var activeStyle   = "px-4 py-2 rounded-full font-extrabold text-xs bg-gradient-to-r from-emerald-500 to-emerald-700 text-white shadow-xs transition-all cursor-pointer";
+        var inactiveStyle = "px-4 py-2 rounded-full font-bold text-xs text-slate-600 hover:text-slate-900 bg-white/80 hover:bg-white border border-slate-200/80 transition-all cursor-pointer";
+
+        if (btnPending)  btnPending.className  = (tab === 'PENDING')  ? activeStyle : inactiveStyle;
+        if (btnApproved) btnApproved.className = (tab === 'APPROVED') ? activeStyle : inactiveStyle;
+        if (btnRejected) btnRejected.className = (tab === 'REJECTED') ? activeStyle : inactiveStyle;
+
+        renderHistoryTable();
+    }
+
+    function formatIndonesianDateTime(dStr, tStr) {
+        if (!dStr) return "-";
+
+        var dateClean = String(dStr).replace(/\D/g, '');
+        var year = "", monthNum = 0, day = "";
+
+        if (dateClean.length === 8) {
+            year = dateClean.substring(0, 4);
+            monthNum = parseInt(dateClean.substring(4, 6), 10);
+            day = parseInt(dateClean.substring(6, 8), 10);
+        } else if (String(dStr).indexOf('/') !== -1) {
+            var parts = String(dStr).split('/');
+            day = parseInt(parts[0], 10);
+            monthNum = parseInt(parts[1], 10);
+            year = parts[2];
+        } else {
+            return dStr;
+        }
+
+        var monthsIndo = [
+            "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+            "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+        ];
+        var monthName = (monthNum >= 1 && monthNum <= 12) ? monthsIndo[monthNum - 1] : "";
+
+        var timeClean = String(tStr || '').replace(/\D/g, '');
+        var timeFormatted = "";
+        if (timeClean.length >= 4) {
+            timeFormatted = timeClean.substring(0, 2) + ":" + timeClean.substring(2, 4);
+        } else if (tStr && String(tStr).indexOf(':') !== -1) {
+            timeFormatted = String(tStr).trim();
+        }
+
+        var formattedDate = day + " " + monthName + " " + year;
+        if (timeFormatted) {
+            return formattedDate + " / " + timeFormatted;
+        }
+        return formattedDate;
+    }
+
+    function renderHistoryTable() {
+        var tbody = document.getElementById("historyTableBody");
+        if (!tbody) return;
+
+        tbody.innerHTML = "";
+
+        var filtered = globalHistoryData.filter(function(item) {
+            if (currentHistoryTab === 'PENDING') return item.status === 'DRAFT' || item.status === 'SUBMITTED';
+            if (currentHistoryTab === 'APPROVED') return item.status === 'APPROVED';
+            if (currentHistoryTab === 'REJECTED') return item.status === 'REJECTED' || item.status === 'FAILED';
+            return true;
+        });
+
+        if (!filtered || filtered.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="8" class="p-5 text-center text-slate-400 italic">No material request history found.</td></tr>';
+            return;
+        }
+
+        filtered.forEach(function(item, idx) {
+            var tr = document.createElement("tr");
+            tr.className = "hover:bg-emerald-50/30 transition-colors border-b border-slate-100";
+
+            var targetDate = item.erdat;
+            var targetTime = item.ertim;
+            if ((item.status === 'APPROVED' || item.status === 'REJECTED' || item.status === 'FAILED') && item.app_date) {
+                targetDate = item.app_date;
+                targetTime = item.app_time;
+            }
+
+            var formattedDateTimeStr = "( " + formatIndonesianDateTime(targetDate, targetTime) + " )";
+
+            var statusBadge = '<span class="bg-amber-100 text-amber-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-amber-200">DRAFT</span>';
+            if (item.status === 'SUBMITTED') {
+                statusBadge = '<span class="bg-blue-100 text-blue-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-blue-200">SUBMITTED</span>';
+            } else if (item.status === 'APPROVED') {
+                statusBadge = '<span class="bg-emerald-100 text-emerald-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-emerald-200">APPROVED</span>';
+            } else if (item.status === 'REJECTED' || item.status === 'FAILED') {
+                statusBadge = '<span class="bg-rose-100 text-rose-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-rose-200">REJECTED</span>';
+            }
+
+            var actorText = "";
+            var actorClass = "text-slate-600 bg-slate-100 border-slate-200";
+            if (item.status === 'REJECTED' || item.status === 'FAILED') {
+                actorText = "Rejected by: " + (item.approver || item.ernam || 'DS / System');
+                actorClass = "text-rose-700 bg-rose-50 border-rose-200";
+            } else if (item.status === 'APPROVED') {
+                actorText = "Approved by: " + (item.approver || item.ernam || 'DS / System');
+                actorClass = "text-emerald-800 bg-emerald-50 border-emerald-200";
+            } else {
+                actorText = "Requestor: " + (item.ernam || 'ABAPER04');
+                actorClass = "text-blue-800 bg-blue-50 border-blue-200";
+            }
+
+            var reasonDisplay = (item.status === 'REJECTED' || item.status === 'FAILED')
+                ? (item.rej_reason || item.sub_reason || '-')
+                : (item.sub_reason || item.rej_reason || '-');
+
+            var rowHtml = '';
+            rowHtml += '<td class="p-3 text-center font-bold text-slate-700">' + (idx + 1) + '</td>';
+            rowHtml += '<td class="p-3 font-mono text-slate-900 font-bold">';
+            rowHtml += '  <div class="text-xs font-black text-slate-900 tracking-tight">' + escapeHtml(item.upload_id || '-') + '</div>';
+            rowHtml += '  <div class="mt-1"><span class="inline-flex items-center gap-1 text-[10px] font-extrabold px-2 py-0.5 rounded border ' + actorClass + '">' + escapeHtml(actorText) + '</span></div>';
+            rowHtml += '</td>';
+
+            rowHtml += '<td class="p-3 font-semibold text-slate-800">' + escapeHtml(item.filename || 'Upload_Material.xlsx') + '</td>';
+
+            rowHtml += '<td class="p-3 text-center font-mono">';
+            rowHtml += '  <span class="text-[13px] font-black text-slate-900 bg-emerald-50/90 text-emerald-950 px-3 py-1.5 rounded-xl border border-emerald-300/80 shadow-2xs inline-block tracking-tight">' + escapeHtml(formattedDateTimeStr) + '</span>';
+            rowHtml += '</td>';
+
+            rowHtml += '<td class="p-3 text-center font-bold text-emerald-700 bg-emerald-50/80 rounded-lg border border-emerald-200">' + (item.total_row || 0) + ' Line</td>';
+            rowHtml += '<td class="p-3 text-slate-900 font-bold truncate max-w-[240px]" title="' + escapeHtml(reasonDisplay) + '">' + escapeHtml(reasonDisplay) + '</td>';
+            rowHtml += '<td class="p-3 text-center">' + statusBadge + '</td>';
+            rowHtml += '<td class="p-3 text-center">';
+            rowHtml += '  <div class="flex items-center justify-center gap-1.5">';
+            rowHtml += '    <button type="button" class="btn-view-detail rounded-full bg-white/80 hover:bg-white text-slate-800 border border-slate-200 text-[11px] font-bold px-3 py-1 shadow-2xs transition inline-flex items-center gap-1 cursor-pointer">View Detail</button>';
+            rowHtml += '    <button type="button" class="btn-download-excel rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold px-2.5 py-1 shadow-2xs transition inline-flex items-center gap-1 cursor-pointer" title="Download Excel Material Detail"><svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg><span>Excel</span></button>';
+            rowHtml += '  </div>';
+            rowHtml += '</td>';
+
+            tr.innerHTML = rowHtml;
+
+            var viewBtn = tr.querySelector('.btn-view-detail');
+            if (viewBtn) {
+                (function(uId, fName) {
+                    viewBtn.addEventListener('click', function() {
+                        loadUploadDetail(uId, fName);
+                    });
+                })(item.upload_id || '', item.filename || '');
+            }
+
+            var dlBtn = tr.querySelector('.btn-download-excel');
+            if (dlBtn) {
+                (function(uId, fName) {
+                    dlBtn.addEventListener('click', function() {
+                        downloadApprovedBatchExcel(uId, fName);
+                    });
+                })(item.upload_id || '', item.filename || '');
+            }
+
+            tbody.appendChild(tr);
+        });
+    }
+
+    var currentDetailItems = [];
+    var currentDetailUploadId = "";
+    var currentDetailFilename = "";
+
+    function exportApprovedHistoryToExcel() {
+        if (typeof XLSX === 'undefined') {
+            showToast("Excel parser library is not loaded.", "error");
+            return;
+        }
+
+        var filtered = globalHistoryData.filter(function(item) {
+            if (currentHistoryTab === 'APPROVED') return item.status === 'APPROVED';
+            if (currentHistoryTab === 'PENDING') return item.status === 'DRAFT' || item.status === 'SUBMITTED';
+            if (currentHistoryTab === 'REJECTED') return item.status === 'REJECTED' || item.status === 'FAILED';
+            return true;
+        });
+
+        if (!filtered || filtered.length === 0) {
+            showToast("No data in current list to export.", "error");
+            return;
+        }
+
+        var headers = ["No", "Batch / Request ID", "File Name", "Date / Time", "Total Lines", "Reason / Justification", "Status", "User / Approver"];
+        var exportRows = [headers];
+
+        filtered.forEach(function(item, idx) {
+            var targetDate = item.app_date || item.erdat;
+            var targetTime = item.app_time || item.ertim;
+            var dateTimeStr = formatIndonesianDateTime(targetDate, targetTime);
+
+            exportRows.push([
+                idx + 1,
+                item.upload_id || '-',
+                item.filename || '-',
+                dateTimeStr,
+                item.total_row || 0,
+                item.sub_reason || item.rej_reason || '-',
+                item.status || '-',
+                item.approver || item.ernam || '-'
+            ]);
+        });
+
+        var tabTitle = currentHistoryTab === 'APPROVED' ? 'Approved' : (currentHistoryTab === 'REJECTED' ? 'Rejected' : 'Pending');
+        var outFilename = tabTitle + "_Requests_List_" + Date.now().toString(36).toUpperCase() + ".xlsx";
+
+        var ws = XLSX.utils.aoa_to_sheet(exportRows);
+        var wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, tabTitle + " Summary");
+        XLSX.writeFile(wb, outFilename);
+        showToast(tabTitle + " list exported: " + outFilename, "success");
+    }
+
+    function downloadApprovedBatchExcel(uploadId, filename) {
+        if (!uploadId) {
+            showToast("Upload ID invalid.", "error");
+            return;
+        }
+        if (typeof XLSX === 'undefined') {
+            showToast("Excel parser library is not loaded.", "error");
+            return;
+        }
+
+        showToast("Generating Excel file for " + uploadId + "...", "info");
+
+        var formData = new FormData();
+        formData.append("UPLOAD_ID", uploadId);
+
+        fetch("?OnInputProcessing=GET_UPLOAD_DETAIL", {
+            method: "POST",
+            body: formData
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            if (!data || data.length === 0) {
+                showToast("No detail items found for batch " + uploadId, "error");
+                return;
+            }
+
+            var headers = [
+                "Material", "Industry Sector", "Old Material No.", "Material Type", "Material Group",
+                "Base UoM", "Material Description", "Division", "Gen. Item Cat. Grp", "Prod./Insp. Memo",
+                "Doc. Num", "Ind. Standard Desc", "Dimensions", "Plant", "S.Loc",
+                "Sales Org", "Dist. Channel", "Delivering Plant", "Sales Unit", "Country of Origin",
+                "Tax Class", "Tax Category", "Item Cat. Group", "Account Assignment", "Mat Group 1",
+                "Mat Group 2", "Mat Group 3", "Mat Group 4", "Mat Group 5", "Transport. Grp",
+                "Loading Grp", "Material Package", "Mat. Pack. Type", "Batch", "Profit Ctr",
+                "Val. Class", "Std. Price", "Moving Avg. Price", "P.Unit", "P.Ctrl",
+                "P.Unit Hard Curr", "Denominator", "Alt. UoM", "Numerator", "Length",
+                "Width", "Height", "Unit Dim", "Gross Wt", "Wt Unit",
+                "Net Wt", "Volume", "Purch. Grp", "Vol Unit", "Prop. Units",
+                "Class", "Color", "Vol Product", "MRP Type", "MRP Group",
+                "MRP Controller", "Lot Sizing", "Min. Lot Size", "Max. Lot Size", "Rounding Val",
+                "Proc.Type", "Special Proc", "Backflush Indicator", "In-house Prod", "Plan Deliv Time",
+                "GR Proc Time", "Sched. Margin Key", "Safety Stock", "Strategy Group", "Consumption Mode",
+                "Fwd Consum. Period", "Bwd Consum. Period", "Period Indicator", "Fiscal Year", "Availability Check",
+                "Selection Method", "Individual/Coll.", "Unit of Issue", "Prod. Storage Loc.", "SLoc for EP",
+                "Prod. Sched. Profile", "Underdel. Tol", "Overdeliv. Tol", "Unlimited Tol", "Origin Cost",
+                "With Qty Struct.", "Lot Size Cost", "Do Not Cost", "Plant Mat Status", "Effective Date",
+                "Source of Supply", "Quality Rebate", "Prod. Version", "Period Ind 2", "Valuation Area",
+                "Acc Spec Stock", "QM Proc. Active", "QM Control Key", "Insp. Type", "Serial No. Profile"
+            ];
+
+            var exportRows = [headers];
+
+            data.forEach(function(item) {
+                var g = function(key) {
+                    var val = item[key] || item[key.toUpperCase()] || item[key.toLowerCase()];
+                    return (val !== undefined && val !== null) ? String(val).trim() : '';
+                };
+
+                var matnr = g('matnr');
+                if (matnr) matnr = matnr.replace(/^0+/, '');
+
+                exportRows.push([
+                    matnr, g('mbrsh'), g('bismt'), g('mtart'), g('matkl'),
+                    g('meins'), g('maktx'), g('spart'), g('mtpos_mara'), g('ferth'),
+                    g('zeinr'), g('normt'), g('groes'), g('werks'), g('lgort'),
+                    g('vkorg'), g('vtweg'), g('dwerk'), g('vrkme'), g('herkl'),
+                    g('taxkm'), g('tatyp'), g('mtpos'), g('ktgrm'), g('mvgr1'),
+                    g('mvgr2'), g('mvgr3'), g('mvgr4'), g('mvgr5'), g('tragr'),
+                    g('ladgr'), g('magrv'), g('vhart'), g('xchpf'), g('prctr'),
+                    g('bklas'), g('stprs'), g('verpr'), g('peinh'), g('vprsv'),
+                    g('peinh_2'), g('umren'), g('meinh'), g('umrez'), g('laeng'),
+                    g('breit'), g('hoehe'), g('meabm'), g('brgew'), g('gewei'),
+                    g('ntgew'), g('volum'), g('ekgrp'), g('voleh'), g('kzwsm'),
+                    g('class'), g('warna'), g('vol_prod'), g('dismm'), g('disgr'),
+                    g('dispo'), g('disls'), g('bstmi'), g('bstma'), g('bstrf'),
+                    g('beskz'), g('sobsl'), g('rgekz'), g('dzeit'), g('plifz'),
+                    g('webaz'), g('fhori'), g('eisbe'), g('strgr'), g('vrmod'),
+                    g('vint1'), g('vint2'), g('perkz'), g('periv'), g('mtvfp'),
+                    g('altsl'), g('kzkst'), g('ausme'), g('lgpro'), g('lgpro_ep'),
+                    g('sfpro'), g('uneto'), g('ueeto'), g('ueetk'), g('hkmat'),
+                    g('ekalr'), g('losgr'), g('ncost'), g('mmsta'), g('eprio'),
+                    g('herbl'), g('klrab'), g('verid'), g('perkz_2'), g('bwkey'),
+                    g('versg'), g('ssqss'), g('qssys'), g('insptype'), g('sernp')
+                ]);
+            });
+
+            var cleanName = (filename || uploadId || "Material_Request").replace(/\.[^/.]+$/, "");
+            var outFilename = "Approved_" + cleanName + "_" + uploadId + ".xlsx";
+
+            var ws = XLSX.utils.aoa_to_sheet(exportRows);
+            var wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Approved Materials");
+            XLSX.writeFile(wb, outFilename);
+            showToast("Excel downloaded: " + outFilename, "success");
+        })
+        .catch(function(err) {
+            showToast("Failed to fetch detail: " + err.message, "error");
+        });
+    }
+
+    function downloadCurrentDetailModalExcel() {
+        if (!currentDetailUploadId) {
+            showToast("No active request loaded in modal.", "error");
+            return;
+        }
+        downloadApprovedBatchExcel(currentDetailUploadId, currentDetailFilename);
+    }
+
+    function loadUploadDetail(uploadId, filename) {
+        if (!uploadId) return;
+
+        currentDetailUploadId = uploadId;
+        currentDetailFilename = filename || "";
+
+        // Find header metadata from globalHistoryData
+        var histItem = globalHistoryData.find(function(h) { return h.upload_id === uploadId; });
+        var status = histItem ? histItem.status : 'SUBMITTED';
+        // PRIORITIZE rej_reason (actual rejection/validation error) over sub_reason (initial business justification)
+        var rejReason = histItem ? (histItem.rej_reason || histItem.sub_reason || '') : '';
+        var subReason = histItem ? (histItem.sub_reason || '') : '';
+        var erdat = histItem ? histItem.erdat : '';
+        var ertim = histItem ? histItem.ertim : '';
+        var requestor = histItem ? (histItem.ernam || histItem.requestor || '') : '';
+        var targetDate = (histItem && histItem.app_date) ? histItem.app_date : erdat;
+        var targetTime = (histItem && histItem.app_time) ? histItem.app_time : ertim;
+        var formattedDateTime = formatIndonesianDateTime(targetDate, targetTime);
+        var actorName = (histItem && histItem.approver) ? histItem.approver : requestor;
+
+        // Set Modal Header Information
+        var reqIdEl = document.getElementById("reqModalReqId");
+        var subLabelEl = document.getElementById("reqModalSubLabel");
+        if (reqIdEl) reqIdEl.innerText = uploadId;
+
+        if (subLabelEl) {
+            subLabelEl.innerText = "File: " + (filename || '-') + " | Waktu: " + formattedDateTime + (actorName ? " | User: " + actorName : "");
+        }
+
+        // Set Status Badge & Rejection Banner State
+        var badgeEl = document.getElementById("reqModalStatusBadge");
+        var bannerEl = document.getElementById("reqModalRejectionBanner");
+        var rejTextEl = document.getElementById("reqModalRejectionText");
+        var headerIcon = document.getElementById("reqModalHeaderIcon");
+
+        var isRejected = (status === 'REJECTED' || status === 'FAILED');
+
+        if (badgeEl) {
+            if (isRejected) {
+                badgeEl.innerHTML = '<span class="bg-rose-100 text-rose-800 border border-rose-200 text-xs font-black px-3 py-1 rounded-full uppercase">REJECTED</span>';
+            } else if (status === 'APPROVED') {
+                badgeEl.innerHTML = '<span class="bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-black px-3 py-1 rounded-full uppercase">APPROVED</span>';
+            } else if (status === 'CHECKED') {
+                badgeEl.innerHTML = '<span class="bg-teal-100 text-teal-800 border border-teal-200 text-xs font-black px-3 py-1 rounded-full uppercase">VERIFIED BY DS</span>';
+            } else {
+                badgeEl.innerHTML = '<span class="bg-amber-100 text-amber-800 border border-amber-200 text-xs font-black px-3 py-1 rounded-full uppercase">' + status + '</span>';
+            }
+        }
+
+        if (headerIcon) {
+            if (isRejected) headerIcon.className = "w-9 h-9 rounded-xl bg-rose-600 flex items-center justify-center font-bold text-white text-sm shadow-xs";
+            else if (status === 'APPROVED') headerIcon.className = "w-9 h-9 rounded-xl bg-emerald-600 flex items-center justify-center font-bold text-white text-sm shadow-xs";
+            else headerIcon.className = "w-9 h-9 rounded-xl bg-slate-800 flex items-center justify-center font-bold text-white text-sm shadow-xs";
+        }
+
+        if (isRejected || rejReason) {
+            if (bannerEl) bannerEl.classList.remove("hidden");
+            var displayText = rejReason;
+            if (subReason && subReason !== rejReason) {
+                displayText += "\n\n[BUSINESS JUSTIFICATION]: " + subReason;
+            }
+            if (rejTextEl) rejTextEl.innerText = displayText || "Dokumen ini di-reject oleh Data Steward / SAP validation.";
+        } else {
+            if (bannerEl) bannerEl.classList.add("hidden");
+        }
+
+        // Show Modal with Spinner in table
+        var modal = document.getElementById("requestDetailModal");
+        if (modal) modal.classList.remove("hidden");
+
+        var tbody = document.getElementById("reqModalItemTableBody");
+        if (tbody) {
+            tbody.innerHTML = '<tr>' +
+                '<td colspan="106" class="p-8 text-center text-slate-400 font-medium">' +
+                '<div class="inline-flex items-center justify-center gap-2">' +
+                '<div class="inline-block animate-spin rounded-full h-4 w-4 border-2 border-emerald-600 border-t-transparent"></div>' +
+                '<span>Loading material line item specifications...</span>' +
+                '</div>' +
+                '</td>' +
+                '</tr>';
+        }
+
+        var formData = new FormData();
+        formData.append("UPLOAD_ID", uploadId);
+
+        fetch("?OnInputProcessing=GET_UPLOAD_DETAIL", {
+            method: "POST",
+            body: formData
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            if (!data || data.length === 0) {
+                if (tbody) tbody.innerHTML = '<tr><td colspan="106" class="p-6 text-center text-slate-400">Tidak ada detail item dalam request ini.</td></tr>';
+                document.getElementById("reqModalFooterInfo").innerText = "0 items loaded";
+                return;
+            }
+
+            currentDetailItems = data;
+            document.getElementById("reqModalFooterInfo").innerText = data.length + " item(s) dalam request " + uploadId;
+
+            var html = '';
+            data.forEach(function(item, idx) {
+                var g = function(key) {
+                    var val = item[key] || item[key.toUpperCase()] || item[key.toLowerCase()];
+                    return (val !== undefined && val !== null) ? escapeHtml(String(val)) : '';
+                };
+
+                var matnr = item.matnr || item.MATNR || '';
+                if (matnr) matnr = matnr.replace(/^0+/, '');
+
+                html += '<tr class="hover:bg-slate-50 transition border-b border-slate-100 text-xs">';
+                html += '  <td class="p-2 text-center text-slate-400 font-medium sticky left-0 bg-white border-r border-slate-200 z-10">' + (idx + 1) + '</td>';
+                html += '  <td class="p-2 font-mono font-bold text-emerald-800 bg-emerald-50/60 border-r border-slate-100">' + (matnr ? escapeHtml(matnr) : '<span class="text-slate-400 font-normal italic">AUTO</span>') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('mbrsh') + '</td>';
+                html += '  <td class="p-2 border-r border-slate-100">' + g('bismt') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('mtart') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('matkl') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('meins') + '</td>';
+                html += '  <td class="p-2 font-semibold text-slate-900 border-r border-slate-100">' + g('maktx') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('spart') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('mtpos_mara') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('ferth') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('zeinr') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('normt') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('groes') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('werks') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('lgort') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('vkorg') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('vtweg') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('dwerk') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('vrkme') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('herkl') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('taxkm') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('tatyp') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('mtpos') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('ktgrm') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('mvgr1') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('mvgr2') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('mvgr3') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('mvgr4') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('mvgr5') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('tragr') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('ladgr') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('magrv') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('vhart') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('xchpf') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('prctr') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('bklas') + '</td>';
+                html += '  <td class="p-2 text-right font-mono border-r border-slate-100">' + g('stprs') + '</td>';
+                html += '  <td class="p-2 text-right font-mono border-r border-slate-100">' + g('verpr') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('peinh') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('vprsv') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('peinh_2') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('umren') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('meinh') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('umrez') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('laeng') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('breit') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('hoehe') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('meabm') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('brgew') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('gewei') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('ntgew') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('volum') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('ekgrp') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('voleh') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('kzwsm') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('class') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('warna') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('vol_prod') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('dismm') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('disgr') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('dispo') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('disls') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('bstmi') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('bstma') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('bstrf') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('beskz') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('sobsl') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('rgekz') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('dzeit') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('plifz') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('webaz') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('fhori') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('eisbe') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('strgr') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('vrmod') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('vint1') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('vint2') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('perkz') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('periv') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('mtvfp') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('altsl') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('kzkst') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('ausme') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('lgpro') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('lgpro_ep') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('sfpro') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('uneto') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('ueeto') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('ueetk') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('hkmat') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('ekalr') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('losgr') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('ncost') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('mmsta') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('eprio') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('herbl') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('klrab') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('verid') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('perkz_2') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('bwkey') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('versg') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('ssqss') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('qssys') + '</td>';
+                html += '  <td class="p-2 text-center border-r border-slate-100">' + g('insptype') + '</td>';
+                html += '  <td class="p-2 text-center">' + g('sernp') + '</td>';
+                html += '</tr>';
+            });
+
+            if (tbody) tbody.innerHTML = html;
+        })
+        .catch(function(err) {
+            console.error(err);
+            if (tbody) tbody.innerHTML = '<tr><td colspan="106" class="p-6 text-center text-rose-500 font-semibold">Gagal memuat rincian item.</td></tr>';
+        });
+    }
+
+    function closeRequestDetailModal() {
+        var modal = document.getElementById("requestDetailModal");
+        if (modal) modal.classList.add("hidden");
+    }
+
+    function loadIntoFormForRevision() {
+        if (!currentDetailItems || currentDetailItems.length === 0) return;
+
+        document.getElementById("CURRENT_UPLOAD_ID").value = currentDetailUploadId;
+        document.getElementById("CURRENT_FILENAME").value = currentDetailFilename;
+
+        var tbody = document.getElementById("tableBody");
+        if (tbody) tbody.innerHTML = "";
+        rowCounter = 0;
+
+        currentDetailItems.forEach(function(item) {
+            addNewRowData({
+                matnr:                  item.matnr || item.MATNR || "",
+                bismt:                  item.bismt || item.BISMT || "",
+                maktx:                  item.maktx || item.MAKTX || "",
+                mtart:                  item.mtart || item.MTART || "",
+                mbrsh:                  item.mbrsh || item.MBRSH || "",
+                matkl:                  item.matkl || item.MATKL || "",
+                meins:                  item.meins || item.MEINS || "",
+                spart:                  item.spart || item.SPART || "",
+                mtpos_mara:             item.mtpos_mara || item.MTPOS_MARA || "",
+                ferth:                  item.ferth || item.FERTH || "",
+                zeinr:                  item.zeinr || item.ZEINR || "",
+                normt:                  item.normt || item.NORMT || "",
+                groes:                  item.groes || item.GROES || "",
+                werks:                  item.werks || item.WERKS || "",
+                lgort:                  item.lgort || item.LGORT || "",
+                vkorg:                  item.vkorg || item.VKORG || "",
+                vtweg:                  item.vtweg || item.VTWEG || "",
+                dwerk:                  item.dwerk || item.DWERK || "",
+                vrkme:                  item.vrkme || item.VRKME || "",
+                herkl:                  item.herkl || item.HERKL || "",
+                taxkm:                  item.taxkm || item.TAXKM || "",
+                tatyp:                  item.tatyp || item.TATYP || "",
+                mtpos:                  item.mtpos || item.MTPOS || "",
+                ktgrm:                  item.ktgrm || item.KTGRM || "",
+                mvgr1:                  item.mvgr1 || item.MVGR1 || "",
+                mvgr2:                  item.mvgr2 || item.MVGR2 || "",
+                mvgr3:                  item.mvgr3 || item.MVGR3 || "",
+                mvgr4:                  item.mvgr4 || item.MVGR4 || "",
+                mvgr5:                  item.mvgr5 || item.MVGR5 || "",
+                tragr:                  item.tragr || item.TRAGR || "",
+                ladgr:                  item.ladgr || item.LADGR || "",
+                magrv:                  item.magrv || item.MAGRV || "",
+                vhart:                  item.vhart || item.VHART || "",
+                xchpf:                  item.xchpf || item.XCHPF || "",
+                prctr:                  item.prctr || item.PRCTR || "",
+                bklas:                  item.bklas || item.BKLAS || "",
+                stprs:                  item.stprs || item.STPRS || "",
+                verpr:                  item.verpr || item.VERPR || "",
+                peinh:                  item.peinh || item.PEINH || "",
+                vprsv:                  item.vprsv || item.VPRSV || "",
+                peinh_2:                item.peinh_2 || item.PEINH_2 || "",
+                umren:                  item.umren || item.UMREN || "",
+                meinh:                  item.meinh || item.MEINH || "",
+                umrez:                  item.umrez || item.UMREZ || "",
+                laeng:                  item.laeng || item.LAENG || "",
+                breit:                  item.breit || item.BREIT || "",
+                hoehe:                  item.hoehe || item.HOEHE || "",
+                meabm:                  item.meabm || item.MEABM || "",
+                brgew:                  item.brgew || item.BRGEW || "",
+                gewei:                  item.gewei || item.GEWEI || "",
+                ntgew:                  item.ntgew || item.NTGEW || "",
+                volum:                  item.volum || item.VOLUM || "",
+                ekgrp:                  item.ekgrp || item.EKGRP || "",
+                voleh:                  item.voleh || item.VOLEH || "",
+                kzwsm:                  item.kzwsm || item.KZWSM || "",
+                class:                  item.class || item.CLASS || "",
+                warna:                  item.warna || item.WARNA || "",
+                vol_prod:               item.vol_prod || item.VOL_PROD || "",
+                dismm:                  item.dismm || item.DISMM || "",
+                disgr:                  item.disgr || item.DISGR || "",
+                dispo:                  item.dispo || item.DISPO || "",
+                disls:                  item.disls || item.DISLS || "",
+                bstmi:                  item.bstmi || item.BSTMI || "",
+                bstma:                  item.bstma || item.BSTMA || "",
+                bstrf:                  item.bstrf || item.BSTRF || "",
+                beskz:                  item.beskz || item.BESKZ || "F",
+                sobsl:                  item.sobsl || item.SOBSL || "",
+                rgekz:                  item.rgekz || item.RGEKZ || "1",
+                dzeit:                  item.dzeit || item.DZEIT || "",
+                plifz:                  item.plifz || item.PLIFZ || "",
+                webaz:                  item.webaz || item.WEBAZ || "",
+                fhori:                  item.fhori || item.FHORI || "",
+                eisbe:                  item.eisbe || item.EISBE || "",
+                strgr:                  item.strgr || item.STRGR || "",
+                vrmod:                  item.vrmod || item.VRMOD || "",
+                vint1:                  item.vint1 || item.VINT1 || "",
+                vint2:                  item.vint2 || item.VINT2 || "",
+                perkz:                  item.perkz || item.PERKZ || "",
+                periv:                  item.periv || item.PERIV || "",
+                mtvfp:                  item.mtvfp || item.MTVFP || "",
+                altsl:                  item.altsl || item.ALTSL || "",
+                kzkst:                  item.kzkst || item.KZKST || "",
+                ausme:                  item.ausme || item.AUSME || "",
+                lgpro:                  item.lgpro || item.LGPRO || "",
+                lgpro_ep:               item.lgpro_ep || item.LGPRO_EP || "",
+                sfpro:                  item.sfpro || item.SFPRO || "",
+                uneto:                  item.uneto || item.UNETO || "",
+                ueeto:                  item.ueeto || item.UEETO || "",
+                ueetk:                  item.ueetk || item.UEETK || "",
+                hkmat:                  item.hkmat || item.HKMAT || "",
+                ekalr:                  item.ekalr || item.EKALR || "",
+                losgr:                  item.losgr || item.LOSGR || "",
+                ncost:                  item.ncost || item.NCOST || "",
+                mmsta:                  item.mmsta || item.MMSTA || "",
+                eprio:                  item.eprio || item.EPRIO || "",
+                herbl:                  item.herbl || item.HERBL || "",
+                klrab:                  item.klrab || item.KLRAB || "",
+                verid:                  item.verid || item.VERID || "",
+                perkz_2:                item.perkz_2 || item.PERKZ_2 || "",
+                bwkey:                  item.bwkey || item.BWKEY || "",
+                versg:                  item.versg || item.VERSG || "",
+                ssqss:                  item.ssqss || item.SSQSS || "",
+                qssys:                  item.qssys || item.QSSYS || "",
+                insptype:               item.insptype || item.INSPTYPE || "",
+                sernp:                  item.sernp || item.SERNP || ""
+            });
+        });
+
+        closeRequestDetailModal();
+        window.scrollTo({ top: 300, behavior: 'smooth' });
+        showToast("Dokumen " + currentDetailUploadId + " dimuat ke form. Silakan perbaiki data dan submit ulang.", "info");
+    }
+
+    function openSubmitReasonModal() {
+        var rows = document.querySelectorAll("#tableBody tr");
+        var hasError = false;
+        rows.forEach(function(row) {
+            var maktxInput = row.querySelector(".row-maktx");
+            if (!maktxInput || !maktxInput.value.trim()) {
+                hasError = true;
+            }
+        });
+        if (hasError) {
+            showToast("Validation error: Material Description is required.", "error");
+            return;
+        }
+
+        var modal = document.getElementById("submitReasonModal");
+        var textarea = document.getElementById("submitReasonInput");
+        var errTxt = document.getElementById("submitReasonError");
+        if (modal) {
+            if (errTxt) errTxt.classList.add("hidden");
+            if (textarea) textarea.value = "";
+            modal.classList.remove("hidden");
+            setTimeout(function() { if (textarea) textarea.focus(); }, 100);
+        }
+    }
+
+    function closeSubmitReasonModal() {
+        var modal = document.getElementById("submitReasonModal");
+        if (modal) {
+            modal.classList.add("hidden");
+        }
+    }
+
+    function confirmSubmitWithReason() {
+        var textarea = document.getElementById("submitReasonInput");
+        var errTxt = document.getElementById("submitReasonError");
+        var subReason = textarea ? textarea.value.trim() : "";
+
+        if (!subReason) {
+            if (errTxt) errTxt.classList.remove("hidden");
+            showToast("Business justification is required.", "error");
+            if (textarea) textarea.focus();
+            return;
+        }
+
+        if (errTxt) errTxt.classList.add("hidden");
+        closeSubmitReasonModal();
+        saveStagingData('SUBMITTED', subReason);
+    }
+
+    // ==========================================
+    // SAP MARA SEARCH & 2-COLUMN FILTER LOGIC
+    // ==========================================
+
+    var currentMaraResults = [];
+
+    function handleFilterKeyup(e) {
+        if (e.key === 'Enter') {
+            searchMaraSAP();
+        }
+    }
+
+    function searchMaraSAP() {
+        var matnrVal = document.getElementById("filterMatnr") ? document.getElementById("filterMatnr").value.trim().toUpperCase() : "";
+        var maktxVal = document.getElementById("filterMaktx") ? document.getElementById("filterMaktx").value.trim().toUpperCase() : "";
+        var mtartVal = document.getElementById("filterMtart") ? document.getElementById("filterMtart").value.trim().toUpperCase() : "";
+        var matklVal = document.getElementById("filterMatkl") ? document.getElementById("filterMatkl").value.trim().toUpperCase() : "";
+
+        var tbody = document.getElementById("maraResultTbody");
+        var badge = document.getElementById("maraResultBadge");
+
+        if (tbody) {
+            tbody.innerHTML = '<tr><td colspan="7" class="p-6 text-center text-emerald-700 font-bold animate-pulse">' +
+                '<div class="inline-flex items-center gap-2">' +
+                '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">' +
+                '<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>' +
+                '<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>' +
+                '</svg> Querying SAP MARA records...</div></td></tr>';
+        }
+        if (badge) {
+            badge.innerText = "Querying SAP...";
+            badge.className = "text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200 animate-pulse";
+        }
+
+        var formData = new FormData();
+        formData.append("OnInputProcessing", "SEARCH_MARA");
+        formData.append("FILTER_MATNR", matnrVal);
+        formData.append("FILTER_MAKTX", maktxVal);
+        formData.append("FILTER_MTART", mtartVal);
+        formData.append("FILTER_MATKL", matklVal);
+
+        fetch("?OnInputProcessing=SEARCH_MARA", {
+            method: "POST",
+            body: formData
+        })
+        .then(function(res) {
+            if (!res.ok) {
+                throw new Error("HTTP " + res.status + " " + res.statusText);
+            }
+            return res.json();
+        })
+        .then(function(data) {
+            if (Array.isArray(data)) {
+                renderMaraResults(data);
+            } else {
+                renderMaraResults([]);
+            }
+        })
+        .catch(function(err) {
+            console.error("SAP MARA Search Error:", err);
+            if (tbody) {
+                tbody.innerHTML = '<tr><td colspan="7" class="p-6 text-center text-rose-600 font-bold">' +
+                    '<div class="inline-flex items-center gap-2">' +
+                    '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+                    '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>' +
+                    '</svg> Failed to query SAP MARA: ' + escapeHtml(err.message || 'Connection error') +
+                    '</div></td></tr>';
+            }
+            if (badge) {
+                badge.innerText = "Query Error";
+                badge.className = "text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-200";
+            }
+            showToast("Failed to query SAP MARA database.", "error");
+        });
+    }
+
+    var currentMaraResults = [];
+    var maraCurrentPage = 1;
+    var maraPageSize = 10;
+
+    function getMaraPaginationRange(currentPage, totalPages) {
+        if (totalPages <= 7) {
+            var range = [];
+            for (var i = 1; i <= totalPages; i++) range.push(i);
+            return range;
+        }
+
+        if (currentPage <= 3) {
+            return [1, 2, 3, 4, '...', totalPages];
+        }
+
+        if (currentPage >= totalPages - 2) {
+            return [1, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+        }
+
+        return [1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages];
+    }
+
+    function renderMaraResults(list, page) {
+        if (list !== undefined) currentMaraResults = list || [];
+        maraCurrentPage = page || 1;
+
+        var tbody = document.getElementById("maraResultTbody");
+        var badge = document.getElementById("maraResultBadge");
+        var paginationFooter = document.getElementById("maraPaginationFooter");
+        var paginationSummary = document.getElementById("maraPaginationSummary");
+        var paginationControls = document.getElementById("maraPaginationControls");
+
+        if (!tbody) return;
+
+        if (!currentMaraResults || currentMaraResults.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="p-6 text-center text-slate-400 font-medium">No matching material master records found in SAP MARA.</td></tr>';
+            if (badge) {
+                badge.innerText = "0 Records Found";
+                badge.className = "text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-white/80 text-slate-600 border border-slate-200";
+            }
+            if (paginationFooter) paginationFooter.classList.add("hidden");
+            return;
+        }
+
+        var totalItems = currentMaraResults.length;
+        var totalPages = Math.ceil(totalItems / maraPageSize);
+        if (maraCurrentPage > totalPages) maraCurrentPage = totalPages;
+        if (maraCurrentPage < 1) maraCurrentPage = 1;
+
+        if (badge) {
+            badge.innerText = totalItems + " Record(s) Found";
+            badge.className = "text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200";
+        }
+
+        var startIndex = (maraCurrentPage - 1) * maraPageSize;
+        var endIndex = Math.min(startIndex + maraPageSize, totalItems);
+        var pageItems = currentMaraResults.slice(startIndex, endIndex);
+
+        tbody.innerHTML = '';
+        pageItems.forEach(function(item, relativeIdx) {
+            var globalIdx = startIndex + relativeIdx;
+            var rawMatnr = item.matnr || item.MATNR || '';
+            var matnrDisplay = rawMatnr.replace(/^0+/, '');
+            if (!matnrDisplay) matnrDisplay = rawMatnr;
+
+            var maktx = item.maktx || item.MAKTX || '';
+            var mtart = item.mtart || item.MTART || 'ZWH5';
+            var matkl = item.matkl || item.MATKL || '';
+            var meins = item.meins || item.MEINS || 'PC';
+
+            var tr = document.createElement('tr');
+            tr.className = 'hover:bg-emerald-50/40 transition-colors border-b border-slate-100';
+
+            var html = '';
+            html += '  <td class="p-2 text-center font-bold text-slate-500 text-[11px]">' + (globalIdx + 1) + '</td>';
+            html += '  <td class="p-2 font-mono font-bold text-emerald-700 text-[11px]">' + escapeHtml(matnrDisplay) + '</td>';
+            html += '  <td class="p-2 font-medium text-slate-800 text-[11px] max-w-[180px] truncate" title="' + escapeHtml(maktx) + '">' + escapeHtml(maktx) + '</td>';
+            html += '  <td class="p-2 text-center text-[10px] font-bold"><span class="px-1.5 py-0.5 bg-white/80 text-slate-700 rounded border border-slate-200">' + escapeHtml(mtart) + '</span></td>';
+            html += '  <td class="p-2 text-center font-mono text-[11px] text-slate-600">' + escapeHtml(matkl) + '</td>';
+            html += '  <td class="p-2 text-center font-mono text-[11px] text-slate-600">' + escapeHtml(meins) + '</td>';
+            html += '  <td class="p-2 text-center">';
+            html += `    <button type="button" class="btn-use-ref px-2.5 py-1 text-[10px] font-extrabold text-emerald-700 hover:text-white bg-emerald-50 hover:bg-emerald-600 border border-emerald-300 hover:border-emerald-600 rounded-md transition
+shadow-2xs inline-flex items-center gap-1 cursor-pointer">`;
+            html += '      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>';
+            html += '      <span>Use as Ref</span>';
+            html += '    </button>';
+            html += '  </td>';
+
+            tr.innerHTML = html;
+
+            var refBtn = tr.querySelector('.btn-use-ref');
+            if (refBtn) {
+                (function(index) {
+                    refBtn.addEventListener('click', function() {
+                        useMaraIndex(index);
+                    });
+                })(globalIdx);
+            }
+
+            tbody.appendChild(tr);
+        });
+
+        if (paginationFooter) {
+            if (totalItems <= 10) {
+                paginationFooter.classList.remove("hidden");
+                if (paginationSummary) {
+                    paginationSummary.innerText = "Showing 1-" + totalItems + " of " + totalItems + " items";
+                }
+                if (paginationControls) {
+                    paginationControls.innerHTML = "";
+                }
+            } else {
+                paginationFooter.classList.remove("hidden");
+                if (paginationSummary) {
+                    paginationSummary.innerText = "Showing " + (startIndex + 1) + "-" + endIndex + " of " + totalItems + " items (Page " + maraCurrentPage + " of " + totalPages + ")";
+                }
+                if (paginationControls) {
+                    paginationControls.innerHTML = "";
+
+                    // Previous Button
+                    var prevBtn = document.createElement("button");
+                    prevBtn.type = "button";
+                    prevBtn.disabled = (maraCurrentPage <= 1);
+                    prevBtn.className = "px-2.5 py-1 rounded-lg border text-[11px] font-bold transition " +
+                        (maraCurrentPage <= 1
+                            ? "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
+                            : "bg-white text-slate-700 hover:bg-slate-50 border-slate-300 cursor-pointer");
+                    prevBtn.innerText = "Prev";
+                    prevBtn.onclick = function() { changeMaraPage(maraCurrentPage - 1); };
+                    paginationControls.appendChild(prevBtn);
+
+                    // Page Numbers & Ellipsis
+                    var range = getMaraPaginationRange(maraCurrentPage, totalPages);
+                    range.forEach(function(item) {
+                        if (item === '...') {
+                            var span = document.createElement("span");
+                            span.className = "px-1.5 py-1 text-slate-400 font-extrabold text-[11px] select-none";
+                            span.innerText = "...";
+                            paginationControls.appendChild(span);
+                        } else {
+                            (function(pageNum) {
+                                var pBtn = document.createElement("button");
+                                pBtn.type = "button";
+                                pBtn.className = "px-2.5 py-1 rounded-lg border text-[11px] font-extrabold transition " +
+                                    (pageNum === maraCurrentPage
+                                        ? "bg-emerald-600 text-white border-emerald-600 shadow-2xs"
+                                        : "bg-white text-slate-700 hover:bg-emerald-50 border-slate-300 cursor-pointer");
+                                pBtn.innerText = pageNum;
+                                pBtn.onclick = function() { changeMaraPage(pageNum); };
+                                paginationControls.appendChild(pBtn);
+                            })(item);
+                        }
+                    });
+
+                    // Next Button
+                    var nextBtn = document.createElement("button");
+                    nextBtn.type = "button";
+                    nextBtn.disabled = (maraCurrentPage >= totalPages);
+                    nextBtn.className = "px-2.5 py-1 rounded-lg border text-[11px] font-bold transition " +
+                        (maraCurrentPage >= totalPages
+                            ? "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
+                            : "bg-white text-slate-700 hover:bg-slate-50 border-slate-300 cursor-pointer");
+                    nextBtn.innerText = "Next";
+                    nextBtn.onclick = function() { changeMaraPage(maraCurrentPage + 1); };
+                    paginationControls.appendChild(nextBtn);
+                }
+            }
+        }
+    }
+
+    function changeMaraPage(page) {
+        renderMaraResults(undefined, page);
+    }
+
+    function useMaraIndex(idx) {
+        var item = currentMaraResults[idx];
+        if (!item) return;
+
+        var rawMatnr = item.matnr || item.MATNR || '';
+        var matnr = rawMatnr.replace(/^0+/, '');
+        if (!matnr) matnr = rawMatnr;
+
+        var maktx = item.maktx || item.MAKTX || '';
+        var mtart = item.mtart || item.MTART || 'ZWH5';
+        var matkl = item.matkl || item.MATKL || '';
+        var meins = item.meins || item.MEINS || 'PC';
+        var mbrsh = item.mbrsh || item.MBRSH || 'F';
+        var bismt = item.bismt || item.BISMT || '';
+        var spart = item.spart || item.SPART || 'M1';
+
+        addNewRowData({
+            matnr: matnr,
+            maktx: maktx,
+            mtart: mtart,
+            matkl: matkl,
+            meins: meins,
+            mbrsh: mbrsh,
+            bismt: bismt,
+            spart: spart
+        });
+        showToast("Material " + matnr + " staged from reference.", "success");
+
+        var partTable = document.getElementById("partTable");
+        if (partTable) {
+            partTable.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+
+    function resetFilter() {
+        if (document.getElementById("filterMatnr")) document.getElementById("filterMatnr").value = "";
+        if (document.getElementById("filterMaktx")) document.getElementById("filterMaktx").value = "";
+        if (document.getElementById("filterMtart")) document.getElementById("filterMtart").value = "";
+        if (document.getElementById("filterMatkl")) document.getElementById("filterMatkl").value = "";
+
+        currentMaraResults = [];
+
+        var tbody = document.getElementById("maraResultTbody");
+        var badge = document.getElementById("maraResultBadge");
+        if (tbody) {
+            tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-slate-400 font-medium">Specify criteria in <b>Query Parameters</b> and execute search to view records.</td></tr>';
+        }
+        if (badge) {
+            badge.innerText = "Ready to Search";
+            badge.className = "text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200";
+        }
+
+        showToast("Filter criteria cleared.", "info");
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+</script>
+</body>
+</html>

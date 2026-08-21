@@ -73,7 +73,8 @@
             }
 
             .custom-select {
-                background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%6b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+                background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%6b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4
+4-4'/%3e%3c/svg%3e");
                 background-position: right 0.75rem center;
                 background-repeat: no-repeat;
                 background-size: 1.25em 1.25em;
@@ -147,7 +148,8 @@
                             <p class="text-[11px] text-slate-500 font-medium">Validate material data before request.</p>
                         </div>
                     </div>
-                    <button type="button" onclick="resetMaraFilter()" class="text-xs text-slate-600 hover:text-emerald-700 font-bold px-3.5 py-1.5 rounded-full border border-slate-200/80 bg-white/60 hover:bg-white transition inline-flex items-center gap-1 cursor-pointer">
+                    <button type="button" onclick="resetMaraFilter()" class="text-xs text-slate-600 hover:text-emerald-700 font-bold px-3.5 py-1.5 rounded-full border border-slate-200/80 bg-white/60 hover:bg-white transition inline-flex items-center
+gap-1 cursor-pointer">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                         </svg>
@@ -162,7 +164,8 @@
                         <div>
                             <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider mb-4 flex items-center gap-2 border-b border-slate-200/70 pb-2.5">
                                 <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013
+6.586V4z" />
                                 </svg>
                                 Query Parameters
                             </h3>
@@ -170,18 +173,21 @@
                             <div class="space-y-3">
                                 <div>
                                     <label class="block text-[11px] font-bold text-slate-700 mb-1">Material Code</label>
-                                    <input type="text" id="filterMatnr" placeholder="Filter MATNR (e.g. 50025217)..." onkeyup="handleFilterKeyup(event)" class="w-full p-2.5 text-xs border border-slate-200/80 rounded-xl focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 bg-white/80 text-slate-800 font-mono transition shadow-2xs">
+                                    <input type="text" id="filterMatnr" placeholder="Filter MATNR (e.g. 50025217)..." onkeyup="handleFilterKeyup(event)" class="w-full p-2.5 text-xs border border-slate-200/80 rounded-xl focus:outline-none
+focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 bg-white/80 text-slate-800 font-mono transition shadow-2xs">
                                 </div>
 
                                 <div>
                                     <label class="block text-[11px] font-bold text-slate-700 mb-1">Material Description</label>
-                                    <input type="text" id="filterMaktx" placeholder="Filter description (e.g. BEARING)..." onkeyup="handleFilterKeyup(event)" class="w-full p-2.5 text-xs border border-slate-200/80 rounded-xl focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 bg-white/80 text-slate-800 font-medium transition shadow-2xs">
+                                    <input type="text" id="filterMaktx" placeholder="Filter description (e.g. BEARING)..." onkeyup="handleFilterKeyup(event)" class="w-full p-2.5 text-xs border border-slate-200/80 rounded-xl focus:outline-none
+focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 bg-white/80 text-slate-800 font-medium transition shadow-2xs">
                                 </div>
                             </div>
                         </div>
 
                         <div class="mt-6 pt-3.5 border-t border-slate-200/70">
-                            <button type="button" onclick="searchMaraSAP()" class="w-full py-3 px-4 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-black text-xs rounded-xl shadow-xs hover:shadow transition-all inline-flex items-center justify-center gap-2 cursor-pointer">
+                            <button type="button" onclick="searchMaraSAP()" class="w-full py-3 px-4 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-black text-xs rounded-xl shadow-xs
+hover:shadow transition-all inline-flex items-center justify-center gap-2 cursor-pointer">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                 </svg>
@@ -269,15 +275,18 @@
                     <button type="button" id="tabBtn_ALL" onclick="setFilterStatusTab('ALL')" class="status-tab-btn px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer bg-slate-900 text-white shadow-2xs flex items-center gap-1.5">
                         All Statuses
                     </button>
-                    <button type="button" id="tabBtn_SUBMITTED" onclick="setFilterStatusTab('SUBMITTED')" class="status-tab-btn px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer bg-white/80 text-slate-600 hover:bg-white border border-slate-200/80 flex items-center gap-1.5">
+                    <button type="button" id="tabBtn_SUBMITTED" onclick="setFilterStatusTab('SUBMITTED')" class="status-tab-btn px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer bg-white/80 text-slate-600 hover:bg-white border
+border-slate-200/80 flex items-center gap-1.5">
                         <span class="w-2 h-2 rounded-full bg-teal-500 animate-pulse"></span>
                         On Check
                     </button>
-                    <button type="button" id="tabBtn_APPROVED" onclick="setFilterStatusTab('APPROVED')" class="status-tab-btn px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer bg-white/80 text-slate-600 hover:bg-white border border-slate-200/80 flex items-center gap-1.5">
+                    <button type="button" id="tabBtn_APPROVED" onclick="setFilterStatusTab('APPROVED')" class="status-tab-btn px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer bg-white/80 text-slate-600 hover:bg-white border
+border-slate-200/80 flex items-center gap-1.5">
                         <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
                         Approved
                     </button>
-                    <button type="button" id="tabBtn_REJECTED" onclick="setFilterStatusTab('REJECTED')" class="status-tab-btn px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer bg-white/80 text-slate-600 hover:bg-white border border-slate-200/80 flex items-center gap-1.5">
+                    <button type="button" id="tabBtn_REJECTED" onclick="setFilterStatusTab('REJECTED')" class="status-tab-btn px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer bg-white/80 text-slate-600 hover:bg-white border
+border-slate-200/80 flex items-center gap-1.5">
                         <span class="w-2 h-2 rounded-full bg-rose-500"></span>
                         Rejected
                     </button>
@@ -287,14 +296,16 @@
                     <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 w-full md:w-auto">
                         <div>
                             <label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Sort Date</label>
-                            <select id="dateSortFilter" class="custom-select w-full px-3 py-2 border border-slate-200/80 rounded-xl text-xs outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 bg-white/80 font-semibold text-slate-700 cursor-pointer transition" onchange="applyFilter()">
+                            <select id="dateSortFilter" class="custom-select w-full px-3 py-2 border border-slate-200/80 rounded-xl text-xs outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 bg-white/80 font-semibold
+text-slate-700 cursor-pointer transition" onchange="applyFilter()">
                                 <option value="DESC">Newest First</option>
                                 <option value="ASC">Oldest First</option>
                             </select>
                         </div>
                         <div>
                             <label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Column</label>
-                            <select id="columnFilter" class="custom-select w-full px-3 py-2 border border-slate-200/80 rounded-xl text-xs outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 bg-white/80 font-semibold text-slate-700 cursor-pointer transition" onchange="applyFilter()">
+                            <select id="columnFilter" class="custom-select w-full px-3 py-2 border border-slate-200/80 rounded-xl text-xs outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 bg-white/80 font-semibold
+text-slate-700 cursor-pointer transition" onchange="applyFilter()">
                                 <option value="ALL">All Columns</option>
                                 <option value="req_no">Request ID</option>
                                 <option value="sub_reason">Request Description</option>
@@ -304,7 +315,8 @@
                         </div>
                         <div>
                             <label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Filter Status</label>
-                            <select id="statusFilter" class="custom-select w-full px-3 py-2 border border-slate-200/80 rounded-xl text-xs outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 bg-white/80 font-semibold text-slate-700 cursor-pointer transition" onchange="onStatusSelectChanged()">
+                            <select id="statusFilter" class="custom-select w-full px-3 py-2 border border-slate-200/80 rounded-xl text-xs outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 bg-white/80 font-semibold
+text-slate-700 cursor-pointer transition" onchange="onStatusSelectChanged()">
                                 <option value="ALL">All Statuses</option>
                                 <option value="SUBMITTED">On Check</option>
                                 <option value="CHECKED">Ready for Approval</option>
@@ -315,7 +327,8 @@
                         </div>
                         <div>
                             <label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Search</label>
-                            <input type="text" id="searchInput" placeholder="Search..." class="w-full px-3 py-2 border border-slate-200/80 rounded-xl text-xs outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 font-medium text-slate-800 bg-white/80 transition placeholder:text-slate-400" onkeyup="applyFilter()">
+                            <input type="text" id="searchInput" placeholder="Search..." class="w-full px-3 py-2 border border-slate-200/80 rounded-xl text-xs outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 font-medium
+text-slate-800 bg-white/80 transition placeholder:text-slate-400" onkeyup="applyFilter()">
                         </div>
                     </div>
 
@@ -323,8 +336,10 @@
                         <span class="text-xs text-slate-500 font-semibold mr-2" id="queueSummaryLabel">
                             Showing 0 requests
                         </span>
-                        <button onclick="fetchRequests()" class="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white px-4 py-2 rounded-xl font-extrabold text-xs flex items-center gap-1.5 transition shadow-2xs cursor-pointer">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        <button onclick="fetchRequests()" class="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white px-4 py-2 rounded-xl font-extrabold text-xs flex items-center gap-1.5 transition
+shadow-2xs cursor-pointer">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0
+0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                             <span>Refresh Queue</span>
                         </button>
                     </div>
@@ -389,8 +404,10 @@
                 <div class="px-6 py-3 bg-slate-50/80 backdrop-blur-xs border-b border-slate-200/80 flex flex-wrap items-center justify-between gap-3 shrink-0">
                     <div class="flex items-center gap-2">
                         <div class="relative w-80">
-                            <svg class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                            <input type="text" id="modalItemSearch" onkeyup="filterModalItems()" placeholder="Search item..." class="w-full pl-9 pr-3 py-1.5 border border-slate-200/80 rounded-xl text-xs outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 bg-white/90 text-slate-800 font-medium transition shadow-2xs">
+                            <svg class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7
+0 0114 0z"/></svg>
+                            <input type="text" id="modalItemSearch" onkeyup="filterModalItems()" placeholder="Search item..." class="w-full pl-9 pr-3 py-1.5 border border-slate-200/80 rounded-xl text-xs outline-none focus:border-emerald-600 focus:ring-2
+focus:ring-emerald-500/10 bg-white/90 text-slate-800 font-medium transition shadow-2xs">
                         </div>
                     </div>
 
@@ -409,7 +426,8 @@
                     <div id="drawerRejectBanner" class="hidden mb-5 bg-rose-50/90 border border-rose-200/80 rounded-2xl p-4 shadow-2xs">
                         <div class="flex items-center justify-between pb-2 mb-2 border-b border-rose-100/80 flex-wrap gap-2">
                             <h3 class="text-xs font-black text-rose-800 uppercase tracking-wider flex items-center gap-2">
-                                <svg class="w-4 h-4 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                <svg class="w-4 h-4 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667
+1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                                 <span>Validation / Rejection Reason:</span>
                             </h3>
                             <span id="drawerRejectBadge" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-100 text-rose-800 border border-rose-200 uppercase font-mono">
@@ -438,13 +456,15 @@
 
                 <!-- Modal Footer Actions -->
                 <div class="px-6 py-4 bg-slate-100/90 backdrop-blur-xs border-t border-slate-200/80 flex items-center justify-between gap-3 shrink-0">
-                    <button id="drawerReturnBtn" onclick="openReturnModal()" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 px-5 py-2.5 rounded-full font-extrabold text-xs flex items-center gap-1.5 transition active:scale-95 cursor-pointer shadow-2xs">
+                    <button id="drawerReturnBtn" onclick="openReturnModal()" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 px-5 py-2.5 rounded-full font-extrabold text-xs flex items-center gap-1.5 transition active:scale-95
+cursor-pointer shadow-2xs">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         Return Request
                     </button>
 
                     <div class="flex items-center gap-2">
-                        <button id="drawerCheckBtn" onclick="markAsCheckedDirect(currentReqNo)" class="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white px-5 py-2.5 rounded-full font-extrabold text-xs shadow-xs transition active:scale-95 flex items-center gap-1.5 cursor-pointer">
+                        <button id="drawerCheckBtn" onclick="markAsCheckedDirect(currentReqNo)" class="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white px-5 py-2.5 rounded-full font-extrabold
+text-xs shadow-xs transition active:scale-95 flex items-center gap-1.5 cursor-pointer">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                             Check Data
                         </button>
@@ -462,7 +482,8 @@
         <div id="returnModal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
             <div class="bg-white/95 backdrop-blur-xl rounded-3xl max-w-md w-full p-6 shadow-2xl border border-white/80">
                 <h3 class="text-sm font-black text-slate-900 flex items-center gap-2 mb-2">
-                    <svg class="w-5 h-5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    <svg class="w-5 h-5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732
+4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                     Return Request <span id="returnModalReqId" class="text-rose-700 font-mono font-bold"></span>
                 </h3>
                 <p class="text-xs text-slate-500 font-medium mb-4">Specify the reason for returning or rejecting this request.</p>
@@ -470,7 +491,8 @@
                 <label class="block text-xs font-extrabold text-slate-700 mb-1.5">
                     Rejection Reason <span class="text-rose-600 font-bold">*</span>
                 </label>
-                <textarea id="returnReasonInput" rows="3" placeholder="Enter rejection reason..." class="w-full p-3 border border-slate-200/80 rounded-xl text-xs outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 bg-white text-slate-800 font-medium transition shadow-2xs"></textarea>
+                <textarea id="returnReasonInput" rows="3" placeholder="Enter rejection reason..." class="w-full p-3 border border-slate-200/80 rounded-xl text-xs outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 bg-white
+text-slate-800 font-medium transition shadow-2xs"></textarea>
                 <p id="returnReasonError" class="text-[11px] text-rose-600 font-bold hidden mt-1.5">⚠️ Rejection reason is required.</p>
 
                 <div class="flex items-center justify-end gap-2.5 mt-5">
@@ -502,7 +524,8 @@
                 </div>
 
                 <div class="p-3.5 bg-amber-50/80 border border-amber-200/80 rounded-2xl text-amber-900 text-[11px] font-semibold flex items-center gap-2 mb-5 shadow-2xs">
-                    <svg class="w-4 h-4 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <svg class="w-4 h-4 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118
+0z"/></svg>
                     <span id="valModalNote">Document is <strong>On Hold</strong> in system for review and not returned to requestor.</span>
                 </div>
 
@@ -533,7 +556,8 @@
                     <button type="button" onclick="closeCheckConfirmModal()" class="w-1/2 py-2.5 px-4 rounded-full text-xs font-black text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200/80 transition cursor-pointer active:scale-95">
                         No
                     </button>
-                    <button type="button" onclick="executeCheckProcess()" class="w-1/2 py-2.5 px-4 rounded-full text-xs font-black text-white bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 shadow-md transition transform active:scale-95 cursor-pointer">
+                    <button type="button" onclick="executeCheckProcess()" class="w-1/2 py-2.5 px-4 rounded-full text-xs font-black text-white bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 shadow-md
+transition transform active:scale-95 cursor-pointer">
                         Yes
                     </button>
                 </div>
@@ -618,7 +642,8 @@
             // 1. Fetch Request Queue
             function fetchRequests() {
                 const tbody = document.getElementById('requestTableBody');
-                tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400 font-medium"><div class="inline-block animate-spin rounded-full h-5 w-5 border-2 border-emerald-600 border-t-transparent mr-2"></div> Loading requests...</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400 font-medium"><div class="inline-block animate-spin rounded-full h-5 w-5 border-2 border-emerald-600 border-t-transparent mr-2"></div> Loading
+requests...</td></tr>`;
 
                 const formData = new FormData();
                 formData.append('OnInputProcessing', 'GET_PENDING_LIST');
@@ -661,7 +686,8 @@
                     return;
                 }
 
-                tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-400 font-medium"><div class="inline-block animate-spin rounded-full h-5 w-5 border-2 border-emerald-600 border-t-transparent mr-2"></div> Searching SAP MARA database...</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-400 font-medium"><div class="inline-block animate-spin rounded-full h-5 w-5 border-2 border-emerald-600 border-t-transparent mr-2"></div> Searching SAP MARA
+database...</td></tr>`;
                 badge.className = "text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200";
                 badge.innerText = "Searching...";
 
@@ -747,7 +773,8 @@
                             <td class="p-2.5 text-center font-mono text-slate-600 text-[11px]">${matklClean || '-'}</td>
                             <td class="p-2.5 text-center font-mono text-slate-600 text-[11px]">${meinsClean || '-'}</td>
                             <td class="p-2.5 text-center">
-                                <button type="button" onclick="useMaraIndex(${rowIdx})" class="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-lg text-[10px] font-extrabold transition cursor-pointer inline-flex items-center gap-1">
+                                <button type="button" onclick="useMaraIndex(${rowIdx})" class="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-lg text-[10px] font-extrabold transition cursor-pointer
+inline-flex items-center gap-1">
                                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                     Use as Ref
                                 </button>
@@ -765,11 +792,11 @@
                     const isPrevDisabled = (maraCurrentPage === 1);
                     const isNextDisabled = (maraCurrentPage === totalPages);
 
-                    const prevClass = isPrevDisabled 
+                    const prevClass = isPrevDisabled
                         ? 'px-2 py-1 text-[11px] font-bold rounded-lg border border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed'
                         : 'px-2 py-1 text-[11px] font-bold rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition cursor-pointer';
 
-                    const nextClass = isNextDisabled 
+                    const nextClass = isNextDisabled
                         ? 'px-2 py-1 text-[11px] font-bold rounded-lg border border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed'
                         : 'px-2 py-1 text-[11px] font-bold rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition cursor-pointer';
 
@@ -937,15 +964,20 @@
                     let badge = '<span class="inline-flex items-center gap-1.5 bg-slate-500/10 text-slate-700 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-slate-500/20">DRAFT</span>';
 
                     if (r.status === 'SUBMITTED' || r.status === 'CHECKED' || r.status === 'CODED') {
-                        badge = `<span class="inline-flex items-center gap-1.5 bg-teal-500/10 text-teal-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-teal-500/20"><span class="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse"></span>Ready</span>`;
+                        badge = `<span class="inline-flex items-center gap-1.5 bg-teal-500/10 text-teal-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-teal-500/20"><span class="w-1.5 h-1.5 rounded-full bg-teal-500
+animate-pulse"></span>Ready</span>`;
                     } else if (r.status === 'HOLD') {
-                        badge = `<span class="inline-flex items-center gap-1.5 bg-amber-500/10 text-amber-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-amber-500/20"><span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>ON HOLD</span>`;
+                        badge = `<span class="inline-flex items-center gap-1.5 bg-amber-500/10 text-amber-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-amber-500/20"><span class="w-1.5 h-1.5 rounded-full bg-amber-500
+animate-pulse"></span>ON HOLD</span>`;
                     } else if (r.status === 'APPROVED') {
-                        badge = `<span class="inline-flex items-center gap-1.5 bg-emerald-500/10 text-emerald-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-emerald-500/20"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>APPROVED</span>`;
+                        badge = `<span class="inline-flex items-center gap-1.5 bg-emerald-500/10 text-emerald-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-emerald-500/20"><span class="w-1.5 h-1.5 rounded-full
+bg-emerald-500"></span>APPROVED</span>`;
                     } else if (r.status === 'FAILED') {
-                        badge = `<span class="inline-flex items-center gap-1.5 bg-rose-500/10 text-rose-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-rose-500/20"><span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>GAGAL SAP</span>`;
+                        badge = `<span class="inline-flex items-center gap-1.5 bg-rose-500/10 text-rose-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-rose-500/20"><span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>GAGAL
+SAP</span>`;
                     } else if (r.status === 'REJECTED') {
-                        badge = `<span class="inline-flex items-center gap-1.5 bg-rose-500/10 text-rose-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-rose-500/20"><span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>REJECTED</span>`;
+                        badge = `<span class="inline-flex items-center gap-1.5 bg-rose-500/10 text-rose-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-rose-500/20"><span class="w-1.5 h-1.5 rounded-full
+bg-rose-500"></span>REJECTED</span>`;
                     }
 
                     const reqNoEsc = escapeHtml(r.req_no);
@@ -960,7 +992,8 @@
 
                     let reasonHtml = '';
                     if (r.status === 'HOLD' && rejReasonEsc) {
-                        reasonHtml = `<div class="text-[11px] text-amber-800 font-medium mt-1.5 bg-amber-50/90 p-2 rounded-xl border border-amber-200/80 shadow-2xs"><strong class="font-extrabold">Hold Note (Validation Check):</strong> ${rejReasonEsc}</div>`;
+                        reasonHtml = `<div class="text-[11px] text-amber-800 font-medium mt-1.5 bg-amber-50/90 p-2 rounded-xl border border-amber-200/80 shadow-2xs"><strong class="font-extrabold">Hold Note (Validation Check):</strong>
+${rejReasonEsc}</div>`;
                     } else if (r.status === 'REJECTED' && rejReasonEsc) {
                         reasonHtml = `<div class="text-[11px] text-rose-800 font-medium mt-1.5 bg-rose-50/90 p-2 rounded-xl border border-rose-200/80 shadow-2xs"><strong class="font-extrabold">Reason:</strong> ${rejReasonEsc}</div>`;
                     } else if (r.status === 'FAILED' && rejReasonEsc) {
@@ -988,10 +1021,12 @@
                                     View Detail
                                 </button>
                                 ${isActionable ? `
-                                    <button onclick="markAsCheckedDirect('${reqNoEsc}')" class="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white px-3 py-1.5 rounded-full font-extrabold text-[11px] transition shadow-2xs flex items-center gap-1 cursor-pointer">
+                                    <button onclick="markAsCheckedDirect('${reqNoEsc}')" class="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white px-3 py-1.5 rounded-full font-extrabold text-[11px]
+transition shadow-2xs flex items-center gap-1 cursor-pointer">
                                         &#10003; Checked
                                     </button>
-                                    <button onclick="openReturnModal('${reqNoEsc}')" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 px-3 py-1.5 rounded-full font-extrabold text-[11px] transition shadow-2xs flex items-center gap-1 cursor-pointer">
+                                    <button onclick="openReturnModal('${reqNoEsc}')" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 px-3 py-1.5 rounded-full font-extrabold text-[11px] transition shadow-2xs flex items-center
+gap-1 cursor-pointer">
                                         &#10007; Reject
                                     </button>
                                 ` : ''}
@@ -1100,7 +1135,8 @@
 
                 // Fetch Items
                 const tbody = document.getElementById('drawerItemTableBody');
-                tbody.innerHTML = `<tr><td colspan="15" class="p-8 text-center text-slate-400 font-medium"><div class="inline-block animate-spin rounded-full h-5 w-5 border-2 border-emerald-600 border-t-transparent mr-2"></div> Loading item details...</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="15" class="p-8 text-center text-slate-400 font-medium"><div class="inline-block animate-spin rounded-full h-5 w-5 border-2 border-emerald-600 border-t-transparent mr-2"></div> Loading item
+details...</td></tr>`;
 
                 const formData = new FormData();
                 formData.append('OnInputProcessing', 'GET_REQUEST_DETAIL');
@@ -1624,4 +1660,3 @@
         </script>
     </body>
     </html>
-
