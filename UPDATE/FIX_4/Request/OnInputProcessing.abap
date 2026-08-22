@@ -323,18 +323,6 @@ CASE lv_action.
       REPLACE ALL OCCURRENCES OF ',' IN lv_losgr_raw WITH '.'.
       ls_dtl-losgr      = CONV #( lv_losgr_raw ).
 
-      " Format TRAGR & LADGR (e.g. '1' -> '0001')
-      IF ls_dtl-tragr IS NOT INITIAL.
-        CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
-          EXPORTING input = ls_dtl-tragr
-          IMPORTING output = ls_dtl-tragr.
-      ENDIF.
-      IF ls_dtl-ladgr IS NOT INITIAL.
-        CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
-          EXPORTING input = ls_dtl-ladgr
-          IMPORTING output = ls_dtl-ladgr.
-      ENDIF.
-
       APPEND ls_dtl TO lt_dtl.
     ENDDO.
 

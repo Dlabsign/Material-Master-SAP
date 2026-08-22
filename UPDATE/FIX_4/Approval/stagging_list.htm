@@ -716,10 +716,10 @@ cursor-pointer">&times;</button>
         items.forEach(function(row, i) {
             var matName = escapeHtml(row.matnr_ext || row.matnr || '-');
             var maktxEsc = escapeHtml(row.maktx || '-');
-            var mtartEsc = escapeHtml(row.mtart || '-');
+            var mtartEsc = escapeHtml(row.mtart || 'ZOS3');
             var matklEsc = escapeHtml(row.matkl || '-');
-            var werksEsc = escapeHtml(row.werks || '-');
-            var lgortEsc = escapeHtml(row.lgort || '-');
+            var werksEsc = escapeHtml(row.werks || '1200');
+            var lgortEsc = escapeHtml(row.lgort || '1201');
 
             var rStr = '';
             rStr += '<tr class="detail-row-' + escapeHtml(reqNo) + ' hover:bg-slate-50 transition-colors">';
@@ -781,17 +781,16 @@ cursor-pointer">&times;</button>
             // 1. BASIC DATA
             bStr += '<div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">';
             bStr += '<div class="bg-slate-100/70 border-b border-slate-200 px-4 py-2.5 font-bold text-brand-800 text-xs uppercase tracking-wider flex items-center gap-2">📌 BASIC DATA</div>';
-            bStr += '<div class="p-3.5 grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 gap-3">';
+            bStr += '<div class="p-3.5 grid grid-cols-1 sm:grid-cols-3 md:grid-cols-3 gap-3">';
             bStr += field('Material Temp', row.matnr_ext || row.matnr, true, true);
             bStr += field('Old Material No.', row.bismt, false, true);
             bStr += field('Material Description', row.maktx, true, false);
             bStr += field('Material Type', row.mtart || 'ZOS3', false, false);
             bStr += field('Industry Sector', row.mbrsh || 'F', false, false);
             bStr += field('Material Group', row.matkl, false, true);
-            bStr += field('Base UoM', row.meins || '-', false, false);
-            bStr += field('Division', row.spart || '-', false, true);
-            bStr += field('Material Package', row.magrv, false, true);
-            bStr += field('Gen. Item Cat. Group', row.mtpos_mara || '-', false, true);
+            bStr += field('Base UoM', row.meins || 'PC', false, false);
+            bStr += field('Division', row.spart || 'M1', false, true);
+            bStr += field('Gen. Item Cat. Group', row.mtpos_mara || 'NORM', false, true);
             bStr += field('Prod./Insp. Memo', row.ferth, false, false);
             bStr += field('Document Num.', row.zeinr, false, true);
             bStr += field('Industry Std. Desc.', row.normt, false, false);
@@ -802,64 +801,60 @@ cursor-pointer">&times;</button>
             bStr += '<div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">';
             bStr += '<div class="bg-slate-100/70 border-b border-slate-200 px-4 py-2.5 font-bold text-brand-800 text-xs uppercase tracking-wider flex items-center gap-2">🏭 PLANT & STORAGE DATA</div>';
             bStr += '<div class="p-3.5 grid grid-cols-1 sm:grid-cols-3 md:grid-cols-3 gap-3">';
-            bStr += field('Plant', row.werks || '-', false, true);
-            bStr += field('Storage Location', row.lgort || '-', false, true);
-            bStr += field('Country Origin', row.herkl || '-', false, true);
-            bStr += field('Prod. Storage Loc', row.lgpro || '-', false, true);
-            bStr += field('Prod. Sched Profile', row.sfpro || row.sfprr || '-', false, true);
-            bStr += field('Batch Management', row.xchpf || '-', false, false);
+            bStr += field('Plant', row.werks || '1200', false, true);
+            bStr += field('Storage Location', row.lgort || '1201', false, true);
+            bStr += field('Country Origin', row.herkl || 'ID', false, true);
+            bStr += field('Prod. Storage Loc', row.lgpro || '1201', false, true);
+            bStr += field('Prod. Sched Profile', row.sfpro, false, true);
+            bStr += field('Batch Management', row.xchpf || 'X', false, false);
             bStr += '</div></div>';
 
             // 3. PURCHASING & LOGISTICS
             bStr += '<div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">';
             bStr += '<div class="bg-slate-100/70 border-b border-slate-200 px-4 py-2.5 font-bold text-brand-800 text-xs uppercase tracking-wider flex items-center gap-2">🛒 PURCHASING & LOGISTICS</div>';
-            bStr += '<div class="p-3.5 grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 gap-3">';
-            bStr += field('Sales Organization', row.vkorg, false, true);
-            bStr += field('Distr. Channel', row.vtweg, false, true);
-            bStr += field('Purchasing Group', row.ekgrp || '-', false, true);
-            bStr += field('Transportation Group', row.tragr || '-', false, true);
-            bStr += field('Loading Group', row.ladgr || '-', false, true);
-            bStr += field('Tax Class', row.taxkm || '-', false, true);
-            bStr += field('Tax Category', row.tatyp || '-', false, true);
-            bStr += field('Item Category Group', row.mtpos || '-', false, true);
+            bStr += '<div class="p-3.5 grid grid-cols-1 sm:grid-cols-3 md:grid-cols-3 gap-3">';
+            bStr += field('Purchasing Group', row.ekgrp || 'K01', false, true);
+            bStr += field('Transportation Group', row.tragr || '0001', false, true);
+            bStr += field('Loading Group', row.ladgr || '0001', false, true);
+            bStr += field('Tax Class', row.taxkm || '1', false, true);
+            bStr += field('Tax Category', row.tatyp || 'MWST', false, true);
+            bStr += field('Item Category Group', row.mtpos || 'NORM', false, true);
             bStr += '</div></div>';
 
             // 4. ACCOUNTING & VALUATION
             bStr += '<div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">';
             bStr += '<div class="bg-slate-100/70 border-b border-slate-200 px-4 py-2.5 font-bold text-brand-800 text-xs uppercase tracking-wider flex items-center gap-2">📊 ACCOUNTING & VALUATION</div>';
-            bStr += '<div class="p-3.5 grid grid-cols-1 sm:grid-cols-3 md:grid-cols-5 gap-3">';
-            bStr += field('Valuation Class', row.bklas || '-', false, true);
-            bStr += field('Price Unit', row.peinh || '-', false, true);
-            bStr += field('Price Control', row.vprsv || '-', false, false);
-            bStr += field('Profit Center', row.prctr || '-', false, true);
-            bStr += field('Origin Indicator', row.hkmat || '-', false, false);
-            bStr += field('Origin Group', row.herbl || row.hrkft || '-', false, true);
-            bStr += field('Qty Struct. Ind.', row.ekalr || '-', false, false);
-            bStr += field('Costing Lot Size', row.losgr || '-', false, true);
-            bStr += field('Stock Determ. Group', row.eprio || '-', false, true);
+            bStr += '<div class="p-3.5 grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 gap-3">';
+            bStr += field('Valuation Class', row.bklas || 'OS01', false, true);
+            bStr += field('Price Unit', row.peinh || '1', false, true);
+            bStr += field('Price Control', row.vprsv || 'V', false, false);
+            bStr += field('Profit Center', row.prctr || '200201', false, true);
+            bStr += field('Origin Indicator', row.hkmat || 'X', false, false);
+            bStr += field('Qty Struct. Ind.', row.ekalr || 'X', false, false);
+            bStr += field('Costing Lot Size', row.losgr || '100', false, true);
+            bStr += field('Stock Determ. Group', row.eprio || '0001', false, true);
             bStr += '</div></div>';
 
             // 5. MRP & PLANNING
             bStr += '<div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">';
             bStr += '<div class="bg-slate-100/70 border-b border-slate-200 px-4 py-2.5 font-bold text-brand-800 text-xs uppercase tracking-wider flex items-center gap-2">⚙️ MRP & PLANNING</div>';
             bStr += '<div class="p-3.5 grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 gap-3">';
-            bStr += field('MRP Type', row.dismm || '-', false, true);
-            bStr += field('MRP Group', row.disgr || '-', false, true);
-            bStr += field('MRP Controller', row.dispo || '-', false, true);
-            bStr += field('Lot Sizing Procedure', row.disls || '-', false, true);
-            bStr += field('Procurement Type', row.beskz || '-', false, true);
-            bStr += field('Backflush Indicator', row.rgekz || '-', false, true);
-            bStr += field('Sched. Margin Key', row.fhori || '-', false, true);
+            bStr += field('MRP Type', row.dismm || 'PD', false, true);
+            bStr += field('MRP Group', row.disgr || 'ZWH5', false, true);
+            bStr += field('MRP Controller', row.dispo || 'RW8', false, true);
+            bStr += field('Lot Sizing Procedure', row.disls || 'PB', false, true);
+            bStr += field('Procurement Type', row.beskz || 'F', false, true);
+            bStr += field('Backflush Indicator', row.rgekz || '1', false, true);
+            bStr += field('Sched. Margin Key', row.fhori || '000', false, true);
             bStr += field('Safety Stock', row.eisbe, false, true);
             bStr += field('Strategy Group', row.strgr, false, true);
-            bStr += field('Variance Key', row.klrab, false, true);
             bStr += field('Consumption Mode', row.vrmod, false, true);
             bStr += field('Fwd Consum. Period', row.vint1, false, true);
             bStr += field('Bwd Consum. Period', row.vint2, false, true);
-            bStr += field('Period Indicator', row.perkz || '-', false, true);
-            bStr += field('Fiscal Year Variant', row.periv || '-', false, true);
-            bStr += field('Availability Check', row.mtvfp || '-', false, true);
-            bStr += field('Individual/Collective', row.kzkst || '-', false, true);
+            bStr += field('Period Indicator', row.perkz || 'M', false, true);
+            bStr += field('Fiscal Year Variant', row.periv || 'C1', false, true);
+            bStr += field('Availability Check', row.mtvfp || 'KP', false, true);
+            bStr += field('Individual/Collective', row.kzkst || '2', false, true);
             bStr += '</div></div>';
 
             bStr += '</div>';

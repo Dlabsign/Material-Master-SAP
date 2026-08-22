@@ -108,14 +108,14 @@ IF lv_action IS NOT INITIAL.
 
       LOOP AT lt_hdr_db INTO ls_hdr_db.
         CLEAR ls_list.
-        ls_list-req_no     = ls_hdr_db-req_no.
-        ls_list-remarks    = ls_hdr_db-remarks.
-        ls_list-sub_reason = ls_hdr_db-sub_reason.
-        ls_list-req_date   = ls_hdr_db-req_date.
-        ls_list-req_time   = ls_hdr_db-req_time.
-        ls_list-requestor  = ls_hdr_db-requestor.
-        ls_list-status     = ls_hdr_db-status.
-        ls_list-rej_reason = ls_hdr_db-rej_reason.
+        ls_list-req_no     = CONV #( ls_hdr_db-req_no ).
+        ls_list-remarks    = CONV #( ls_hdr_db-remarks ).
+        ls_list-sub_reason = CONV #( ls_hdr_db-sub_reason ).
+        ls_list-req_date   = CONV #( ls_hdr_db-req_date ).
+        ls_list-req_time   = CONV #( ls_hdr_db-req_time ).
+        ls_list-requestor  = CONV #( ls_hdr_db-requestor ).
+        ls_list-status     = CONV #( ls_hdr_db-status ).
+        ls_list-rej_reason = CONV #( ls_hdr_db-rej_reason ).
 
         SELECT COUNT( * ) FROM zmdg_req_dtl INTO @ls_list-total_item WHERE req_no = @ls_hdr_db-req_no.
 
@@ -277,47 +277,26 @@ IF lv_action IS NOT INITIAL.
           ls_headdata-basic_view      = 'X'.
           ls_headdata-purchase_view   = 'X'.
           ls_headdata-work_sched_view = 'X'.
-          ls_headdata-sales_view      = 'X'.
 
           IF ls_dtl_db-vkorg IS NOT INITIAL AND ls_dtl_db-vtweg IS NOT INITIAL.
-            ls_salesdata-sales_org   = ls_dtl_db-vkorg.
-            ls_salesdatax-sales_org  = ls_dtl_db-vkorg.
-            ls_salesdata-distr_chan  = ls_dtl_db-vtweg.
-            ls_salesdatax-distr_chan = ls_dtl_db-vtweg.
+            ls_headdata-sales_view = 'X'.
+          ENDIF.
+
+          IF ls_dtl_db-werks IS NOT INITIAL AND ls_dtl_db-lgort IS NOT INITIAL.
+            ls_headdata-storage_view = 'X'.
           ENDIF.
 
           IF ls_dtl_db-werks IS NOT INITIAL.
-            ls_headdata-storage_view = 'X'.
             ls_headdata-account_view = 'X'.
             ls_headdata-cost_view    = 'X'.
-            ls_headdata-mrp_view     = 'X'.
-          ENDIF.
-
-          IF ls_dtl_db-insptype IS NOT INITIAL OR ls_dtl_db-qssys IS NOT INITIAL OR ls_dtl_db-ssqss IS NOT INITIAL.
-            ls_headdata-quality_view = 'X'.
+            IF ls_dtl_db-dismm IS NOT INITIAL OR ls_dtl_db-beskz IS NOT INITIAL OR ls_dtl_db-mtvfp IS NOT INITIAL.
+              ls_headdata-mrp_view = 'X'.
+            ENDIF.
           ENDIF.
 
           IF ls_dtl_db-matkl IS NOT INITIAL.
             ls_clientdata-matl_group  = ls_dtl_db-matkl.
             ls_clientdatax-matl_group = 'X'.
-          ENDIF.
-
-          " Division (SPART)
-          IF ls_dtl_db-spart IS NOT INITIAL.
-            ls_clientdata-division  = ls_dtl_db-spart.
-            ls_clientdatax-division = 'X'.
-          ENDIF.
-
-          " Prod./insp. memo (FERTH)
-          IF ls_dtl_db-ferth IS NOT INITIAL.
-            ls_clientdata-basic_matl  = ls_dtl_db-ferth.
-            ls_clientdatax-basic_matl = 'X'.
-          ENDIF.
-
-          " Material Package (MAGRV)
-          IF ls_dtl_db-magrv IS NOT INITIAL.
-            ls_clientdata-mat_grp_sm  = ls_dtl_db-magrv.
-            ls_clientdatax-mat_grp_sm = 'X'.
           ENDIF.
 
           IF ls_dtl_db-meins IS NOT INITIAL.
@@ -395,95 +374,18 @@ IF lv_action IS NOT INITIAL.
           ENDIF.
           ls_plantdatax-proc_type = 'X'.
 
-          " Transportation Group (MARA-TRAGR)
-          IF ls_dtl_db-tragr IS NOT INITIAL.
-            CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
-              EXPORTING
-                input  = ls_dtl_db-tragr
-              IMPORTING
-                output = ls_clientdata-trans_grp.
-            ls_clientdatax-trans_grp = 'X'.
-          ENDIF.
-
           " 8. Loading Group (MARC-LADGR)
           IF ls_dtl_db-ladgr IS NOT INITIAL.
-            CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
-              EXPORTING
-                input  = ls_dtl_db-ladgr
-              IMPORTING
-                output = ls_plantdata-loadinggrp.
-            ls_plantdatax-loadinggrp = 'X'.
-          ENDIF.
-
-          " Backflush Indicator (MARC-RGEKZ)
-          IF ls_dtl_db-rgekz IS NOT INITIAL.
-            ls_plantdata-backflush  = ls_dtl_db-rgekz.
-            ls_plantdatax-backflush = 'X'.
-          ENDIF.
-
-          " Strategy Group (MARC-STRGR)
-          IF ls_dtl_db-strgr IS NOT INITIAL.
-            ls_plantdata-plan_strgp  = ls_dtl_db-strgr.
-            ls_plantdatax-plan_strgp = 'X'.
-          ENDIF.
-
-          " Scheduling Margin Key (MARC-FHORI)
-          IF ls_dtl_db-fhori IS NOT INITIAL.
-            CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
-              EXPORTING
-                input  = ls_dtl_db-fhori
-              IMPORTING
-                output = ls_plantdata-sm_key.
-            ls_plantdatax-sm_key = 'X'.
-          ENDIF.
-
-          " Production Storage Location (MARC-LGPRO)
-          IF ls_dtl_db-lgpro IS NOT INITIAL.
-            ls_plantdata-iss_st_loc  = ls_dtl_db-lgpro.
-            ls_plantdatax-iss_st_loc = 'X'.
-          ENDIF.
-
-          " Prod. Scheduling Profile (MARC-SFPRO)
-          IF ls_dtl_db-sfpro IS NOT INITIAL.
-            CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
-              EXPORTING
-                input  = ls_dtl_db-sfpro
-              IMPORTING
-                output = ls_plantdata-prodprof.
-            ls_plantdatax-prodprof = 'X'.
-          ENDIF.
-
-          " Costing Lot Size (MARC-LOSGR)
-          IF ls_dtl_db-losgr IS NOT INITIAL.
-            ls_plantdata-lot_size  = ls_dtl_db-losgr.
-            ls_plantdatax-lot_size = 'X'.
-          ENDIF.
-
-          " Stock Determination Group (MARC-EPRIO)
-          IF ls_dtl_db-eprio IS NOT INITIAL.
-            CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
-              EXPORTING
-                input  = ls_dtl_db-eprio
-              IMPORTING
-                output = ls_plantdata-determ_grp.
-            ls_plantdatax-determ_grp = 'X'.
-          ENDIF.
-
-          " Variance Key (MARC-AWSLS / KLRAB)
-          IF ls_dtl_db-klrab IS NOT INITIAL AND ls_dtl_db-klrab <> 'X' AND ls_dtl_db-klrab <> 'x'.
-            ls_plantdata-variance_key  = ls_dtl_db-klrab.
-            ls_plantdatax-variance_key = 'X'.
-          ENDIF.
-
-          " Storage Location (MARD-LGORT)
-          IF ls_dtl_db-lgort IS NOT INITIAL.
-            ls_storagelocationdata-plant     = ls_dtl_db-werks.
-            ls_storagelocationdata-stge_loc  = ls_dtl_db-lgort.
-            ls_storagelocationdatax-plant    = ls_dtl_db-werks.
-            ls_storagelocationdatax-stge_loc = ls_dtl_db-lgort.
+            ls_plantdata-loadinggrp  = ls_dtl_db-ladgr.
           ELSE.
-            CLEAR: ls_storagelocationdata, ls_storagelocationdatax.
+            ls_plantdata-loadinggrp  = '0001'.
           ENDIF.
+          ls_plantdatax-loadinggrp = 'X'.
+
+          ls_storagelocationdata-plant     = ls_dtl_db-werks.
+          ls_storagelocationdata-stge_loc  = ls_dtl_db-lgort.
+          ls_storagelocationdatax-plant    = ls_dtl_db-werks.
+          ls_storagelocationdatax-stge_loc = ls_dtl_db-lgort.
 
           IF ls_dtl_db-prctr IS NOT INITIAL.
             CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
@@ -502,24 +404,6 @@ IF lv_action IS NOT INITIAL.
             ls_valuationdatax-val_class = 'X'.
           ENDIF.
 
-          " Material-related Origin Ind. (MBEW-HKMAT)
-          IF ls_dtl_db-hkmat IS NOT INITIAL.
-            ls_valuationdata-orig_mat  = ls_dtl_db-hkmat.
-            ls_valuationdatax-orig_mat = 'X'.
-          ENDIF.
-
-          " Qty Structure Indicator (MBEW-EKALR)
-          IF ls_dtl_db-ekalr IS NOT INITIAL.
-            ls_valuationdata-qty_struct  = ls_dtl_db-ekalr.
-            ls_valuationdatax-qty_struct = 'X'.
-          ENDIF.
-
-          " Origin Group (MBEW-HERBL)
-          IF ls_dtl_db-herbl IS NOT INITIAL.
-            ls_valuationdata-orig_group  = ls_dtl_db-herbl.
-            ls_valuationdatax-orig_group = 'X'.
-          ENDIF.
-
           " E. EKSEKUSI BAPI SAVEDATA
           CALL FUNCTION 'BAPI_MATERIAL_SAVEDATA'
             EXPORTING
@@ -532,8 +416,6 @@ IF lv_action IS NOT INITIAL.
               storagelocationdatax = ls_storagelocationdatax
               valuationdata        = ls_valuationdata
               valuationdatax       = ls_valuationdatax
-              salesdata            = ls_salesdata
-              salesdatax           = ls_salesdatax
             IMPORTING
               return               = ls_bapireturn
             TABLES

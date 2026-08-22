@@ -1368,13 +1368,13 @@ text-slate-800 resize-none font-sans"></textarea>
                         groes: getCellStr(row, 12, ""),
                         werks: getCellStr(row, 13, ""),
                         lgort: getCellStr(row, 14, ""),
-                        vkorg: getCellStr(row, 15, ""),
-                        vtweg: getCellStr(row, 16, ""),
-                        dwerk: getCellStr(row, 17, ""),
+                        vkorg: getCellStr(row, 15, "1000"),
+                        vtweg: getCellStr(row, 16, "10"),
+                        dwerk: getCellStr(row, 17, "1200"),
                         vrkme: getCellStr(row, 18, ""),
-                        herkl: getCellStr(row, 19, ""),
-                        taxkm: getCellStr(row, 20, ""),
-                        tatyp: getCellStr(row, 21, ""),
+                        herkl: getCellStr(row, 19, "ID"),
+                        taxkm: getCellStr(row, 20, "1"),
+                        tatyp: getCellStr(row, 21, "MWST"),
                         mtpos: getCellStr(row, 22, ""),
                         ktgrm: getCellStr(row, 23, ""),
                         mvgr1: getCellStr(row, 24, ""),
@@ -1420,7 +1420,7 @@ text-slate-800 resize-none font-sans"></textarea>
                         bstrf: getCellStr(row, 64, ""),
                         beskz: getCellStr(row, 65, ""),
                         sobsl: getCellStr(row, 66, ""),
-                        rgekz: getCellStr(row, 67, ""),
+                        rgekz: getCellStr(row, 67, "1"),
                         dzeit: getCellStr(row, 68, ""),
                         plifz: getCellStr(row, 69, ""),
                         webaz: getCellStr(row, 70, ""),
@@ -1578,45 +1578,46 @@ text-slate-800 resize-none font-sans"></textarea>
         var html = '';
         html += '<td class="p-1.5 border-r border-slate-200 text-center font-bold text-slate-700 row-item-no align-middle">' + rowCounter + '</td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="18" class="row-matnr w-full font-mono uppercase" value="' + (data.matnr || '') + '" placeholder="AUTO / 50025217"></td>';
-        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="1" class="row-mbrsh w-full text-center font-mono" value="' + (data.mbrsh || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="1" class="row-mbrsh w-full text-center font-mono" value="' + (data.mbrsh || 'F') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="18" class="row-bismt w-full font-mono" value="' + (data.bismt || '') + '"></td>';
-        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="4" class="row-mtart w-full text-center font-mono font-bold text-emerald-700" value="' + (data.mtart || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="4" class="row-mtart w-full text-center font-mono font-bold text-emerald-700" value="' + (data.mtart || 'ZWH5') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="9" class="row-matkl w-full text-center font-mono" value="' + (data.matkl || '') + '"></td>';
-        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="3" class="row-meins w-full text-center font-mono font-bold text-emerald-700" value="' + (data.meins || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="3" class="row-meins w-full text-center font-mono font-bold text-emerald-700" value="' + (data.meins || 'PC') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200"><input type="text" maxlength="40" class="row-maktx w-full font-medium text-slate-900" value="' + (data.maktx || '') + '" placeholder="Material Description *"></td>';
-        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="2" class="row-spart w-full text-center font-mono" value="' + (data.spart || '') + '"></td>';
-        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="4" class="row-mtpos-mara w-full text-center font-mono" value="' + (data.mtpos_mara || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="2" class="row-spart w-full text-center font-mono" value="' + (data.spart || '01') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="4" class="row-mtpos-mara w-full text-center font-mono" value="' + (data.mtpos_mara || 'NORM') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-ferth w-full text-center font-mono" value="' + (data.ferth || '') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-zeinr w-full text-center font-mono" value="' + (data.zeinr || '') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-normt w-full text-center font-mono" value="' + (data.normt || '') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-groes w-full text-center font-mono" value="' + (data.groes || '') + '"></td>';
-        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="4" class="row-werks w-full text-center font-mono font-bold text-emerald-700" value="' + (data.werks || '') + '"></td>';
-        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="4" class="row-lgort w-full text-center font-mono font-bold text-emerald-700" value="' + (data.lgort || '') + '" placeholder="S.Loc"></td>';
-        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-vkorg w-full text-center font-mono" value="' + (data.vkorg || '') + '"></td>';
-        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-vtweg w-full text-center font-mono" value="' + (data.vtweg || '') + '"></td>';
-        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-dwerk w-full text-center font-mono" value="' + (data.dwerk || '') + '"></td>';
-        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-vrkme w-full text-center font-mono" value="' + (data.vrkme || '') + '"></td>';
-        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="3" class="row-herkl w-full text-center font-mono" value="' + (data.herkl || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="4" class="row-werks w-full text-center font-mono font-bold text-emerald-700" value="' + (data.werks || '1200') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="4" class="row-lgort w-full text-center font-mono font-bold text-emerald-700" value="' + (data.lgort || '1201') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-vkorg w-full text-center font-mono" value="' + (data.vkorg || '1000') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-vtweg w-full text-center font-mono" value="' + (data.vtweg || '10') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-dwerk w-full text-center font-mono" value="' + (data.dwerk || '1200') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-vrkme w-full text-center font-mono" value="' + (data.vrkme || 'PC') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="3" class="row-herkl w-full text-center font-mono" value="' + (data.herkl || 'ID') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="1" class="row-taxkm w-full text-center font-mono" value="' + (data.taxkm || '') + '" placeholder="Tax Class"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="4" class="row-tatyp w-full text-center font-mono" value="' + (data.tatyp || '') + '" placeholder="Tax Type"></td>';
-        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="4" class="row-mtpos w-full text-center font-mono" value="' + (data.mtpos || '') + '"></td>';
-        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-ktgrm w-full text-center font-mono" value="' + (data.ktgrm || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="4" class="row-mtpos w-full text-center font-mono" value="' + (data.mtpos || 'NORM') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-ktgrm w-full text-center font-mono" value="' + (data.ktgrm || '01') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-mvgr1 w-full text-center font-mono" value="' + (data.mvgr1 || '') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-mvgr2 w-full text-center font-mono" value="' + (data.mvgr2 || '') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-mvgr3 w-full text-center font-mono" value="' + (data.mvgr3 || '') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-mvgr4 w-full text-center font-mono" value="' + (data.mvgr4 || '') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-mvgr5 w-full text-center font-mono" value="' + (data.mvgr5 || '') + '"></td>';
-        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="4" class="row-tragr w-full text-center font-mono" value="' + (data.tragr || '') + '"></td>';
-        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="4" class="row-ladgr w-full text-center font-mono" value="' + (data.ladgr || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="4" class="row-tragr w-full text-center font-mono" value="' + (data.tragr || '0001') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="4" class="row-ladgr w-full text-center font-mono" value="' + (data.ladgr || '0001') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-magrv w-full text-center font-mono" value="' + (data.magrv || '') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-vhart w-full text-center font-mono" value="' + (data.vhart || '') + '"></td>';
-        html += '<td class="p-1.5 border-r border-slate-200 text-center align-middle"><input type="checkbox" class="row-xchpf w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer" ' + (data.xchpf === '' ? '' : 'checked="checked"') + '></td>';
-        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="10" class="row-prctr w-full text-center font-mono" value="' + (data.prctr || '') + '"></td>';
-        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="4" class="row-bklas w-full text-center font-mono" value="' + (data.bklas || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center align-middle"><input type="checkbox" class="row-xchpf w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer" ' + (data.xchpf === '' ? '' :
+'checked="checked"') + '></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="10" class="row-prctr w-full text-center font-mono" value="' + (data.prctr || '200201') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="4" class="row-bklas w-full text-center font-mono" value="' + (data.bklas || 'OS01') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-stprs w-full text-center font-mono" value="' + (data.stprs || '') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-verpr w-full text-center font-mono" value="' + (data.verpr || '') + '"></td>';
-        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-peinh w-full text-center font-mono" value="' + (data.peinh || '') + '"></td>';
-        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="1" class="row-vprsv w-full text-center font-bold text-emerald-700" value="' + (data.vprsv || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-peinh w-full text-center font-mono" value="' + (data.peinh || '1') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="1" class="row-vprsv w-full text-center font-bold text-emerald-700" value="' + (data.vprsv || 'V') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-peinh-2 w-full text-center font-mono" value="' + (data.peinh_2 || '') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-umren w-full text-center font-mono" value="' + (data.umren || '') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-meinh w-full text-center font-mono" value="' + (data.meinh || '') + '"></td>';
@@ -1626,7 +1627,7 @@ text-slate-800 resize-none font-sans"></textarea>
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-hoehe w-full text-center font-mono" value="' + (data.hoehe || '') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-meabm w-full text-center font-mono" value="' + (data.meabm || '') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-brgew w-full text-center font-mono" value="' + (data.brgew || '') + '"></td>';
-        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-gewei w-full text-center font-mono" value="' + (data.gewei || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-gewei w-full text-center font-mono" value="' + (data.gewei || 'KG') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-ntgew w-full text-center font-mono" value="' + (data.ntgew || '') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-volum w-full text-center font-mono" value="' + (data.volum || '') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="3" class="row-ekgrp w-full text-center font-mono" value="' + (data.ekgrp || '') + '"></td>';
@@ -1635,40 +1636,40 @@ text-slate-800 resize-none font-sans"></textarea>
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-class w-full text-center font-mono" value="' + (data.class || '') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-warna w-full text-center font-mono" value="' + (data.warna || '') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-vol-prod w-full text-center font-mono" value="' + (data.vol_prod || '') + '"></td>';
-        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="2" class="row-dismm w-full text-center font-mono" value="' + (data.dismm || '') + '"></td>';
-        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="4" class="row-disgr w-full text-center font-mono" value="' + (data.disgr || '') + '"></td>';
-        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="3" class="row-dispo w-full text-center font-mono" value="' + (data.dispo || '') + '"></td>';
-        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="2" class="row-disls w-full text-center font-mono" value="' + (data.disls || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="2" class="row-dismm w-full text-center font-mono" value="' + (data.dismm || 'PD') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="4" class="row-disgr w-full text-center font-mono" value="' + (data.disgr || 'ZWH5') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="3" class="row-dispo w-full text-center font-mono" value="' + (data.dispo || 'RW8') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="2" class="row-disls w-full text-center font-mono" value="' + (data.disls || 'EX') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-bstmi w-full text-center font-mono" value="' + (data.bstmi || '') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-bstma w-full text-center font-mono" value="' + (data.bstma || '') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-bstrf w-full text-center font-mono" value="' + (data.bstrf || '') + '"></td>';
-        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="1" class="row-beskz w-full text-center font-mono" value="' + (data.beskz || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="1" class="row-beskz w-full text-center font-mono" value="' + (data.beskz || 'F') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-sobsl w-full text-center font-mono" value="' + (data.sobsl || '') + '"></td>';
-        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="1" class="row-rgekz w-full text-center font-mono" value="' + (data.rgekz || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="1" class="row-rgekz w-full text-center font-mono" value="' + (data.rgekz || '1') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-dzeit w-full text-center font-mono" value="' + (data.dzeit || '') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-plifz w-full text-center font-mono" value="' + (data.plifz || '') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-webaz w-full text-center font-mono" value="' + (data.webaz || '') + '"></td>';
-        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="3" class="row-fhori w-full text-center font-mono" value="' + (data.fhori || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="3" class="row-fhori w-full text-center font-mono" value="' + (data.fhori || '000') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-eisbe w-full text-center font-mono" value="' + (data.eisbe || '') + '"></td>';
-        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="2" class="row-strgr w-full text-center font-mono" value="' + (data.strgr || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="2" class="row-strgr w-full text-center font-mono" value="' + (data.strgr || '10') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="1" class="row-vrmod w-full text-center font-mono" value="' + (data.vrmod || '') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-vint1 w-full text-center font-mono" value="' + (data.vint1 || '') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-vint2 w-full text-center font-mono" value="' + (data.vint2 || '') + '"></td>';
-        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="1" class="row-perkz w-full text-center font-mono" value="' + (data.perkz || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="1" class="row-perkz w-full text-center font-mono" value="' + (data.perkz || 'M') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="2" class="row-periv w-full text-center font-mono" value="' + (data.periv || '') + '"></td>';
-        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="2" class="row-mtvfp w-full text-center font-mono" value="' + (data.mtvfp || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="2" class="row-mtvfp w-full text-center font-mono" value="' + (data.mtvfp || 'KP') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-altsl w-full text-center font-mono" value="' + (data.altsl || '') + '"></td>';
-        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="1" class="row-kzkst w-full text-center font-mono" value="' + (data.kzkst || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="1" class="row-kzkst w-full text-center font-mono" value="' + (data.kzkst || '2') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-ausme w-full text-center font-mono" value="' + (data.ausme || '') + '"></td>';
-        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="4" class="row-lgpro w-full text-center font-mono" value="' + (data.lgpro || '') + '" placeholder="Iss S.Loc"></td>';
-        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="4" class="row-lgpro-ep w-full text-center font-mono" value="' + (data.lgpro_ep || '') + '" placeholder="EP S.Loc"></td>';
-        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="4" class="row-sfpro w-full text-center font-mono" value="' + (data.sfpro || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="4" class="row-lgpro w-full text-center font-mono" value="' + (data.lgpro || '1201') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="4" class="row-lgpro-ep w-full text-center font-mono" value="' + (data.lgpro_ep || '1201') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="4" class="row-sfpro w-full text-center font-mono" value="' + (data.sfpro || '000001') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-uneto w-full text-center font-mono" value="' + (data.uneto || '') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-ueeto w-full text-center font-mono" value="' + (data.ueeto || '') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-ueetk w-full text-center font-mono" value="' + (data.ueetk || '') + '"></td>';
-        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="1" class="row-hkmat w-full text-center font-bold text-emerald-700" value="' + (data.hkmat || '') + '"></td>';
-        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="1" class="row-ekalr w-full text-center font-bold text-emerald-700" value="' + (data.ekalr || '') + '"></td>';
-        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-losgr w-full text-center font-mono" value="' + (data.losgr || '') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="1" class="row-hkmat w-full text-center font-bold text-emerald-700" value="' + (data.hkmat || 'X') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="1" class="row-ekalr w-full text-center font-bold text-emerald-700" value="' + (data.ekalr || 'X') + '"></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-losgr w-full text-center font-mono" value="' + (data.losgr || '100') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-ncost w-full text-center font-mono" value="' + (data.ncost || '') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-mmsta w-full text-center font-mono" value="' + (data.mmsta || '') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="4" class="row-eprio w-full text-center font-mono" value="' + (data.eprio || '') + '"></td>';
@@ -1734,11 +1735,8 @@ title="Delete Row">X</button>`;
             formData.append('zeinr_' + i, getVal(".row-zeinr"));
             formData.append('normt_' + i, getVal(".row-normt"));
             formData.append('groes_' + i, getVal(".row-groes"));
-            var currWerks = getVal(".row-werks");
-            var currLgort = getVal(".row-lgort");
-            console.log('[MDG-SLoc-Debug] Submitting Item #' + i + ' | Plant: "' + currWerks + '" | S.Loc: "' + currLgort + '"');
-            formData.append('werks_' + i, currWerks);
-            formData.append('lgort_' + i, currLgort);
+            formData.append('werks_' + i, getVal(".row-werks"));
+            formData.append('lgort_' + i, getVal(".row-lgort"));
             formData.append('vkorg_' + i, getVal(".row-vkorg"));
             formData.append('vtweg_' + i, getVal(".row-vtweg"));
             formData.append('dwerk_' + i, getVal(".row-dwerk"));

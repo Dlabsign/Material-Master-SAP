@@ -1,7 +1,9 @@
 # Project Rules
 
-- **Do not modify `FIX/` directory**: The `FIX/` directory contains a verified beta version. Do not edit, delete, or move any files or directories inside `FIX/`.
+- **Do not modify `UPDATE/FIX/` directory**: The `UPDATE/FIX/` directory contains a verified beta version. Do not edit, delete, or move any files or directories inside `UPDATE/FIX/`.
 
-- **Do not modify `FIX 2/` directory**: The `FIX 2/` directory contains a verified beta version. Do not edit, delete, or move any files or directories inside `FIX 2/`.
+- **Do not modify `UPDATE/FIX_2/` directory**: The `UPDATE/FIX_2/` directory contains a verified beta version. Do not edit, delete, or move any files or directories inside `UPDATE/FIX_2/`.
 
-- **Do not modify `FIX 3/` directory**: The `FIX 3/` directory contains a verified beta version. Do not edit, delete, or move any files or directories inside `FIX 3/`.
+- **Do not modify `UPDATE/FIX_3/` directory**: The `UPDATE/FIX_3/` directory contains a verified beta version. Do not edit, delete, or move any files or directories inside `UPDATE/FIX_3/`.
+
+- **Do not modify `UPDATE/FIX_4/` directory**: The `UPDATE/FIX_4/` directory contains a verified beta version. Do not edit, delete, or move any files or directories inside `UPDATE/FIX_4/`.

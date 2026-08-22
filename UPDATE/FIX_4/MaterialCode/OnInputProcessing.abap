@@ -350,9 +350,7 @@
 
         " C10. Variance Key (KLRAB / MARC-AWSLS) validity check
         IF ls_check_dtl-klrab IS NOT INITIAL.
-          IF ls_check_dtl-klrab = 'X' OR ls_check_dtl-klrab = 'x'.
-            CLEAR ls_check_dtl-klrab.
-          ELSEIF strlen( ls_check_dtl-klrab ) < 2.
+          IF ls_check_dtl-klrab = 'X' OR ls_check_dtl-klrab = 'x' OR strlen( ls_check_dtl-klrab ) < 2.
             IF lv_item_err IS NOT INITIAL. lv_item_err = |{ lv_item_err }; |. ENDIF.
             lv_item_err = |{ lv_item_err }Variance Key '{ ls_check_dtl-klrab }' tidak valid untuk field MARC-AWSLS|.
           ENDIF.
@@ -362,33 +360,6 @@
         IF ls_check_dtl-matnr_ext CS '*' OR ls_check_dtl-maktx CS '*'.
           IF lv_item_err IS NOT INITIAL. lv_item_err = |{ lv_item_err }; |. ENDIF.
           lv_item_err = |{ lv_item_err }Field mengandung karakter tidak valid/terdistorsi ('*')|.
-        ENDIF.
-
-        " C12. Prod. Storage Location (LGPRO) check in T001L for Plant
-        IF ls_check_dtl-lgpro IS NOT INITIAL AND ls_check_dtl-werks IS NOT INITIAL.
-          SELECT SINGLE lgort FROM t001l INTO @DATA(lv_dum_lgpro) WHERE werks = @ls_check_dtl-werks AND lgort = @ls_check_dtl-lgpro.
-          IF sy-subrc <> 0.
-            IF lv_item_err IS NOT INITIAL. lv_item_err = |{ lv_item_err }; |. ENDIF.
-            lv_item_err = |{ lv_item_err }Prod. S.Loc '{ ls_check_dtl-lgpro }' tdk terdaftar utk Plant '{ ls_check_dtl-werks }' (T001L)|.
-          ENDIF.
-        ENDIF.
-
-        " C13. MRP Group (DISGR) check in T438M for Plant
-        IF ls_check_dtl-disgr IS NOT INITIAL AND ls_check_dtl-werks IS NOT INITIAL.
-          SELECT SINGLE disgr FROM t438m INTO @DATA(lv_dum_disgr) WHERE werks = @ls_check_dtl-werks AND disgr = @ls_check_dtl-disgr.
-          IF sy-subrc <> 0.
-            IF lv_item_err IS NOT INITIAL. lv_item_err = |{ lv_item_err }; |. ENDIF.
-            lv_item_err = |{ lv_item_err }MRP Group '{ ls_check_dtl-disgr }' tdk terdaftar utk Plant '{ ls_check_dtl-werks }' (T438M)|.
-          ENDIF.
-        ENDIF.
-
-        " C14. Origin Group (HERBL / HRKFT) check in TKOF for Plant
-        IF ls_check_dtl-herbl IS NOT INITIAL AND ls_check_dtl-werks IS NOT INITIAL.
-          SELECT SINGLE hrkft FROM tkof INTO @DATA(lv_dum_herbl) WHERE bwkey = @ls_check_dtl-werks AND hrkft = @ls_check_dtl-herbl.
-          IF sy-subrc <> 0.
-            IF lv_item_err IS NOT INITIAL. lv_item_err = |{ lv_item_err }; |. ENDIF.
-            lv_item_err = |{ lv_item_err }Origin Group '{ ls_check_dtl-herbl }' tdk terdaftar utk Plant '{ ls_check_dtl-werks }' (TKOF)|.
-          ENDIF.
         ENDIF.
 
         " C12. Manual Material Code MARA Duplicate Check
@@ -409,21 +380,24 @@
           ENDIF.
           lv_err_log = |{ lv_err_log }Item #{ lv_item_num } ({ ls_check_dtl-maktx }): { lv_item_err }|.
         ELSE.
-          " D. PRESERVE EXACT EXCEL INPUT DATA WITHOUT OVERRIDING WITH HARDCODED DEFAULTS
-          " Clear invalid Variance Key if present ('X' is not a valid SAP variance key)
-          IF ls_check_dtl-klrab = 'X' OR ls_check_dtl-klrab = 'x'. CLEAR ls_check_dtl-klrab. ENDIF.
+          " D. APPLY DEFAULTS ONLY FOR VALID ITEMS WITH BLANK OPTIONAL FIELDS
+          IF ls_check_dtl-mbrsh IS INITIAL. ls_check_dtl-mbrsh = 'M'. ENDIF.
+          IF ls_check_dtl-mtart IS INITIAL. ls_check_dtl-mtart = 'ZOS3'. ENDIF.
+          IF ls_check_dtl-werks IS INITIAL. ls_check_dtl-werks = '1200'. ENDIF.
+          IF ls_check_dtl-lgort IS INITIAL. ls_check_dtl-lgort = '1201'. ENDIF.
+          IF ls_check_dtl-prctr IS INITIAL AND sy-mandt = '300'. ls_check_dtl-prctr = '200201'. ENDIF.
+          IF ls_check_dtl-dismm IS INITIAL. ls_check_dtl-dismm = 'PD'. ENDIF.
+          IF ls_check_dtl-mtvfp IS INITIAL. ls_check_dtl-mtvfp = 'KP'. ENDIF.
+          IF ls_check_dtl-ekgrp IS INITIAL. ls_check_dtl-ekgrp = 'K01'. ENDIF.
+          IF ls_check_dtl-dispo IS INITIAL. ls_check_dtl-dispo = 'RW8'. ENDIF.
+          IF ls_check_dtl-disls IS INITIAL OR ls_check_dtl-disls = 'PB'. ls_check_dtl-disls = 'EX'. ENDIF.
+          IF ls_check_dtl-beskz IS INITIAL. ls_check_dtl-beskz = 'F'. ENDIF.
+          IF ls_check_dtl-ladgr IS INITIAL. ls_check_dtl-ladgr = '0001'. ENDIF.
+          IF ls_check_dtl-tragr IS INITIAL. ls_check_dtl-tragr = '0001'. ENDIF.
+          IF ls_check_dtl-bklas IS INITIAL. ls_check_dtl-bklas = 'OS01'. ENDIF.
 
-          " Format TRAGR & LADGR (e.g. '1' -> '0001')
-          IF ls_check_dtl-tragr IS NOT INITIAL.
-            CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
-              EXPORTING input = ls_check_dtl-tragr
-              IMPORTING output = ls_check_dtl-tragr.
-          ENDIF.
-          IF ls_check_dtl-ladgr IS NOT INITIAL.
-            CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
-              EXPORTING input = ls_check_dtl-ladgr
-              IMPORTING output = ls_check_dtl-ladgr.
-          ENDIF.
+          " Clear invalid Variance Key if present
+          IF ls_check_dtl-klrab = 'X' OR ls_check_dtl-klrab = 'x'. CLEAR ls_check_dtl-klrab. ENDIF.
 
           " Save sanitized fields back to database
           UPDATE zmdg_req_dtl
