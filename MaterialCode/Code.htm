@@ -650,6 +650,28 @@
             // ==========================================
             // SEARCH MATERIAL (SAP MARA CONNECTION)
             // ==========================================
+            function matchWildcard(text, pattern) {
+                if (text === undefined || text === null || pattern === undefined || pattern === null) return false;
+                const str = String(text).trim();
+                const pat = String(pattern).trim();
+                if (!pat) return true;
+
+                if (pat.indexOf('*') === -1) {
+                    return str.toLowerCase().indexOf(pat.toLowerCase()) !== -1;
+                }
+
+                const parts = pat.split('*');
+                const escapedParts = parts.map(p => p.replace(/[^a-zA-Z0-9]/g, '\\$&'));
+                const regexStr = '^' + escapedParts.join('.*') + '$';
+
+                try {
+                    const regex = new RegExp(regexStr, 'i');
+                    return regex.test(str);
+                } catch (e) {
+                    return str.toLowerCase().indexOf(pat.replace(/\*/g, '').toLowerCase()) !== -1;
+                }
+            }
+
             function searchMaraSAP() {
                 const matnr = document.getElementById('filterMatnr').value.trim();
                 const maktx = document.getElementById('filterMaktx').value.trim();
@@ -667,13 +689,25 @@
 
                 const formData = new FormData();
                 formData.append('OnInputProcessing', 'SEARCH_MARA');
-                formData.append('FILTER_MATNR', matnr);
-                formData.append('FILTER_MAKTX', maktx);
+                formData.append('FILTER_MATNR', matnr.replace(/\*/g, '%').toUpperCase());
+                formData.append('FILTER_MAKTX', maktx.replace(/\*/g, '%').toUpperCase());
 
                 fetch('?OnInputProcessing=SEARCH_MARA', { method: 'POST', body: formData })
                     .then(res => res.json())
                     .then(data => {
-                        maraSearchResults = data || [];
+                        const rawList = Array.isArray(data) ? data : [];
+                        const filteredList = rawList.filter(item => {
+                            const itemMatnr = item.matnr || item.MATNR || '';
+                            const itemMaktx = item.maktx || item.MAKTX || '';
+                            const matnrDisplay = itemMatnr.replace(/^0+/, '');
+
+                            const matchMat = !matnr || matchWildcard(itemMatnr, matnr) || matchWildcard(matnrDisplay, matnr);
+                            const matchMak = !maktx || matchWildcard(itemMaktx, maktx);
+
+                            return matchMat && matchMak;
+                        });
+
+                        maraSearchResults = filteredList;
                         maraCurrentPage = 1;
                         renderMaraResults(maraSearchResults, 1);
                         badge.className = "text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200";

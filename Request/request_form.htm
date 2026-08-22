@@ -477,8 +477,24 @@ inline-flex items-center gap-2 cursor-pointer" onclick="openSubmitReasonModal()"
                 </div>
 
                 <!-- STAT MINI CARDS -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div class="glass-subpanel p-4.5 rounded-2xl border border-emerald-500/20 flex items-center justify-between hover:border-emerald-500/40 transition">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="glass-subpanel p-4 rounded-2xl border border-amber-500/20 flex items-center justify-between hover:border-amber-500/40 transition">
+                        <div>
+                            <p class="text-[10px] font-black text-slate-500 uppercase tracking-wider">Pending Requests</p>
+                            <h3 class="text-xl font-black text-slate-900 mt-0.5" id="pendingCountCard">0 Request</h3>
+                        </div>
+                        <span class="text-xs font-black text-amber-800 bg-amber-100/80 px-3 py-1 rounded-full border border-amber-200 shadow-2xs">SUBMITTED</span>
+                    </div>
+
+                    <div class="glass-subpanel p-4 rounded-2xl border border-blue-500/20 flex items-center justify-between hover:border-blue-500/40 transition">
+                        <div>
+                            <p class="text-[10px] font-black text-slate-500 uppercase tracking-wider">Checked Requests</p>
+                            <h3 class="text-xl font-black text-slate-900 mt-0.5" id="checkedCountCard">0 Request</h3>
+                        </div>
+                        <span class="text-xs font-black text-blue-800 bg-blue-100/80 px-3 py-1 rounded-full border border-blue-200 shadow-2xs">CHECKED</span>
+                    </div>
+
+                    <div class="glass-subpanel p-4 rounded-2xl border border-emerald-500/20 flex items-center justify-between hover:border-emerald-500/40 transition">
                         <div>
                             <p class="text-[10px] font-black text-slate-500 uppercase tracking-wider">Approved Requests</p>
                             <h3 class="text-xl font-black text-slate-900 mt-0.5" id="approvedCountCard">0 Request</h3>
@@ -486,7 +502,7 @@ inline-flex items-center gap-2 cursor-pointer" onclick="openSubmitReasonModal()"
                         <span class="text-xs font-black text-emerald-800 bg-emerald-100/80 px-3 py-1 rounded-full border border-emerald-200 shadow-2xs">APPROVED</span>
                     </div>
 
-                    <div class="glass-subpanel p-4.5 rounded-2xl border border-rose-500/20 flex items-center justify-between hover:border-rose-500/40 transition">
+                    <div class="glass-subpanel p-4 rounded-2xl border border-rose-500/20 flex items-center justify-between hover:border-rose-500/40 transition">
                         <div>
                             <p class="text-[10px] font-black text-slate-500 uppercase tracking-wider">Rejected Requests</p>
                             <h3 class="text-xl font-black text-slate-900 mt-0.5" id="rejectedCountCard">0 Request</h3>
@@ -498,25 +514,55 @@ inline-flex items-center gap-2 cursor-pointer" onclick="openSubmitReasonModal()"
 
             <!-- TAB PILL SWITCHER BAR -->
             <div class="bg-white/50 px-6 py-4 border-b border-slate-200/60 flex items-center justify-between flex-wrap gap-3">
-                <div class="flex items-center gap-2.5">
-                    <button type="button" id="tabPendingBtn" onclick="switchHistoryTab('PENDING')" class="px-4.5 py-2 rounded-full font-extrabold text-xs bg-gradient-to-r from-emerald-500 to-emerald-700 text-white shadow-xs transition-all cursor-pointer">
+                <div class="flex items-center gap-2.5 flex-wrap">
+                    <button type="button" id="tabPendingBtn" onclick="switchHistoryTab('PENDING')"
+                            class="h-9 px-5 rounded-full font-extrabold text-xs
+                                   inline-flex items-center justify-center
+                                   whitespace-nowrap bg-gradient-to-r
+                                   from-amber-500 to-amber-600 text-white
+                                   shadow-xs transition-all cursor-pointer">
                         Pending
                     </button>
-                    <button type="button" id="tabApprovedBtn" onclick="switchHistoryTab('APPROVED')" class="px-4.5 py-2 rounded-full font-extrabold text-xs text-slate-600 hover:text-slate-900 bg-white/80 hover:bg-white border border-slate-200/80 transition-all cursor-pointer">
+                    <button type="button" id="tabCheckedBtn" onclick="switchHistoryTab('CHECKED')"
+                            class="h-9 px-5 rounded-full font-extrabold text-xs
+                                   inline-flex items-center justify-center
+                                   whitespace-nowrap text-slate-600
+                                   hover:text-slate-900 bg-white/80 hover:bg-white
+                                   border border-slate-200/80 transition-all
+                                   cursor-pointer shadow-2xs">
+                        Checked
+                    </button>
+                    <button type="button" id="tabApprovedBtn" onclick="switchHistoryTab('APPROVED')"
+                            class="h-9 px-5 rounded-full font-extrabold text-xs
+                                   inline-flex items-center justify-center
+                                   whitespace-nowrap text-slate-600
+                                   hover:text-slate-900 bg-white/80 hover:bg-white
+                                   border border-slate-200/80 transition-all
+                                   cursor-pointer shadow-2xs">
                         Approved List
                     </button>
-                    <button type="button" id="tabRejectedBtn" onclick="switchHistoryTab('REJECTED')" class="px-4.5 py-2 rounded-full font-extrabold text-xs text-slate-600 hover:text-slate-900 bg-white/80 hover:bg-white border border-slate-200/80 transition-all cursor-pointer">
+                    <button type="button" id="tabRejectedBtn" onclick="switchHistoryTab('REJECTED')"
+                            class="h-9 px-5 rounded-full font-extrabold text-xs
+                                   inline-flex items-center justify-center
+                                   whitespace-nowrap text-slate-600
+                                   hover:text-slate-900 bg-white/80 hover:bg-white
+                                   border border-slate-200/80 transition-all
+                                   cursor-pointer shadow-2xs">
                         Rejected List
                     </button>
                 </div>
 
                 <div class="flex items-center gap-2">
-                    <button type="button" onclick="exportApprovedHistoryToExcel()" class="text-xs text-emerald-700 font-extrabold bg-emerald-50/80 hover:bg-emerald-100 border border-emerald-200 px-4 py-2 rounded-full transition flex items-center gap-1.5 cursor-pointer shadow-2xs">
-                        <svg class="w-3.5 h-3.5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    <button type="button" onclick="exportApprovedHistoryToExcel()" class="text-xs text-emerald-700 font-extrabold bg-emerald-50/80 hover:bg-emerald-100 border border-emerald-200 px-4 py-2 rounded-full transition flex items-center gap-1.5
+cursor-pointer shadow-2xs">
+                        <svg class="w-3.5 h-3.5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4
+4V4"/></svg>
                         <span>Export Excel List</span>
                     </button>
-                    <button type="button" onclick="loadUploadHistory()" class="text-xs text-emerald-700 font-extrabold hover:underline bg-emerald-50/80 hover:bg-emerald-100 border border-emerald-200 px-4 py-2 rounded-full transition flex items-center gap-1.5 cursor-pointer shadow-2xs">
-                        <svg class="w-3.5 h-3.5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    <button type="button" onclick="loadUploadHistory()" class="text-xs text-emerald-700 font-extrabold hover:underline bg-emerald-50/80 hover:bg-emerald-100 border border-emerald-200 px-4 py-2 rounded-full transition flex items-center
+gap-1.5 cursor-pointer shadow-2xs">
+                        <svg class="w-3.5 h-3.5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11
+11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                         Refresh Log
                     </button>
                 </div>
@@ -556,17 +602,17 @@ inline-flex items-center gap-2 cursor-pointer" onclick="openSubmitReasonModal()"
     <div id="submitReasonModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 transition-all">
         <div class="glass-panel border border-white/80 rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
             <div class="bg-white/60 px-5 py-3 border-b border-slate-200/70 flex items-center justify-between">
-                <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-wider">Request Submission Justification</h3>
+                <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-wider">Request Submission Reason</h3>
                 <button type="button" onclick="closeSubmitReasonModal()" class="text-slate-400 hover:text-slate-700 font-bold p-1">&times;</button>
             </div>
             <div class="p-5">
                 <label for="submitReasonInput" class="block text-xs font-bold text-slate-700 mb-1.5">
-                    Business Justification <span class="text-rose-500">*</span>
+                    Reason <span class="text-rose-500">*</span>
                 </label>
                 <textarea id="submitReasonInput" rows="3" placeholder="e.g., Line replenishment, maintenance spare parts staging..." class="w-full p-3 text-xs border border-slate-200/80 rounded-xl focus:outline-none focus:border-emerald-600 bg-white/80
 text-slate-800 resize-none font-sans"></textarea>
                 <p id="submitReasonError" class="hidden mt-1.5 text-[11px] font-bold text-rose-600">
-                    Business justification is mandatory before submission.
+                    Reason is mandatory before submission.
                 </p>
             </div>
             <div class="bg-white/60 px-5 py-3 border-t border-slate-200/70 flex justify-end gap-2">
@@ -613,7 +659,7 @@ text-slate-800 resize-none font-sans"></textarea>
                 <div id="reqModalRejectionBanner" class="hidden mb-5 bg-rose-50/90 backdrop-blur-xs border border-rose-200 rounded-xl p-4 shadow-2xs">
                     <div class="flex items-center justify-between border-b border-rose-200/80 pb-2 mb-2.5">
                         <div class="flex items-center gap-2 text-rose-800 font-extrabold text-xs">
-                            <svg class="w-5 h-5 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118
+                            <svg class="w-5 h-5 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 
 0z"/></svg>
                             <span>HASIL VALIDASI / ALASAN REJECT:</span>
                         </div>
@@ -622,9 +668,37 @@ text-slate-800 resize-none font-sans"></textarea>
                     <div class="font-mono text-xs text-rose-900 bg-white p-3.5 rounded-lg border border-rose-200 max-h-48 overflow-y-auto whitespace-pre-wrap leading-relaxed" id="reqModalRejectionText">
                     </div>
                     <div class="mt-2.5 text-[11px] text-rose-700 font-medium flex items-center gap-1.5">
-                        <svg class="w-4 h-4 text-rose-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118
+                        <svg class="w-4 h-4 text-rose-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 
 0z"/></svg>
                         <span>Silakan klik tombol <strong>"Muat ke Form untuk Perbaikan"</strong> di bawah untuk mengoreksi data dan melakukan submit ulang.</span>
+                    </div>
+                </div>
+
+                <!-- Approved Success Banner (Shown prominently if APPROVED) -->
+                <div id="reqModalApprovedBanner" class="hidden mb-5 bg-emerald-50/90 backdrop-blur-xs border border-emerald-300 rounded-xl p-4.5 shadow-2xs">
+                    <div class="flex items-center justify-between border-b border-emerald-200 pb-2 mb-2.5">
+                        <div class="flex items-center gap-2 text-emerald-900 font-extrabold text-xs">
+                            <div class="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">✓</div>
+                            <span class="text-sm font-black text-emerald-900">Pengajuan Material Berhasil Disetujui</span>
+                        </div>
+                        <span class="text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300 px-3 py-0.5 rounded-full uppercase tracking-wider">APPROVED BY DATA STEWARD</span>
+                    </div>
+                    <div class="text-xs text-emerald-950 bg-white/80 p-3.5 rounded-lg border border-emerald-200/80 leading-relaxed font-semibold" id="reqModalApprovedText">
+                        Pengajuan material master ini telah berhasil diverifikasi dan disetujui secara resmi oleh Data Steward.
+                    </div>
+                </div>
+
+                <!-- Checked Verified Banner (Shown prominently if CHECKED) -->
+                <div id="reqModalCheckedBanner" class="hidden mb-5 bg-blue-50/90 backdrop-blur-xs border border-blue-300 rounded-xl p-4.5 shadow-2xs">
+                    <div class="flex items-center justify-between border-b border-blue-200 pb-2 mb-2.5">
+                        <div class="flex items-center gap-2 text-blue-900 font-extrabold text-xs">
+                            <div class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">✓</div>
+                            <span class="text-sm font-black text-blue-900">Pengajuan Material Telah Diverifikasi (Checked)</span>
+                        </div>
+                        <span class="text-[10px] font-extrabold bg-blue-100 text-blue-800 border border-blue-300 px-3 py-0.5 rounded-full uppercase tracking-wider">VERIFIED BY DATA STEWARD</span>
+                    </div>
+                    <div class="text-xs text-blue-950 bg-white/80 p-3.5 rounded-lg border border-blue-200/80 leading-relaxed font-semibold" id="reqModalCheckedText">
+                        Data pengajuan material telah diperiksa dan diverifikasi oleh Data Steward.
                     </div>
                 </div>
 
@@ -757,7 +831,8 @@ text-slate-800 resize-none font-sans"></textarea>
                 </div>
                 <div class="flex items-center gap-2">
                     <button type="button" onclick="downloadCurrentDetailModalExcel()" class="px-4 py-2 rounded-full text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 transition shadow-2xs cursor-pointer inline-flex items-center gap-1.5">
-                        <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                        <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4
+4V4"/></svg>
                         <span>Download Excel Data</span>
                     </button>
                     <button type="button" onclick="closeRequestDetailModal()" class="px-4 py-2 rounded-full text-xs font-bold text-slate-700 hover:text-slate-900 bg-white/80 border border-slate-300/80 transition shadow-2xs cursor-pointer">
@@ -1298,8 +1373,8 @@ text-slate-800 resize-none font-sans"></textarea>
                         dwerk: getCellStr(row, 17, "1200"),
                         vrkme: getCellStr(row, 18, ""),
                         herkl: getCellStr(row, 19, "ID"),
-                        taxkm: getCellStr(row, 20, ""),
-                        tatyp: getCellStr(row, 21, ""),
+                        taxkm: getCellStr(row, 20, "1"),
+                        tatyp: getCellStr(row, 21, "MWST"),
                         mtpos: getCellStr(row, 22, ""),
                         ktgrm: getCellStr(row, 23, ""),
                         mvgr1: getCellStr(row, 24, ""),
@@ -1535,7 +1610,8 @@ text-slate-800 resize-none font-sans"></textarea>
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="4" class="row-ladgr w-full text-center font-mono" value="' + (data.ladgr || '0001') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-magrv w-full text-center font-mono" value="' + (data.magrv || '') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-vhart w-full text-center font-mono" value="' + (data.vhart || '') + '"></td>';
-        html += '<td class="p-1.5 border-r border-slate-200 text-center align-middle"><input type="checkbox" class="row-xchpf w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer" ' + (data.xchpf === '' ? '' : 'checked="checked"') + '></td>';
+        html += '<td class="p-1.5 border-r border-slate-200 text-center align-middle"><input type="checkbox" class="row-xchpf w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer" ' + (data.xchpf === '' ? '' :
+'checked="checked"') + '></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="10" class="row-prctr w-full text-center font-mono" value="' + (data.prctr || '200201') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="4" class="row-bklas w-full text-center font-mono" value="' + (data.bklas || 'OS01') + '"></td>';
         html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-stprs w-full text-center font-mono" value="' + (data.stprs || '') + '"></td>';
@@ -1792,17 +1868,28 @@ title="Delete Row">X</button>`;
         .then(function(data) {
             globalHistoryData = data || [];
 
+            var pendingCnt = 0;
+            var checkedCnt = 0;
             var approvedCnt = 0;
             var rejectedCnt = 0;
+
             globalHistoryData.forEach(function(item) {
-                if (item.status === 'APPROVED') approvedCnt++;
-                if (item.status === 'REJECTED' || item.status === 'FAILED') rejectedCnt++;
+                var st = (item.status || '').toUpperCase();
+                if (st === 'SUBMITTED' || st === 'DRAFT') pendingCnt++;
+                else if (st === 'CHECKED') checkedCnt++;
+                else if (st === 'APPROVED') approvedCnt++;
+                else if (st === 'REJECTED' || st === 'FAILED') rejectedCnt++;
             });
 
+            var pndCard = document.getElementById("pendingCountCard");
+            var chkCard = document.getElementById("checkedCountCard");
             var appCard = document.getElementById("approvedCountCard");
             var rejCard = document.getElementById("rejectedCountCard");
-            if (appCard) appCard.innerText = approvedCnt + " Request" + (approvedCnt > 1 ? "s" : "");
-            if (rejCard) rejCard.innerText = rejectedCnt + " Request" + (rejectedCnt > 1 ? "s" : "");
+
+            if (pndCard) pndCard.innerText = pendingCnt + " Request" + (pendingCnt !== 1 ? "s" : "");
+            if (chkCard) chkCard.innerText = checkedCnt + " Request" + (checkedCnt !== 1 ? "s" : "");
+            if (appCard) appCard.innerText = approvedCnt + " Request" + (approvedCnt !== 1 ? "s" : "");
+            if (rejCard) rejCard.innerText = rejectedCnt + " Request" + (rejectedCnt !== 1 ? "s" : "");
 
             renderHistoryTable();
         });
@@ -1812,15 +1899,27 @@ title="Delete Row">X</button>`;
         currentHistoryTab = tab;
 
         var btnPending  = document.getElementById("tabPendingBtn");
+        var btnChecked  = document.getElementById("tabCheckedBtn");
         var btnApproved = document.getElementById("tabApprovedBtn");
         var btnRejected = document.getElementById("tabRejectedBtn");
 
-        var activeStyle   = "px-4 py-2 rounded-full font-extrabold text-xs bg-gradient-to-r from-emerald-500 to-emerald-700 text-white shadow-xs transition-all cursor-pointer";
-        var inactiveStyle = "px-4 py-2 rounded-full font-bold text-xs text-slate-600 hover:text-slate-900 bg-white/80 hover:bg-white border border-slate-200/80 transition-all cursor-pointer";
+        var baseCls = "h-9 px-5 rounded-full font-extrabold text-xs " +
+                      "inline-flex items-center justify-center whitespace-nowrap " +
+                      "transition-all cursor-pointer ";
 
-        if (btnPending)  btnPending.className  = (tab === 'PENDING')  ? activeStyle : inactiveStyle;
-        if (btnApproved) btnApproved.className = (tab === 'APPROVED') ? activeStyle : inactiveStyle;
-        if (btnRejected) btnRejected.className = (tab === 'REJECTED') ? activeStyle : inactiveStyle;
+        var inactiveStyle = baseCls +
+                            "text-slate-600 hover:text-slate-900 " +
+                            "bg-white/80 hover:bg-white border border-slate-200/80 shadow-2xs";
+
+        var pendingStyle  = baseCls + "bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-xs";
+        var checkedStyle  = baseCls + "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-xs";
+        var approvedStyle = baseCls + "bg-gradient-to-r from-emerald-600 to-emerald-700 text-white shadow-xs";
+        var rejectedStyle = baseCls + "bg-gradient-to-r from-rose-600 to-rose-700 text-white shadow-xs";
+
+        if (btnPending)  btnPending.className  = (tab === 'PENDING')  ? pendingStyle  : inactiveStyle;
+        if (btnChecked)  btnChecked.className  = (tab === 'CHECKED')  ? checkedStyle  : inactiveStyle;
+        if (btnApproved) btnApproved.className = (tab === 'APPROVED') ? approvedStyle : inactiveStyle;
+        if (btnRejected) btnRejected.className = (tab === 'REJECTED') ? rejectedStyle : inactiveStyle;
 
         renderHistoryTable();
     }
@@ -1872,9 +1971,11 @@ title="Delete Row">X</button>`;
         tbody.innerHTML = "";
 
         var filtered = globalHistoryData.filter(function(item) {
-            if (currentHistoryTab === 'PENDING') return item.status === 'DRAFT' || item.status === 'SUBMITTED';
-            if (currentHistoryTab === 'APPROVED') return item.status === 'APPROVED';
-            if (currentHistoryTab === 'REJECTED') return item.status === 'REJECTED' || item.status === 'FAILED';
+            var st = (item.status || '').toUpperCase();
+            if (currentHistoryTab === 'PENDING')  return st === 'SUBMITTED' || st === 'DRAFT';
+            if (currentHistoryTab === 'CHECKED')  return st === 'CHECKED';
+            if (currentHistoryTab === 'APPROVED') return st === 'APPROVED';
+            if (currentHistoryTab === 'REJECTED') return st === 'REJECTED' || st === 'FAILED';
             return true;
         });
 
@@ -1889,36 +1990,41 @@ title="Delete Row">X</button>`;
 
             var targetDate = item.erdat;
             var targetTime = item.ertim;
-            if ((item.status === 'APPROVED' || item.status === 'REJECTED' || item.status === 'FAILED') && item.app_date) {
+            if ((item.status === 'APPROVED' || item.status === 'CHECKED' || item.status === 'REJECTED' || item.status === 'FAILED') && item.app_date) {
                 targetDate = item.app_date;
                 targetTime = item.app_time;
             }
 
             var formattedDateTimeStr = "( " + formatIndonesianDateTime(targetDate, targetTime) + " )";
 
-            var statusBadge = '<span class="bg-amber-100 text-amber-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-amber-200">DRAFT</span>';
-            if (item.status === 'SUBMITTED') {
-                statusBadge = '<span class="bg-blue-100 text-blue-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-blue-200">SUBMITTED</span>';
-            } else if (item.status === 'APPROVED') {
-                statusBadge = '<span class="bg-emerald-100 text-emerald-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-emerald-200">APPROVED</span>';
-            } else if (item.status === 'REJECTED' || item.status === 'FAILED') {
-                statusBadge = '<span class="bg-rose-100 text-rose-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-rose-200">REJECTED</span>';
-            }
-
+            var stUpper = (item.status || '').toUpperCase();
+            var statusBadge = '';
             var actorText = "";
-            var actorClass = "text-slate-600 bg-slate-100 border-slate-200";
-            if (item.status === 'REJECTED' || item.status === 'FAILED') {
-                actorText = "Rejected by: " + (item.approver || item.ernam || 'DS / System');
-                actorClass = "text-rose-700 bg-rose-50 border-rose-200";
-            } else if (item.status === 'APPROVED') {
+            var actorClass = "";
+
+            if (stUpper === 'SUBMITTED' || stUpper === 'DRAFT') {
+                statusBadge = '<span class="bg-amber-100 text-amber-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-amber-200">SUBMITTED</span>';
+                actorText = "Requestor: " + (item.ernam || 'ABAPER04');
+                actorClass = "text-amber-800 bg-amber-50 border-amber-200";
+            } else if (stUpper === 'CHECKED') {
+                statusBadge = '<span class="bg-blue-100 text-blue-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-blue-200">CHECKED</span>';
+                actorText = "Verified by: " + (item.approver || item.ernam || 'Data Steward');
+                actorClass = "text-blue-800 bg-blue-50 border-blue-200";
+            } else if (stUpper === 'APPROVED') {
+                statusBadge = '<span class="bg-emerald-100 text-emerald-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-emerald-200">APPROVED</span>';
                 actorText = "Approved by: " + (item.approver || item.ernam || 'DS / System');
                 actorClass = "text-emerald-800 bg-emerald-50 border-emerald-200";
+            } else if (stUpper === 'REJECTED' || stUpper === 'FAILED') {
+                statusBadge = '<span class="bg-rose-100 text-rose-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-rose-200">REJECTED</span>';
+                actorText = "Rejected by: " + (item.approver || item.ernam || 'DS / System');
+                actorClass = "text-rose-700 bg-rose-50 border-rose-200";
             } else {
-                actorText = "Requestor: " + (item.ernam || 'ABAPER04');
-                actorClass = "text-blue-800 bg-blue-50 border-blue-200";
+                statusBadge = '<span class="bg-slate-100 text-slate-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-slate-200">' + escapeHtml(item.status || '-') + '</span>';
+                actorText = "User: " + (item.ernam || '-');
+                actorClass = "text-slate-600 bg-slate-100 border-slate-200";
             }
 
-            var reasonDisplay = (item.status === 'REJECTED' || item.status === 'FAILED')
+            var reasonDisplay = (stUpper === 'REJECTED' || stUpper === 'FAILED')
                 ? (item.rej_reason || item.sub_reason || '-')
                 : (item.sub_reason || item.rej_reason || '-');
 
@@ -1940,8 +2046,11 @@ title="Delete Row">X</button>`;
             rowHtml += '<td class="p-3 text-center">' + statusBadge + '</td>';
             rowHtml += '<td class="p-3 text-center">';
             rowHtml += '  <div class="flex items-center justify-center gap-1.5">';
-            rowHtml += '    <button type="button" class="btn-view-detail rounded-full bg-white/80 hover:bg-white text-slate-800 border border-slate-200 text-[11px] font-bold px-3 py-1 shadow-2xs transition inline-flex items-center gap-1 cursor-pointer">View Detail</button>';
-            rowHtml += '    <button type="button" class="btn-download-excel rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold px-2.5 py-1 shadow-2xs transition inline-flex items-center gap-1 cursor-pointer" title="Download Excel Material Detail"><svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg><span>Excel</span></button>';
+            rowHtml += `    <button type="button" class="btn-view-detail rounded-full bg-white/80 hover:bg-white text-slate-800 border border-slate-200 text-[11px] font-bold px-3 py-1 shadow-2xs transition inline-flex items-center gap-1 
+cursor-pointer">View Detail</button>`;
+            rowHtml += `    <button type="button" class="btn-download-excel rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold px-2.5 py-1 shadow-2xs transition inline-flex items-center gap-1 cursor-pointer" 
+title="Download Excel Material Detail"><svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 
+0l-4-4m4 4V4"/></svg><span>Excel</span></button>`;
             rowHtml += '  </div>';
             rowHtml += '</td>';
 
@@ -1980,9 +2089,11 @@ title="Delete Row">X</button>`;
         }
 
         var filtered = globalHistoryData.filter(function(item) {
-            if (currentHistoryTab === 'APPROVED') return item.status === 'APPROVED';
-            if (currentHistoryTab === 'PENDING') return item.status === 'DRAFT' || item.status === 'SUBMITTED';
-            if (currentHistoryTab === 'REJECTED') return item.status === 'REJECTED' || item.status === 'FAILED';
+            var st = (item.status || '').toUpperCase();
+            if (currentHistoryTab === 'APPROVED') return st === 'APPROVED';
+            if (currentHistoryTab === 'CHECKED')  return st === 'CHECKED';
+            if (currentHistoryTab === 'PENDING')  return st === 'SUBMITTED' || st === 'DRAFT';
+            if (currentHistoryTab === 'REJECTED') return st === 'REJECTED' || st === 'FAILED';
             return true;
         });
 
@@ -1991,7 +2102,7 @@ title="Delete Row">X</button>`;
             return;
         }
 
-        var headers = ["No", "Batch / Request ID", "File Name", "Date / Time", "Total Lines", "Reason / Justification", "Status", "User / Approver"];
+        var headers = ["No", "Batch / Request ID", "File Name", "Date / Time", "Total Lines", "Reason", "Status", "User / Approver"];
         var exportRows = [headers];
 
         filtered.forEach(function(item, idx) {
@@ -2158,41 +2269,64 @@ title="Delete Row">X</button>`;
             subLabelEl.innerText = "File: " + (filename || '-') + " | Waktu: " + formattedDateTime + (actorName ? " | User: " + actorName : "");
         }
 
-        // Set Status Badge & Rejection Banner State
+        // Set Status Badge & Banner State
         var badgeEl = document.getElementById("reqModalStatusBadge");
-        var bannerEl = document.getElementById("reqModalRejectionBanner");
+        var bannerRej = document.getElementById("reqModalRejectionBanner");
+        var bannerApp = document.getElementById("reqModalApprovedBanner");
+        var bannerChk = document.getElementById("reqModalCheckedBanner");
         var rejTextEl = document.getElementById("reqModalRejectionText");
         var headerIcon = document.getElementById("reqModalHeaderIcon");
 
-        var isRejected = (status === 'REJECTED' || status === 'FAILED');
+        var stUpper = (status || '').toUpperCase();
+        var isRejected = (stUpper === 'REJECTED' || stUpper === 'FAILED');
 
         if (badgeEl) {
             if (isRejected) {
                 badgeEl.innerHTML = '<span class="bg-rose-100 text-rose-800 border border-rose-200 text-xs font-black px-3 py-1 rounded-full uppercase">REJECTED</span>';
-            } else if (status === 'APPROVED') {
+            } else if (stUpper === 'APPROVED') {
                 badgeEl.innerHTML = '<span class="bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-black px-3 py-1 rounded-full uppercase">APPROVED</span>';
-            } else if (status === 'CHECKED') {
-                badgeEl.innerHTML = '<span class="bg-teal-100 text-teal-800 border border-teal-200 text-xs font-black px-3 py-1 rounded-full uppercase">VERIFIED BY DS</span>';
+            } else if (stUpper === 'CHECKED') {
+                badgeEl.innerHTML = '<span class="bg-blue-100 text-blue-800 border border-blue-200 text-xs font-black px-3 py-1 rounded-full uppercase">CHECKED</span>';
             } else {
-                badgeEl.innerHTML = '<span class="bg-amber-100 text-amber-800 border border-amber-200 text-xs font-black px-3 py-1 rounded-full uppercase">' + status + '</span>';
+                badgeEl.innerHTML = '<span class="bg-amber-100 text-amber-800 border border-amber-200 text-xs font-black px-3 py-1 rounded-full uppercase">SUBMITTED</span>';
             }
         }
 
         if (headerIcon) {
             if (isRejected) headerIcon.className = "w-9 h-9 rounded-xl bg-rose-600 flex items-center justify-center font-bold text-white text-sm shadow-xs";
-            else if (status === 'APPROVED') headerIcon.className = "w-9 h-9 rounded-xl bg-emerald-600 flex items-center justify-center font-bold text-white text-sm shadow-xs";
-            else headerIcon.className = "w-9 h-9 rounded-xl bg-slate-800 flex items-center justify-center font-bold text-white text-sm shadow-xs";
+            else if (stUpper === 'APPROVED') headerIcon.className = "w-9 h-9 rounded-xl bg-emerald-600 flex items-center justify-center font-bold text-white text-sm shadow-xs";
+            else if (stUpper === 'CHECKED') headerIcon.className = "w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center font-bold text-white text-sm shadow-xs";
+            else headerIcon.className = "w-9 h-9 rounded-xl bg-amber-600 flex items-center justify-center font-bold text-white text-sm shadow-xs";
         }
 
-        if (isRejected || rejReason) {
-            if (bannerEl) bannerEl.classList.remove("hidden");
-            var displayText = rejReason;
+        // Hide all banners first
+        if (bannerRej) bannerRej.classList.add("hidden");
+        if (bannerApp) bannerApp.classList.add("hidden");
+        if (bannerChk) bannerChk.classList.add("hidden");
+
+        if (isRejected) {
+            if (bannerRej) bannerRej.classList.remove("hidden");
+            var displayText = rejReason || "Dokumen ini di-reject oleh Data Steward / SAP validation.";
             if (subReason && subReason !== rejReason) {
-                displayText += "\n\n[BUSINESS JUSTIFICATION]: " + subReason;
+                displayText += "\n\n[REASON]: " + subReason;
             }
-            if (rejTextEl) rejTextEl.innerText = displayText || "Dokumen ini di-reject oleh Data Steward / SAP validation.";
-        } else {
-            if (bannerEl) bannerEl.classList.add("hidden");
+            if (rejTextEl) rejTextEl.innerText = displayText;
+        } else if (stUpper === 'APPROVED') {
+            if (bannerApp) bannerApp.classList.remove("hidden");
+            var appTextEl = document.getElementById("reqModalApprovedText");
+            var appMsg = "Pengajuan material master ini telah berhasil diverifikasi dan disetujui secara resmi oleh Data Steward.";
+            if (subReason) {
+                appMsg += "\n\nReason: " + subReason;
+            }
+            if (appTextEl) appTextEl.innerText = appMsg;
+        } else if (stUpper === 'CHECKED') {
+            if (bannerChk) bannerChk.classList.remove("hidden");
+            var chkTextEl = document.getElementById("reqModalCheckedText");
+            var chkMsg = "Data pengajuan material telah diperiksa dan diverifikasi oleh Data Steward.";
+            if (subReason) {
+                chkMsg += "\n\nReason: " + subReason;
+            }
+            if (chkTextEl) chkTextEl.innerText = chkMsg;
         }
 
         // Show Modal with Spinner in table
@@ -2526,7 +2660,7 @@ title="Delete Row">X</button>`;
 
         if (!subReason) {
             if (errTxt) errTxt.classList.remove("hidden");
-            showToast("Business justification is required.", "error");
+            showToast("Reason is required.", "error");
             if (textarea) textarea.focus();
             return;
         }
@@ -2540,6 +2674,31 @@ title="Delete Row">X</button>`;
     // SAP MARA SEARCH & 2-COLUMN FILTER LOGIC
     // ==========================================
 
+    function matchWildcard(text, pattern) {
+        if (text === undefined || text === null || pattern === undefined || pattern === null) return false;
+        var str = String(text).trim();
+        var pat = String(pattern).trim();
+        if (!pat) return true;
+
+        if (pat.indexOf('*') === -1) {
+            return str.toLowerCase().indexOf(pat.toLowerCase()) !== -1;
+        }
+
+        var parts = pat.split('*');
+        var escapedParts = [];
+        for (var i = 0; i < parts.length; i++) {
+            escapedParts.push(parts[i].replace(/[^a-zA-Z0-9]/g, '\\$&'));
+        }
+        var regexStr = '^' + escapedParts.join('.*') + '$';
+
+        try {
+            var regex = new RegExp(regexStr, 'i');
+            return regex.test(str);
+        } catch (e) {
+            return str.toLowerCase().indexOf(pat.replace(/\*/g, '').toLowerCase()) !== -1;
+        }
+    }
+
     var currentMaraResults = [];
 
     function handleFilterKeyup(e) {
@@ -2549,10 +2708,10 @@ title="Delete Row">X</button>`;
     }
 
     function searchMaraSAP() {
-        var matnrVal = document.getElementById("filterMatnr") ? document.getElementById("filterMatnr").value.trim().toUpperCase() : "";
-        var maktxVal = document.getElementById("filterMaktx") ? document.getElementById("filterMaktx").value.trim().toUpperCase() : "";
-        var mtartVal = document.getElementById("filterMtart") ? document.getElementById("filterMtart").value.trim().toUpperCase() : "";
-        var matklVal = document.getElementById("filterMatkl") ? document.getElementById("filterMatkl").value.trim().toUpperCase() : "";
+        var matnrVal = document.getElementById("filterMatnr") ? document.getElementById("filterMatnr").value.trim() : "";
+        var maktxVal = document.getElementById("filterMaktx") ? document.getElementById("filterMaktx").value.trim() : "";
+        var mtartVal = document.getElementById("filterMtart") ? document.getElementById("filterMtart").value.trim() : "";
+        var matklVal = document.getElementById("filterMatkl") ? document.getElementById("filterMatkl").value.trim() : "";
 
         var tbody = document.getElementById("maraResultTbody");
         var badge = document.getElementById("maraResultBadge");
@@ -2572,10 +2731,10 @@ title="Delete Row">X</button>`;
 
         var formData = new FormData();
         formData.append("OnInputProcessing", "SEARCH_MARA");
-        formData.append("FILTER_MATNR", matnrVal);
-        formData.append("FILTER_MAKTX", maktxVal);
-        formData.append("FILTER_MTART", mtartVal);
-        formData.append("FILTER_MATKL", matklVal);
+        formData.append("FILTER_MATNR", matnrVal.replace(/\*/g, '%').toUpperCase());
+        formData.append("FILTER_MAKTX", maktxVal.replace(/\*/g, '%').toUpperCase());
+        formData.append("FILTER_MTART", mtartVal.replace(/\*/g, '%').toUpperCase());
+        formData.append("FILTER_MATKL", matklVal.replace(/\*/g, '%').toUpperCase());
 
         fetch("?OnInputProcessing=SEARCH_MARA", {
             method: "POST",
@@ -2588,11 +2747,22 @@ title="Delete Row">X</button>`;
             return res.json();
         })
         .then(function(data) {
-            if (Array.isArray(data)) {
-                renderMaraResults(data);
-            } else {
-                renderMaraResults([]);
-            }
+            var rawList = Array.isArray(data) ? data : [];
+            var filteredList = rawList.filter(function(item) {
+                var itemMatnr = item.matnr || item.MATNR || '';
+                var itemMaktx = item.maktx || item.MAKTX || '';
+                var itemMtart = item.mtart || item.MTART || '';
+                var itemMatkl = item.matkl || item.MATKL || '';
+
+                var matnrDisplay = itemMatnr.replace(/^0+/, '');
+                var matchMat = !matnrVal || matchWildcard(itemMatnr, matnrVal) || matchWildcard(matnrDisplay, matnrVal);
+                var matchMak = !maktxVal || matchWildcard(itemMaktx, maktxVal);
+                var matchMta = !mtartVal || matchWildcard(itemMtart, mtartVal);
+                var matchMkl = !matklVal || matchWildcard(itemMatkl, matklVal);
+
+                return matchMat && matchMak && matchMta && matchMkl;
+            });
+            renderMaraResults(filteredList);
         })
         .catch(function(err) {
             console.error("SAP MARA Search Error:", err);
