@@ -1,0 +1,1309 @@
+<%@page language="ABAP" %>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Material Master - Staging Dashboard</title>
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+                    colors: {
+                        emerald: {
+                            50:  '#ecfdf5',
+                            100: '#d1fae5',
+                            200: '#a7f3d0',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065f46',
+                            900: '#064e3b',
+                        },
+                        brand: {
+                            50: '#f0fdf4', 100: '#dcfce7', 200: '#bbf7d0',
+                            500: '#10b981', 600: '#059669', 700: '#047857',
+                            800: '#065f46', 900: '#022c22',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background-color: #eef2f6;
+            background-image:
+                radial-gradient(at 10% 10%, rgba(16, 185, 129, 0.08) 0px, transparent 40%),
+                radial-gradient(at 90% 15%, rgba(100, 116, 139, 0.08) 0px, transparent 45%),
+                radial-gradient(at 50% 85%, rgba(16, 185, 129, 0.05) 0px, transparent 50%);
+            background-attachment: fixed;
+            color: #0f172a;
+        }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(241, 245, 249, 0.6); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #10b981; }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.72);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.05);
+        }
+
+        .glass-subpanel {
+            background: rgba(248, 250, 252, 0.65);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(226, 232, 240, 0.7);
+        }
+
+        .custom-select {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%6b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.75rem center;
+            background-repeat: no-repeat;
+            background-size: 1.25em 1.25em;
+            padding-right: 2.25rem;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+    </style>
+</head>
+<body class="text-[13px] font-sans leading-relaxed m-0 p-0 antialiased min-h-screen">
+
+    <div class="flex min-h-screen">
+        <!-- REUSABLE SIDEBAR PAGE FRAGMENT -->
+        <%@include file="sidebar_approval.htm" %>
+
+        <!-- MAIN CONTENT AREA -->
+        <div class="flex-1 min-w-0 flex flex-col">
+            <!-- TOP NAVBAR -->
+            <header class="bg-white/70 backdrop-blur-xl h-14 border-b border-white/60 sticky top-0 z-50 px-6 lg:px-10 flex items-center justify-between shadow-xs">
+                <div class="flex items-center gap-3">
+                    <span class="font-extrabold text-sm text-slate-900 block leading-none">Material Master Governance</span>
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/10 text-emerald-800 border border-emerald-500/20 uppercase tracking-wide">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>APPROVAL DASHBOARD
+                    </span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-2 bg-white/80 border border-slate-200/80 px-3 py-1 rounded-full shadow-2xs">
+                        <div class="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-[10px]" id="userAvatarInitial">A</div>
+                        <span class="text-xs font-bold text-slate-800" id="userNameLabel"><%= sy-uname %></span>
+                    </div>
+                    <a href="?action=LOGOUT" class="text-xs font-semibold text-slate-600 hover:text-emerald-700 px-3 py-1 rounded-full border border-slate-200/80 bg-white/50 hover:bg-white transition">Sign Out</a>
+                </div>
+            </header>
+
+            <main class="max-w-[1900px] my-6 mx-auto px-4 sm:px-8 space-y-6 flex-1">
+
+                <!-- CENTERED PAGE HEADER -->
+                <div class="mb-8 text-center flex flex-col items-center justify-center">
+                    <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight text-center leading-tight">
+                        Material Master <span class="bg-gradient-to-r from-emerald-600 to-emerald-800 bg-clip-text text-transparent">Staging Dashboard</span>
+                    </h1>
+                    <p class="text-xs font-semibold text-slate-500 text-center mt-1">
+                        Monitor, review, approve, and upload material master request queues to SAP S/4HANA
+                    </p>
+                </div>
+
+                <!-- IN-PAGE APPROVAL FEEDBACK ALERT BANNER -->
+                <div id="pageApprovalAlert" class="hidden mb-6 rounded-2xl p-4 transition-all duration-300 shadow-sm border">
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="flex items-start gap-3">
+                            <div id="pageApprovalAlertIcon" class="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-base shrink-0 mt-0.5 shadow-inner"></div>
+                            <div>
+                                <h4 id="pageApprovalAlertTitle" class="text-xs font-extrabold uppercase tracking-wider mb-1"></h4>
+                                <p id="pageApprovalAlertMessage" class="text-xs font-medium leading-relaxed"></p>
+                                <div id="pageApprovalAlertDetail" class="hidden mt-2.5 p-3 rounded-xl text-[11px] font-mono border max-h-40 overflow-y-auto leading-normal"></div>
+                            </div>
+                        </div>
+                        <button type="button" onclick="closePageApprovalAlert()" class="text-slate-400 hover:text-slate-600 font-bold text-lg px-2 py-0.5 rounded-lg transition cursor-pointer">&times;</button>
+                    </div>
+                </div>
+
+                <!-- SUMMARY STATS BADGES BAR -->
+                <div class="flex flex-wrap items-center justify-between gap-3 mb-4 px-1">
+                    <div class="flex items-center gap-2.5 flex-wrap">
+                        <!-- Belum Approved -->
+                        <div class="inline-flex items-center gap-2 bg-white/80 backdrop-blur-md border border-slate-200/80 px-3.5 py-1.5 rounded-2xl shadow-2xs">
+                            <span class="w-2 h-2 rounded-full bg-teal-500 animate-pulse"></span>
+                            <span class="text-xs font-bold text-slate-600">Belum Approved:</span>
+                            <span class="text-xs font-black text-teal-700 font-mono" id="statPendingCount">0</span>
+                        </div>
+                        <!-- Approved -->
+                        <div class="inline-flex items-center gap-2 bg-white/80 backdrop-blur-md border border-slate-200/80 px-3.5 py-1.5 rounded-2xl shadow-2xs">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                            <span class="text-xs font-bold text-slate-600">Sudah Approved:</span>
+                            <span class="text-xs font-black text-emerald-700 font-mono" id="statApprovedCount">0</span>
+                        </div>
+                        <!-- Rejected -->
+                        <div class="inline-flex items-center gap-2 bg-white/80 backdrop-blur-md border border-slate-200/80 px-3.5 py-1.5 rounded-2xl shadow-2xs">
+                            <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+                            <span class="text-xs font-bold text-slate-600">Rejected:</span>
+                            <span class="text-xs font-black text-rose-700 font-mono" id="statRejectedCount">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FILTER & SEARCH BAR -->
+                <section class="glass-panel rounded-2xl p-4 mb-6 transition-all duration-300">
+                    <div class="flex flex-col md:flex-row items-center justify-between gap-3">
+                        <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 w-full md:w-auto">
+                            <div>
+                                <label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Urutkan Tanggal</label>
+                                <select id="dateSortFilter" class="custom-select w-full px-3 py-2 border border-slate-200/80 rounded-xl text-xs outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 bg-white/80 font-semibold
+text-slate-700 cursor-pointer transition" onchange="applyFilter()">
+                                    <option value="DESC">Terbaru &rarr; Terlama</option>
+                                    <option value="ASC">Terlama &rarr; Terbaru</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Column</label>
+                                <select id="columnFilter" class="custom-select w-full px-3 py-2 border border-slate-200/80 rounded-xl text-xs outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 bg-white/80 font-semibold
+text-slate-700 cursor-pointer transition" onchange="applyFilter()">
+                                    <option value="ALL">All Columns</option>
+                                    <option value="req_no">Request ID</option>
+                                    <option value="remarks">Permintaan (SUB_REASON)</option>
+                                    <option value="requestor">Requestor</option>
+                                    <option value="rej_reason">Rejection Reason</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Status</label>
+                                <select id="statusFilter" class="custom-select w-full px-3 py-2 border border-slate-200/80 rounded-xl text-xs outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 bg-white/80 font-semibold
+text-slate-700 cursor-pointer transition" onchange="applyFilter()">
+                                    <option value="ALL">All Statuses</option>
+                                    <option value="DRAFT">Draft</option>
+                                    <option value="SUBMITTED">Submitted</option>
+                                    <option value="CHECKED">Ready for Approval</option>
+                                    <option value="APPROVED">Approved</option>
+                                    <option value="FAILED">Failed</option>
+                                    <option value="REJECTED">Rejected</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Search</label>
+                                <input type="text" id="searchInput" placeholder="Search..." class="w-full px-3 py-2 border border-slate-200/80 rounded-xl text-xs outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 font-medium
+text-slate-800 bg-white/80 transition placeholder:text-slate-400" onkeyup="applyFilter()">
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-2 self-end w-full md:w-auto justify-end">
+                            <button type="button" onclick="loadStagingList()" class="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white px-4 py-2 rounded-xl font-extrabold text-xs flex items-center
+gap-1.5 transition shadow-2xs cursor-pointer">
+                                Refresh
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ACTION BAR MULTIPLE SELECTION -->
+                <div id="batchActionBar" class="hidden bg-slate-900 text-white px-4 py-3 rounded-2xl mb-4 flex items-center justify-between shadow-xl backdrop-blur-md">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-emerald-500 text-slate-950 font-black px-3 py-0.5 rounded-full text-xs" id="selectedCountBadge">0</span>
+                        <span class="text-xs font-bold text-slate-200">selected requests</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button type="button" id="btnBulkApprove" onclick="triggerBulkApprove()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-1.5 rounded-full font-extrabold text-xs transition shadow-2xs cursor-pointer flex items-center
+gap-1.5">
+                            Approve
+                        </button>
+                        <button type="button" onclick="openRejectModal('BULK')" class="bg-rose-600 hover:bg-rose-700 text-white px-4 py-1.5 rounded-full font-extrabold text-xs transition shadow-2xs cursor-pointer">
+                            Reject
+                        </button>
+                    </div>
+                </div>
+
+                <!-- STAGING TABLE SECTION -->
+                <section class="glass-panel rounded-3xl overflow-hidden mb-8 transition-all duration-300">
+                    <div class="overflow-x-auto overflow-y-auto max-h-[620px] w-full max-w-full">
+                        <table class="w-full border-collapse text-xs min-w-[1000px]">
+                            <thead>
+                                <tr class="text-left bg-slate-100/80 border-b border-slate-200/80 text-[10px] font-black text-slate-600 uppercase tracking-wider backdrop-blur-xs sticky top-0 z-20">
+                                    <th class="p-3.5 text-center" style="width: 38px;">
+                                        <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)" class="w-3.5 h-3.5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer">
+                                    </th>
+                                    <th class="p-3.5 text-center" style="width: 55px;">Detail</th>
+                                    <th class="p-3.5">Permintaan</th>
+                                    <th class="p-3.5 text-center" style="width: 140px;">Request Date</th>
+                                    <th class="p-3.5 text-center" style="width: 120px;">Requestor</th>
+                                    <th class="p-3.5 text-center" style="width: 110px;">Status</th>
+                                    <th class="p-3.5 text-center" style="width: 150px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="stagingTableBody" class="divide-y divide-slate-100">
+                                <tr>
+                                    <td colspan="7" class="p-8 text-center text-slate-400 font-medium">Loading...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+            </main>
+
+            <!-- APPROVAL CONFIRMATION MODAL POPUP -->
+            <div id="approveConfirmModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[10000] hidden flex items-center justify-center p-4">
+                <div class="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/80 max-w-md w-full overflow-hidden transform transition-all">
+                    <div class="bg-emerald-500/10 border-b border-emerald-500/20 px-6 py-4 flex items-center justify-between">
+                        <h3 class="text-xs font-extrabold text-emerald-900 uppercase tracking-wider flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span> Konfirmasi Approval
+                        </h3>
+                        <button type="button" onclick="cancelApproveConfirm()" class="w-7 h-7 rounded-lg bg-white/80 hover:bg-white text-slate-400 hover:text-slate-700 font-bold text-base flex items-center justify-center transition border
+border-slate-200/80 cursor-pointer">&times;</button>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl font-black mx-auto shadow-inner border border-emerald-200">
+                            ?
+                        </div>
+                        <div class="text-center space-y-1.5">
+                            <h4 class="text-sm font-extrabold text-slate-900">Apakah Anda yakin ingin memproses Approval ini?</h4>
+                            <p class="text-xs text-slate-600 font-medium leading-relaxed">
+                                Data request yang dipilih akan divalidasi dan langsung di-upload ke SAP S/4HANA Master Data.
+                            </p>
+                        </div>
+                        <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80 text-xs font-mono text-slate-700 space-y-1">
+                            <div class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider font-sans">Dokumen / Data yang di-Approve:</div>
+                            <div id="confirmApproveDocList" class="font-bold text-emerald-800 break-all leading-snug"></div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-100/90 backdrop-blur-xs px-6 py-4 border-t border-slate-200/80 flex justify-end gap-2">
+                        <button type="button" id="btnCancelApproveModal" onclick="cancelApproveConfirm()" class="px-4 py-2 rounded-full text-xs font-bold border border-slate-200/80 bg-white hover:bg-slate-50 text-slate-700 transition cursor-pointer">
+                            Batal
+                        </button>
+                        <button type="button" id="btnExecuteApproveModal" onclick="executeConfirmedApprove()" class="px-5 py-2 rounded-full text-xs font-extrabold bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs transition flex items-center
+gap-1.5 cursor-pointer">
+                            <span id="btnExecuteApproveText">Ya, Approve Sekarang</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- REJECTION REASON MODAL POPUP -->
+            <div id="rejectModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[10000] hidden flex items-center justify-center p-4">
+                <div class="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/80 max-w-md w-full overflow-hidden transform transition-all">
+                    <div class="bg-rose-500/10 border-b border-rose-500/20 px-6 py-4 flex items-center justify-between">
+                        <h3 class="text-xs font-extrabold text-rose-800 uppercase tracking-wider flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-rose-500"></span> Reject Request
+                        </h3>
+                        <button type="button" onclick="closeRejectModal()" class="w-7 h-7 rounded-lg bg-white/80 hover:bg-white text-slate-400 hover:text-slate-700 font-bold text-base flex items-center justify-center transition border
+border-slate-200/80 cursor-pointer">&times;</button>
+                    </div>
+                    <div class="p-6 space-y-3">
+                        <input type="hidden" id="modalTargetReqNo" value="">
+                        <input type="hidden" id="modalMode" value="SINGLE">
+
+                        <label class="block text-[11px] font-extrabold text-slate-700 uppercase tracking-wider mb-1">Reason <span class="text-rose-600">*</span></label>
+                        <textarea id="rejectReasonInput" rows="3" placeholder="Enter rejection reason..." class="w-full p-3 border border-slate-200/80 rounded-xl text-xs outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 font-medium
+text-slate-800 bg-white/80 transition"></textarea>
+                    </div>
+                    <div class="bg-slate-100/90 backdrop-blur-xs px-6 py-4 border-t border-slate-200/80 flex justify-end gap-2">
+                        <button type="button" onclick="closeRejectModal()" class="px-4 py-2 rounded-full text-xs font-bold border border-slate-200/80 bg-white hover:bg-slate-50 text-slate-700 transition cursor-pointer">
+                            Cancel
+                        </button>
+                        <button type="button" onclick="submitRejection()" class="px-5 py-2 rounded-full text-xs font-extrabold bg-rose-600 hover:bg-rose-700 text-white shadow-2xs transition cursor-pointer">
+                            Confirm Reject
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MATERIAL FULL DETAIL MODAL POPUP -->
+            <div id="materialDetailModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[10000] hidden flex items-center justify-center p-4">
+                <div class="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/80 max-w-5xl w-full overflow-hidden transform transition-all flex flex-col max-h-[90vh]">
+                    <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between shadow-md shrink-0 border-b border-slate-800">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center font-black text-white text-xs shadow-xs">
+                                📋
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-extrabold text-white tracking-wide" id="detailModalTitle">MATERIAL DETAILS</h3>
+                                <div class="flex items-center gap-2 mt-0.5 text-[11px] text-slate-400 font-medium flex-wrap" id="detailModalSubTitle"></div>
+                            </div>
+                        </div>
+                        <button type="button" onclick="closeMaterialDetailModal()" class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white font-bold text-lg flex items-center justify-center transition
+cursor-pointer">&times;</button>
+                    </div>
+                    <div class="p-6 overflow-y-auto space-y-4 text-xs bg-slate-50/50" id="detailModalBody">
+                        <!-- Content dynamically generated by JS -->
+                    </div>
+                    <div class="bg-slate-100/90 backdrop-blur-xs px-6 py-4 border-t border-slate-200/80 flex justify-end shrink-0">
+                        <button type="button" onclick="closeMaterialDetailModal()" class="px-6 py-2.5 rounded-full text-xs font-extrabold bg-slate-900 hover:bg-slate-800 text-white shadow-xs transition transform active:scale-95 cursor-pointer">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SAP UPLOAD RESULT NOTIFICATION MODAL -->
+            <div id="uploadResultModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[10000] hidden flex items-center justify-center p-4">
+                <div class="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/80 max-w-md w-full overflow-hidden transform transition-all">
+                    <div id="uploadResultHeader" class="px-6 py-4 border-b flex items-center justify-between">
+                        <h3 class="text-xs font-extrabold uppercase tracking-wider flex items-center gap-2" id="uploadResultTitle">
+                            SAP Upload Notification
+                        </h3>
+                        <button type="button" onclick="closeUploadResultModal()" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-600 font-bold text-base flex items-center justify-center transition
+cursor-pointer">&times;</button>
+                    </div>
+                    <div class="p-6 space-y-3 text-center">
+                        <div id="uploadResultIcon" class="w-14 h-14 rounded-full mx-auto flex items-center justify-center text-2xl font-bold shadow-inner"></div>
+                        <h4 class="text-sm font-extrabold text-slate-900" id="uploadResultHeading"></h4>
+                        <p class="text-xs text-slate-600 font-medium leading-relaxed" id="uploadResultMessage"></p>
+                        <div id="uploadResultDetailBox" class="hidden text-left bg-slate-50 p-3 rounded-2xl border border-slate-200/80 text-[11px] font-mono text-slate-700 max-h-36 overflow-y-auto"></div>
+                    </div>
+                    <div class="bg-slate-100/90 backdrop-blur-xs px-6 py-4 border-t border-slate-200/80 flex justify-center">
+                        <button type="button" onclick="closeUploadResultModal()" class="px-6 py-2.5 rounded-full text-xs font-extrabold bg-slate-900 hover:bg-slate-800 text-white shadow-xs transition transform active:scale-95 cursor-pointer">
+                            OK, Mengerti
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TOAST STACK NOTIFICATION -->
+            <div class="fixed bottom-5 right-5 flex flex-col gap-2 z-[10000]" id="toastStack"></div>
+
+<script>
+    var fullStagingData = [];
+    var selectedReqNos = [];
+    var loadedBatchDetails = {};
+
+    document.addEventListener("DOMContentLoaded", function() {
+        var nameLabel = document.getElementById("userNameLabel");
+        if (nameLabel && nameLabel.innerText.trim()) {
+            var initial = nameLabel.innerText.trim().charAt(0).toUpperCase();
+            var avatar = document.getElementById("userAvatarInitial");
+            if (avatar) avatar.innerText = initial;
+        }
+        loadStagingList();
+    });
+
+    function loadStagingList() {
+    var tbody = document.getElementById("stagingTableBody");
+    if (tbody) {
+        tbody.innerHTML = '<tr><td colspan="10" class="p-6 text-center text-slate-400 italic">Loading...</td></tr>';
+    }
+    selectedReqNos = [];
+    loadedBatchDetails = {};
+    updateBatchActionBar();
+
+    fetch("?action=GET_STAGING_LIST", { method: "POST" })
+    .then(function(res) {
+        if (!res.ok) {
+            throw new Error("HTTP error status: " + res.status);
+        }
+        return res.json();
+    })
+    .then(function(data) {
+        fullStagingData = data || [];
+        updateKPICards(fullStagingData);
+        applyFilter();
+    })
+    .catch(function(err) {
+        console.error("Detail Error AJAX:", err);
+        if (tbody) {
+            tbody.innerHTML = '<tr><td colspan="10" class="p-6 text-center text-red-500 italic">Failed to load data: ' + err.message + '</td></tr>';
+        }
+    });
+}
+
+    function updateKPICards(data) {
+        var total = data.length;
+        var draft = data.filter(function(i) { return i.status === 'DRAFT'; }).length;
+        var submitted = data.filter(function(i) { return i.status === 'SUBMITTED' || i.status === 'CHECKED' || i.status === 'CODED'; }).length;
+        var approved = data.filter(function(i) { return i.status === 'APPROVED'; }).length;
+        var failed = data.filter(function(i) { return i.status === 'FAILED'; }).length;
+        var rejected = data.filter(function(i) { return i.status === 'REJECTED'; }).length;
+
+        var elPending = document.getElementById("statPendingCount");
+        if (elPending) elPending.innerText = (submitted + draft);
+
+        var elApproved = document.getElementById("statApprovedCount");
+        if (elApproved) elApproved.innerText = approved;
+
+        var elRejected = document.getElementById("statRejectedCount");
+        if (elRejected) elRejected.innerText = (rejected + failed);
+    }
+
+    function filterByStatus(status) {
+        var statusFilter = document.getElementById("statusFilter");
+        if (statusFilter) statusFilter.value = status;
+        applyFilter();
+    }
+
+    function applyFilter() {
+        var searchInput = document.getElementById("searchInput");
+        var statusFilter = document.getElementById("statusFilter");
+        var columnFilter = document.getElementById("columnFilter");
+        var dateSortFilter = document.getElementById("dateSortFilter");
+
+        var search = (searchInput ? searchInput.value : '').toLowerCase();
+        var status = statusFilter ? statusFilter.value : 'ALL';
+        var column = columnFilter ? columnFilter.value : 'ALL';
+        var dateSort = dateSortFilter ? dateSortFilter.value : 'DESC';
+
+        var filtered = fullStagingData.filter(function(item) {
+            var matchSearch = false;
+            if (column === 'ALL') {
+                matchSearch = (item.req_no || '').toLowerCase().indexOf(search) >= 0 ||
+                              (item.remarks || '').toLowerCase().indexOf(search) >= 0 ||
+                              (item.sub_reason || '').toLowerCase().indexOf(search) >= 0 ||
+                              (item.requestor || '').toLowerCase().indexOf(search) >= 0 ||
+                              (item.rej_reason || '').toLowerCase().indexOf(search) >= 0;
+            } else {
+                matchSearch = (item[column] || '').toLowerCase().indexOf(search) >= 0;
+            }
+            var matchStatus = (status === 'ALL') || (item.status === status);
+            return matchSearch && matchStatus;
+        });
+
+        // Date sorting logic: ASC = Terlama ke Terbaru, DESC = Terbaru ke Terlama
+        filtered.sort(function(a, b) {
+            var dateA = (a.req_date || '') + (a.req_time || '');
+            var dateB = (b.req_date || '') + (b.req_time || '');
+
+            if (dateSort === 'ASC') {
+                return dateA.localeCompare(dateB);
+            } else {
+                return dateB.localeCompare(dateA);
+            }
+        });
+
+        renderTable(filtered);
+    }
+
+    function escapeHtml(str) {
+        if (str === null || str === undefined) return '';
+        return String(str)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/\x22/g, "&quot;")
+            .replace(/\x27/g, "&#039;")
+            .replace(/[\r\n]+/g, " ");
+    }
+
+    function renderTable(data) {
+        var tbody = document.getElementById("stagingTableBody");
+        if (!tbody) return;
+        tbody.innerHTML = "";
+
+        var masterCheck = document.getElementById("selectAllCheckbox");
+        if (masterCheck) masterCheck.checked = false;
+
+        if (!data || data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="p-6 text-center text-slate-400 italic">No records found.</td></tr>';
+            return;
+        }
+
+        data.forEach(function(item, idx) {
+            var tr = document.createElement("tr");
+            tr.className = "hover:bg-slate-50/80 transition-colors border-b border-app-border";
+
+            var reqNoEsc = escapeHtml(item.req_no);
+            var subReasonEsc = escapeHtml(item.sub_reason || (item.remarks && item.remarks.indexOf('.') === -1 ? item.remarks : '') || 'Permintaan Material Master');
+            var filenameEsc = escapeHtml(item.remarks || '');
+            var requestorEsc = escapeHtml(item.requestor);
+            var rejReasonEsc = escapeHtml(item.rej_reason);
+
+            var fDate = (item.req_date && item.req_date.length === 8) ? (item.req_date.substring(6,8) + '/' + item.req_date.substring(4,6) + '/' + item.req_date.substring(0,4)) : (escapeHtml(item.req_date) || "-");
+            var fTime = (item.req_time && item.req_time.length >= 4) ? (item.req_time.substring(0,2) + ':' + item.req_time.substring(2,4)) : "";
+            var dateTimeStr = fDate + (fTime ? ' ' + fTime : '');
+
+            var badge = '<span class="inline-flex items-center gap-1.5 bg-slate-500/10 text-slate-700 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-slate-500/20">DRAFT</span>';
+
+            if (item.status === 'SUBMITTED' || item.status === 'CHECKED' || item.status === 'CODED') {
+                badge = '<span class="inline-flex items-center gap-1.5 bg-teal-500/10 text-teal-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-teal-500/20">' +
+                        '<span class="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse"></span> Ready</span>';
+            }
+
+            if (item.status === 'VALIDATING' || item.status === 'UPLOADING') {
+                badge = '<span class="inline-flex items-center gap-1.5 bg-amber-500/10 text-amber-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-amber-500/20 animate-pulse">' +
+                        '<span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> UPLOADING SAP...</span>';
+            }
+
+            if (item.status === 'APPROVED') {
+                badge = '<span class="inline-flex items-center gap-1.5 bg-emerald-500/10 text-emerald-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-emerald-500/20">' +
+                        '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> APPROVED (SAP)</span>';
+            }
+
+            if (item.status === 'FAILED') {
+                badge = '<span class="inline-flex items-center gap-1.5 bg-rose-500/10 text-rose-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-rose-500/20">' +
+                        '<span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> GAGAL SAP</span>';
+            }
+
+            if (item.status === 'REJECTED') {
+                badge = '<span class="inline-flex items-center gap-1.5 bg-rose-500/10 text-rose-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-rose-500/20">' +
+                        '<span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> REJECTED</span>';
+            }
+
+            var reasonHtml = '';
+            if (item.status === 'REJECTED' && rejReasonEsc) {
+                reasonHtml = '<div class="text-[11px] text-rose-800 font-medium mt-1.5 bg-rose-50/90 p-2 rounded-xl border border-rose-200/80 shadow-2xs"><strong class="font-extrabold">Reason:</strong> ' + rejReasonEsc + '</div>';
+            } else if (item.status === 'FAILED' && rejReasonEsc) {
+                reasonHtml = '<div class="text-[11px] text-rose-800 font-medium mt-1.5 bg-rose-50/90 p-2 rounded-xl border border-rose-200/80 shadow-2xs"><strong class="font-extrabold">SAP Upload Error:</strong> ' + rejReasonEsc + '</div>';
+            }
+
+            var actionBtns = '';
+            if (item.status === 'SUBMITTED' || item.status === 'CHECKED' || item.status === 'CODED' || item.status === 'FAILED') {
+                var approveLabel = item.status === 'FAILED' ? 'Retry' : 'Approve';
+
+                actionBtns += '<button type="button" id="btn_approve_' + reqNoEsc + '" onclick="quickApprove(\x27' + reqNoEsc + '\x27)" ';
+                actionBtns += 'class="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white text-[11px] ';
+                actionBtns += 'font-extrabold px-3 py-1 rounded-full shadow-2xs transition cursor-pointer flex items-center gap-1">';
+                actionBtns += approveLabel + '</button> ';
+
+                actionBtns += '<button type="button" onclick="openRejectModal(\x27SINGLE\x27, \x27' + reqNoEsc + '\x27)" ';
+                actionBtns += 'class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-[11px] ';
+                actionBtns += 'font-extrabold px-3 py-1 rounded-full shadow-2xs transition cursor-pointer flex items-center gap-1">Reject</button>';
+            }
+
+            if (item.status === 'DRAFT') {
+                actionBtns += '<button type="button" onclick="deleteDraft(\x27' + reqNoEsc + '\x27)" ';
+                actionBtns += 'class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-[11px] ';
+                actionBtns += 'font-extrabold px-3 py-1 rounded-full shadow-2xs transition cursor-pointer flex items-center gap-1">Delete</button>';
+            }
+
+            var isChecked = selectedReqNos.indexOf(item.req_no) >= 0;
+
+            var htmlStr = '';
+            // 1. Checkbox
+            htmlStr += '<td class="p-3 text-center">';
+            htmlStr += '<input type="checkbox" value="' + reqNoEsc + '" ' + (isChecked ? 'checked' : '') + ' ';
+            htmlStr += 'onchange="toggleSelectRow(this)" class="row-checkbox w-3.5 h-3.5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer">';
+            htmlStr += '</td>';
+
+            // 2. Detail
+            htmlStr += '<td class="p-3 text-center">';
+            htmlStr += '<button type="button" onclick="toggleExpandRow(\'' + reqNoEsc + '\')" id="expand_btn_' + reqNoEsc + '" ';
+            htmlStr += 'class="w-7 h-7 rounded-full bg-slate-100 hover:bg-emerald-100 text-slate-700 hover:text-emerald-800 font-extrabold flex items-center justify-center transition shadow-2xs text-[10px] cursor-pointer">&#9660;</button>';
+            htmlStr += '</td>';
+
+            // 3. Permintaan (SUB_REASON)
+            htmlStr += '<td class="p-3 font-medium text-slate-800 max-w-[340px]">';
+            htmlStr += '<div class="font-extrabold text-slate-900 text-xs leading-snug">' + subReasonEsc + '</div>';
+            htmlStr += '<div class="flex items-center gap-2 mt-1 flex-wrap">';
+            if (reqNoEsc) {
+                htmlStr += '<span class="text-[10px] font-mono text-emerald-800 font-bold">ID: ' + reqNoEsc + ' (' + (item.total_item || 0) + ' items)</span>';
+            }
+            if (filenameEsc) {
+                htmlStr += '<span class="text-[10px] text-slate-500 font-semibold bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200" title="File Name">File: ' + filenameEsc + '</span>';
+            }
+            htmlStr += '</div>';
+            htmlStr += reasonHtml + '</td>';
+
+            // 4. Request Date
+            htmlStr += '<td class="p-3 text-center font-mono text-slate-600 text-[11px]">' + dateTimeStr + '</td>';
+
+            // 5. Requestor
+            htmlStr += '<td class="p-3 text-center font-extrabold text-emerald-800 font-mono">' + (requestorEsc || '-') + '</td>';
+
+            // 6. Status
+            htmlStr += '<td class="p-3 text-center">' + badge + '</td>';
+
+            // 7. Actions
+            htmlStr += '<td class="p-3 text-center"><div class="flex items-center justify-center gap-1.5 flex-wrap">' + (actionBtns || '-') + '</div></td>';
+
+            tr.innerHTML = htmlStr;
+            tbody.appendChild(tr);
+
+            var expandTr = document.createElement("tr");
+            expandTr.id = "expand_row_" + reqNoEsc;
+            expandTr.className = "hidden bg-slate-50/90 border-b border-app-border";
+
+            var expStr = '';
+            expStr += '<td colspan="7" class="p-2 sm:p-3 max-w-0">';
+            expStr += '<div class="p-3 bg-slate-100/90 border border-slate-200 rounded-lg shadow-inner w-full max-w-full overflow-hidden">';
+            expStr += '<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2 px-1">';
+            expStr += '<div class="flex flex-wrap items-center gap-2">';
+            expStr += '<span class="text-[11px] font-bold text-slate-800 uppercase tracking-wider">Batch Items (ID: <span class="font-mono text-brand-800">' + reqNoEsc + '</span>)</span>';
+            expStr += '<span class="text-[10px] font-semibold text-slate-600 bg-white px-2 py-0.5 rounded border border-slate-200 shadow-xs">' + (item.total_item || 0) + ' items</span>';
+            expStr += '</div>';
+            expStr += '<div class="flex items-center gap-2">';
+            expStr += '<input type="text" id="detailSearch_' + reqNoEsc + '" ';
+            expStr += 'onkeyup="filterDetailRows(\x27' + reqNoEsc + '\x27)" ';
+            expStr += 'placeholder="Search batch items..." ';
+            expStr += 'class="px-2.5 py-1 text-[11px] border border-slate-300 rounded ';
+            expStr += 'bg-white outline-none focus:border-brand-600 focus:ring-1 ';
+            expStr += 'focus:ring-brand-500 w-56 shadow-xs transition">';
+            expStr += '</div></div>';
+            expStr += '<div id="expand_content_' + reqNoEsc + '" class="w-full max-w-full max-h-[350px] overflow-x-auto overflow-y-auto border border-slate-200 rounded-md bg-white shadow-xs">';
+            expStr += '<div class="p-4 text-center text-slate-400 italic text-xs">Loading items...</div>';
+            expStr += '</div></div></td>';
+
+            expandTr.innerHTML = expStr;
+            tbody.appendChild(expandTr);
+        });
+    }
+
+    function toggleExpandRow(reqNo) {
+        var expandTr = document.getElementById("expand_row_" + reqNo);
+        var expandBtn = document.getElementById("expand_btn_" + reqNo);
+        if (!expandTr) return;
+
+        var isHidden = expandTr.classList.contains("hidden");
+
+        if (isHidden) {
+            expandTr.classList.remove("hidden");
+            if (expandBtn) {
+                expandBtn.innerHTML = "&#9650;";
+                expandBtn.className = "w-6 h-6 rounded bg-brand-700 text-white font-bold flex items-center justify-center transition shadow-xs text-[10px]";
+            }
+            if (!loadedBatchDetails[reqNo]) {
+                fetchBatchDetail(reqNo);
+            }
+        } else {
+            expandTr.classList.add("hidden");
+            if (expandBtn) {
+                expandBtn.innerHTML = "&#9660;";
+                expandBtn.className = "w-6 h-6 rounded bg-slate-100 hover:bg-brand-100 text-slate-700 hover:text-brand-800 font-bold flex items-center justify-center transition shadow-xs text-[10px]";
+            }
+        }
+    }
+
+    function fetchBatchDetail(reqNo) {
+        var container = document.getElementById("expand_content_" + reqNo);
+        if (!container) return;
+
+        var formData = new FormData();
+        formData.append("REQ_NO", reqNo);
+
+        fetch("?action=GET_UPLOAD_DETAIL", { method: "POST", body: formData })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            loadedBatchDetails[reqNo] = data || [];
+            renderExpandDetailTable(reqNo, loadedBatchDetails[reqNo]);
+        })
+        .catch(function() {
+            container.innerHTML = '<div class="p-3 text-center text-red-500 font-semibold italic text-xs">Failed to load items.</div>';
+        });
+    }
+
+    function renderExpandDetailTable(reqNo, items) {
+        var container = document.getElementById("expand_content_" + reqNo);
+        if (!container) return;
+
+        if (!items || items.length === 0) {
+            container.innerHTML = '<div class="p-4 text-center text-slate-400 italic text-xs">No items found.</div>';
+            return;
+        }
+
+        var html = '';
+        html += '<table class="w-full text-xs text-slate-700 border-collapse"><thead>';
+        html += '<tr class="text-left font-bold uppercase tracking-wider bg-slate-100 text-slate-700 border-b border-slate-200 sticky top-0 z-10 whitespace-nowrap text-[11px]">';
+        html += '<th class="p-2.5 border-r border-slate-200 text-center" style="width: 50px;">#</th>';
+        html += '<th class="p-2.5 border-r border-slate-200 text-center" style="width: 140px;">Action</th>';
+        html += '<th class="p-2.5 border-r border-slate-200" style="width: 170px;">Material Code</th>';
+        html += '<th class="p-2.5 border-r border-slate-200">Material Description</th>';
+        html += '<th class="p-2.5 border-r border-slate-200 text-center" style="width: 130px;">Type / Group</th>';
+        html += '<th class="p-2.5 text-center" style="width: 130px;">Plant & S.Loc</th></tr></thead>';
+        html += '<tbody class="divide-y divide-slate-200 bg-white">';
+
+        items.forEach(function(row, i) {
+            var matName = escapeHtml(row.matnr_ext || row.matnr || '-');
+            var maktxEsc = escapeHtml(row.maktx || '-');
+            var mtartEsc = escapeHtml(row.mtart || '-');
+            var matklEsc = escapeHtml(row.matkl || '-');
+            var werksEsc = escapeHtml(row.werks || '-');
+            var lgortEsc = escapeHtml(row.lgort || '-');
+
+            var rStr = '';
+            rStr += '<tr class="detail-row-' + escapeHtml(reqNo) + ' hover:bg-slate-50 transition-colors">';
+            rStr += '<td class="p-2.5 border-r border-slate-200 text-center font-bold text-slate-700">' + (row.item_no || (i + 1)) + '</td>';
+            rStr += '<td class="p-2.5 border-r border-slate-200 text-center">';
+            rStr += '<button type="button" onclick="showMaterialDetailModal(\x27' + escapeHtml(reqNo) + '\x27, ' + i + ')" ';
+            rStr += 'class="bg-emerald-700 hover:bg-emerald-800 text-white border border-emerald-800 px-3 py-1 ';
+            rStr += 'rounded-md font-bold text-[11px] shadow-xs transition transform active:scale-95 mx-auto">';
+            rStr += 'Details</button></td>';
+            rStr += '<td class="p-2.5 border-r border-slate-200 font-mono font-bold text-emerald-800">' + matName + '</td>';
+            rStr += '<td class="p-2.5 border-r border-slate-200 font-medium text-slate-900">' + maktxEsc + '</td>';
+            rStr += '<td class="p-2.5 border-r border-slate-200 text-center">';
+            rStr += '<span class="font-bold text-slate-800">' + mtartEsc + '</span>';
+            rStr += '<span class="text-slate-400 mx-0.5">/</span>';
+            rStr += '<span class="font-mono text-slate-600">' + matklEsc + '</span></td>';
+            rStr += '<td class="p-2.5 text-center font-mono text-slate-700">' + werksEsc + ' - ' + lgortEsc + '</td></tr>';
+            html += rStr;
+        });
+
+        html += '</tbody></table>';
+        container.innerHTML = html;
+    }
+
+    function showMaterialDetailModal(reqNo, itemIndex) {
+        var items = loadedBatchDetails[reqNo];
+        if (!items || !items[itemIndex]) return;
+        var row = items[itemIndex];
+
+        var matName = row.matnr_ext || row.matnr || '-';
+        var matDesc = escapeHtml(row.maktx || '-');
+        var reqNoEsc = escapeHtml(reqNo);
+
+        var titleElem = document.getElementById("detailModalTitle");
+        if (titleElem) titleElem.innerText = 'MATERIAL: ' + matName;
+
+        var subTitleElem = document.getElementById("detailModalSubTitle");
+        if (subTitleElem) {
+            var subStr = '';
+            subStr += '<span class="bg-slate-800 text-brand-400 font-mono font-bold px-2 py-0.5 rounded border border-slate-700">Batch: ' + reqNoEsc + '</span> ';
+            subStr += '<span class="bg-slate-800 text-slate-200 font-semibold px-2 py-0.5 rounded border border-slate-700">Line #' + (row.item_no || (itemIndex + 1)) + '</span> ';
+            subStr += '<span class="text-slate-300 font-medium truncate max-w-md">' + matDesc + '</span>';
+            subTitleElem.innerHTML = subStr;
+        }
+
+        function field(label, val, isHighlight, isMono) {
+            var fStr = '';
+            fStr += '<div class="bg-white p-3.5 rounded-xl border border-slate-200/80 hover:bg-white hover:border-brand-500/40 transition-colors shadow-2xs">';
+            fStr += '<span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">' + escapeHtml(label) + '</span>';
+            fStr += '<span class="text-xs font-bold ' + (isHighlight ? 'text-brand-700 font-bold' : 'text-slate-800') + ' ' + (isMono ? 'font-mono' : '') + '">' + (escapeHtml(val) || '-') + '</span>';
+            fStr += '</div>';
+            return fStr;
+        }
+
+        var body = document.getElementById("detailModalBody");
+        if (body) {
+            var bStr = '';
+            bStr += '<div class="space-y-4">';
+
+            // 1. BASIC DATA
+            bStr += '<div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">';
+            bStr += '<div class="bg-slate-100/70 border-b border-slate-200 px-4 py-2.5 font-bold text-brand-800 text-xs uppercase tracking-wider flex items-center gap-2">📌 BASIC DATA</div>';
+            bStr += '<div class="p-3.5 grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 gap-3">';
+            bStr += field('Material Temp', row.matnr_ext || row.matnr, true, true);
+            bStr += field('Old Material No.', row.bismt, false, true);
+            bStr += field('Material Description', row.maktx, true, false);
+            bStr += field('Material Type', row.mtart || 'ZOS3', false, false);
+            bStr += field('Industry Sector', row.mbrsh || 'F', false, false);
+            bStr += field('Material Group', row.matkl, false, true);
+            bStr += field('Base UoM', row.meins || '-', false, false);
+            bStr += field('Division', row.spart || '-', false, true);
+            bStr += field('Material Package', row.magrv, false, true);
+            bStr += field('Gen. Item Cat. Group', row.mtpos_mara || '-', false, true);
+            bStr += field('Prod./Insp. Memo', row.ferth, false, false);
+            bStr += field('Document Num.', row.zeinr, false, true);
+            bStr += field('Industry Std. Desc.', row.normt, false, false);
+            bStr += field('Dimensions', row.groes, false, false);
+            bStr += '</div></div>';
+
+            // 2. PLANT & STORAGE DATA
+            bStr += '<div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">';
+            bStr += '<div class="bg-slate-100/70 border-b border-slate-200 px-4 py-2.5 font-bold text-brand-800 text-xs uppercase tracking-wider flex items-center gap-2">🏭 PLANT & STORAGE DATA</div>';
+            bStr += '<div class="p-3.5 grid grid-cols-1 sm:grid-cols-3 md:grid-cols-3 gap-3">';
+            bStr += field('Plant', row.werks || '-', false, true);
+            bStr += field('Storage Location', row.lgort || '-', false, true);
+            bStr += field('Country Origin', row.herkl || '-', false, true);
+            bStr += field('Prod. Storage Loc', row.lgpro || '-', false, true);
+            bStr += field('Prod. Sched Profile', row.sfpro || row.sfprr || '-', false, true);
+            bStr += field('Batch Management', row.xchpf || '-', false, false);
+            bStr += '</div></div>';
+
+            // 3. PURCHASING & LOGISTICS
+            bStr += '<div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">';
+            bStr += '<div class="bg-slate-100/70 border-b border-slate-200 px-4 py-2.5 font-bold text-brand-800 text-xs uppercase tracking-wider flex items-center gap-2">🛒 PURCHASING & LOGISTICS</div>';
+            bStr += '<div class="p-3.5 grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 gap-3">';
+            bStr += field('Sales Organization', row.vkorg, false, true);
+            bStr += field('Distr. Channel', row.vtweg, false, true);
+            bStr += field('Purchasing Group', row.ekgrp || '-', false, true);
+            bStr += field('Transportation Group', row.tragr || '-', false, true);
+            bStr += field('Loading Group', row.ladgr || '-', false, true);
+            bStr += field('Tax Class', row.taxkm || '-', false, true);
+            bStr += field('Tax Category', row.tatyp || '-', false, true);
+            bStr += field('Item Category Group', row.mtpos || '-', false, true);
+            bStr += '</div></div>';
+
+            // 4. ACCOUNTING & VALUATION
+            bStr += '<div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">';
+            bStr += '<div class="bg-slate-100/70 border-b border-slate-200 px-4 py-2.5 font-bold text-brand-800 text-xs uppercase tracking-wider flex items-center gap-2">📊 ACCOUNTING & VALUATION</div>';
+            bStr += '<div class="p-3.5 grid grid-cols-1 sm:grid-cols-3 md:grid-cols-5 gap-3">';
+            bStr += field('Valuation Class', row.bklas || '-', false, true);
+            bStr += field('Price Unit', row.peinh || '-', false, true);
+            bStr += field('Price Control', row.vprsv || '-', false, false);
+            bStr += field('Profit Center', row.prctr || '-', false, true);
+            bStr += field('Origin Indicator', row.hkmat || '-', false, false);
+            bStr += field('Origin Group', row.herbl || row.hrkft || '-', false, true);
+            bStr += field('Qty Struct. Ind.', row.ekalr || '-', false, false);
+            bStr += field('Costing Lot Size', row.losgr || '-', false, true);
+            bStr += field('Stock Determ. Group', row.eprio || '-', false, true);
+            bStr += '</div></div>';
+
+            // 5. MRP & PLANNING
+            bStr += '<div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">';
+            bStr += '<div class="bg-slate-100/70 border-b border-slate-200 px-4 py-2.5 font-bold text-brand-800 text-xs uppercase tracking-wider flex items-center gap-2">⚙️ MRP & PLANNING</div>';
+            bStr += '<div class="p-3.5 grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 gap-3">';
+            bStr += field('MRP Type', row.dismm || '-', false, true);
+            bStr += field('MRP Group', row.disgr || '-', false, true);
+            bStr += field('MRP Controller', row.dispo || '-', false, true);
+            bStr += field('Lot Sizing Procedure', row.disls || '-', false, true);
+            bStr += field('Procurement Type', row.beskz || '-', false, true);
+            bStr += field('Backflush Indicator', row.rgekz || '-', false, true);
+            bStr += field('Sched. Margin Key', row.fhori || '-', false, true);
+            bStr += field('Safety Stock', row.eisbe, false, true);
+            bStr += field('Strategy Group', row.strgr, false, true);
+            bStr += field('Variance Key', row.klrab, false, true);
+            bStr += field('Consumption Mode', row.vrmod, false, true);
+            bStr += field('Fwd Consum. Period', row.vint1, false, true);
+            bStr += field('Bwd Consum. Period', row.vint2, false, true);
+            bStr += field('Period Indicator', row.perkz || '-', false, true);
+            bStr += field('Fiscal Year Variant', row.periv || '-', false, true);
+            bStr += field('Availability Check', row.mtvfp || '-', false, true);
+            bStr += field('Individual/Collective', row.kzkst || '-', false, true);
+            bStr += '</div></div>';
+
+            bStr += '</div>';
+            body.innerHTML = bStr;
+        }
+
+        var modalElem = document.getElementById("materialDetailModal");
+        if (modalElem) modalElem.classList.remove("hidden");
+    }
+
+    function closeMaterialDetailModal() {
+        var modalElem = document.getElementById("materialDetailModal");
+        if (modalElem) modalElem.classList.add("hidden");
+    }
+
+    function filterDetailRows(reqNo) {
+        var input = document.getElementById("detailSearch_" + reqNo);
+        if (!input) return;
+        var query = input.value.toLowerCase().trim();
+        var rows = document.querySelectorAll(".detail-row-" + reqNo);
+
+        rows.forEach(function(row) {
+            var content = row.innerText.toLowerCase();
+            row.style.display = content.includes(query) ? "" : "none";
+        });
+    }
+
+    function toggleSelectAll(master) {
+        var checkboxes = document.querySelectorAll(".row-checkbox");
+        selectedReqNos = [];
+
+        checkboxes.forEach(function(cb) {
+            cb.checked = master.checked;
+            if (master.checked) {
+                selectedReqNos.push(cb.value);
+            }
+        });
+        updateBatchActionBar();
+    }
+
+    function toggleSelectRow(cb) {
+        if (cb.checked) {
+            if (!selectedReqNos.includes(cb.value)) selectedReqNos.push(cb.value);
+        } else {
+            selectedReqNos = selectedReqNos.filter(function(id) { return id !== cb.value; });
+        }
+        updateBatchActionBar();
+    }
+
+    function updateBatchActionBar() {
+        var bar = document.getElementById("batchActionBar");
+        var badge = document.getElementById("selectedCountBadge");
+
+        if (selectedReqNos.length > 0) {
+            if (bar) bar.classList.remove("hidden");
+            if (badge) badge.innerText = selectedReqNos.length;
+        } else {
+            if (bar) bar.classList.add("hidden");
+        }
+    }
+
+    var pendingApprovalData = null;
+    var isApprovingInProgress = false;
+
+    function quickApprove(reqNo) {
+        if (isApprovingInProgress) {
+            console.warn("[APPROVE DEBUG] Approval sedang berjalan. Mengabaikan klik ganda.");
+            return;
+        }
+        pendingApprovalData = { mode: 'SINGLE', reqNo: reqNo, reqNos: [reqNo] };
+
+        // Debug logging: 1 & 2
+        console.log("%c[APPROVE DEBUG] 1. Popup konfirmasi dibuka untuk request:", "color: #0284c7; font-weight: bold;", reqNo);
+        console.log("%c[APPROVE DEBUG] 2. Data / Nomor dokumen yang akan di-approve:", "color: #0284c7; font-weight: bold;", reqNo);
+
+        openApproveConfirmModal(reqNo);
+    }
+
+    function triggerBulkApprove() {
+        if (isApprovingInProgress) {
+            console.warn("[APPROVE DEBUG] Approval sedang berjalan. Mengabaikan klik ganda.");
+            return;
+        }
+        if (!selectedReqNos || selectedReqNos.length === 0) {
+            showToast("Pilih setidaknya satu request untuk di-approve.", "error");
+            return;
+        }
+        var reqNosStr = selectedReqNos.join(', ');
+        pendingApprovalData = { mode: 'BULK', reqNo: '', reqNos: selectedReqNos.slice() };
+
+        // Debug logging: 1 & 2
+        console.log("%c[APPROVE DEBUG] 1. Popup konfirmasi dibuka untuk bulk requests (Total: " + selectedReqNos.length + "):", "color: #0284c7; font-weight: bold;", selectedReqNos);
+        console.log("%c[APPROVE DEBUG] 2. Data / Nomor dokumen yang akan di-approve:", "color: #0284c7; font-weight: bold;", reqNosStr);
+
+        openApproveConfirmModal(selectedReqNos.length + " request(s): " + reqNosStr);
+    }
+
+    function openApproveConfirmModal(docInfoStr) {
+        var docListEl = document.getElementById("confirmApproveDocList");
+        if (docListEl) docListEl.innerText = docInfoStr;
+
+        var modal = document.getElementById("approveConfirmModal");
+        if (modal) modal.classList.remove("hidden");
+    }
+
+    function cancelApproveConfirm() {
+        if (pendingApprovalData) {
+            console.log("%c[APPROVE DEBUG] User membatalkan konfirmasi approval untuk:", "color: #64748b; font-weight: bold;", pendingApprovalData.reqNos);
+        }
+        var modal = document.getElementById("approveConfirmModal");
+        if (modal) modal.classList.add("hidden");
+        pendingApprovalData = null;
+    }
+
+    function executeConfirmedApprove() {
+        if (!pendingApprovalData || isApprovingInProgress) return;
+
+        isApprovingInProgress = true;
+        var mode = pendingApprovalData.mode;
+        var targetReqNo = pendingApprovalData.reqNo;
+        var targetReqNos = pendingApprovalData.reqNos;
+        var targetDocsStr = targetReqNos.join(', ');
+
+        // Debug logging: 3
+        console.log("%c[APPROVE DEBUG] 3. Proses Approve dimulai untuk data/dokumen:", "color: #059669; font-weight: bold;", targetDocsStr);
+
+        setApproveLoadingState(true, targetReqNos);
+
+        var formData = new FormData();
+        var endpointAction = "";
+
+        if (mode === 'SINGLE') {
+            endpointAction = "?action=QUICK_APPROVE";
+            formData.append("REQ_NO", targetReqNo);
+        } else {
+            endpointAction = "?action=BULK_APPROVE";
+            formData.append("REQ_NOS", targetReqNos.join(','));
+        }
+
+        fetch(endpointAction, { method: "POST", body: formData })
+        .then(function(res) {
+            if (!res.ok) {
+                throw new Error("HTTP Error Status: " + res.status);
+            }
+            return res.json();
+        })
+        .then(function(data) {
+            // Debug logging: 4
+            console.log("%c[APPROVE DEBUG] 4. Response dari backend diterima:", "color: #059669; font-weight: bold;", data);
+
+            if (data && data.status === "SUCCESS") {
+                // Debug logging: 5
+                console.log("%c[APPROVE DEBUG] 5. Status: BERHASIL (SUCCESS) - Request: " + targetDocsStr, "color: #059669; font-weight: bold;", data.message);
+
+                var successTitle = "APPROVE BERHASIL & TERUPLOAD KE SAP S/4HANA";
+                var successMsg = "Request " + targetDocsStr + " telah BERHASIL divalidasi dan TERUPLOAD ke SAP S/4HANA Master Data!";
+                showToast("Request " + targetDocsStr + " approved successfully.", "success");
+                showPageApprovalAlert(true, successTitle, successMsg, data.message);
+                showUploadResultNotification(true, "Approve Successful", successMsg, data.message);
+            } else {
+                var errorMsg = (data && data.message) ? data.message : "Approval failed without details from server.";
+                // Debug logging: 5 & 6
+                console.error("%c[APPROVE DEBUG] 5. Status: GAGAL (FAILED) - Request: " + targetDocsStr, "color: #dc2626; font-weight: bold;", errorMsg);
+                console.error("%c[APPROVE DEBUG] 6. Detail Informasi Error Backend:", "color: #dc2626; font-weight: bold;", errorMsg);
+
+                var failTitle = "APPROVE GAGAL - SAP UPLOAD ERROR";
+                var failMsg = "Proses Upload Material Request " + targetDocsStr + " ke SAP S/4HANA GAGAL.";
+                showToast("Approval gagal untuk " + targetDocsStr, "error");
+                showPageApprovalAlert(false, failTitle, failMsg, errorMsg);
+                showUploadResultNotification(false, "Approve Failed", failMsg, errorMsg);
+            }
+        })
+        .catch(function(err) {
+            // Debug logging: 6
+            console.error("%c[APPROVE DEBUG] 6. Error terjadi pada proses approval (System/Network Exception):", "color: #dc2626; font-weight: bold;", err);
+
+            var sysErrTitle = "KESALAHAN SISTEM / KONEKSI";
+            var sysErrMsg = "Terjadi kesalahan sistem saat melakukan proses approval untuk Request " + targetDocsStr + ".";
+            showToast("Approval error: " + err.message, "error");
+            showPageApprovalAlert(false, sysErrTitle, sysErrMsg, err.message);
+            showUploadResultNotification(false, "System Error", sysErrMsg, err.message);
+        })
+        .finally(function() {
+            setApproveLoadingState(false, targetReqNos);
+            cancelApproveConfirm();
+            isApprovingInProgress = false;
+            loadStagingList();
+        });
+    }
+
+    function setApproveLoadingState(isLoading, targetReqNos) {
+        var btnExecute = document.getElementById("btnExecuteApproveModal");
+        var btnCancel = document.getElementById("btnCancelApproveModal");
+        var textExecute = document.getElementById("btnExecuteApproveText");
+
+        if (isLoading) {
+            if (btnExecute) {
+                btnExecute.disabled = true;
+                btnExecute.classList.add("opacity-75", "cursor-not-allowed");
+            }
+            if (btnCancel) {
+                btnCancel.disabled = true;
+                btnCancel.classList.add("opacity-50", "cursor-not-allowed");
+            }
+            if (textExecute) {
+                textExecute.innerHTML = '<span class="inline-block animate-spin w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full mr-1.5 align-middle"></span> Memproses SAP...';
+            }
+        } else {
+            if (btnExecute) {
+                btnExecute.disabled = false;
+                btnExecute.classList.remove("opacity-75", "cursor-not-allowed");
+            }
+            if (btnCancel) {
+                btnCancel.disabled = false;
+                btnCancel.classList.remove("opacity-50", "cursor-not-allowed");
+            }
+            if (textExecute) {
+                textExecute.innerText = 'Ya, Approve Sekarang';
+            }
+        }
+
+        var allApproveBtns = document.querySelectorAll("button[onclick*='quickApprove'], button[onclick*='triggerBulkApprove']");
+        allApproveBtns.forEach(function(btn) {
+            btn.disabled = isLoading;
+            if (isLoading) {
+                btn.classList.add("opacity-50", "cursor-not-allowed");
+            } else {
+                btn.classList.remove("opacity-50", "cursor-not-allowed");
+            }
+        });
+
+        if (targetReqNos && targetReqNos.length === 1) {
+            var rowBtn = document.getElementById("btn_approve_" + targetReqNos[0]);
+            if (rowBtn) {
+                if (isLoading) {
+                    rowBtn.setAttribute("data-orig-html", rowBtn.innerHTML);
+                    rowBtn.innerHTML = '<span class="inline-block animate-spin w-3 h-3 border-2 border-white border-t-transparent rounded-full mr-1"></span> Processing...';
+                } else {
+                    var orig = rowBtn.getAttribute("data-orig-html");
+                    if (orig) rowBtn.innerHTML = orig;
+                }
+            }
+        }
+    }
+
+    function showPageApprovalAlert(isSuccess, title, message, details) {
+        var banner = document.getElementById("pageApprovalAlert");
+        var icon = document.getElementById("pageApprovalAlertIcon");
+        var titleEl = document.getElementById("pageApprovalAlertTitle");
+        var msgEl = document.getElementById("pageApprovalAlertMessage");
+        var detailEl = document.getElementById("pageApprovalAlertDetail");
+
+        if (!banner) return;
+
+        if (isSuccess) {
+            banner.className = "mb-6 rounded-2xl p-4 transition-all duration-300 shadow-sm border bg-emerald-50/90 border-emerald-200/90 text-emerald-900";
+            icon.className = "w-9 h-9 rounded-xl flex items-center justify-center font-bold text-base shrink-0 mt-0.5 shadow-inner bg-emerald-100 text-emerald-700 border border-emerald-300";
+            icon.innerHTML = "&#10003;";
+        } else {
+            banner.className = "mb-6 rounded-2xl p-4 transition-all duration-300 shadow-sm border bg-rose-50/90 border-rose-200/90 text-rose-900";
+            icon.className = "w-9 h-9 rounded-xl flex items-center justify-center font-bold text-base shrink-0 mt-0.5 shadow-inner bg-rose-100 text-rose-700 border border-rose-300";
+            icon.innerHTML = "&#10005;";
+        }
+
+        if (titleEl) titleEl.innerText = title || (isSuccess ? "APPROVAL BERHASIL" : "APPROVAL GAGAL");
+        if (msgEl) msgEl.innerText = message || "";
+
+        if (detailEl) {
+            if (details && details.trim() !== "") {
+                detailEl.innerText = details;
+                detailEl.className = isSuccess ?
+                    "mt-2.5 p-3 rounded-xl text-[11px] font-mono bg-white/80 border border-emerald-200 text-emerald-800 max-h-40 overflow-y-auto" :
+                    "mt-2.5 p-3 rounded-xl text-[11px] font-mono bg-white/80 border border-rose-200 text-rose-800 max-h-40 overflow-y-auto";
+                detailEl.classList.remove("hidden");
+            } else {
+                detailEl.classList.add("hidden");
+            }
+        }
+
+        banner.classList.remove("hidden");
+        banner.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+
+    function closePageApprovalAlert() {
+        var banner = document.getElementById("pageApprovalAlert");
+        if (banner) banner.classList.add("hidden");
+    }
+
+    function openRejectModal(mode, reqNo) {
+        if (!reqNo) reqNo = '';
+        document.getElementById("modalMode").value = mode;
+        document.getElementById("modalTargetReqNo").value = reqNo;
+        document.getElementById("rejectReasonInput").value = '';
+        document.getElementById("rejectModal").classList.remove("hidden");
+    }
+
+    function closeRejectModal() {
+        document.getElementById("rejectModal").classList.add("hidden");
+    }
+
+    function submitRejection() {
+        var mode = document.getElementById("modalMode").value;
+        var singleReqNo = document.getElementById("modalTargetReqNo").value;
+        var reason = document.getElementById("rejectReasonInput").value.trim();
+
+        if (!reason) {
+            showToast("Rejection reason is required.", "error");
+            return;
+        }
+
+        var targetReqNos = (mode === 'SINGLE') ? singleReqNo : selectedReqNos.join(',');
+        if (!targetReqNos) {
+            showToast("No request selected.", "error");
+            return;
+        }
+
+        var formData = new FormData();
+        formData.append("REQ_NOS", targetReqNos);
+        formData.append("REJ_REASON", reason);
+
+        fetch("?action=BULK_REJECT", { method: "POST", body: formData })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            showToast("Request rejected.", "info");
+            closeRejectModal();
+            loadStagingList();
+        })
+        .catch(function() { showToast("Rejection failed.", "error"); });
+    }
+
+    function showUploadResultNotification(isSuccess, title, message, details) {
+        var modal = document.getElementById("uploadResultModal");
+        var header = document.getElementById("uploadResultHeader");
+        var icon = document.getElementById("uploadResultIcon");
+        var heading = document.getElementById("uploadResultHeading");
+        var msg = document.getElementById("uploadResultMessage");
+        var detailBox = document.getElementById("uploadResultDetailBox");
+
+        if (!modal) return;
+
+        if (isSuccess) {
+            header.className = "px-5 py-4 border-b border-emerald-200 bg-emerald-50 " +
+                               "text-emerald-800 flex items-center justify-between";
+            icon.className = "w-14 h-14 rounded-full mx-auto flex items-center justify-center " +
+                             "text-2xl font-bold bg-emerald-100 text-emerald-600 border-2 " +
+                             "border-emerald-400 shadow-xs";
+            icon.innerHTML = "&#10003;";
+            heading.innerText = "BERHASIL DI-UPLOAD KE SAP S/4HANA!";
+            heading.className = "text-sm font-bold text-emerald-800 uppercase tracking-wide";
+        } else {
+            header.className = "px-5 py-4 border-b border-rose-200 bg-rose-50 " +
+                               "text-rose-800 flex items-center justify-between";
+            icon.className = "w-14 h-14 rounded-full mx-auto flex items-center justify-center " +
+                             "text-2xl font-bold bg-rose-100 text-rose-600 border-2 " +
+                             "border-rose-400 shadow-xs";
+            icon.innerHTML = "&#10005;";
+            heading.innerText = "GAGAL UPLOAD KE SAP S/4HANA!";
+            heading.className = "text-sm font-bold text-rose-800 uppercase tracking-wide";
+        }
+
+        msg.innerText = message || "";
+        if (details && details.trim() !== "") {
+            detailBox.innerText = details;
+            detailBox.classList.remove("hidden");
+        } else {
+            detailBox.classList.add("hidden");
+        }
+
+        modal.classList.remove("hidden");
+    }
+
+    function closeUploadResultModal() {
+        var modal = document.getElementById("uploadResultModal");
+        if (modal) modal.classList.add("hidden");
+        loadStagingList();
+    }
+
+    function deleteDraft(reqNo) {
+        if (!confirm("Delete draft " + reqNo + "?")) return;
+        var formData = new FormData();
+        formData.append("REQ_NO", reqNo);
+
+        fetch("?action=DELETE_DRAFT", { method: "POST", body: formData })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            showToast("Draft " + reqNo + " deleted.", "info");
+            loadStagingList();
+        })
+        .catch(function() { showToast("Failed to delete draft.", "error"); });
+    }
+
+    function showToast(message, type) {
+        if (!type) type = "info";
+        var dotClasses = { success: "bg-brand-500", error: "bg-red-500", info: "bg-blue-500" };
+        var bgClasses = {
+            success: "bg-slate-900 border-l-4 border-brand-500",
+            error: "bg-slate-900 border-l-4 border-red-500",
+            info: "bg-slate-900 border-l-4 border-blue-500"
+        };
+        var stack = document.getElementById("toastStack");
+        if (!stack) return;
+        var toast = document.createElement("div");
+        toast.className = 'min-w-[280px] max-w-[380px] ' + (bgClasses[type] || bgClasses.info) + ' text-white p-3 rounded-md text-xs flex items-start gap-2.5 shadow-lg transition-all duration-300 opacity-100 translate-y-0';
+
+        var tStr = '';
+        tStr += '<span class="shrink-0 mt-1 w-1.5 h-1.5 rounded-full ' + (dotClasses[type] || dotClasses.info) + '"></span>';
+        tStr += '<span class="font-medium">' + escapeHtml(message) + '</span>';
+        toast.innerHTML = tStr;
+
+        setTimeout(function() {
+            toast.classList.add("opacity-0", "translate-y-2");
+            setTimeout(function() { toast.remove(); }, 300);
+        }, 3500);
+    }
+
+    function loadSidebarCounters() {
+        fetch("?OnInputProcessing=GET_COUNTERS&action=GET_COUNTERS", { method: "POST" })
+        .then(function(res) {
+            var ct = res.headers.get("content-type") || "";
+            if (ct.indexOf("application/json") !== -1) {
+                return res.json();
+            }
+            return res.text().then(function(text) {
+                try { return JSON.parse(text); } catch(e) { return null; }
+            });
+        })
+        .then(function(cnts) {
+            if (!cnts) return;
+            var p = document.getElementById("sbBadgePending");
+            var a = document.getElementById("sbBadgeApproved");
+            var r = document.getElementById("sbBadgeRejected");
+            if (p && cnts.pending !== undefined) p.innerText = cnts.pending;
+            if (a && cnts.approved !== undefined) a.innerText = cnts.approved;
+            if (r && cnts.rejected !== undefined) r.innerText = cnts.rejected;
+        })
+        .catch(function(e) { console.error("Counter load err", e); });
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        loadSidebarCounters();
+    });
+</script>
+            </main>
+        </div>
+    </div>
+</body>
+</html>

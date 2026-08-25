@@ -165,9 +165,14 @@ transition disabled:bg-slate-300">
                         <span>✅</span>
                         <span>Generated MARA Base Material Code: <code id="genCodeBannerText" class="bg-white px-2 py-0.5 rounded font-mono font-bold text-brand-700 border border-brand-200">-</code></span>
                     </div>
-                    <button type="button" onclick="prepareForSAP()" class="bg-emerald-800 hover:bg-emerald-900 text-white px-4 py-1.5 rounded text-xs font-bold transition shadow-sm">
-                        🚀 Lock & Siapkan Data ke SAP
-                    </button>
+                    <div class="flex items-center gap-2">
+                        <button type="button" onclick="rejectStagingBatch()" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded text-xs font-bold transition shadow-sm">
+                            ⛔ Reject Batch
+                        </button>
+                        <button type="button" onclick="prepareForSAP()" class="bg-emerald-800 hover:bg-emerald-900 text-white px-4 py-1.5 rounded text-xs font-bold transition shadow-sm">
+                            🚀 Lock & Approve Data ke SAP
+                        </button>
+                    </div>
                 </div>
             </div>
         </section>
@@ -726,6 +731,28 @@ transition disabled:bg-slate-300">
             .then(data => {
                 if (data.status === "SUCCESS") {
                     showToast(data.message, "success");
+                    loadUploadHistory();
+                }
+            });
+        }
+
+        function rejectStagingBatch() {
+            const uploadId = document.getElementById("CURRENT_UPLOAD_ID").value;
+            if (!uploadId) return;
+
+            if (!confirm("Apakah Anda yakin ingin menolak batch upload ini dan mengembalikannya ke Drafter?")) return;
+
+            const formData = new FormData();
+            formData.append("UPLOAD_ID", uploadId);
+
+            fetch("?OnInputProcessing=REJECT_STAGE", {
+                method: "POST",
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === "SUCCESS") {
+                    showToast(data.message, "info");
                     loadUploadHistory();
                 }
             });

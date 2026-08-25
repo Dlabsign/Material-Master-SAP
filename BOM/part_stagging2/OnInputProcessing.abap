@@ -200,7 +200,14 @@ CASE event.
     ENDLOOP.
 
     " D. GAP FILLING ENGINE (+1 INCREMENTAL DARI KODE TERKECIL)
-    DATA: lv_seq        TYPE i,
+    TYPES: BEGIN OF ty_parent_map,
+             posnr TYPE posnr_acc,
+             matnr TYPE matnr,
+           END OF ty_parent_map.
+
+    DATA: lt_parent_map TYPE HASHED TABLE OF ty_parent_map WITH UNIQUE KEY posnr,
+          ls_parent_map TYPE ty_parent_map,
+          lv_seq        TYPE i,
           lv_first_code TYPE matnr,
           lv_found_code TYPE matnr,
           lv_cand_str   TYPE string.
@@ -243,9 +250,38 @@ CASE event.
       <ls_row>-matnr = lv_found_code.
       <ls_row>-werks = lv_werks.
       <ls_row>-matkl = lv_matkl.
+      <ls_row>-mtart = lv_mtart.
+      <ls_row>-postp = 'L'.
+      <ls_row>-peinh = '1'.
+
+      CASE lv_mtart.
+        WHEN 'HALB'.
+          <ls_row>-bklas = '7920'.
+        WHEN 'ZR01' OR 'ZR02' OR 'ROH'.
+          <ls_row>-bklas = '3000'.
+        WHEN OTHERS.
+          <ls_row>-bklas = '7920'.
+      ENDCASE.
 
       IF <ls_row>-meins IS INITIAL. <ls_row>-meins = 'PC'. ENDIF.
       <ls_row>-status = 'CODE_BOUND'.
+
+      " Simpan mapping Parent POSNR -> MATNR untuk pengikatan Child SF
+      IF <ls_row>-code_num = 'PF'.
+        ls_parent_map-posnr = <ls_row>-posnr.
+        ls_parent_map-matnr = <ls_row>-matnr.
+        INSERT ls_parent_map INTO TABLE lt_parent_map.
+      ENDIF.
+    ENDLOOP.
+
+    " Assign PARENT_MATNR ke anak komponen (SF) berdasarkan PARENT_POSNR
+    LOOP AT lt_detail ASSIGNING FIELD-SYMBOL(<ls_child>).
+      IF <ls_child>-code_num <> 'PF' AND <ls_child>-parent_posnr IS NOT INITIAL.
+        READ TABLE lt_parent_map WITH KEY posnr = <ls_child>-parent_posnr INTO ls_parent_map.
+        IF sy-subrc = 0.
+          <ls_child>-parent_matnr = ls_parent_map-matnr.
+        ENDIF.
+      ENDIF.
     ENDLOOP.
 
     " E. Simpan Hasil Binding ke Database
@@ -263,7 +299,7 @@ CASE event.
     navigation->response_complete( ).
 
   " -------------------------------------------------------------------
-  " 4. SIAPKAN DATA UNTUK INTEGRASI FABRIKASI SAP
+  " 4. SIAPKAN DATA UNTUK INTEGRASI FABRIKASI SAP (APPROVE)
   " -------------------------------------------------------------------
   WHEN 'PREPARE_FOR_SAP'.
     lv_upload_id = request->get_form_field( 'UPLOAD_ID' ).
@@ -276,11 +312,28 @@ CASE event.
     ENDIF.
 
     _m_response->set_header_field( name = 'Content-Type' value = 'application/json' ).
-    _m_response->set_cdata( '{"status":"SUCCESS","message":"Data staging berhasil disiapkan & dikunci untuk proses SAP Material Master!"}' ).
+    _m_response->set_cdata( '{"status":"SUCCESS","message":"Data staging berhasil disetujui (READY_SAP) & dikunci untuk proses SAP Material Master & BOM!"}' ).
     navigation->response_complete( ).
 
   " -------------------------------------------------------------------
-  " 5. LOGOUT
+  " 5. REJECT BATCH STAGING DARI MASTER DATA APPROVER
+  " -------------------------------------------------------------------
+  WHEN 'REJECT_STAGE'.
+    lv_upload_id = request->get_form_field( 'UPLOAD_ID' ).
+
+    IF lv_upload_id IS NOT INITIAL.
+      UPDATE zbom_stg_part
+         SET status = 'REJECTED'
+       WHERE upload_id = @lv_upload_id.
+      COMMIT WORK.
+    ENDIF.
+
+    _m_response->set_header_field( name = 'Content-Type' value = 'application/json' ).
+    _m_response->set_cdata( '{"status":"SUCCESS","message":"Batch upload telah ditolak (REJECTED) dan dikembalikan ke Drafter untuk revisi."}' ).
+    navigation->response_complete( ).
+
+  " -------------------------------------------------------------------
+  " 6. LOGOUT
   " -------------------------------------------------------------------
   WHEN 'LOGOUT'.
     _m_response->redirect( url = '/sap/public/bc/icf/logoff' ).

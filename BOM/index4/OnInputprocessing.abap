@@ -75,33 +75,67 @@ CASE event.
       lv_posnr              = sy-index * 10.
       ls_stg_item-posnr     = lv_posnr.
 
-      ls_stg_item-code_num  = request->get_form_field( 'code_num_' && lv_idx_str ).
-      ls_stg_item-matnr     = request->get_form_field( 'matnr_' && lv_idx_str ).
-      ls_stg_item-maktx     = request->get_form_field( 'maktx_' && lv_idx_str ).
-      ls_stg_item-groes     = request->get_form_field( 'groes_' && lv_idx_str ).       " Rough Size
-      ls_stg_item-groes_fin = request->get_form_field( 'groes_fin_' && lv_idx_str ).   " Finish Size
+      ls_stg_item-code_num     = request->get_form_field( 'code_num_' && lv_idx_str ).
+      ls_stg_item-parent_posnr = request->get_form_field( 'parent_posnr_' && lv_idx_str ).
+      ls_stg_item-matnr        = request->get_form_field( 'matnr_' && lv_idx_str ).
+      ls_stg_item-maktx        = request->get_form_field( 'maktx_' && lv_idx_str ).
+      ls_stg_item-groes        = request->get_form_field( 'groes_' && lv_idx_str ).       " Rough Size
+      ls_stg_item-groes_fin    = request->get_form_field( 'groes_fin_' && lv_idx_str ).   " Finish Size
 
       " Pengisian Kuantitas ke Field CHAR20
-      ls_stg_item-menge     = request->get_form_field( 'menge_' && lv_idx_str ).      " QTY Item
-      ls_stg_item-menge_ord = request->get_form_field( 'menge_ord_' && lv_idx_str ).  " QTY Order
+      ls_stg_item-menge        = request->get_form_field( 'menge_' && lv_idx_str ).      " QTY Item
+      ls_stg_item-menge_ord    = request->get_form_field( 'menge_ord_' && lv_idx_str ).  " QTY Order
 
-      ls_stg_item-meins     = request->get_form_field( 'meins_' && lv_idx_str ).
+      ls_stg_item-meins        = request->get_form_field( 'meins_' && lv_idx_str ).
       IF ls_stg_item-meins IS INITIAL.
         ls_stg_item-meins = 'PC'.
       ENDIF.
 
-      ls_stg_item-vol_m3    = request->get_form_field( 'vol_m3_' && lv_idx_str ).     " M3
-      ls_stg_item-wrkst     = request->get_form_field( 'wrkst_' && lv_idx_str ).      " Material
-      ls_stg_item-note      = request->get_form_field( 'note_' && lv_idx_str ).       " Note
-      ls_stg_item-finishing = request->get_form_field( 'finishing_' && lv_idx_str ).  " Finishing
+      ls_stg_item-vol_m3       = request->get_form_field( 'vol_m3_' && lv_idx_str ).     " M3
+      ls_stg_item-wrkst        = request->get_form_field( 'wrkst_' && lv_idx_str ).      " Material
+      ls_stg_item-note         = request->get_form_field( 'note_' && lv_idx_str ).       " Note
+      ls_stg_item-finishing    = request->get_form_field( 'finishing_' && lv_idx_str ).  " Finishing
 
-      ls_stg_item-matkl     = request->get_form_field( 'MATKL' ).
-      ls_stg_item-werks     = request->get_form_field( 'WERKS' ).
-      ls_stg_item-filename  = lv_filename.
-      ls_stg_item-status    = request->get_form_field( 'STATUS' ).
-      ls_stg_item-ernam     = sy-uname.
-      ls_stg_item-erdat     = sy-datum.
-      ls_stg_item-ertim     = sy-uzeit.
+      ls_stg_item-disgr        = request->get_form_field( 'disgr_' && lv_idx_str ).
+      ls_stg_item-dispo        = request->get_form_field( 'dispo_' && lv_idx_str ).
+      ls_stg_item-lgort1       = request->get_form_field( 'lgort1_' && lv_idx_str ).
+      ls_stg_item-lgort2       = request->get_form_field( 'lgort2_' && lv_idx_str ).
+
+      DATA(lv_line_werks) = request->get_form_field( 'werks_' && lv_idx_str ).
+      IF lv_line_werks IS NOT INITIAL.
+        ls_stg_item-werks = lv_line_werks.
+      ELSE.
+        ls_stg_item-werks = request->get_form_field( 'WERKS' ).
+      ENDIF.
+
+      ls_stg_item-area_m2      = request->get_form_field( 'area_m2_' && lv_idx_str ).
+      ls_stg_item-activity     = request->get_form_field( 'activity_' && lv_idx_str ).
+      ls_stg_item-umrez        = request->get_form_field( 'umrez_' && lv_idx_str ).
+      ls_stg_item-meinh        = request->get_form_field( 'meinh_' && lv_idx_str ).
+      ls_stg_item-sloc_def      = request->get_form_field( 'sloc_def_' && lv_idx_str ).
+
+      DATA(lv_line_mtart) = request->get_form_field( 'mtart_' && lv_idx_str ).
+      IF lv_line_mtart IS NOT INITIAL.
+        ls_stg_item-mtart = lv_line_mtart.
+      ENDIF.
+
+      DATA(lv_line_matkl) = request->get_form_field( 'matkl_' && lv_idx_str ).
+      IF lv_line_matkl IS NOT INITIAL.
+        ls_stg_item-matkl = lv_line_matkl.
+      ELSE.
+        ls_stg_item-matkl = request->get_form_field( 'MATKL' ).
+      ENDIF.
+
+      ls_stg_item-postp        = 'L'.
+      ls_stg_item-peinh        = '1'.
+      ls_stg_item-filename     = lv_filename.
+      ls_stg_item-status       = request->get_form_field( 'STATUS' ).
+      IF ls_stg_item-status IS INITIAL.
+        ls_stg_item-status = 'DRAFT'.
+      ENDIF.
+      ls_stg_item-ernam        = sy-uname.
+      ls_stg_item-erdat        = sy-datum.
+      ls_stg_item-ertim        = sy-uzeit.
 
       IF ls_stg_item-maktx IS NOT INITIAL.
         APPEND ls_stg_item TO lt_stg_input.

@@ -41,10 +41,6 @@
 <body class="bg-app-bg text-app-text text-[13px] font-sans leading-relaxed m-0 p-0 antialiased selection:bg-brand-100 selection:text-brand-900">
 
     <!-- DATA INJECTION SAFE FROM ABAP -->
-    <script id="plant-data" type="application/json"><%= gt_plant_json %></script>
-    <script id="matkl-data" type="application/json"><%= gt_matkl_json %></script>
-    <script id="mtart-data" type="application/json"><%= gt_mtart_json %></script>
-    <script id="raw-data" type="application/json"><%= gt_raw_json %></script>
 
     <!-- TOP NAVIGATION BAR -->
     <header class="bg-white h-14 border-b border-app-border sticky top-0 z-50 shadow-sm px-4 lg:px-8 flex items-center justify-between">
@@ -64,10 +60,17 @@
     </header>
 
     <!-- MAIN CONTAINER -->
-    <main class="max-w-[1850px] my-6 mx-auto px-4 sm:px-6">
+    <main class="max-w-[2600px] my-6 mx-auto px-4 sm:px-6">
         <input type="hidden" id="REQ_ID" value="<%= req_id %>">
         <input type="hidden" id="CURRENT_UPLOAD_ID" value="">
         <input type="hidden" id="CURRENT_FILENAME" value="">
+
+        <!-- DATALIST UNTUK MRP GROUP AUTOCOMPLETE -->
+        <datalist id="mrpGroupList">
+            <option value="ZGW1">ZGW1 - Main Assembly / Furniture Product</option>
+            <option value="ZPN1">ZPN1 - Wood Part Component / Core Material</option>
+            <option value="ZPN2">ZPN2 - Sub-Assembly Component</option>
+        </datalist>
 
         <!-- PAGE HEADER -->
         <div class="mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-3">
@@ -76,7 +79,6 @@
                 <span class="w-1.5 h-1.5 rounded-full bg-brand-600 mr-1.5 animate-pulse"></span> Wood Furniture Staging
             </span>
         </div>
-
 
         <!-- SECTION 2: DETAIL PART TABLE -->
         <section class="bg-white rounded-lg border border-app-border shadow-sm mb-5 overflow-visible">
@@ -93,8 +95,7 @@
                     </button>
 
                     <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" class="hidden" onchange="parseStandardExcelRD(this)">
-                    <button type="button" class="bg-emerald-700 hover:bg-emerald-800 text-white px-3 py-1 rounded-md font-semibold text-xs cursor-pointer flex items-center gap-1.5 transition shadow-sm"
-onclick="document.getElementById('excelFileInput').click()">
+                    <button type="button" class="bg-emerald-700 hover:bg-emerald-800 text-white px-3 py-1 rounded-md font-semibold text-xs cursor-pointer flex items-center gap-1.5 transition shadow-sm" onclick="document.getElementById('excelFileInput').click()">
                         📊 Upload Excel R&D
                     </button>
 
@@ -103,30 +104,52 @@ onclick="document.getElementById('excelFileInput').click()">
             </div>
 
             <div class="p-5">
-                <div class="overflow-x-auto border border-app-border rounded-lg">
-                    <table class="w-full border-collapse text-xs min-w-[1850px]" id="partTable">
-                        <thead>
-                            <tr class="text-left text-slate-700 font-bold text-[11px] uppercase tracking-wider bg-slate-100">
-                                <th rowspan="2" class="p-2 border-b border-r border-app-border text-center sticky top-0 bg-slate-100" style="width:3%;">No.</th>
-                                <th rowspan="2" class="p-2 border-b border-r border-app-border text-center sticky top-0 bg-slate-100" style="width:5%;">Code Number</th>
-                                <th rowspan="2" class="p-2 border-b border-r border-app-border sticky top-0 bg-slate-100" style="width:18%;">Part Name</th>
+                <div class="overflow-x-auto border border-app-border rounded-lg max-h-[650px] overflow-y-auto">
+                    <table class="w-full border-collapse text-xs whitespace-nowrap min-w-[2500px]" id="partTable">
+                        <thead class="sticky top-0 z-10 bg-slate-100 shadow-sm">
+                            <tr class="text-left text-slate-700 font-bold text-[11px] uppercase tracking-wider">
+                                <th rowspan="2" class="p-2 border-b border-r border-app-border text-center bg-slate-100">No.</th>
+                                <th rowspan="2" class="p-2 border-b border-r border-app-border text-center bg-slate-100">Code Number</th>
+                                <th rowspan="2" class="p-2 border-b border-r border-app-border bg-slate-100">CODE MATERIAL SAP</th>
+                                <th rowspan="2" class="p-2 border-b border-r border-app-border bg-slate-100">FINISH SIZE</th>
+                                <th rowspan="2" class="p-2 border-b border-r border-app-border bg-slate-100 min-w-[180px]">Part Name</th>
                                 <th colspan="6" class="p-1.5 border-b border-r border-amber-300 bg-amber-50/80 text-center text-[10.5px] text-amber-900 tracking-wider">ROUGH SIZE (MM)</th>
                                 <th colspan="3" class="p-1.5 border-b border-r border-brand-200 bg-brand-50/80 text-center text-[10.5px] text-brand-900 tracking-wider">FINISH SIZE (MM)</th>
-                                <th rowspan="2" class="p-2 border-b border-r border-app-border text-center sticky top-0 bg-slate-100" style="width:5%;">QTY ITEM</th>
-                                <th rowspan="2" class="p-2 border-b border-r border-app-border text-center sticky top-0 bg-slate-100" style="width:5%;">QTY ORDER</th>
-                                <th rowspan="2" class="p-2 border-b border-r border-app-border text-center sticky top-0 bg-slate-100" style="width:5%;">M3</th>
-                                <th rowspan="2" class="p-2 border-b border-r border-app-border sticky top-0 bg-slate-100" style="width:13%;">Material</th>
-                                <th rowspan="2" class="p-2 border-b border-r border-app-border sticky top-0 bg-slate-100" style="width:13%;">Note</th>
-                                <th rowspan="2" class="p-2 border-b border-r border-app-border sticky top-0 bg-slate-100" style="width:7%;">Finishing</th>
-                                <th rowspan="2" class="p-2 border-b border-app-border text-center sticky top-0 bg-slate-100" style="width:4%;">Action</th>
+                                <th rowspan="2" class="p-2 border-b border-r border-app-border text-center bg-slate-100">QTY ITEM</th>
+                                <th rowspan="2" class="p-2 border-b border-r border-app-border text-center bg-slate-100">QTY ORDER</th>
+                                <th rowspan="2" class="p-2 border-b border-r border-app-border text-center bg-slate-100">M2/M3</th>
+                                <th rowspan="2" class="p-2 border-b border-r border-app-border bg-slate-100 min-w-[140px]">Material</th>
+                                <th rowspan="2" class="p-2 border-b border-r border-app-border bg-slate-100 min-w-[160px]">Note</th>
+                                <th rowspan="2" class="p-2 border-b border-r border-app-border bg-slate-100 min-w-[200px]">DESCRIPTION</th>
+                                <th rowspan="2" class="p-2 border-b border-r border-amber-300 bg-amber-100/90 text-center text-amber-950 min-w-[90px]">MRP GROUP ⚡</th>
+                                <th rowspan="2" class="p-2 border-b border-r border-amber-300 bg-amber-50/70 text-center text-amber-900">MRP CTRL ⚡</th>
+                                <th rowspan="2" class="p-2 border-b border-r border-amber-300 bg-amber-50/70 text-center text-amber-900">SLOC 1 ⚡</th>
+                                <th rowspan="2" class="p-2 border-b border-r border-amber-300 bg-amber-50/70 text-center text-amber-900">SLOC 2 ⚡</th>
+                                <th rowspan="2" class="p-2 border-b border-r border-amber-300 bg-amber-50/70 text-center text-amber-900">PLANT ⚡</th>
+                                <th rowspan="2" class="p-2 border-b border-r border-app-border text-center bg-slate-100">M3</th>
+                                <th rowspan="2" class="p-2 border-b border-r border-app-border text-center bg-slate-100">M2</th>
+                                <th rowspan="2" class="p-2 border-b border-r border-app-border text-center bg-slate-100">ACTIVITY</th>
+                                <th rowspan="2" class="p-2 border-b border-r border-app-border text-center bg-slate-100">SATUAN</th>
+                                <th colspan="3" class="p-1.5 border-b border-r border-blue-200 bg-blue-50/80 text-center text-[10.5px] text-blue-900 tracking-wider">UOM KONVERSI</th>
+                                <th rowspan="2" class="p-2 border-b border-r border-app-border text-center bg-slate-100 min-w-[110px]">rough size</th>
+                                <th rowspan="2" class="p-2 border-b border-r border-app-border text-center bg-slate-100">SLOC DEF</th>
+                                <th rowspan="2" class="p-2 border-b border-r border-amber-300 bg-amber-50/70 text-center text-amber-900">MATERIAL TYPE ⚡</th>
+                                <th rowspan="2" class="p-2 border-b border-r border-amber-300 bg-amber-50/70 text-center text-amber-900">MATERIAL GROUP ⚡</th>
+                                <th rowspan="2" class="p-2 border-b border-app-border text-center bg-slate-100">Action</th>
                             </tr>
                             <tr class="text-center text-[10px] uppercase font-bold tracking-wider">
-                                <th colspan="2" class="p-1 border-b border-r border-amber-200 bg-amber-50/50 text-amber-800" style="min-width: 96px;">Rough Thick (T)</th>
-                                <th colspan="2" class="p-1 border-b border-r border-amber-200 bg-amber-50/50 text-amber-800" style="min-width: 104px;">Rough Width (W)</th>
-                                <th colspan="2" class="p-1 border-b border-r border-amber-300 bg-amber-50/50 text-amber-800" style="min-width: 116px;">Rough Length (L)</th>
-                                <th class="p-1 border-b border-r border-brand-200 bg-brand-50/50 text-brand-800" style="min-width: 52px;">T</th>
-                                <th class="p-1 border-b border-r border-brand-200 bg-brand-50/50 text-brand-800" style="min-width: 60px;">W</th>
-                                <th class="p-1 border-b border-r border-brand-300 bg-brand-50/50 text-brand-800" style="min-width: 72px;">L</th>
+                                <th class="p-1 border-b border-r border-amber-200 bg-amber-50/50 text-amber-800">T1</th>
+                                <th class="p-1 border-b border-r border-amber-200 bg-amber-50/50 text-amber-800">T2</th>
+                                <th class="p-1 border-b border-r border-amber-200 bg-amber-50/50 text-amber-800">W1</th>
+                                <th class="p-1 border-b border-r border-amber-200 bg-amber-50/50 text-amber-800">W2</th>
+                                <th class="p-1 border-b border-r border-amber-200 bg-amber-50/50 text-amber-800">L1</th>
+                                <th class="p-1 border-b border-r border-amber-300 bg-amber-50/50 text-amber-800">L2</th>
+                                <th class="p-1 border-b border-r border-brand-200 bg-brand-50/50 text-brand-800">T</th>
+                                <th class="p-1 border-b border-r border-brand-200 bg-brand-50/50 text-brand-800">W</th>
+                                <th class="p-1 border-b border-r border-brand-300 bg-brand-50/50 text-brand-800">L</th>
+                                <th class="p-1 border-b border-r border-blue-200 bg-blue-50/50 text-blue-800">KONVERSI</th>
+                                <th class="p-1 border-b border-r border-blue-200 bg-blue-50/50 text-blue-800">UNIT</th>
+                                <th class="p-1 border-b border-r border-blue-300 bg-blue-50/50 text-blue-800">ACT CODE</th>
                             </tr>
                         </thead>
                         <tbody id="tableBody" class="divide-y divide-app-border">
@@ -140,18 +163,15 @@ onclick="document.getElementById('excelFileInput').click()">
             <div class="bg-slate-50/80 px-5 py-3.5 border-t border-app-border flex justify-between items-center flex-wrap gap-3 rounded-b-lg">
                 <div class="text-xs text-app-muted font-medium" id="footerSummary">1 line ready</div>
                 <div class="flex gap-2.5 flex-wrap w-full sm:w-auto">
-                    <button type="button" class="flex-1 sm:flex-none justify-center px-4 py-2 rounded-md text-xs font-semibold cursor-pointer border border-slate-300 bg-white text-app-danger hover:bg-app-danger-bg hover:border-red-300 inline-flex
-items-center gap-1.5 transition" id="btnReset" onclick="resetForm()">
+                    <button type="button" class="flex-1 sm:flex-none justify-center px-4 py-2 rounded-md text-xs font-semibold cursor-pointer border border-slate-300 bg-white text-app-danger hover:bg-app-danger-bg hover:border-red-300 inline-flex items-center gap-1.5 transition" id="btnReset" onclick="resetForm()">
                         <span class="spinner hidden w-3 h-3 border-2 border-red-600/30 border-t-red-600 rounded-full animate-spin"></span>
                         <span class="btn-label">↺ Reset</span>
                     </button>
-                    <button type="button" class="flex-1 sm:flex-none justify-center px-4 py-2 rounded-md text-xs font-semibold cursor-pointer border border-slate-300 bg-white text-slate-700 hover:border-brand-600 hover:text-brand-700 inline-flex
-items-center gap-1.5 transition" id="btnDraft" onclick="saveStagingData('DRAFT')">
+                    <button type="button" class="flex-1 sm:flex-none justify-center px-4 py-2 rounded-md text-xs font-semibold cursor-pointer border border-slate-300 bg-white text-slate-700 hover:border-brand-600 hover:text-brand-700 inline-flex items-center gap-1.5 transition" id="btnDraft" onclick="saveStagingData('DRAFT')">
                         <span class="spinner hidden w-3 h-3 border-2 border-brand-600/30 border-t-brand-600 rounded-full animate-spin"></span>
                         <span class="btn-label">💾 Save Draft</span>
                     </button>
-                    <button type="button" class="flex-1 sm:flex-none justify-center px-5 py-2 rounded-md text-xs font-semibold cursor-pointer border border-transparent bg-brand-700 hover:bg-brand-800 text-white shadow-sm inline-flex items-center gap-1.5
-transition" id="btnSubmit" onclick="saveStagingData('SUBMITTED')">
+                    <button type="button" class="flex-1 sm:flex-none justify-center px-5 py-2 rounded-md text-xs font-semibold cursor-pointer border border-transparent bg-brand-700 hover:bg-brand-800 text-white shadow-sm inline-flex items-center gap-1.5 transition" id="btnSubmit" onclick="saveStagingData('SUBMITTED')">
                         <span class="spinner hidden w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
                         <span class="btn-label">✔ Submit</span>
                     </button>
@@ -201,19 +221,35 @@ transition" id="btnSubmit" onclick="saveStagingData('SUBMITTED')">
     <div class="fixed bottom-5 right-5 flex flex-col gap-2 z-[10000]" id="toastStack"></div>
 
     <script>
-        let plantMaster = [], rawMatMaster = [], matklMaster = [];
-        try {
-            const pEl = document.getElementById('plant-data');
-            const rEl = document.getElementById('raw-data');
-            const mEl = document.getElementById('matkl-data');
-            if (pEl) plantMaster  = JSON.parse(pEl.textContent || '[]');
-            if (rEl) rawMatMaster = JSON.parse(rEl.textContent || '[]');
-            if (mEl) matklMaster  = JSON.parse(mEl.textContent || '[]');
-        } catch (e) {
-            console.error("Error parsing Master Data JSON:", e);
-        }
-
         let rowCounter = 0;
+
+        // PRESET TEPAT 6 KOLOM TERIKAT MRP GROUP
+        const MRP_PRESETS = {
+            "ZGW1": {
+                dispo: "PJ1",
+                lgort1: "1307",
+                lgort2: "",
+                werks: "1000",
+                mtart: "HALB",
+                matkl: "HSF004"
+            },
+            "ZPN1": {
+                dispo: "PN1",
+                lgort1: "1P03",
+                lgort2: "",
+                werks: "1000",
+                mtart: "HALB",
+                matkl: "HSF011"
+            },
+            "ZPN2": {
+                dispo: "PN2",
+                lgort1: "1D00",
+                lgort2: "1306",
+                werks: "1000",
+                mtart: "HALB",
+                matkl: "HSF011"
+            }
+        };
 
         document.addEventListener("DOMContentLoaded", function() {
             const nameLabel = document.getElementById("userNameLabel");
@@ -222,26 +258,7 @@ transition" id="btnSubmit" onclick="saveStagingData('SUBMITTED')">
             }
             addNewRow();
             loadUploadHistory();
-
-            document.addEventListener("click", function(e) {
-                if (!e.target.closest('.search-select-box') && !e.target.closest('.dropdown-popup')) {
-                    closeAllDropdowns();
-                }
-            });
-
-            window.addEventListener('scroll', function(e) {
-                if (e.target.classList && !e.target.classList.contains('dropdown-list')) {
-                    closeAllDropdowns();
-                }
-            }, true);
-
-            window.addEventListener('resize', closeAllDropdowns);
         });
-
-        function closeAllDropdowns() {
-            document.querySelectorAll('.dropdown-popup').forEach(function(p) { p.classList.add('hidden'); });
-            document.querySelectorAll('.chevron').forEach(function(c) { c.classList.remove('rotate-180'); });
-        }
 
         function generateUUID() {
             return 'UPL-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).substring(2, 7).toUpperCase();
@@ -255,27 +272,59 @@ transition" id="btnSubmit" onclick="saveStagingData('SUBMITTED')">
             const wb = XLSX.utils.book_new();
 
             const wsData = [
-                ["No", "Code Number", "Part Name", "Rough Thick (T)", "", "Rough Width (W)", "", "Rough Length (L)", "", "Finish Thick (T)", "Finish Width (W)", "Finish Length (L)", "Qty Item", "Qty Order", "M3", "Material", "Note", "Finishing"],
-                [1, "PF", "COVER PANEL 1L", "", "", "", "", "", "", 19, 320, 2434, 2, "", "", "Plywd 18 + V", "TV= F/B. V. White Beech", "PT-1"],
-                ["", "SF", "Core", 0, 18, 10, 330, 10, 2444, 18, 320, 2434, 2, 2, 0.029, "Plywood 18mm", "18X1220X2440", ""],
-                ["", "SF", "V.Face/Back", 0.1, 0.6, 10, 330, 10, 2444, 0.5, 320, 2434, 4, 4, 3.2261, "V. White Beech", "", ""],
-                [2, "PF", "COVER PANEL 1R", "", "", "", "", "", "", 19, 320, 2434, 2, "", "", "Plywd 18 + V", "TV= F/B. V. White Beech", "PT-1"],
-                ["", "CMB", "Core Component", 0, 18, 10, 330, 10, 2444, 18, 320, 2434, 2, 2, 0.029, "Plywood 18mm", "18X1220X2440", ""]
+                [
+                    "No.", "Code Number", "CODE MATERIAL SAP", "FINISH SIZE", "Part Name",
+                    "ROUGH SIZE", "", "", "", "", "", "", "FINISH SIZE", "", "",
+                    "QTY ITEM", "QTY ORDER", "M2/M3", "Material", "Note", "DESCRIPTION",
+                    "MRP GROUP", "MRP CTRL", "SLOC 1", "SLOC 2", "plant", "M3", "M2",
+                    "ACTIVITY", "SATUAN", "UOM KONVERSI", "", "", "rough size", "SLOC DEF",
+                    "MATERIAL TYPE", "MATERIAL GROUP"
+                ],
+                [
+                    "", "", "", "", "", "T1", "T2", "W1", "W2", "L1", "L2", "", "T", "W", "L",
+                    "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "KONVERSI",
+                    "UNIT", "ACT CODE", "", "", "", ""
+                ],
+                [
+                    "Assy Body", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
+                    "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""
+                ],
+                [
+                    1, "PF", 20323076, "19X320X2434", "COVER PANEL 1L", "", "", "", "", "", "", "",
+                    19, 320, 2434, 2, 2, "", "Plywd 18 + V", "TV= F/B. V. White Beech",
+                    "COMP 2 COVER PANEL 1L CVR PNL CL MU", "ZGW1", "PJ1", 1307, "", 1000,
+                    0.02959744, 1.55776, 0.02959744, "M3", 1479.85720128, "M3", 99999, "XX",
+                    1307, "HALB", "HSF004"
+                ],
+                [
+                    "", "CMB", 20323077, "19X320X2434", "COMP 1", "", "", "", "", "", "", "",
+                    19, 320, 2434, 2, 2, "", "Plywd 18 + V", "",
+                    "COMP 1 COVER PANEL 1L/R CVR PNL CL MU", "ZPN1", "PN2", "1D00", 1306, 1000,
+                    0.02959744, 1.55776, 1.55776, "M2", 1479.85720128, "M3", 99999, "XX",
+                    1306, "HALB", "HSF011"
+                ],
+                [
+                    "", "SF", 20323078, "18X320X2434", "CORE", 0, 18, 10, 330, 10, 2444, "",
+                    18, 320, 2434, 2, 2, 0.02903472, "Plywood 18mm", "",
+                    "PART CORE COVER PANEL 1L/R CVR PNL CL MU", "ZPN1", "PN1", "1P03", "", 1000,
+                    0.02803968, 1.55776, 0.02803968, "M3", 1401.96998016, "M3", 99999, "18X330X2444",
+                    "1P03", "HALB", "HSF011"
+                ],
+                [
+                    "", "SF", 20323079, "0,5X320X2434", "V.F/B SET", 0.1, 0.6, 10, 330, 10, 2444, "",
+                    0.5, 320, 2434, 2, 2, "", "V. White Beech", "",
+                    "PART V.F/B SET COVER PANEL 1L/R CVR PNL CL MU", "ZPN1", "PV1", "1P06", "", 1000,
+                    0.00077888, 1.55776, 1.55776, "M2", 38.94361056, "M3", 99999, "0,6X330X2444",
+                    "1P06", "HALB", "HSF011"
+                ]
             ];
 
             const ws = XLSX.utils.aoa_to_sheet(wsData);
 
             ws['!merges'] = [
-                { s: { r: 0, c: 3 }, e: { r: 0, c: 4 } },
-                { s: { r: 0, c: 5 }, e: { r: 0, c: 6 } },
-                { s: { r: 0, c: 7 }, e: { r: 0, c: 8 } }
-            ];
-
-            ws['!cols'] = [
-                { wch: 5 }, { wch: 12 }, { wch: 25 },
-                { wch: 6 }, { wch: 12 }, { wch: 6 }, { wch: 12 }, { wch: 6 }, { wch: 12 },
-                { wch: 14 }, { wch: 14 }, { wch: 14 },
-                { wch: 8 }, { wch: 8 }, { wch: 10 }, { wch: 20 }, { wch: 25 }, { wch: 12 }
+                { s: { r: 0, c: 5 }, e: { r: 0, c: 10 } },
+                { s: { r: 0, c: 12 }, e: { r: 0, c: 14 } },
+                { s: { r: 0, c: 30 }, e: { r: 0, c: 32 } }
             ];
 
             XLSX.utils.book_append_sheet(wb, ws, "Standard_BOM_Wood");
@@ -314,68 +363,113 @@ transition" id="btnSubmit" onclick="saveStagingData('SUBMITTED')">
 
                     for (let r = 0; r < jsonData.length; r++) {
                         const row = jsonData[r];
-                        if (!row || row.length < 3) continue;
+                        if (!row || row.length < 2) continue;
 
-                        const codeNum = row[1] ? String(row[1]).trim().toUpperCase() : "";
-                        const partNameRaw = row[2] ? String(row[2]).trim() : "";
+                        const col0 = row[0] !== undefined && row[0] !== null ? String(row[0]).trim() : "";
+                        const col1 = row[1] !== undefined && row[1] !== null ? String(row[1]).trim().toUpperCase() : "";
 
-                        if (!codeNum || codeNum === 'CODE NUMBER' || codeNum === 'CODE') continue;
+                        if (col1 === 'CODE NUMBER' || col1 === 'CODE' || col0 === 'NO.' || col0 === 'NO') continue;
+                        if (!col1 && !row[4]) continue;
+
+                        const codeNum = col1 || "SF";
 
                         if (codeNum === 'PF') {
-                            currentParent = partNameRaw;
-                            currentGroupNo++;
+                            currentGroupNo = col0 ? col0 : (currentGroupNo + 1);
                         }
 
-                        let fullMaktx = (codeNum !== 'PF' && currentParent) ? (currentParent + ' - ' + partNameRaw) : partNameRaw;
-                        if (fullMaktx.length > 40) fullMaktx = fullMaktx.substring(0, 40);
+                        const matnrVal       = row[2] !== undefined && row[2] !== null ? String(row[2]).trim() : "";
+                        const groesFinStrVal = row[3] !== undefined && row[3] !== null ? String(row[3]).trim() : "";
+                        const partNameVal    = row[4] !== undefined && row[4] !== null ? String(row[4]).trim() : "";
 
-                        const rt1 = (row[3] !== undefined && row[3] !== null) ? String(row[3]).trim() : "";
-                        const rt2 = (row[4] !== undefined && row[4] !== null) ? String(row[4]).trim() : "";
+                        const rt1Val = row[5] !== undefined && row[5] !== null ? String(row[5]).trim() : "";
+                        const rt2Val = row[6] !== undefined && row[6] !== null ? String(row[6]).trim() : "";
+                        const rw1Val = row[7] !== undefined && row[7] !== null ? String(row[7]).trim() : "";
+                        const rw2Val = row[8] !== undefined && row[8] !== null ? String(row[8]).trim() : "";
+                        const rl1Val = row[9] !== undefined && row[9] !== null ? String(row[9]).trim() : "";
+                        const rl2Val = row[10] !== undefined && row[10] !== null ? String(row[10]).trim() : "";
 
-                        const rw1 = (row[5] !== undefined && row[5] !== null) ? String(row[5]).trim() : "";
-                        const rw2 = (row[6] !== undefined && row[6] !== null) ? String(row[6]).trim() : "";
+                        // Finish Size T, W, L (Col 12, 13, 14)
+                        const ftVal  = row[12] !== undefined && row[12] !== null ? String(row[12]).trim() : (row[11] !== undefined ? String(row[11]).trim() : "");
+                        const fwVal  = row[13] !== undefined && row[13] !== null ? String(row[13]).trim() : "";
+                        const flVal  = row[14] !== undefined && row[14] !== null ? String(row[14]).trim() : "";
 
-                        const rl1 = (row[7] !== undefined && row[7] !== null) ? String(row[7]).trim() : "";
-                        const rl2 = (row[8] !== undefined && row[8] !== null) ? String(row[8]).trim() : "";
+                        // QTY ITEM & QTY ORDER (Col 15 & 16)
+                        const mengeVal     = row[15] !== undefined && row[15] !== null ? String(row[15]).trim() : (row[14] !== undefined ? String(row[14]).trim() : "1");
+                        const mengeOrdVal  = row[16] !== undefined && row[16] !== null ? String(row[16]).trim() : "";
 
-                        let off = 0;
-                        if (row[9] !== undefined && row[9] !== null && String(row[9]).trim() !== "") {
-                            off = 0;
-                        } else if (row[10] !== undefined && row[10] !== null && String(row[10]).trim() !== "") {
-                            off = 1;
+                        // M2/M3 (Col 17)
+                        const volM3Val     = row[17] !== undefined && row[17] !== null ? String(row[17]).trim() : "";
+
+                        // Material, Note, Description (Col 18, 19, 20)
+                        const wrkstVal     = row[18] !== undefined && row[18] !== null ? String(row[18]).trim() : "";
+                        const noteVal      = row[19] !== undefined && row[19] !== null ? String(row[19]).trim() : "";
+                        const descVal      = row[20] !== undefined && row[20] !== null ? String(row[20]).trim() : "";
+
+                        // MRP Group (Col 21), MRP Ctrl (Col 22), SLOC 1 (Col 23), SLOC 2 (Col 24), Plant (Col 25)
+                        let disgrVal     = row[21] !== undefined && row[21] !== null ? String(row[21]).trim().toUpperCase() : "";
+                        if (!disgrVal) {
+                            disgrVal = (codeNum === 'PF') ? 'ZGW1' : 'ZPN1';
                         }
+                        const dispoVal     = row[22] !== undefined && row[22] !== null ? String(row[22]).trim() : "";
+                        const lgort1Val    = row[23] !== undefined && row[23] !== null ? String(row[23]).trim() : "";
+                        const lgort2Val    = row[24] !== undefined && row[24] !== null ? String(row[24]).trim() : "";
+                        const werksVal     = row[25] !== undefined && row[25] !== null ? String(row[25]).trim() : "1000";
 
-                        const ft = (row[9 + off] !== undefined && row[9 + off] !== null) ? String(row[9 + off]).trim() : "";
-                        const fw = (row[10 + off] !== undefined && row[10 + off] !== null) ? String(row[10 + off]).trim() : "";
-                        const fl = (row[11 + off] !== undefined && row[11 + off] !== null) ? String(row[11 + off]).trim() : "";
+                        // M3 (Col 26), M2 (Col 27), ACTIVITY (Col 28)
+                        const m3ExtraVal   = row[26] !== undefined && row[26] !== null ? String(row[26]).trim() : "";
+                        const areaM2Val    = row[27] !== undefined && row[27] !== null ? String(row[27]).trim() : "";
+                        const activityVal  = row[28] !== undefined && row[28] !== null ? String(row[28]).trim() : "";
 
-                        let rawQtyItem = (row[12 + off] !== undefined && row[12 + off] !== null) ? String(row[12 + off]).trim() : "1";
-                        let parsedQtyItem = parseFloat(rawQtyItem.replace(',', '.'));
-                        if (isNaN(parsedQtyItem) || parsedQtyItem <= 0) parsedQtyItem = 1;
+                        // SATUAN (Col 29) e.g. M3/M2
+                        const meinsVal     = row[29] !== undefined && row[29] !== null ? String(row[29]).trim() : (codeNum === 'PF' ? "M3" : "M2");
 
-                        let rawQtyOrd = (row[13 + off] !== undefined && row[13 + off] !== null) ? String(row[13 + off]).trim() : "";
-                        let parsedQtyOrd = rawQtyOrd ? parseFloat(rawQtyOrd.replace(',', '.')) : "";
-                        if (isNaN(parsedQtyOrd)) parsedQtyOrd = "";
+                        // UOM KONVERSI (Col 30) e.g. 1479.85, ROUGH SIZE UNIT (Col 31) e.g. M3, ACT CODE (Col 32) e.g. 99999
+                        const umrezVal     = row[30] !== undefined && row[30] !== null ? String(row[30]).trim() : "";
+                        const meinhVal     = row[31] !== undefined && row[31] !== null ? String(row[31]).trim() : meinsVal;
+                        const actCodeVal   = row[32] !== undefined && row[32] !== null ? String(row[32]).trim() : "99999";
 
-                        const volM3 = (row[14 + off] !== undefined && row[14 + off] !== null) ? String(row[14 + off]).trim() : "";
-                        const wrkstText = (row[15 + off] !== undefined && row[15 + off] !== null) ? String(row[15 + off]).trim() : "";
-                        const noteText = (row[16 + off] !== undefined && row[16 + off] !== null) ? String(row[16 + off]).trim() : "";
-                        const finishingText = (row[17 + off] !== undefined && row[17 + off] !== null) ? String(row[17 + off]).trim() : "";
+                        // rough size STR (Col 33) e.g. XX, 18X330X2444
+                        const groesStrVal  = row[33] !== undefined && row[33] !== null ? String(row[33]).trim() : "";
+
+                        // SLOC DEF (Col 34) e.g. 1307, 1306, 1P03
+                        const slocDefVal   = row[34] !== undefined && row[34] !== null ? String(row[34]).trim() : "";
+
+                        // MATERIAL TYPE (Col 35) e.g. HALB, MATERIAL GROUP (Col 36) e.g. HSF004
+                        const mtartVal     = row[35] !== undefined && row[35] !== null ? String(row[35]).trim() : "HALB";
+                        const matklVal     = row[36] !== undefined && row[36] !== null ? String(row[36]).trim() : (codeNum === 'PF' ? "HSF004" : "HSF011");
 
                         addNewRowData({
-                            groupNo: (codeNum === 'PF') ? currentGroupNo : "",
+                            groupNo: col0,
                             codeNum: codeNum,
-                            maktx: fullMaktx,
-                            wrkst: wrkstText,
-                            rt1: rt1, rt2: rt2,
-                            rw1: rw1, rw2: rw2,
-                            rl1: rl1, rl2: rl2,
-                            ft: ft, fw: fw, fl: fl,
-                            menge: parsedQtyItem,
-                            mengeOrd: parsedQtyOrd,
-                            volM3: volM3,
-                            note: noteText,
-                            finishing: finishingText
+                            matnr: matnrVal,
+                            groesFinStr: groesFinStrVal,
+                            maktx: partNameVal,
+                            rt1: rt1Val, rt2: rt2Val,
+                            rw1: rw1Val, rw2: rw2Val,
+                            rl1: rl1Val, rl2: rl2Val,
+                            ft: ftVal, fw: fwVal, fl: flVal,
+                            menge: mengeVal,
+                            mengeOrd: mengeOrdVal,
+                            volM3: volM3Val,
+                            wrkst: wrkstVal,
+                            note: noteVal,
+                            description: descVal,
+                            disgr: disgrVal,
+                            dispo: dispoVal,
+                            lgort1: lgort1Val,
+                            lgort2: lgort2Val,
+                            werks: werksVal,
+                            m3Extra: m3ExtraVal,
+                            areaM2: areaM2Val,
+                            activity: activityVal,
+                            meins: meinsVal,
+                            umrez: umrezVal,
+                            meinh: meinhVal,
+                            actCode: actCodeVal,
+                            groesStr: groesStrVal,
+                            slocDef: slocDefVal,
+                            mtart: mtartVal,
+                            matkl: matklVal
                         });
 
                         parsedCount++;
@@ -389,6 +483,7 @@ transition" id="btnSubmit" onclick="saveStagingData('SUBMITTED')">
                     }
 
                 } catch (err) {
+                    console.error(err);
                     showToast("Gagal membaca file Excel R&D.", "error");
                 } finally {
                     input.value = "";
@@ -402,7 +497,7 @@ transition" id="btnSubmit" onclick="saveStagingData('SUBMITTED')">
             const tbody = document.getElementById("historyTableBody");
             tbody.innerHTML = '<tr><td colspan="8" class="p-4 text-center text-slate-400 italic">Memuat riwayat upload...</td></tr>';
 
-            fetch("?OnInputProcessing=GET_HISTORY")
+            fetch("index2.htm?OnInputProcessing=GET_HISTORY")
             .then(function(res) { return res.json(); })
             .then(function(data) {
                 tbody.innerHTML = "";
@@ -452,7 +547,7 @@ transition" id="btnSubmit" onclick="saveStagingData('SUBMITTED')">
             const formData = new FormData();
             formData.append("UPLOAD_ID", uploadId);
 
-            fetch("?OnInputProcessing=GET_UPLOAD_DETAIL", {
+            fetch("index2.htm?OnInputProcessing=GET_UPLOAD_DETAIL", {
                 method: "POST",
                 body: formData
             })
@@ -503,8 +598,10 @@ transition" id="btnSubmit" onclick="saveStagingData('SUBMITTED')">
                     }
 
                     addNewRowData({
-                        groupNo: (codeNum === 'PF') ? currentGrpNo : "",
+                        groupNo: item.groupNo || (codeNum === 'PF' ? currentGrpNo : ""),
                         codeNum: codeNum,
+                        matnr: item.matnr || item.MATNR || "",
+                        groesFinStr: groesFin,
                         maktx: item.maktx || item.MAKTX || "",
                         wrkst: item.wrkst || item.WRKST || "",
                         rt1: rt1, rt2: rt2,
@@ -515,7 +612,23 @@ transition" id="btnSubmit" onclick="saveStagingData('SUBMITTED')">
                         mengeOrd: item.menge_ord || item.MENGE_ORD || "",
                         volM3: item.vol_m3 || item.VOL_M3 || "",
                         note: item.note || item.NOTE || "",
-                        finishing: item.finishing || item.FINISHING || ""
+                        description: item.description || item.DESCRIPTION || "",
+                        disgr: item.disgr || item.DISGR || (codeNum === 'PF' ? 'ZGW1' : 'ZPN1'),
+                        dispo: item.dispo || item.DISPO || "",
+                        lgort1: item.lgort1 || item.LGORT1 || "",
+                        lgort2: item.lgort2 || item.LGORT2 || "",
+                        werks: item.werks || item.WERKS || "1000",
+                        m3Extra: item.m3 || item.M3 || "",
+                        areaM2: item.area_m2 || item.AREA_M2 || "",
+                        activity: item.activity || item.ACTIVITY || "",
+                        meins: item.meins || item.MEINS || "PC",
+                        umrez: item.umrez || item.UMREZ || "",
+                        meinh: item.meinh || item.MEINH || "",
+                        actCode: item.act_code || item.ACT_CODE || "99999",
+                        groesStr: item.groes || item.GROES || "",
+                        slocDef: item.sloc_def || item.SLOC_DEF || "",
+                        mtart: item.mtart || item.MTART || "HALB",
+                        matkl: item.matkl || item.MATKL || ""
                     });
                 });
 
@@ -537,14 +650,11 @@ transition" id="btnSubmit" onclick="saveStagingData('SUBMITTED')">
             const tr = document.createElement("tr");
             tr.id = 'row_' + rowCounter;
 
-            const baseCode = "";
-            const rowMatCode = baseCode ? (baseCode + '-' + rowCounter.toString().padStart(2, '0')) : "";
-
             const groupNoVal = data.groupNo !== undefined ? data.groupNo : "";
             const codeNumVal = (data.codeNum || "SF").toUpperCase();
-
+            const matnrVal = data.matnr || "";
+            const groesFinStrVal = data.groesFinStr || "";
             const maktxVal = data.maktx || "";
-            const wrkstVal = data.wrkst || "";
 
             const rt1Val = data.rt1 !== undefined ? data.rt1 : "";
             const rt2Val = data.rt2 !== undefined ? data.rt2 : "";
@@ -561,8 +671,30 @@ transition" id="btnSubmit" onclick="saveStagingData('SUBMITTED')">
             const mengeOrdVal = data.mengeOrd !== undefined ? data.mengeOrd : "";
 
             const volM3Val = data.volM3 || "";
+            const wrkstVal = data.wrkst || "";
             const noteVal = data.note || "";
-            const finishingVal = data.finishing || "";
+            const descVal = data.description || "";
+
+            let disgrVal = data.disgr || "";
+            if (!disgrVal) {
+                disgrVal = (codeNumVal === 'PF') ? 'ZGW1' : 'ZPN1';
+            }
+
+            const dispoVal = data.dispo || "";
+            const lgort1Val = data.lgort1 || "";
+            const lgort2Val = data.lgort2 || "";
+            const werksVal = data.werks || "1000";
+            const m3ExtraVal = data.m3Extra || "";
+            const areaM2Val = data.areaM2 || "";
+            const activityVal = data.activity || "";
+            const meinsVal = data.meins || (codeNumVal === 'PF' ? "M3" : "M2");
+            const umrezVal = data.umrez || "";
+            const meinhVal = data.meinh || meinsVal;
+            const actCodeVal = data.actCode || "99999";
+            const groesStrVal = data.groesStr || "";
+            const slocDefVal = data.slocDef || "";
+            const mtartVal = data.mtart || "HALB";
+            const matklVal = data.matkl || (codeNumVal === 'PF' ? "HSF004" : "HSF011");
 
             let trClass = "bg-white hover:bg-slate-50 transition-colors";
             let maktxClass = "pl-3 border-l-2 border-emerald-400 font-medium";
@@ -584,47 +716,51 @@ transition" id="btnSubmit" onclick="saveStagingData('SUBMITTED')">
             tr.className = trClass;
 
             tr.innerHTML = `
-                <td class="p-1.5 border-r border-app-border text-center align-middle font-bold text-slate-800">
+                <!-- 1. No. -->
+                <td class="p-1.5 border-r border-app-border text-center align-middle font-bold text-slate-800" style="min-width: 40px;">
                     <span class="row-group-no">${groupNoVal}</span>
                 </td>
-                <td class="p-1.5 border-r border-app-border align-top text-center">
-                    <input type="text" class="row-code-num w-full p-1 border rounded text-xs text-center font-bold uppercase outline-none focus:border-brand-600 ${codeClass}" placeholder="Kode" value="${codeNumVal}" onchange="updateRowStyling(this)"
-oninput="this.value = this.value.toUpperCase()">
+                <!-- 2. Code Number -->
+                <td class="p-1.5 border-r border-app-border align-top text-center" style="min-width: 70px;">
+                    <input type="text" class="row-code-num w-full p-1 border rounded text-xs text-center font-bold uppercase outline-none focus:border-brand-600 ${codeClass}" value="${codeNumVal}" onchange="updateRowStyling(this)" oninput="this.value = this.value.toUpperCase()">
                 </td>
-                <td class="p-1.5 border-r border-app-border align-top">
+                <!-- 3. CODE MATERIAL SAP -->
+                <td class="p-1.5 border-r border-app-border align-top" style="min-width: 110px;">
+                    <input type="text" class="row-matnr w-full p-1 border border-slate-200 rounded text-xs outline-none bg-slate-50 text-brand-800 font-mono font-semibold" value="${matnrVal}" placeholder="-">
+                </td>
+                <!-- 4. FINISH SIZE STR -->
+                <td class="p-1.5 border-r border-app-border align-top" style="min-width: 110px;">
+                    <input type="text" class="row-groes-fin-str w-full p-1 border border-slate-200 rounded text-xs outline-none font-mono text-slate-700" value="${groesFinStrVal}" placeholder="-">
+                </td>
+                <!-- 5. Part Name -->
+                <td class="p-1.5 border-r border-app-border align-top" style="min-width: 180px;">
                     <div class="flex flex-col gap-1">
-                        <input type="text" class="row-matnr w-full p-1 border border-slate-200 rounded text-xs outline-none bg-slate-50 text-brand-800 font-mono font-semibold cursor-default" value="${rowMatCode}" readonly>
-                        <input type="text" maxlength="40" class="row-maktx w-full p-1 border border-app-border-strong rounded text-xs outline-none bg-white text-slate-800 focus:border-brand-600 ${maktxClass}" placeholder="Part name (max 40 chars)"
-value="${maktxVal}" required onblur="validateRowField(this)" oninput="clearRowFieldError(this)">
+                        <input type="text" maxlength="40" class="row-maktx w-full p-1 border border-app-border-strong rounded text-xs outline-none bg-white text-slate-800 focus:border-brand-600 ${maktxClass}" placeholder="Part name (max 40 chars)" value="${maktxVal}" required onblur="validateRowField(this)" oninput="clearRowFieldError(this)">
                         <span class="mini-error text-[10px] text-app-danger hidden">⚠ Nama Part wajib diisi</span>
                     </div>
                 </td>
 
-                <!-- Rough Thick (T) -->
+                <!-- ROUGH SIZE (MM): T1, T2, W1, W2, L1, L2 -->
                 <td class="p-1 border-r border-amber-200/50 bg-amber-50/20 align-top" style="width: 44px; min-width: 44px;">
-                    <input type="text" disabled class="row-rt1 w-full px-0.5 py-1 border border-slate-200 rounded text-xs text-center font-mono font-bold text-red-600 bg-slate-100/70 cursor-not-allowed outline-none" placeholder="-" value="${rt1Val}">
+                    <input type="text" class="row-rt1 w-full px-0.5 py-1 border border-slate-200 rounded text-xs text-center font-mono font-bold text-red-600 outline-none" placeholder="-" value="${rt1Val}">
                 </td>
                 <td class="p-1 border-r border-amber-200 bg-amber-50/20 align-top" style="width: 52px; min-width: 52px;">
                     <input type="text" class="row-rt2 w-full px-0.5 py-1 border border-slate-300 rounded text-xs text-center font-mono font-bold text-slate-800 outline-none focus:border-brand-600" placeholder="-" value="${rt2Val}">
                 </td>
-
-                <!-- Rough Width (W) -->
                 <td class="p-1 border-r border-amber-200/50 bg-amber-50/20 align-top" style="width: 44px; min-width: 44px;">
-                    <input type="text" disabled class="row-rw1 w-full px-0.5 py-1 border border-slate-200 rounded text-xs text-center font-mono font-bold text-red-600 bg-slate-100/70 cursor-not-allowed outline-none" placeholder="-" value="${rw1Val}">
+                    <input type="text" class="row-rw1 w-full px-0.5 py-1 border border-slate-200 rounded text-xs text-center font-mono font-bold text-red-600 outline-none" placeholder="-" value="${rw1Val}">
                 </td>
                 <td class="p-1 border-r border-amber-200 bg-amber-50/20 align-top" style="width: 60px; min-width: 60px;">
                     <input type="text" class="row-rw2 w-full px-0.5 py-1 border border-slate-300 rounded text-xs text-center font-mono font-bold text-slate-800 outline-none focus:border-brand-600" placeholder="-" value="${rw2Val}">
                 </td>
-
-                <!-- Rough Length (L) -->
                 <td class="p-1 border-r border-amber-200/50 bg-amber-50/20 align-top" style="width: 44px; min-width: 44px;">
-                    <input type="text" disabled class="row-rl1 w-full px-0.5 py-1 border border-slate-200 rounded text-xs text-center font-mono font-bold text-red-600 bg-slate-100/70 cursor-not-allowed outline-none" placeholder="-" value="${rl1Val}">
+                    <input type="text" class="row-rl1 w-full px-0.5 py-1 border border-slate-200 rounded text-xs text-center font-mono font-bold text-red-600 outline-none" placeholder="-" value="${rl1Val}">
                 </td>
                 <td class="p-1 border-r border-amber-300 bg-amber-50/30 align-top" style="width: 72px; min-width: 72px;">
                     <input type="text" class="row-rl2 w-full px-0.5 py-1 border border-slate-300 rounded text-xs text-center font-mono font-bold text-slate-800 outline-none focus:border-brand-600" placeholder="-" value="${rl2Val}">
                 </td>
 
-                <!-- FINISH SIZE (MM) -->
+                <!-- FINISH SIZE (MM): T, W, L -->
                 <td class="p-1 border-r border-brand-200 bg-brand-50/20 align-top" style="width: 52px; min-width: 52px;">
                     <input type="text" class="row-ft w-full px-0.5 py-1 border border-slate-300 rounded text-xs text-center font-mono outline-none focus:border-brand-600 font-semibold" placeholder="-" value="${ftVal}">
                 </td>
@@ -632,33 +768,100 @@ value="${maktxVal}" required onblur="validateRowField(this)" oninput="clearRowFi
                     <input type="text" class="row-fw w-full px-0.5 py-1 border border-slate-300 rounded text-xs text-center font-mono outline-none focus:border-brand-600 font-semibold" placeholder="-" value="${fwVal}">
                 </td>
                 <td class="p-1 border-r border-brand-300 bg-brand-50/30 align-top" style="width: 72px; min-width: 72px;">
-                    <input type="text" class="row-fl w-full px-0.5 py-1 border border-slate-300 rounded text-xs text-center font-mono outline-none focus:border-brand-600 font-semibold" placeholder="-" value="${flVal}">
+                    <input type="text" class="row-fl w-full px-0.5 py-1 border border-slate-300 rounded text-xs text-center outline-none focus:border-brand-600 font-semibold" placeholder="-" value="${flVal}">
                 </td>
 
-                <!-- QTY ITEM -->
-                <td class="p-1.5 border-r border-app-border align-top text-center">
-                    <input type="number" step="any" class="row-menge p-1 border border-slate-300 rounded text-xs font-mono font-bold text-center outline-none focus:border-brand-600" value="${mengeVal}" style="width:48px;">
+                <!-- 15. QTY ITEM -->
+                <td class="p-1.5 border-r border-app-border align-top text-center" style="min-width: 50px;">
+                    <input type="number" step="any" class="row-menge w-full p-1 border border-slate-300 rounded text-xs font-mono font-bold text-center outline-none focus:border-brand-600" value="${mengeVal}">
                 </td>
-
-                <!-- QTY ORDER -->
-                <td class="p-1.5 border-r border-app-border align-top text-center">
-                    <input type="number" step="any" class="row-menge-ord p-1 border border-slate-300 rounded text-xs font-mono font-bold text-center text-blue-700 outline-none focus:border-brand-600" value="${mengeOrdVal}" placeholder="-"
-style="width:48px;">
+                <!-- 16. QTY ORDER -->
+                <td class="p-1.5 border-r border-app-border align-top text-center" style="min-width: 50px;">
+                    <input type="number" step="any" class="row-menge-ord w-full p-1 border border-slate-300 rounded text-xs font-mono font-bold text-center text-blue-700 outline-none focus:border-brand-600" value="${mengeOrdVal}" placeholder="-">
                 </td>
-
-                <td class="p-1.5 border-r border-app-border align-top">
+                <!-- 17. M2/M3 -->
+                <td class="p-1.5 border-r border-app-border align-top" style="min-width: 70px;">
                     <input type="text" class="row-vol-m3 w-full p-1 border border-slate-300 rounded text-xs text-center font-mono outline-none focus:border-brand-600" placeholder="-" value="${volM3Val}">
                 </td>
-                <td class="p-1.5 border-r border-app-border align-top">
+                <!-- 18. Material -->
+                <td class="p-1.5 border-r border-app-border align-top" style="min-width: 140px;">
                     <input type="text" maxlength="48" class="row-wrkst w-full p-1 border border-slate-300 rounded text-xs outline-none focus:border-brand-600 font-medium" placeholder="-" value="${wrkstVal}">
                 </td>
-                <td class="p-1.5 border-r border-app-border align-top">
+                <!-- 19. Note -->
+                <td class="p-1.5 border-r border-app-border align-top" style="min-width: 160px;">
                     <input type="text" maxlength="100" class="row-note w-full p-1 border border-slate-300 rounded text-xs outline-none focus:border-brand-600" placeholder="-" value="${noteVal}">
                 </td>
-                <td class="p-1.5 border-r border-app-border align-top">
-                    <input type="text" maxlength="30" class="row-finishing w-full p-1 border border-slate-300 rounded text-xs text-center font-semibold outline-none focus:border-brand-600" placeholder="-" value="${finishingVal}">
+                <!-- 20. DESCRIPTION -->
+                <td class="p-1.5 border-r border-app-border align-top" style="min-width: 200px;">
+                    <input type="text" class="row-description w-full p-1 border border-slate-300 rounded text-xs outline-none focus:border-brand-600" placeholder="-" value="${descVal}">
                 </td>
-                <td class="p-1.5 align-top text-center">
+
+                <!-- 21. MRP GROUP (INTERACTIVE PRESET DRIVER) -->
+                <td class="p-1.5 border-r border-amber-300 bg-amber-50/40 align-top text-center" style="min-width: 90px;">
+                    <input type="text" list="mrpGroupList" class="row-disgr w-full p-1 border border-amber-400 bg-white rounded text-xs text-center font-bold text-amber-950 outline-none focus:border-brand-600 uppercase" placeholder="ZGW1" value="${disgrVal}" onchange="applyMrpGroupPresets(this)" oninput="this.value = this.value.toUpperCase()">
+                </td>
+                <!-- 22. MRP CTRL (1/6 Terikat MRP) -->
+                <td class="p-1.5 border-r border-amber-200 bg-amber-50/30 align-top text-center" style="min-width: 70px;">
+                    <input type="text" class="row-dispo w-full p-1 border border-slate-300 rounded text-xs text-center outline-none focus:border-brand-600 font-bold" placeholder="PJ1" value="${dispoVal}">
+                </td>
+                <!-- 23. SLOC 1 (2/6 Terikat MRP) -->
+                <td class="p-1.5 border-r border-amber-200 bg-amber-50/30 align-top text-center" style="min-width: 60px;">
+                    <input type="text" class="row-lgort1 w-full p-1 border border-slate-300 rounded text-xs text-center outline-none focus:border-brand-600 font-mono" placeholder="1307" value="${lgort1Val}">
+                </td>
+                <!-- 24. SLOC 2 (3/6 Terikat MRP) -->
+                <td class="p-1.5 border-r border-amber-200 bg-amber-50/30 align-top text-center" style="min-width: 60px;">
+                    <input type="text" class="row-lgort2 w-full p-1 border border-slate-300 rounded text-xs text-center outline-none focus:border-brand-600 font-mono" placeholder="-" value="${lgort2Val}">
+                </td>
+                <!-- 25. PLANT (4/6 Terikat MRP) -->
+                <td class="p-1.5 border-r border-amber-200 bg-amber-50/30 align-top text-center" style="min-width: 60px;">
+                    <input type="text" class="row-werks w-full p-1 border border-slate-300 rounded text-xs text-center outline-none focus:border-brand-600 font-bold" placeholder="1000" value="${werksVal}">
+                </td>
+                <!-- 26. M3 -->
+                <td class="p-1.5 border-r border-app-border align-top text-center" style="min-width: 70px;">
+                    <input type="text" class="row-m3-extra w-full p-1 border border-slate-300 rounded text-xs text-center outline-none focus:border-brand-600 font-mono" placeholder="0.000" value="${m3ExtraVal}">
+                </td>
+                <!-- 27. M2 -->
+                <td class="p-1.5 border-r border-app-border align-top text-center" style="min-width: 70px;">
+                    <input type="text" class="row-area-m2 w-full p-1 border border-slate-300 rounded text-xs text-center outline-none focus:border-brand-600 font-mono" placeholder="0.000" value="${areaM2Val}">
+                </td>
+                <!-- 28. ACTIVITY -->
+                <td class="p-1.5 border-r border-app-border align-top text-center" style="min-width: 70px;">
+                    <input type="text" class="row-activity w-full p-1 border border-slate-300 rounded text-xs text-center outline-none focus:border-brand-600 font-mono font-semibold" placeholder="0.000" value="${activityVal}">
+                </td>
+                <!-- 29. SATUAN -->
+                <td class="p-1.5 border-r border-app-border align-top text-center" style="min-width: 60px;">
+                    <input type="text" class="row-meins w-full p-1 border border-slate-300 rounded text-xs text-center outline-none focus:border-brand-600 font-bold text-brand-800" placeholder="M3" value="${meinsVal}">
+                </td>
+
+                <!-- UOM KONVERSI SUB-COLUMNS: KONVERSI (30), UNIT (31), ACT CODE (32) -->
+                <td class="p-1.5 border-r border-blue-200 bg-blue-50/20 align-top text-center" style="min-width: 80px;">
+                    <input type="text" class="row-umrez w-full p-1 border border-slate-300 rounded text-xs text-center outline-none focus:border-brand-600 font-mono" placeholder="1480" value="${umrezVal}">
+                </td>
+                <td class="p-1.5 border-r border-blue-200 bg-blue-50/20 align-top text-center" style="min-width: 60px;">
+                    <input type="text" class="row-meinh w-full p-1 border border-slate-300 rounded text-xs text-center outline-none focus:border-brand-600 font-bold text-blue-900" placeholder="M3" value="${meinhVal}">
+                </td>
+                <td class="p-1.5 border-r border-blue-300 bg-blue-50/30 align-top text-center" style="min-width: 65px;">
+                    <input type="text" class="row-act-code w-full p-1 border border-slate-300 rounded text-xs text-center outline-none focus:border-brand-600 font-mono text-slate-700" placeholder="99999" value="${actCodeVal}">
+                </td>
+
+                <!-- 33. rough size STR -->
+                <td class="p-1.5 border-r border-app-border align-top text-center" style="min-width: 110px;">
+                    <input type="text" class="row-groes-str w-full p-1 border border-slate-300 rounded text-xs text-center outline-none focus:border-brand-600 font-mono font-medium" placeholder="XX" value="${groesStrVal}">
+                </td>
+                <!-- 34. SLOC DEF -->
+                <td class="p-1.5 border-r border-app-border align-top text-center" style="min-width: 65px;">
+                    <input type="text" class="row-sloc-def w-full p-1 border border-slate-300 rounded text-xs text-center outline-none focus:border-brand-600 font-mono font-semibold" placeholder="1307" value="${slocDefVal}">
+                </td>
+                <!-- 35. MATERIAL TYPE (5/6 Terikat MRP) -->
+                <td class="p-1.5 border-r border-amber-200 bg-amber-50/30 align-top text-center" style="min-width: 70px;">
+                    <input type="text" class="row-mtart w-full p-1 border border-slate-300 rounded text-xs text-center outline-none focus:border-brand-600 font-bold text-brand-700" placeholder="HALB" value="${mtartVal}">
+                </td>
+                <!-- 36. MATERIAL GROUP (6/6 Terikat MRP) -->
+                <td class="p-1.5 border-r border-amber-200 bg-amber-50/30 align-top text-center" style="min-width: 80px;">
+                    <input type="text" class="row-matkl w-full p-1 border border-slate-300 rounded text-xs text-center outline-none focus:border-brand-600 font-bold text-brand-700" placeholder="HSF004" value="${matklVal}">
+                </td>
+
+                <td class="p-1.5 align-top text-center" style="min-width: 50px;">
                     <div class="flex gap-1 justify-center items-center">
                         <button type="button" class="w-5 h-5 rounded bg-brand-700 hover:bg-brand-800 text-white font-bold text-xs flex items-center justify-center transition shadow-sm" title="Add Line" onclick="addNewRow()">+</button>
                         <button type="button" class="w-5 h-5 rounded bg-red-600 hover:bg-red-700 text-white font-bold text-xs flex items-center justify-center transition shadow-sm" title="Delete Line" onclick="deleteRow(this)">-</button>
@@ -668,6 +871,49 @@ style="width:48px;">
             tbody.appendChild(tr);
             reindexTableRows();
             updateRowSummary();
+
+            // Auto apply preset 6 kolom jika baru menambah baris manual kosong
+            if (!data.disgr && !data.dispo && !data.lgort1) {
+                const disgrInput = tr.querySelector('.row-disgr');
+                if (disgrInput) applyMrpGroupPresets(disgrInput);
+            }
+        }
+
+        // FUNGSI UTAMA: HANYA MENGISI TEPAT 6 KOLOM TERIKAT MRP GROUP
+        function applyMrpGroupPresets(input) {
+            const tr = input.closest('tr');
+            if (!tr) return;
+
+            let grpKey = input.value.trim().toUpperCase();
+            const codeNum = tr.querySelector('.row-code-num') ? tr.querySelector('.row-code-num').value.trim().toUpperCase() : 'SF';
+
+            if (!grpKey) {
+                grpKey = (codeNum === 'PF') ? 'ZGW1' : 'ZPN1';
+                input.value = grpKey;
+            }
+
+            let preset = MRP_PRESETS[grpKey];
+
+            if (grpKey === 'ZPN1' && codeNum === 'CMB') {
+                preset = {
+                    dispo: "PN2",
+                    lgort1: "1D00",
+                    lgort2: "1306",
+                    werks: "1000",
+                    mtart: "HALB",
+                    matkl: "HSF011"
+                };
+            }
+
+            // ISI TEPAT 6 KOLOM ATRIBUT MASTER DATA / LOGISTIK SAP
+            if (preset) {
+                if (preset.dispo && tr.querySelector('.row-dispo')) tr.querySelector('.row-dispo').value = preset.dispo;
+                if (preset.lgort1 && tr.querySelector('.row-lgort1')) tr.querySelector('.row-lgort1').value = preset.lgort1;
+                if (tr.querySelector('.row-lgort2')) tr.querySelector('.row-lgort2').value = preset.lgort2;
+                if (preset.werks && tr.querySelector('.row-werks')) tr.querySelector('.row-werks').value = preset.werks;
+                if (preset.mtart && tr.querySelector('.row-mtart')) tr.querySelector('.row-mtart').value = preset.mtart;
+                if (preset.matkl && tr.querySelector('.row-matkl')) tr.querySelector('.row-matkl').value = preset.matkl;
+            }
         }
 
         function updateRowStyling(input) {
@@ -687,7 +933,12 @@ style="width:48px;">
                 tr.className = "bg-white hover:bg-slate-50 transition-colors";
                 input.className = "row-code-num w-full p-1 border border-slate-300 rounded text-xs text-center font-bold uppercase outline-none focus:border-brand-600 bg-slate-100 text-slate-700";
             }
+            
             reindexTableRows();
+
+            // Apply preset on code number change
+            const disgrInput = tr.querySelector('.row-disgr');
+            if (disgrInput) applyMrpGroupPresets(disgrInput);
         }
 
         function deleteRow(btn) {
@@ -702,9 +953,7 @@ style="width:48px;">
         }
 
         function reindexTableRows() {
-    const rows = document.querySelectorAll("#tableBody tr");
-    const baseCode = ""; // Ubah langsung menjadi string kosong
-
+            const rows = document.querySelectorAll("#tableBody tr");
             let currentGrpNo = 0;
 
             rows.forEach(function(row, idx) {
@@ -714,79 +963,63 @@ style="width:48px;">
                 if (codeVal === 'PF') {
                     currentGrpNo++;
                     row.querySelector(".row-group-no").innerText = currentGrpNo;
-                } else {
-                    row.querySelector(".row-group-no").innerText = "";
-                }
-
-                const inputMat = row.querySelector(".row-matnr");
-                if (inputMat) {
-                    inputMat.value = baseCode ? (baseCode + '-' + (idx + 1).toString().padStart(2, '0')) : "";
                 }
             });
         }
 
         function updateRowSummary() {
             const count = document.querySelectorAll("#tableBody tr").length;
-            document.getElementById("rowCounterChip").innerText = count + ' Line' + (count > 1 ? 's' : '');
-            document.getElementById("footerSummary").innerText = count + ' line' + (count > 1 ? 's' : '') + ' siap';
+            document.getElementById("rowCounterChip").innerText = count + " Line" + (count > 1 ? "s" : "");
+            document.getElementById("footerSummary").innerText = count + " line" + (count > 1 ? "s" : "") + " ready";
         }
 
-
-
-
-
-
-
         function validateRowField(input) {
-            const wrap = input.closest(".flex-col") || input.parentElement;
-            const errorEl = wrap ? wrap.querySelector(".mini-error") : null;
             if (!input.value.trim()) {
-                input.classList.add("!border-app-danger");
-                if (errorEl) errorEl.classList.remove("hidden");
-            } else {
-                input.classList.remove("!border-app-danger");
-                if (errorEl) errorEl.classList.add("hidden");
+                input.classList.add("border-red-500", "bg-red-50");
+                const err = input.parentElement.querySelector(".mini-error");
+                if (err) err.classList.remove("hidden");
             }
         }
 
         function clearRowFieldError(input) {
-            if (input.value.trim()) {
-                input.classList.remove("!border-app-danger");
-                const wrap = input.closest(".flex-col") || input.parentElement;
-                const errorEl = wrap ? wrap.querySelector(".mini-error") : null;
-                if (errorEl) errorEl.classList.add("hidden");
-            }
+            input.classList.remove("border-red-500", "bg-red-50");
+            const err = input.parentElement.querySelector(".mini-error");
+            if (err) err.classList.add("hidden");
         }
 
         function setBtnLoading(btn, isLoading) {
             if (!btn) return;
             const spinner = btn.querySelector('.spinner');
-            const label = btn.querySelector('.gen-label, .btn-label');
-            btn.disabled = isLoading;
+            const label = btn.querySelector('.btn-label');
+
             if (isLoading) {
+                btn.disabled = true;
+                btn.classList.add('opacity-75', 'cursor-not-allowed');
                 if (spinner) spinner.classList.remove('hidden');
-                if (label && btn.id === 'btnGenerate') label.classList.add('hidden');
-                if (label && btn.id !== 'btnGenerate') label.classList.add('opacity-70');
             } else {
+                btn.disabled = false;
+                btn.classList.remove('opacity-75', 'cursor-not-allowed');
                 if (spinner) spinner.classList.add('hidden');
-                if (label && btn.id === 'btnGenerate') label.classList.remove('hidden');
-                if (label && btn.id !== 'btnGenerate') label.classList.remove('opacity-70');
             }
         }
 
         function resetForm() {
-    const btn = document.getElementById("btnReset");
-    setBtnLoading(btn, true);
+            if (!confirm("Apakah Anda yakin ingin me-reset seluruh baris input? Data yang belum disimpan akan hilang.")) return;
 
-    setTimeout(function() {
-        document.getElementById("tableBody").innerHTML = "";
-        rowCounter = 0;
-        addNewRow();
+            const btn = document.getElementById("btnReset");
+            setBtnLoading(btn, true);
 
-        showToast("Form berhasil di-reset.", "info");
-        setBtnLoading(btn, false);
-    }, 300);
-}
+            setTimeout(function() {
+                document.getElementById("CURRENT_UPLOAD_ID").value = "";
+                document.getElementById("CURRENT_FILENAME").value = "";
+                document.getElementById("tableBody").innerHTML = "";
+                rowCounter = 0;
+                addNewRow();
+
+                showToast("Form berhasil di-reset.", "info");
+                setBtnLoading(btn, false);
+            }, 300);
+        }
 
         function saveStagingData(status) {
             const rows = document.querySelectorAll("#tableBody tr");
@@ -795,7 +1028,7 @@ style="width:48px;">
             let hasError = false;
             rows.forEach(function(row) {
                 const maktxInput = row.querySelector(".row-maktx");
-                if (!maktxInput.value.trim()) {
+                if (maktxInput && !maktxInput.value.trim()) {
                     validateRowField(maktxInput);
                     hasError = true;
                 }
@@ -811,8 +1044,19 @@ style="width:48px;">
             formData.append("STATUS", status);
             formData.append("ROW_COUNT", rows.length);
 
+            let lastParentPosnr = 0;
             rows.forEach(function(row, idx) {
                 const i = idx + 1;
+                const currentPosnr = i * 10;
+                const codeNum = row.querySelector(".row-code-num").value;
+
+                let parentPosnr = 0;
+                if (codeNum === 'PF') {
+                    lastParentPosnr = currentPosnr;
+                    parentPosnr = 0;
+                } else {
+                    parentPosnr = lastParentPosnr;
+                }
 
                 const rt1 = row.querySelector(".row-rt1").value.trim();
                 const rt2 = row.querySelector(".row-rt2").value.trim();
@@ -827,14 +1071,15 @@ style="width:48px;">
 
                 const roughSizeCombined = (roughThickStr || roughWidthStr || roughLengthStr)
                     ? (roughThickStr + 'X' + roughWidthStr + 'X' + roughLengthStr)
-                    : "";
+                    : (row.querySelector(".row-groes-str") ? row.querySelector(".row-groes-str").value.trim() : "");
 
                 const ft = row.querySelector(".row-ft").value.trim();
                 const fw = row.querySelector(".row-fw").value.trim();
                 const fl = row.querySelector(".row-fl").value.trim();
-                const finishSizeCombined = (ft || fw || fl) ? (ft + 'X' + fw + 'X' + fl) : "";
+                const finishSizeCombined = (ft || fw || fl) ? (ft + 'X' + fw + 'X' + fl) : (row.querySelector(".row-groes-fin-str") ? row.querySelector(".row-groes-fin-str").value.trim() : "");
 
-                formData.append('code_num_' + i, row.querySelector(".row-code-num").value);
+                formData.append('code_num_' + i, codeNum);
+                formData.append('parent_posnr_' + i, parentPosnr);
                 formData.append('matnr_' + i, row.querySelector(".row-matnr").value);
                 formData.append('maktx_' + i, row.querySelector(".row-maktx").value);
                 formData.append('groes_' + i, roughSizeCombined);
@@ -844,15 +1089,27 @@ style="width:48px;">
                 formData.append('vol_m3_' + i, row.querySelector(".row-vol-m3").value);
                 formData.append('wrkst_' + i, row.querySelector(".row-wrkst").value);
                 formData.append('note_' + i, row.querySelector(".row-note").value);
-                formData.append('finishing_' + i, row.querySelector(".row-finishing").value);
-                formData.append('meins_' + i, "PC");
+                formData.append('description_' + i, row.querySelector(".row-description") ? row.querySelector(".row-description").value : "");
+                formData.append('disgr_' + i, row.querySelector(".row-disgr") ? row.querySelector(".row-disgr").value : "");
+                formData.append('dispo_' + i, row.querySelector(".row-dispo") ? row.querySelector(".row-dispo").value : "");
+                formData.append('lgort1_' + i, row.querySelector(".row-lgort1") ? row.querySelector(".row-lgort1").value : "");
+                formData.append('lgort2_' + i, row.querySelector(".row-lgort2") ? row.querySelector(".row-lgort2").value : "");
+                formData.append('werks_' + i, row.querySelector(".row-werks") ? row.querySelector(".row-werks").value : "");
+                formData.append('area_m2_' + i, row.querySelector(".row-area-m2") ? row.querySelector(".row-area-m2").value : "");
+                formData.append('activity_' + i, row.querySelector(".row-activity") ? row.querySelector(".row-activity").value : "");
+                formData.append('meins_' + i, row.querySelector(".row-meins") ? row.querySelector(".row-meins").value : "PC");
+                formData.append('umrez_' + i, row.querySelector(".row-umrez") ? row.querySelector(".row-umrez").value : "");
+                formData.append('meinh_' + i, row.querySelector(".row-meinh") ? row.querySelector(".row-meinh").value : "");
+                formData.append('sloc_def_' + i, row.querySelector(".row-sloc-def") ? row.querySelector(".row-sloc-def").value : "");
+                formData.append('mtart_' + i, row.querySelector(".row-mtart") ? row.querySelector(".row-mtart").value : "");
+                formData.append('matkl_' + i, row.querySelector(".row-matkl") ? row.querySelector(".row-matkl").value : "");
             });
 
             const btnId = status === 'DRAFT' ? 'btnDraft' : 'btnSubmit';
             const btn = document.getElementById(btnId);
             setBtnLoading(btn, true);
 
-            fetch("?OnInputProcessing=SAVE_STAGE", {
+            fetch("index2.htm?OnInputProcessing=SAVE_STAGE", {
                 method: "POST",
                 body: formData
             })
