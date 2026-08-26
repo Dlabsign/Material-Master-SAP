@@ -767,5 +767,4 @@ CASE lv_action.
   WHEN 'LOGOUT'.
     navigation->exit( ).
     RETURN.
-
 ENDCASE.
