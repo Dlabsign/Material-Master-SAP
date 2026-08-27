@@ -6,6 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SAP Material Master - Part Staging</title>
 
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- SheetJS CDN (Client-side Excel Engine) -->
@@ -15,16 +20,17 @@
         tailwind.config = {
             theme: {
                 extend: {
+                    fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
                     colors: {
-                        brand: {
-                            50: '#f0fdf4', 100: '#dcfce7', 200: '#bbf7d0',
-                            500: '#10b981', 600: '#059669', 700: '#047857',
-                            800: '#065f46', 900: '#022c22',
-                        },
-                        app: {
-                            bg: '#f8fafc', card: '#ffffff', border: '#e2e8f0',
-                            'border-strong': '#cbd5e1', text: '#0f172a', muted: '#64748b',
-                            danger: '#dc2626', 'danger-bg': '#fef2f2'
+                        emerald: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            200: '#a7f3d0',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065f46',
+                            900: '#064e3b',
                         }
                     }
                 }
@@ -32,35 +38,110 @@
         }
     </script>
     <style>
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background-color: #eef2f6;
+            background-image:
+                radial-gradient(at 10% 10%, rgba(16, 185, 129, 0.08) 0px, transparent 40%),
+                radial-gradient(at 90% 15%, rgba(100, 116, 139, 0.08) 0px, transparent 45%),
+                radial-gradient(at 50% 85%, rgba(16, 185, 129, 0.05) 0px, transparent 50%);
+            background-attachment: fixed;
+            color: #0f172a;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(241, 245, 249, 0.6);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #10b981;
+        }
+
+        /* Glassmorphic Custom Inputs */
+        #partTable input[type=text],
+        #partTable input[type=number] {
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(4px);
+            color: #0f172a;
+            font-size: 11px;
+            padding: 4px 6px;
+            transition: all .15s ease;
+            width: 100%;
+        }
+
+        #partTable input[type=text]:focus,
+        #partTable input[type=number]:focus {
+            outline: none;
+            border-color: #059669;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
+            background: #ffffff;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.72);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.05);
+        }
+
+        .glass-subpanel {
+            background: rgba(248, 250, 252, 0.65);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(226, 232, 240, 0.7);
+        }
+
+        @keyframes progressGlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .animated-progress-bar {
+            background-size: 200% 200%;
+            animation: progressGlow 2s ease infinite;
+        }
     </style>
 </head>
-<body class="bg-app-bg text-app-text text-[13px] font-sans leading-relaxed m-0 p-0 antialiased selection:bg-brand-100 selection:text-brand-900">
-
-    <!-- DATA INJECTION SAFE FROM ABAP -->
+<body class="text-[13px] font-sans leading-relaxed m-0 p-0 antialiased min-h-screen selection:bg-emerald-100 selection:text-emerald-900">
 
     <!-- TOP NAVIGATION BAR -->
-    <header class="bg-white h-14 border-b border-app-border sticky top-0 z-50 shadow-sm px-4 lg:px-8 flex items-center justify-between">
+    <header class="bg-white/70 backdrop-blur-xl h-14 border-b border-white/60 sticky top-0 z-50 px-6 lg:px-10 flex items-center justify-between shadow-xs">
         <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-lg bg-brand-800 text-white flex items-center justify-center font-bold text-xs tracking-wider shadow-sm">
+            <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 text-white flex items-center justify-center font-bold text-xs shadow-xs">
                 MM
             </div>
-            <span class="font-semibold text-sm text-slate-800">Material Master System - Wood Part Staging</span>
-        </div>
-        <div class="flex items-center gap-4">
-            <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-full">
-                <div class="w-6 h-6 rounded-full bg-brand-100 text-brand-800 flex items-center justify-center font-bold text-[11px]" id="userAvatarInitial">•</div>
-                <span class="text-xs font-semibold text-slate-700" id="userNameLabel"><%= sy-uname %></span>
+            <div>
+                <span class="font-extrabold text-sm text-slate-900 block leading-none">Material Master Governance</span>
+                <span class="text-[10px] text-emerald-700 font-semibold tracking-wide">Wood Part Staging Platform (R&amp;D)</span>
             </div>
-            <a href="?OnInputProcessing=LOGOUT" class="text-xs font-medium text-slate-600 hover:text-brand-700 px-2.5 py-1 rounded-md transition hover:bg-slate-100">Sign Out</a>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2 bg-white/80 border border-slate-200/80 px-3 py-1 rounded-full shadow-2xs">
+                <div class="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-[10px]" id="userAvatarInitial">?</div>
+                <span class="text-xs font-bold text-slate-800" id="userNameLabel"><%= sy-uname %></span>
+            </div>
+            <a href="?OnInputProcessing=LOGOUT" class="text-xs font-semibold text-slate-600 hover:text-emerald-700 px-3 py-1 rounded-full border border-slate-200/80 bg-white/50 hover:bg-white transition">Sign Out</a>
         </div>
     </header>
 
     <!-- MAIN CONTAINER -->
-    <main class="max-w-[2600px] my-6 mx-auto px-4 sm:px-6">
+    <main class="max-w-[2600px] my-6 mx-auto px-4 sm:px-8">
         <input type="hidden" id="REQ_ID" value="<%= req_id %>">
         <input type="hidden" id="CURRENT_UPLOAD_ID" value="">
         <input type="hidden" id="CURRENT_FILENAME" value="">
@@ -72,87 +153,96 @@
             <option value="ZPN2">ZPN2 - Sub-Assembly Component</option>
         </datalist>
 
-        <!-- PAGE HEADER -->
-        <div class="mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-3">
-            <h1 class="text-lg font-bold text-slate-900 tracking-tight">Part Staging Setup (R&D)</h1>
-            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium bg-brand-50 text-brand-700 border border-brand-200">
-                <span class="w-1.5 h-1.5 rounded-full bg-brand-600 mr-1.5 animate-pulse"></span> Wood Furniture Staging
-            </span>
+        <!-- CENTERED PAGE HEADER -->
+        <div class="mb-8 text-center flex flex-col items-center justify-center">
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight text-center leading-tight">
+                Part Staging Setup <span class="bg-gradient-to-r from-emerald-600 to-emerald-800 bg-clip-text text-transparent">(R&amp;D Wood Furniture)</span>
+            </h1>
+            <p class="text-xs font-semibold text-slate-500 text-center mt-1">
+                Enterprise Material Master - Part Specification &amp; Dynamic Grouping Staging
+            </p>
         </div>
 
-        <!-- SECTION 2: DETAIL PART TABLE -->
-        <section class="bg-white rounded-lg border border-app-border shadow-sm mb-5 overflow-visible">
-            <div class="bg-slate-50/80 px-5 py-3 border-b border-app-border flex items-center justify-between rounded-t-lg flex-wrap gap-2">
-                <div class="flex items-center gap-2.5">
-                    <span class="w-5 h-5 rounded bg-brand-700 text-white text-[11px] font-bold flex items-center justify-center">2</span>
-                    <h2 class="text-xs font-bold uppercase tracking-wider text-slate-700">Part Specifications & Dynamic Grouping</h2>
+        <!-- SECTION 1: DETAIL PART TABLE -->
+        <section class="glass-panel rounded-3xl mb-8 overflow-hidden transition-all duration-300">
+            <!-- HEADER CONTAINER 1 -->
+            <div class="bg-white/40 px-6 py-4 border-b border-slate-200/60 flex items-center justify-between flex-wrap gap-3">
+                <div class="flex items-center gap-3">
+                    <span class="w-8 h-8 rounded-xl bg-emerald-600 text-white font-extrabold text-xs flex items-center justify-center shadow-xs">01</span>
+                    <h2 class="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                        PART SPECIFICATIONS &amp; DYNAMIC GROUPING
+                        <span class="text-xs font-extrabold text-emerald-700 bg-emerald-100/80 px-3 py-0.5 rounded-full border border-emerald-200" id="rowCounterChip">1 Line</span>
+                    </h2>
                 </div>
                 <div class="flex items-center gap-2.5 flex-wrap">
-                    <span class="text-xs font-semibold text-brand-800 bg-brand-50 px-2.5 py-1 rounded-full border border-brand-200" id="rowCounterChip">1 Line</span>
-
-                    <button type="button" class="bg-slate-700 hover:bg-slate-800 text-white px-3 py-1 rounded-md font-semibold text-xs cursor-pointer flex items-center gap-1.5 transition shadow-sm" onclick="downloadStandardExcelTemplate()">
-                        📥 Download Template Excel
+                    <button type="button" class="bg-white/80 hover:bg-white text-slate-700 border border-slate-200/80 px-4 py-2 rounded-full font-extrabold text-xs transition shadow-2xs cursor-pointer flex items-center gap-1.5" onclick="downloadStandardExcelTemplate()">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                        <span>Download Template</span>
                     </button>
 
                     <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" class="hidden" onchange="parseStandardExcelRD(this)">
-                    <button type="button" class="bg-emerald-700 hover:bg-emerald-800 text-white px-3 py-1 rounded-md font-semibold text-xs cursor-pointer flex items-center gap-1.5 transition shadow-sm" onclick="document.getElementById('excelFileInput').click()">
-                        📊 Upload Excel R&D
+                    <button type="button" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-full font-extrabold text-xs transition shadow-2xs cursor-pointer flex items-center gap-1.5" onclick="document.getElementById('excelFileInput').click()">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                        <span>Upload Excel R&amp;D</span>
                     </button>
 
-                    <button type="button" class="bg-brand-50 text-brand-700 border border-brand-200 px-3 py-1 rounded-md font-semibold text-xs cursor-pointer flex items-center gap-1 hover:bg-brand-100 transition" onclick="addNewRow()">+ Add Line</button>
+                    <button type="button" class="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-full font-extrabold text-xs transition shadow-xs cursor-pointer" onclick="addNewRow()">
+                        + Add Line
+                    </button>
                 </div>
             </div>
 
-            <div class="p-5">
-                <div class="overflow-x-auto border border-app-border rounded-lg max-h-[650px] overflow-y-auto">
+            <!-- TABLE PREVIEW -->
+            <div class="p-6">
+                <div class="overflow-x-auto border border-slate-200/80 rounded-2xl max-h-[650px] bg-white/40 backdrop-blur-xs">
                     <table class="w-full border-collapse text-xs whitespace-nowrap min-w-[2500px]" id="partTable">
-                        <thead class="sticky top-0 z-10 bg-slate-100 shadow-sm">
-                            <tr class="text-left text-slate-700 font-bold text-[11px] uppercase tracking-wider">
-                                <th rowspan="2" class="p-2 border-b border-r border-app-border text-center bg-slate-100">No.</th>
-                                <th rowspan="2" class="p-2 border-b border-r border-app-border text-center bg-slate-100">Code Number</th>
-                                <th rowspan="2" class="p-2 border-b border-r border-app-border bg-slate-100">CODE MATERIAL SAP</th>
-                                <th rowspan="2" class="p-2 border-b border-r border-app-border bg-slate-100">FINISH SIZE</th>
-                                <th rowspan="2" class="p-2 border-b border-r border-app-border bg-slate-100 min-w-[180px]">Part Name</th>
-                                <th colspan="6" class="p-1.5 border-b border-r border-amber-300 bg-amber-50/80 text-center text-[10.5px] text-amber-900 tracking-wider">ROUGH SIZE (MM)</th>
-                                <th colspan="3" class="p-1.5 border-b border-r border-brand-200 bg-brand-50/80 text-center text-[10.5px] text-brand-900 tracking-wider">FINISH SIZE (MM)</th>
-                                <th rowspan="2" class="p-2 border-b border-r border-app-border text-center bg-slate-100">QTY ITEM</th>
-                                <th rowspan="2" class="p-2 border-b border-r border-app-border text-center bg-slate-100">QTY ORDER</th>
-                                <th rowspan="2" class="p-2 border-b border-r border-app-border text-center bg-slate-100">M2/M3</th>
-                                <th rowspan="2" class="p-2 border-b border-r border-app-border bg-slate-100 min-w-[140px]">Material</th>
-                                <th rowspan="2" class="p-2 border-b border-r border-app-border bg-slate-100 min-w-[160px]">Note</th>
-                                <th rowspan="2" class="p-2 border-b border-r border-app-border bg-slate-100 min-w-[200px]">DESCRIPTION</th>
-                                <th rowspan="2" class="p-2 border-b border-r border-amber-300 bg-amber-100/90 text-center text-amber-950 min-w-[90px]">MRP GROUP ⚡</th>
-                                <th rowspan="2" class="p-2 border-b border-r border-amber-300 bg-amber-50/70 text-center text-amber-900">MRP CTRL ⚡</th>
-                                <th rowspan="2" class="p-2 border-b border-r border-amber-300 bg-amber-50/70 text-center text-amber-900">SLOC 1 ⚡</th>
-                                <th rowspan="2" class="p-2 border-b border-r border-amber-300 bg-amber-50/70 text-center text-amber-900">SLOC 2 ⚡</th>
-                                <th rowspan="2" class="p-2 border-b border-r border-amber-300 bg-amber-50/70 text-center text-amber-900">PLANT ⚡</th>
-                                <th rowspan="2" class="p-2 border-b border-r border-app-border text-center bg-slate-100">M3</th>
-                                <th rowspan="2" class="p-2 border-b border-r border-app-border text-center bg-slate-100">M2</th>
-                                <th rowspan="2" class="p-2 border-b border-r border-app-border text-center bg-slate-100">ACTIVITY</th>
-                                <th rowspan="2" class="p-2 border-b border-r border-app-border text-center bg-slate-100">SATUAN</th>
-                                <th colspan="3" class="p-1.5 border-b border-r border-blue-200 bg-blue-50/80 text-center text-[10.5px] text-blue-900 tracking-wider">UOM KONVERSI</th>
-                                <th rowspan="2" class="p-2 border-b border-r border-app-border text-center bg-slate-100 min-w-[110px]">rough size</th>
-                                <th rowspan="2" class="p-2 border-b border-r border-app-border text-center bg-slate-100">SLOC DEF</th>
-                                <th rowspan="2" class="p-2 border-b border-r border-amber-300 bg-amber-50/70 text-center text-amber-900">MATERIAL TYPE ⚡</th>
-                                <th rowspan="2" class="p-2 border-b border-r border-amber-300 bg-amber-50/70 text-center text-amber-900">MATERIAL GROUP ⚡</th>
-                                <th rowspan="2" class="p-2 border-b border-app-border text-center bg-slate-100">Action</th>
+                        <thead class="sticky top-0 z-10 bg-slate-100/90 backdrop-blur-xs shadow-2xs">
+                            <tr class="text-left text-slate-700 font-extrabold text-[11px] uppercase tracking-wider">
+                                <th rowspan="2" class="p-2.5 border-b border-r border-slate-200 text-center bg-slate-100/95 sticky top-0 z-10">No.</th>
+                                <th rowspan="2" class="p-2.5 border-b border-r border-slate-200 text-center bg-slate-100/95 sticky top-0 z-10">Code Number</th>
+                                <th rowspan="2" class="p-2.5 border-b border-r border-slate-200 bg-slate-100/95 sticky top-0 z-10">CODE MATERIAL SAP</th>
+                                <th rowspan="2" class="p-2.5 border-b border-r border-slate-200 bg-slate-100/95 sticky top-0 z-10">FINISH SIZE</th>
+                                <th rowspan="2" class="p-2.5 border-b border-r border-slate-200 bg-slate-100/95 sticky top-0 z-10 min-w-[180px]">Part Name *</th>
+                                <th colspan="6" class="p-1.5 border-b border-r border-amber-300 bg-amber-100/80 text-center text-[10.5px] text-amber-900 tracking-wider">ROUGH SIZE (MM)</th>
+                                <th colspan="3" class="p-1.5 border-b border-r border-emerald-300 bg-emerald-100/80 text-center text-[10.5px] text-emerald-900 tracking-wider">FINISH SIZE (MM)</th>
+                                <th rowspan="2" class="p-2.5 border-b border-r border-slate-200 text-center bg-slate-100/95 sticky top-0 z-10">QTY ITEM</th>
+                                <th rowspan="2" class="p-2.5 border-b border-r border-slate-200 text-center bg-slate-100/95 sticky top-0 z-10">QTY ORDER</th>
+                                <th rowspan="2" class="p-2.5 border-b border-r border-slate-200 text-center bg-slate-100/95 sticky top-0 z-10">M2/M3</th>
+                                <th rowspan="2" class="p-2.5 border-b border-r border-slate-200 bg-slate-100/95 sticky top-0 z-10 min-w-[140px]">Material</th>
+                                <th rowspan="2" class="p-2.5 border-b border-r border-slate-200 bg-slate-100/95 sticky top-0 z-10 min-w-[160px]">Note</th>
+                                <th rowspan="2" class="p-2.5 border-b border-r border-slate-200 bg-slate-100/95 sticky top-0 z-10 min-w-[200px]">DESCRIPTION</th>
+                                <th rowspan="2" class="p-2.5 border-b border-r border-amber-300 bg-amber-100/90 text-center text-amber-950 min-w-[90px]">MRP GROUP ⚡</th>
+                                <th rowspan="2" class="p-2.5 border-b border-r border-amber-300 bg-amber-100/70 text-center text-amber-950">MRP CTRL ⚡</th>
+                                <th rowspan="2" class="p-2.5 border-b border-r border-amber-300 bg-amber-100/70 text-center text-amber-950">SLOC 1 ⚡</th>
+                                <th rowspan="2" class="p-2.5 border-b border-r border-amber-300 bg-amber-100/70 text-center text-amber-950">SLOC 2 ⚡</th>
+                                <th rowspan="2" class="p-2.5 border-b border-r border-amber-300 bg-amber-100/70 text-center text-amber-950">PLANT ⚡</th>
+                                <th rowspan="2" class="p-2.5 border-b border-r border-slate-200 text-center bg-slate-100/95 sticky top-0 z-10">M3</th>
+                                <th rowspan="2" class="p-2.5 border-b border-r border-slate-200 text-center bg-slate-100/95 sticky top-0 z-10">M2</th>
+                                <th rowspan="2" class="p-2.5 border-b border-r border-slate-200 text-center bg-slate-100/95 sticky top-0 z-10">ACTIVITY</th>
+                                <th rowspan="2" class="p-2.5 border-b border-r border-slate-200 text-center bg-slate-100/95 sticky top-0 z-10">SATUAN</th>
+                                <th colspan="3" class="p-1.5 border-b border-r border-blue-300 bg-blue-100/80 text-center text-[10.5px] text-blue-900 tracking-wider">UOM KONVERSI</th>
+                                <th rowspan="2" class="p-2.5 border-b border-r border-slate-200 text-center bg-slate-100/95 sticky top-0 z-10 min-w-[110px]">rough size</th>
+                                <th rowspan="2" class="p-2.5 border-b border-r border-slate-200 text-center bg-slate-100/95 sticky top-0 z-10">SLOC DEF</th>
+                                <th rowspan="2" class="p-2.5 border-b border-r border-amber-300 bg-amber-100/70 text-center text-amber-950">MATERIAL TYPE ⚡</th>
+                                <th rowspan="2" class="p-2.5 border-b border-r border-amber-300 bg-amber-100/70 text-center text-amber-950">MATERIAL GROUP ⚡</th>
+                                <th rowspan="2" class="p-2.5 border-b border-slate-200 text-center bg-slate-100/95 sticky top-0 z-10">Action</th>
                             </tr>
                             <tr class="text-center text-[10px] uppercase font-bold tracking-wider">
-                                <th class="p-1 border-b border-r border-amber-200 bg-amber-50/50 text-amber-800">T1</th>
-                                <th class="p-1 border-b border-r border-amber-200 bg-amber-50/50 text-amber-800">T2</th>
-                                <th class="p-1 border-b border-r border-amber-200 bg-amber-50/50 text-amber-800">W1</th>
-                                <th class="p-1 border-b border-r border-amber-200 bg-amber-50/50 text-amber-800">W2</th>
-                                <th class="p-1 border-b border-r border-amber-200 bg-amber-50/50 text-amber-800">L1</th>
-                                <th class="p-1 border-b border-r border-amber-300 bg-amber-50/50 text-amber-800">L2</th>
-                                <th class="p-1 border-b border-r border-brand-200 bg-brand-50/50 text-brand-800">T</th>
-                                <th class="p-1 border-b border-r border-brand-200 bg-brand-50/50 text-brand-800">W</th>
-                                <th class="p-1 border-b border-r border-brand-300 bg-brand-50/50 text-brand-800">L</th>
-                                <th class="p-1 border-b border-r border-blue-200 bg-blue-50/50 text-blue-800">KONVERSI</th>
-                                <th class="p-1 border-b border-r border-blue-200 bg-blue-50/50 text-blue-800">UNIT</th>
-                                <th class="p-1 border-b border-r border-blue-300 bg-blue-50/50 text-blue-800">ACT CODE</th>
+                                <th class="p-1 border-b border-r border-amber-200 bg-amber-50/70 text-amber-900">T1</th>
+                                <th class="p-1 border-b border-r border-amber-200 bg-amber-50/70 text-amber-900">T2</th>
+                                <th class="p-1 border-b border-r border-amber-200 bg-amber-50/70 text-amber-900">W1</th>
+                                <th class="p-1 border-b border-r border-amber-200 bg-amber-50/70 text-amber-900">W2</th>
+                                <th class="p-1 border-b border-r border-amber-200 bg-amber-50/70 text-amber-900">L1</th>
+                                <th class="p-1 border-b border-r border-amber-300 bg-amber-50/70 text-amber-900">L2</th>
+                                <th class="p-1 border-b border-r border-emerald-200 bg-emerald-50/70 text-emerald-900">T</th>
+                                <th class="p-1 border-b border-r border-emerald-200 bg-emerald-50/70 text-emerald-900">W</th>
+                                <th class="p-1 border-b border-r border-emerald-300 bg-emerald-50/70 text-emerald-900">L</th>
+                                <th class="p-1 border-b border-r border-blue-200 bg-blue-50/70 text-blue-900">KONVERSI</th>
+                                <th class="p-1 border-b border-r border-blue-200 bg-blue-50/70 text-blue-900">UNIT</th>
+                                <th class="p-1 border-b border-r border-blue-300 bg-blue-50/70 text-blue-900">ACT CODE</th>
                             </tr>
                         </thead>
-                        <tbody id="tableBody" class="divide-y divide-app-border">
+                        <tbody id="tableBody" class="divide-y divide-slate-200/60">
                             <!-- Dynamic Rows via JavaScript -->
                         </tbody>
                     </table>
@@ -160,55 +250,117 @@
             </div>
 
             <!-- FOOTER BAR -->
-            <div class="bg-slate-50/80 px-5 py-3.5 border-t border-app-border flex justify-between items-center flex-wrap gap-3 rounded-b-lg">
-                <div class="text-xs text-app-muted font-medium" id="footerSummary">1 line ready</div>
-                <div class="flex gap-2.5 flex-wrap w-full sm:w-auto">
-                    <button type="button" class="flex-1 sm:flex-none justify-center px-4 py-2 rounded-md text-xs font-semibold cursor-pointer border border-slate-300 bg-white text-app-danger hover:bg-app-danger-bg hover:border-red-300 inline-flex items-center gap-1.5 transition" id="btnReset" onclick="resetForm()">
-                        <span class="spinner hidden w-3 h-3 border-2 border-red-600/30 border-t-red-600 rounded-full animate-spin"></span>
-                        <span class="btn-label">↺ Reset</span>
+            <div class="glass-subpanel px-6 py-4 border-t border-slate-200/60 flex justify-between items-center flex-wrap gap-3 rounded-b-3xl">
+                <div class="text-xs text-slate-500 font-extrabold" id="footerSummary">1 line ready</div>
+                <div class="flex items-center gap-3 flex-wrap">
+                    <button type="button" class="bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white border border-rose-200/80 px-5 py-2.5 rounded-full font-bold text-xs transition shadow-2xs cursor-pointer inline-flex items-center gap-1.5" id="btnReset" onclick="resetForm()">
+                        <span class="spinner hidden w-3.5 h-3.5 border-2 border-red-600/30 border-t-red-600 rounded-full animate-spin"></span>
+                        <span class="btn-label">↺ Reset Form</span>
                     </button>
-                    <button type="button" class="flex-1 sm:flex-none justify-center px-4 py-2 rounded-md text-xs font-semibold cursor-pointer border border-slate-300 bg-white text-slate-700 hover:border-brand-600 hover:text-brand-700 inline-flex items-center gap-1.5 transition" id="btnDraft" onclick="saveStagingData('DRAFT')">
-                        <span class="spinner hidden w-3 h-3 border-2 border-brand-600/30 border-t-brand-600 rounded-full animate-spin"></span>
+                    <button type="button" class="bg-white/80 hover:bg-white text-slate-700 border border-slate-200/80 px-5 py-2.5 rounded-full font-bold text-xs transition shadow-2xs cursor-pointer inline-flex items-center gap-1.5" id="btnDraft" onclick="saveStagingData('DRAFT')">
+                        <span class="spinner hidden w-3.5 h-3.5 border-2 border-emerald-600/30 border-t-emerald-600 rounded-full animate-spin"></span>
                         <span class="btn-label">💾 Save Draft</span>
                     </button>
-                    <button type="button" class="flex-1 sm:flex-none justify-center px-5 py-2 rounded-md text-xs font-semibold cursor-pointer border border-transparent bg-brand-700 hover:bg-brand-800 text-white shadow-sm inline-flex items-center gap-1.5 transition" id="btnSubmit" onclick="saveStagingData('SUBMITTED')">
-                        <span class="spinner hidden w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
-                        <span class="btn-label">✔ Submit</span>
+                    <button type="button" class="rounded-full bg-gradient-to-r from-emerald-600 via-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-extrabold text-xs px-7 py-2.5 shadow-xs hover:shadow transition-all inline-flex items-center gap-2 cursor-pointer" id="btnSubmit" onclick="openSubmitReasonModal()">
+                        <span class="spinner hidden w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
+                        <span class="btn-label">✔ Submit Request</span>
                     </button>
                 </div>
             </div>
         </section>
 
-        <!-- SECTION 3: RIWAYAT UPLOAD BATCH EXCEL -->
-        <section class="bg-white rounded-lg border border-app-border shadow-sm mb-8 overflow-hidden">
-            <div class="bg-slate-50/80 px-5 py-3 border-b border-app-border flex items-center justify-between flex-wrap gap-2">
-                <div class="flex items-center gap-2.5">
-                    <span class="w-5 h-5 rounded bg-slate-800 text-white text-[11px] font-bold flex items-center justify-center">3</span>
-                    <h2 class="text-xs font-bold uppercase tracking-wider text-slate-800">Riwayat Process Upload Excel (Batch History)</h2>
+        <!-- SECTION 2: RIWAYAT UPLOAD BATCH EXCEL & STATUS TRACKER -->
+        <section class="glass-panel rounded-3xl mb-8 overflow-hidden transition-all duration-300">
+            <!-- HEADER SECTION 2 -->
+            <div class="p-6 border-b border-slate-200/60 bg-white/40">
+                <div class="flex items-center justify-between gap-3 mb-5 flex-wrap">
+                    <div class="flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-xl bg-emerald-600 text-white font-extrabold text-xs flex items-center justify-center shadow-xs">02</span>
+                        <div>
+                            <h2 class="text-xs font-black text-slate-900 uppercase tracking-wider">Riwayat Process Upload &amp; Status Tracker</h2>
+                            <p class="text-[11px] text-slate-500 font-medium">Tracking history for uploaded BOM staging requests.</p>
+                        </div>
+                    </div>
+                    <button type="button" onclick="loadUploadHistory()" class="text-xs text-emerald-700 font-extrabold bg-emerald-50/80 hover:bg-emerald-100 border border-emerald-200 px-4 py-2 rounded-full transition flex items-center gap-1.5 cursor-pointer shadow-2xs">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        <span>Refresh Log</span>
+                    </button>
                 </div>
-                <button type="button" onclick="loadUploadHistory()" class="text-xs text-brand-700 font-semibold hover:underline flex items-center gap-1">
-                    🔄 Refresh Riwayat
-                </button>
+
+                <!-- STAT MINI CARDS SUMMARY -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="glass-subpanel p-4 rounded-2xl border border-amber-500/20 flex items-center justify-between hover:border-amber-500/40 transition">
+                        <div>
+                            <p class="text-[10px] font-black text-slate-500 uppercase tracking-wider">Pending Requests</p>
+                            <h3 class="text-xl font-black text-slate-900 mt-0.5" id="pendingCountCard">0 Request</h3>
+                        </div>
+                        <span class="text-xs font-black text-amber-800 bg-amber-100/80 px-3 py-1 rounded-full border border-amber-200 shadow-2xs">PENDING</span>
+                    </div>
+
+                    <div class="glass-subpanel p-4 rounded-2xl border border-blue-500/20 flex items-center justify-between hover:border-blue-500/40 transition">
+                        <div>
+                            <p class="text-[10px] font-black text-slate-500 uppercase tracking-wider">Hold Requests</p>
+                            <h3 class="text-xl font-black text-slate-900 mt-0.5" id="holdCountCard">0 Request</h3>
+                        </div>
+                        <span class="text-xs font-black text-blue-800 bg-blue-100/80 px-3 py-1 rounded-full border border-blue-200 shadow-2xs">HOLD</span>
+                    </div>
+
+                    <div class="glass-subpanel p-4 rounded-2xl border border-emerald-500/20 flex items-center justify-between hover:border-emerald-500/40 transition">
+                        <div>
+                            <p class="text-[10px] font-black text-slate-500 uppercase tracking-wider">Approved Requests</p>
+                            <h3 class="text-xl font-black text-slate-900 mt-0.5" id="approvedCountCard">0 Request</h3>
+                        </div>
+                        <span class="text-xs font-black text-emerald-800 bg-emerald-100/80 px-3 py-1 rounded-full border border-emerald-200 shadow-2xs">APPROVED</span>
+                    </div>
+
+                    <div class="glass-subpanel p-4 rounded-2xl border border-rose-500/20 flex items-center justify-between hover:border-rose-500/40 transition">
+                        <div>
+                            <p class="text-[10px] font-black text-slate-500 uppercase tracking-wider">Rejected Requests</p>
+                            <h3 class="text-xl font-black text-slate-900 mt-0.5" id="rejectedCountCard">0 Request</h3>
+                        </div>
+                        <span class="text-xs font-black text-rose-800 bg-rose-100/80 px-3 py-1 rounded-full border border-rose-200 shadow-2xs">REJECTED</span>
+                    </div>
+                </div>
             </div>
 
-            <div class="p-5">
-                <div class="overflow-x-auto border border-app-border rounded-lg">
-                    <table class="w-full border-collapse text-xs">
+            <!-- TAB PILL SWITCHER BAR (4 STATUS TABS: HOLD, PENDING, APPROVE, REJECT) -->
+            <div class="bg-white/50 px-6 py-4 border-b border-slate-200/60 flex items-center justify-between flex-wrap gap-3">
+                <div class="flex items-center gap-2.5 flex-wrap">
+                    <button type="button" id="tabPendingBtn" onclick="switchHistoryTab('PENDING')" class="h-9 px-5 rounded-full font-extrabold text-xs inline-flex items-center justify-center whitespace-nowrap bg-amber-500 text-white shadow-xs transition-all cursor-pointer">
+                        Pending
+                    </button>
+                    <button type="button" id="tabHoldBtn" onclick="switchHistoryTab('HOLD')" class="h-9 px-5 rounded-full font-extrabold text-xs inline-flex items-center justify-center whitespace-nowrap text-slate-600 hover:text-slate-900 bg-white/80 hover:bg-white border border-slate-200/80 transition-all cursor-pointer shadow-2xs">
+                        Hold
+                    </button>
+                    <button type="button" id="tabApprovedBtn" onclick="switchHistoryTab('APPROVED')" class="h-9 px-5 rounded-full font-extrabold text-xs inline-flex items-center justify-center whitespace-nowrap text-slate-600 hover:text-slate-900 bg-white/80 hover:bg-white border border-slate-200/80 transition-all cursor-pointer shadow-2xs">
+                        Approve List
+                    </button>
+                    <button type="button" id="tabRejectedBtn" onclick="switchHistoryTab('REJECTED')" class="h-9 px-5 rounded-full font-extrabold text-xs inline-flex items-center justify-center whitespace-nowrap text-slate-600 hover:text-slate-900 bg-white/80 hover:bg-white border border-slate-200/80 transition-all cursor-pointer shadow-2xs">
+                        Reject List
+                    </button>
+                </div>
+            </div>
+
+            <!-- TABLE HISTORY -->
+            <div class="p-6">
+                <div class="overflow-x-auto rounded-2xl border border-slate-200/80 bg-white/60">
+                    <table class="w-full border-collapse text-xs text-left">
                         <thead>
-                            <tr class="text-left text-slate-700 font-bold text-[11px] uppercase tracking-wider bg-slate-100 border-b border-app-border">
-                                <th class="p-2.5 text-center" style="width: 5%;">No.</th>
-                                <th class="p-2.5" style="width: 15%;">Batch / Upload ID</th>
-                                <th class="p-2.5" style="width: 25%;">Nama File Excel</th>
-                                <th class="p-2.5 text-center" style="width: 15%;">Tanggal & Waktu Upload</th>
-                                <th class="p-2.5 text-center" style="width: 10%;">Total Baris</th>
-                                <th class="p-2.5 text-center" style="width: 10%;">Diunggah Oleh</th>
-                                <th class="p-2.5 text-center" style="width: 10%;">Status</th>
-                                <th class="p-2.5 text-center" style="width: 10%;">Aksi</th>
+                            <tr class="bg-slate-100/80 border-b border-slate-200 text-[10px] uppercase tracking-wider font-extrabold text-slate-600 sticky top-0 z-10 backdrop-blur-xs">
+                                <th class="p-3 text-center" style="width: 4%;">#</th>
+                                <th class="p-3" style="width: 16%;">Batch / Upload ID</th>
+                                <th class="p-3" style="width: 20%;">Nama File Excel</th>
+                                <th class="p-3 text-center" style="width: 15%;">Tanggal &amp; Waktu</th>
+                                <th class="p-3 text-center" style="width: 8%;">Total Baris</th>
+                                <th class="p-3" style="width: 17%;">Alasan Upload / Purpose</th>
+                                <th class="p-3 text-center" style="width: 10%;">Status</th>
+                                <th class="p-3 text-center" style="width: 10%;">User / Approver</th>
+                                <th class="p-3 text-center" style="width: 10%;">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody id="historyTableBody" class="divide-y divide-app-border">
+                        <tbody id="historyTableBody" class="divide-y divide-slate-100/80">
                             <tr>
-                                <td colspan="8" class="p-4 text-center text-slate-400 italic">Memuat riwayat upload...</td>
+                                <td colspan="9" class="p-6 text-center text-slate-400 font-medium italic">Memuat riwayat upload...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -217,11 +369,86 @@
         </section>
     </main>
 
+    <!-- LOADING OVERLAY -->
+    <div id="loadingOverlay" class="hidden fixed inset-0 z-[20000] flex flex-col items-center justify-center bg-slate-900/40 backdrop-blur-md transition-all">
+        <div class="glass-panel p-7 rounded-3xl shadow-2xl flex flex-col items-center max-w-sm w-full mx-4 border border-white/80 text-center">
+            <div class="w-14 h-14 rounded-2xl bg-emerald-50/80 border border-emerald-200 flex items-center justify-center mb-4 shadow-2xs">
+                <div class="w-7 h-7 border-3 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+            <h4 class="text-sm font-black text-slate-900 uppercase tracking-wide">Memproses Request</h4>
+            <p id="loadingText" class="text-xs text-slate-600 mt-1.5 font-medium leading-relaxed">Mohon tunggu sebentar, sistem sedang memproses data ke SAP Staging...</p>
+        </div>
+    </div>
+
+    <!-- SUBMISSION REASON MODAL POPUP -->
+    <div id="submitReasonModal" class="hidden fixed inset-0 z-[15000] flex items-center justify-center bg-slate-900/50 backdrop-blur-md p-4 transition-all">
+        <div class="glass-panel border border-white/80 rounded-3xl shadow-2xl max-w-md w-full overflow-hidden">
+            <div class="bg-white/40 px-6 py-4 border-b border-slate-200/60 flex items-center justify-between">
+                <h3 class="text-xs font-black text-slate-900 uppercase tracking-wider">Form Pengajuan Request Upload BOM</h3>
+                <button type="button" onclick="closeSubmitReasonModal()" class="text-slate-400 hover:text-slate-700 font-bold p-1 text-base">&times;</button>
+            </div>
+            <div class="p-6">
+                <label for="submitReasonInput" class="block text-xs font-bold text-slate-800 mb-1.5">
+                    Alasan / Tujuan Upload BOM <span class="text-rose-500">*</span>
+                </label>
+                <textarea id="submitReasonInput" rows="3" placeholder="Contoh: Pengajuan komponen baru produk meja lipat seri M-2026..." class="w-full p-3 text-xs border border-slate-200/80 rounded-2xl focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 bg-white/80 text-slate-800 resize-none font-sans shadow-2xs transition"></textarea>
+                <p id="submitReasonError" class="hidden mt-2 text-[11px] font-bold text-rose-600">
+                    ⚠️ Alasan upload wajib diisi sebelum melakukan Submit Request.
+                </p>
+            </div>
+            <div class="glass-subpanel px-6 py-3.5 border-t border-slate-200/60 flex justify-end gap-2.5">
+                <button type="button" onclick="closeSubmitReasonModal()" class="px-5 py-2 rounded-full text-xs font-bold text-slate-600 hover:text-slate-900 bg-white border border-slate-200/80 transition shadow-2xs">
+                    Batal
+                </button>
+                <button type="button" onclick="confirmSubmitWithReason()" class="rounded-full bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-extrabold text-xs px-6 py-2 shadow-xs transition">
+                    Submit Request
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SUBMISSION SUCCESS MODAL POPUP -->
+    <div id="submitSuccessModal" class="hidden fixed inset-0 z-[15000] flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-4 transition-all">
+        <div class="glass-panel border border-white/80 rounded-3xl shadow-2xl max-w-md w-full overflow-hidden text-center">
+            <div class="bg-gradient-to-br from-emerald-600 to-emerald-800 p-7 text-white flex flex-col items-center">
+                <div class="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center mb-3 backdrop-blur-xs">
+                    <div class="w-11 h-11 rounded-full bg-white flex items-center justify-center text-emerald-600 text-2xl font-bold shadow-xs">✓</div>
+                </div>
+                <h3 class="text-base font-black text-white">Data Berhasil Di-upload!</h3>
+                <p class="text-xs text-emerald-100 mt-1 font-medium">Permintaan BOM R&amp;D Anda telah tersimpan di staging SAP.</p>
+            </div>
+            <div class="p-6 space-y-4 bg-white/40">
+                <div class="glass-subpanel p-4 rounded-2xl border border-slate-200/80 text-left space-y-2 text-xs">
+                    <div class="flex items-center justify-between border-b border-slate-200/60 pb-2">
+                        <span class="text-slate-500 font-semibold">No. Request:</span>
+                        <span id="successModalReqId" class="font-mono font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">UPL-0000</span>
+                    </div>
+                    <p class="text-[11px] text-slate-600 leading-relaxed">
+                        Data kini berada dalam status <strong class="text-amber-700">SUBMITTED (Pending)</strong> dan akan diproses untuk verifikasi approval.
+                    </p>
+                </div>
+                <button type="button" onclick="closeSubmitSuccessModal()" class="w-full py-2.5 rounded-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition shadow-xs">
+                    Tutup Modal
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- TOAST STACK NOTIFICATION -->
     <div class="fixed bottom-5 right-5 flex flex-col gap-2 z-[10000]" id="toastStack"></div>
 
     <script>
         let rowCounter = 0;
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
 
         // PRESET TEPAT 6 KOLOM TERIKAT MRP GROUP
         const MRP_PRESETS = {
@@ -328,8 +555,8 @@
             ];
 
             XLSX.utils.book_append_sheet(wb, ws, "Standard_BOM_Wood");
-            XLSX.writeFile(wb, "Template_BOM_Furniture_RND.xlsx");
-            showToast("Template Excel R&D berhasil didownload!", "success");
+            XLSX.writeFile(wb, "Use.xlsx");
+            showToast("Template Excel (Use.xlsx) berhasil didownload!", "success");
         }
 
         function parseStandardExcelRD(input) {
@@ -493,56 +720,177 @@
             reader.readAsArrayBuffer(file);
         }
 
+        let globalHistoryData = [];
+        let currentHistoryTab = 'PENDING';
+
+        function showLoading(msg) {
+            const overlay = document.getElementById("loadingOverlay");
+            const textEl = document.getElementById("loadingText");
+            if (textEl) textEl.innerText = msg || "Mohon tunggu sebentar, sistem sedang memproses data...";
+            if (overlay) overlay.classList.remove("hidden");
+        }
+
+        function hideLoading() {
+            const overlay = document.getElementById("loadingOverlay");
+            if (overlay) overlay.classList.add("hidden");
+        }
+
+        function openSubmitReasonModal() {
+            const rows = document.querySelectorAll("#tableBody tr");
+            if (rows.length === 0) {
+                showToast("Tabel staging kosong! Harap tambahkan baris data terlebih dahulu.", "error");
+                return;
+            }
+            document.getElementById("submitReasonInput").value = "";
+            document.getElementById("submitReasonError").classList.add("hidden");
+            document.getElementById("submitReasonModal").classList.remove("hidden");
+        }
+
+        function closeSubmitReasonModal() {
+            document.getElementById("submitReasonModal").classList.add("hidden");
+        }
+
+        function confirmSubmitWithReason() {
+            const reasonInput = document.getElementById("submitReasonInput");
+            const reasonVal = reasonInput.value.trim();
+            if (!reasonVal) {
+                document.getElementById("submitReasonError").classList.remove("hidden");
+                return;
+            }
+            closeSubmitReasonModal();
+            saveStagingData('SUBMITTED', reasonVal);
+        }
+
+        function openSubmitSuccessModal(reqId) {
+            const reqEl = document.getElementById("successModalReqId");
+            if (reqEl) reqEl.innerText = reqId || "REQ-SUBMITTED";
+            const modal = document.getElementById("submitSuccessModal");
+            if (modal) modal.classList.remove("hidden");
+        }
+
+        function closeSubmitSuccessModal() {
+            const modal = document.getElementById("submitSuccessModal");
+            if (modal) modal.classList.add("hidden");
+        }
+
+        function switchHistoryTab(tabName) {
+            currentHistoryTab = tabName;
+
+            const tabs = [
+                { id: 'tabPendingBtn', name: 'PENDING', bgClass: 'bg-amber-500 text-white' },
+                { id: 'tabHoldBtn', name: 'HOLD', bgClass: 'bg-blue-600 text-white' },
+                { id: 'tabApprovedBtn', name: 'APPROVED', bgClass: 'bg-emerald-600 text-white' },
+                { id: 'tabRejectedBtn', name: 'REJECTED', bgClass: 'bg-rose-600 text-white' }
+            ];
+
+            tabs.forEach(function(t) {
+                const btn = document.getElementById(t.id);
+                if (!btn) return;
+                if (t.name === tabName) {
+                    btn.className = "h-9 px-5 rounded-full font-extrabold text-xs inline-flex items-center justify-center whitespace-nowrap shadow-xs transition-all cursor-pointer " + t.bgClass;
+                } else {
+                    btn.className = "h-9 px-5 rounded-full font-extrabold text-xs inline-flex items-center justify-center whitespace-nowrap text-slate-600 hover:text-slate-900 bg-white/80 hover:bg-white border border-slate-200/80 transition-all cursor-pointer shadow-2xs";
+                }
+            });
+
+            renderHistoryTable();
+        }
+
+        function renderHistoryTable() {
+            const tbody = document.getElementById("historyTableBody");
+            if (!tbody) return;
+
+            let pendingCount = 0, holdCount = 0, approvedCount = 0, rejectedCount = 0;
+
+            globalHistoryData.forEach(function(item) {
+                const st = (item.status || 'DRAFT').toUpperCase();
+                if (st === 'HOLD') holdCount++;
+                else if (st === 'APPROVED') approvedCount++;
+                else if (st === 'REJECTED' || st === 'FAILED') rejectedCount++;
+                else pendingCount++; 
+            });
+
+            if (document.getElementById("pendingCountCard")) document.getElementById("pendingCountCard").innerText = pendingCount + " Request";
+            if (document.getElementById("holdCountCard")) document.getElementById("holdCountCard").innerText = holdCount + " Request";
+            if (document.getElementById("approvedCountCard")) document.getElementById("approvedCountCard").innerText = approvedCount + " Request";
+            if (document.getElementById("rejectedCountCard")) document.getElementById("rejectedCountCard").innerText = rejectedCount + " Request";
+
+            const filtered = globalHistoryData.filter(function(item) {
+                const st = (item.status || 'DRAFT').toUpperCase();
+                if (currentHistoryTab === 'HOLD') return st === 'HOLD';
+                if (currentHistoryTab === 'APPROVED') return st === 'APPROVED';
+                if (currentHistoryTab === 'REJECTED') return st === 'REJECTED' || st === 'FAILED';
+                return st === 'SUBMITTED' || st === 'DRAFT' || st === 'PENDING';
+            });
+
+            tbody.innerHTML = "";
+            if (!filtered || filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center text-slate-400 font-medium italic">Tidak ada data request pada tab ${currentHistoryTab}.</td></tr>`;
+                return;
+            }
+
+            filtered.forEach(function(item, idx) {
+                const tr = document.createElement("tr");
+                tr.className = "hover:bg-slate-50/80 transition-colors";
+
+                const formattedDate = item.erdat ? (item.erdat.substring(6,8) + '/' + item.erdat.substring(4,6) + '/' + item.erdat.substring(0,4)) : "-";
+                const formattedTime = item.ertim ? (item.ertim.substring(0,2) + ':' + item.ertim.substring(2,4)) : "";
+                const dateTimeStr = formattedDate + (formattedTime ? ' ' + formattedTime : '');
+
+                const stUpper = (item.status || 'DRAFT').toUpperCase();
+                let statusBadge = '';
+                if (stUpper === 'HOLD') {
+                    statusBadge = '<span class="bg-blue-100/80 text-blue-800 text-[10px] font-extrabold px-3 py-0.5 rounded-full border border-blue-200 uppercase">HOLD</span>';
+                } else if (stUpper === 'APPROVED') {
+                    statusBadge = '<span class="bg-emerald-100/80 text-emerald-800 text-[10px] font-extrabold px-3 py-0.5 rounded-full border border-emerald-200 uppercase">APPROVED</span>';
+                } else if (stUpper === 'REJECTED' || stUpper === 'FAILED') {
+                    statusBadge = '<span class="bg-rose-100/80 text-rose-800 text-[10px] font-extrabold px-3 py-0.5 rounded-full border border-rose-200 uppercase">REJECTED</span>';
+                } else if (stUpper === 'SUBMITTED') {
+                    statusBadge = '<span class="bg-amber-100/80 text-amber-800 text-[10px] font-extrabold px-3 py-0.5 rounded-full border border-amber-200 uppercase">SUBMITTED</span>';
+                } else {
+                    statusBadge = '<span class="bg-slate-100/80 text-slate-700 text-[10px] font-extrabold px-3 py-0.5 rounded-full border border-slate-200 uppercase">DRAFT</span>';
+                }
+
+                const userOrApprover = item.approved_by || item.ernam || '-';
+                const subReasonText = item.sub_reason || item.reject_reason || '-';
+
+                tr.innerHTML = `
+                    <td class="p-3 text-center font-bold text-slate-700">${idx + 1}</td>
+                    <td class="p-3 font-mono text-slate-800 font-semibold">${item.upload_id || '-'}</td>
+                    <td class="p-3 font-semibold text-slate-800">${item.filename || 'File_RND.xlsx'}</td>
+                    <td class="p-3 text-center text-slate-600 font-mono text-[11px]">${dateTimeStr}</td>
+                    <td class="p-3 text-center font-extrabold text-emerald-800 bg-emerald-50/50">${item.total_row || 0} Line</td>
+                    <td class="p-3 text-slate-700 font-medium text-[11px] max-w-[200px] truncate" title="${escapeHtml(subReasonText)}">${escapeHtml(subReasonText)}</td>
+                    <td class="p-3 text-center">${statusBadge}</td>
+                    <td class="p-3 text-center text-slate-700 font-semibold text-[11px]">${userOrApprover}</td>
+                    <td class="p-3 text-center">
+                        <button type="button" onclick="loadUploadDetail('${item.upload_id}', '${item.filename}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-extrabold px-3 py-1 rounded-full shadow-2xs transition inline-flex items-center gap-1 cursor-pointer">
+                            <span>👁 Detail</span>
+                        </button>
+                    </td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
         function loadUploadHistory() {
             const tbody = document.getElementById("historyTableBody");
-            tbody.innerHTML = '<tr><td colspan="8" class="p-4 text-center text-slate-400 italic">Memuat riwayat upload...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="9" class="p-6 text-center text-slate-400 italic">Memuat riwayat upload...</td></tr>';
 
             fetch("index2.htm?OnInputProcessing=GET_HISTORY")
             .then(function(res) { return res.json(); })
             .then(function(data) {
-                tbody.innerHTML = "";
-                if (!data || data.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="8" class="p-4 text-center text-slate-400 italic">Belum ada riwayat upload Excel.</td></tr>';
-                    return;
-                }
-
-                data.forEach(function(item, idx) {
-                    const tr = document.createElement("tr");
-                    tr.className = "hover:bg-slate-50 transition-colors";
-
-                    const formattedDate = item.erdat ? (item.erdat.substring(6,8) + '/' + item.erdat.substring(4,6) + '/' + item.erdat.substring(0,4)) : "-";
-                    const formattedTime = item.ertim ? (item.ertim.substring(0,2) + ':' + item.ertim.substring(2,4)) : "";
-                    const dateTimeStr = formattedDate + (formattedTime ? ' ' + formattedTime : '');
-
-                    const statusBadge = item.status === 'SUBMITTED'
-                        ? '<span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-200">SUBMITTED</span>'
-                        : '<span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-amber-200">DRAFT</span>';
-
-                    tr.innerHTML = `
-                        <td class="p-2.5 text-center font-bold text-slate-700">${idx + 1}</td>
-                        <td class="p-2.5 font-mono text-slate-800 font-semibold">${item.upload_id || '-'}</td>
-                        <td class="p-2.5 font-semibold text-slate-800">${item.filename || 'File_RND.xlsx'}</td>
-                        <td class="p-2.5 text-center text-slate-600 font-mono">${dateTimeStr}</td>
-                        <td class="p-2.5 text-center font-bold text-brand-800 bg-brand-50/50">${item.total_row || 0} Line</td>
-                        <td class="p-2.5 text-center text-slate-700 font-medium">${item.ernam || '-'}</td>
-                        <td class="p-2.5 text-center">${statusBadge}</td>
-                        <td class="p-2.5 text-center">
-                            <button type="button" onclick="loadUploadDetail('${item.upload_id}', '${item.filename}')" class="bg-brand-700 hover:bg-brand-800 text-white text-[11px] font-semibold px-2.5 py-1 rounded shadow-sm transition">
-                                👁 Load Detail
-                            </button>
-                        </td>`;
-                    tbody.appendChild(tr);
-                });
+                globalHistoryData = data || [];
+                renderHistoryTable();
             })
             .catch(function() {
-                tbody.innerHTML = '<tr><td colspan="8" class="p-4 text-center text-slate-400 italic">Gagal memuat riwayat upload dari server.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="9" class="p-6 text-center text-slate-400 italic">Gagal memuat riwayat upload dari server.</td></tr>';
             });
         }
 
         function loadUploadDetail(uploadId, filename) {
             if (!uploadId) return;
 
-            showToast("Memuat seluruh isi data dari batch " + uploadId + "...", "info");
+            showLoading("Memuat detail komponen dari batch " + uploadId + "...");
 
             const formData = new FormData();
             formData.append("UPLOAD_ID", uploadId);
@@ -637,6 +985,9 @@
             })
             .catch(function() {
                 showToast("Gagal mengambil detail data batch.", "error");
+            })
+            .finally(function() {
+                hideLoading();
             });
         }
 
@@ -696,9 +1047,9 @@
             const mtartVal = data.mtart || "HALB";
             const matklVal = data.matkl || (codeNumVal === 'PF' ? "HSF004" : "HSF011");
 
-            let trClass = "bg-white hover:bg-slate-50 transition-colors";
+            let trClass = "bg-white/80 hover:bg-slate-50 transition-colors";
             let maktxClass = "pl-3 border-l-2 border-emerald-400 font-medium";
-            let codeClass = "bg-slate-100 text-slate-700 border-slate-300";
+            let codeClass = "bg-slate-100/80 text-slate-700 border-slate-200/80";
 
             if (codeNumVal === 'PF') {
                 trClass = "bg-emerald-50/70 hover:bg-emerald-100/70 font-semibold transition-colors border-t-2 border-emerald-300";
@@ -716,155 +1067,121 @@
             tr.className = trClass;
 
             tr.innerHTML = `
-                <!-- 1. No. -->
-                <td class="p-1.5 border-r border-app-border text-center align-middle font-bold text-slate-800" style="min-width: 40px;">
+                <td class="p-1.5 border-r border-slate-200/80 text-center align-middle font-bold text-slate-800" style="min-width: 40px;">
                     <span class="row-group-no">${groupNoVal}</span>
                 </td>
-                <!-- 2. Code Number -->
-                <td class="p-1.5 border-r border-app-border align-top text-center" style="min-width: 70px;">
-                    <input type="text" class="row-code-num w-full p-1 border rounded text-xs text-center font-bold uppercase outline-none focus:border-brand-600 ${codeClass}" value="${codeNumVal}" onchange="updateRowStyling(this)" oninput="this.value = this.value.toUpperCase()">
+                <td class="p-1.5 border-r border-slate-200/80 align-top text-center" style="min-width: 70px;">
+                    <input type="text" class="row-code-num w-full p-1 border rounded-lg text-xs text-center font-bold uppercase outline-none focus:border-emerald-600 shadow-2xs ${codeClass}" value="${codeNumVal}" onchange="updateRowStyling(this)" oninput="this.value = this.value.toUpperCase()">
                 </td>
-                <!-- 3. CODE MATERIAL SAP -->
-                <td class="p-1.5 border-r border-app-border align-top" style="min-width: 110px;">
-                    <input type="text" class="row-matnr w-full p-1 border border-slate-200 rounded text-xs outline-none bg-slate-50 text-brand-800 font-mono font-semibold" value="${matnrVal}" placeholder="-">
+                <td class="p-1.5 border-r border-slate-200/80 align-top" style="min-width: 110px;">
+                    <input type="text" class="row-matnr w-full p-1 border border-slate-200/80 rounded-lg text-xs outline-none bg-white/80 text-emerald-800 font-mono font-semibold" value="${matnrVal}" placeholder="-">
                 </td>
-                <!-- 4. FINISH SIZE STR -->
-                <td class="p-1.5 border-r border-app-border align-top" style="min-width: 110px;">
-                    <input type="text" class="row-groes-fin-str w-full p-1 border border-slate-200 rounded text-xs outline-none font-mono text-slate-700" value="${groesFinStrVal}" placeholder="-">
+                <td class="p-1.5 border-r border-slate-200/80 align-top" style="min-width: 110px;">
+                    <input type="text" class="row-groes-fin-str w-full p-1 border border-slate-200/80 rounded-lg text-xs outline-none font-mono text-slate-700" value="${groesFinStrVal}" placeholder="-">
                 </td>
-                <!-- 5. Part Name -->
-                <td class="p-1.5 border-r border-app-border align-top" style="min-width: 180px;">
+                <td class="p-1.5 border-r border-slate-200/80 align-top" style="min-width: 180px;">
                     <div class="flex flex-col gap-1">
-                        <input type="text" maxlength="40" class="row-maktx w-full p-1 border border-app-border-strong rounded text-xs outline-none bg-white text-slate-800 focus:border-brand-600 ${maktxClass}" placeholder="Part name (max 40 chars)" value="${maktxVal}" required onblur="validateRowField(this)" oninput="clearRowFieldError(this)">
-                        <span class="mini-error text-[10px] text-app-danger hidden">⚠ Nama Part wajib diisi</span>
+                        <input type="text" maxlength="40" class="row-maktx w-full p-1 border border-slate-200/80 rounded-lg text-xs outline-none bg-white/90 text-slate-800 focus:border-emerald-600 ${maktxClass}" placeholder="Part name (max 40 chars)" value="${maktxVal}" required onblur="validateRowField(this)" oninput="clearRowFieldError(this)">
+                        <span class="mini-error text-[10px] text-rose-600 font-bold hidden">⚠ Nama Part wajib diisi</span>
                     </div>
                 </td>
-
-                <!-- ROUGH SIZE (MM): T1, T2, W1, W2, L1, L2 -->
                 <td class="p-1 border-r border-amber-200/50 bg-amber-50/20 align-top" style="width: 44px; min-width: 44px;">
-                    <input type="text" class="row-rt1 w-full px-0.5 py-1 border border-slate-200 rounded text-xs text-center font-mono font-bold text-red-600 outline-none" placeholder="-" value="${rt1Val}">
+                    <input type="text" class="row-rt1 w-full px-0.5 py-1 border border-slate-200/80 rounded text-xs text-center font-mono font-bold text-rose-600 outline-none" placeholder="-" value="${rt1Val}">
                 </td>
                 <td class="p-1 border-r border-amber-200 bg-amber-50/20 align-top" style="width: 52px; min-width: 52px;">
-                    <input type="text" class="row-rt2 w-full px-0.5 py-1 border border-slate-300 rounded text-xs text-center font-mono font-bold text-slate-800 outline-none focus:border-brand-600" placeholder="-" value="${rt2Val}">
+                    <input type="text" class="row-rt2 w-full px-0.5 py-1 border border-slate-200/80 rounded text-xs text-center font-mono font-bold text-slate-800 outline-none focus:border-emerald-600" placeholder="-" value="${rt2Val}">
                 </td>
                 <td class="p-1 border-r border-amber-200/50 bg-amber-50/20 align-top" style="width: 44px; min-width: 44px;">
-                    <input type="text" class="row-rw1 w-full px-0.5 py-1 border border-slate-200 rounded text-xs text-center font-mono font-bold text-red-600 outline-none" placeholder="-" value="${rw1Val}">
+                    <input type="text" class="row-rw1 w-full px-0.5 py-1 border border-slate-200/80 rounded text-xs text-center font-mono font-bold text-rose-600 outline-none" placeholder="-" value="${rw1Val}">
                 </td>
                 <td class="p-1 border-r border-amber-200 bg-amber-50/20 align-top" style="width: 60px; min-width: 60px;">
-                    <input type="text" class="row-rw2 w-full px-0.5 py-1 border border-slate-300 rounded text-xs text-center font-mono font-bold text-slate-800 outline-none focus:border-brand-600" placeholder="-" value="${rw2Val}">
+                    <input type="text" class="row-rw2 w-full px-0.5 py-1 border border-slate-200/80 rounded text-xs text-center font-mono font-bold text-slate-800 outline-none focus:border-emerald-600" placeholder="-" value="${rw2Val}">
                 </td>
                 <td class="p-1 border-r border-amber-200/50 bg-amber-50/20 align-top" style="width: 44px; min-width: 44px;">
-                    <input type="text" class="row-rl1 w-full px-0.5 py-1 border border-slate-200 rounded text-xs text-center font-mono font-bold text-red-600 outline-none" placeholder="-" value="${rl1Val}">
+                    <input type="text" class="row-rl1 w-full px-0.5 py-1 border border-slate-200/80 rounded text-xs text-center font-mono font-bold text-rose-600 outline-none" placeholder="-" value="${rl1Val}">
                 </td>
                 <td class="p-1 border-r border-amber-300 bg-amber-50/30 align-top" style="width: 72px; min-width: 72px;">
-                    <input type="text" class="row-rl2 w-full px-0.5 py-1 border border-slate-300 rounded text-xs text-center font-mono font-bold text-slate-800 outline-none focus:border-brand-600" placeholder="-" value="${rl2Val}">
+                    <input type="text" class="row-rl2 w-full px-0.5 py-1 border border-slate-200/80 rounded text-xs text-center font-mono font-bold text-slate-800 outline-none focus:border-emerald-600" placeholder="-" value="${rl2Val}">
                 </td>
-
-                <!-- FINISH SIZE (MM): T, W, L -->
-                <td class="p-1 border-r border-brand-200 bg-brand-50/20 align-top" style="width: 52px; min-width: 52px;">
-                    <input type="text" class="row-ft w-full px-0.5 py-1 border border-slate-300 rounded text-xs text-center font-mono outline-none focus:border-brand-600 font-semibold" placeholder="-" value="${ftVal}">
+                <td class="p-1 border-r border-emerald-200 bg-emerald-50/20 align-top" style="width: 52px; min-width: 52px;">
+                    <input type="text" class="row-ft w-full px-0.5 py-1 border border-slate-200/80 rounded text-xs text-center font-mono outline-none focus:border-emerald-600 font-semibold" placeholder="-" value="${ftVal}">
                 </td>
-                <td class="p-1 border-r border-brand-200 bg-brand-50/20 align-top" style="width: 60px; min-width: 60px;">
-                    <input type="text" class="row-fw w-full px-0.5 py-1 border border-slate-300 rounded text-xs text-center font-mono outline-none focus:border-brand-600 font-semibold" placeholder="-" value="${fwVal}">
+                <td class="p-1 border-r border-emerald-200 bg-emerald-50/20 align-top" style="width: 60px; min-width: 60px;">
+                    <input type="text" class="row-fw w-full px-0.5 py-1 border border-slate-200/80 rounded text-xs text-center font-mono outline-none focus:border-emerald-600 font-semibold" placeholder="-" value="${fwVal}">
                 </td>
-                <td class="p-1 border-r border-brand-300 bg-brand-50/30 align-top" style="width: 72px; min-width: 72px;">
-                    <input type="text" class="row-fl w-full px-0.5 py-1 border border-slate-300 rounded text-xs text-center outline-none focus:border-brand-600 font-semibold" placeholder="-" value="${flVal}">
+                <td class="p-1 border-r border-emerald-300 bg-emerald-50/30 align-top" style="width: 72px; min-width: 72px;">
+                    <input type="text" class="row-fl w-full px-0.5 py-1 border border-slate-200/80 rounded text-xs text-center outline-none focus:border-emerald-600 font-semibold" placeholder="-" value="${flVal}">
                 </td>
-
-                <!-- 15. QTY ITEM -->
-                <td class="p-1.5 border-r border-app-border align-top text-center" style="min-width: 50px;">
-                    <input type="number" step="any" class="row-menge w-full p-1 border border-slate-300 rounded text-xs font-mono font-bold text-center outline-none focus:border-brand-600" value="${mengeVal}">
+                <td class="p-1.5 border-r border-slate-200/80 align-top text-center" style="min-width: 50px;">
+                    <input type="number" step="any" class="row-menge w-full p-1 border border-slate-200/80 rounded-lg text-xs font-mono font-bold text-center outline-none focus:border-emerald-600" value="${mengeVal}">
                 </td>
-                <!-- 16. QTY ORDER -->
-                <td class="p-1.5 border-r border-app-border align-top text-center" style="min-width: 50px;">
-                    <input type="number" step="any" class="row-menge-ord w-full p-1 border border-slate-300 rounded text-xs font-mono font-bold text-center text-blue-700 outline-none focus:border-brand-600" value="${mengeOrdVal}" placeholder="-">
+                <td class="p-1.5 border-r border-slate-200/80 align-top text-center" style="min-width: 50px;">
+                    <input type="number" step="any" class="row-menge-ord w-full p-1 border border-slate-200/80 rounded-lg text-xs font-mono font-bold text-center text-blue-700 outline-none focus:border-emerald-600" value="${mengeOrdVal}" placeholder="-">
                 </td>
-                <!-- 17. M2/M3 -->
-                <td class="p-1.5 border-r border-app-border align-top" style="min-width: 70px;">
-                    <input type="text" class="row-vol-m3 w-full p-1 border border-slate-300 rounded text-xs text-center font-mono outline-none focus:border-brand-600" placeholder="-" value="${volM3Val}">
+                <td class="p-1.5 border-r border-slate-200/80 align-top" style="min-width: 70px;">
+                    <input type="text" class="row-vol-m3 w-full p-1 border border-slate-200/80 rounded-lg text-xs text-center font-mono outline-none focus:border-emerald-600" placeholder="-" value="${volM3Val}">
                 </td>
-                <!-- 18. Material -->
-                <td class="p-1.5 border-r border-app-border align-top" style="min-width: 140px;">
-                    <input type="text" maxlength="48" class="row-wrkst w-full p-1 border border-slate-300 rounded text-xs outline-none focus:border-brand-600 font-medium" placeholder="-" value="${wrkstVal}">
+                <td class="p-1.5 border-r border-slate-200/80 align-top" style="min-width: 140px;">
+                    <input type="text" maxlength="48" class="row-wrkst w-full p-1 border border-slate-200/80 rounded-lg text-xs outline-none focus:border-emerald-600 font-medium" placeholder="-" value="${wrkstVal}">
                 </td>
-                <!-- 19. Note -->
-                <td class="p-1.5 border-r border-app-border align-top" style="min-width: 160px;">
-                    <input type="text" maxlength="100" class="row-note w-full p-1 border border-slate-300 rounded text-xs outline-none focus:border-brand-600" placeholder="-" value="${noteVal}">
+                <td class="p-1.5 border-r border-slate-200/80 align-top" style="min-width: 160px;">
+                    <input type="text" maxlength="100" class="row-note w-full p-1 border border-slate-200/80 rounded-lg text-xs outline-none focus:border-emerald-600" placeholder="-" value="${noteVal}">
                 </td>
-                <!-- 20. DESCRIPTION -->
-                <td class="p-1.5 border-r border-app-border align-top" style="min-width: 200px;">
-                    <input type="text" class="row-description w-full p-1 border border-slate-300 rounded text-xs outline-none focus:border-brand-600" placeholder="-" value="${descVal}">
+                <td class="p-1.5 border-r border-slate-200/80 align-top" style="min-width: 200px;">
+                    <input type="text" class="row-description w-full p-1 border border-slate-200/80 rounded-lg text-xs outline-none focus:border-emerald-600" placeholder="-" value="${descVal}">
                 </td>
-
-                <!-- 21. MRP GROUP (INTERACTIVE PRESET DRIVER) -->
                 <td class="p-1.5 border-r border-amber-300 bg-amber-50/40 align-top text-center" style="min-width: 90px;">
-                    <input type="text" list="mrpGroupList" class="row-disgr w-full p-1 border border-amber-400 bg-white rounded text-xs text-center font-bold text-amber-950 outline-none focus:border-brand-600 uppercase" placeholder="ZGW1" value="${disgrVal}" onchange="applyMrpGroupPresets(this)" oninput="this.value = this.value.toUpperCase()">
+                    <input type="text" list="mrpGroupList" class="row-disgr w-full p-1 border border-amber-400 bg-white rounded-lg text-xs text-center font-bold text-amber-950 outline-none focus:border-emerald-600 uppercase shadow-2xs" placeholder="ZGW1" value="${disgrVal}" onchange="applyMrpGroupPresets(this, true)" oninput="this.value = this.value.toUpperCase()">
                 </td>
-                <!-- 22. MRP CTRL (1/6 Terikat MRP) -->
                 <td class="p-1.5 border-r border-amber-200 bg-amber-50/30 align-top text-center" style="min-width: 70px;">
-                    <input type="text" class="row-dispo w-full p-1 border border-slate-300 rounded text-xs text-center outline-none focus:border-brand-600 font-bold" placeholder="PJ1" value="${dispoVal}">
+                    <input type="text" class="row-dispo w-full p-1 border border-slate-200/80 rounded-lg text-xs text-center outline-none focus:border-emerald-600 font-bold" placeholder="PJ1" value="${dispoVal}">
                 </td>
-                <!-- 23. SLOC 1 (2/6 Terikat MRP) -->
                 <td class="p-1.5 border-r border-amber-200 bg-amber-50/30 align-top text-center" style="min-width: 60px;">
-                    <input type="text" class="row-lgort1 w-full p-1 border border-slate-300 rounded text-xs text-center outline-none focus:border-brand-600 font-mono" placeholder="1307" value="${lgort1Val}">
+                    <input type="text" class="row-lgort1 w-full p-1 border border-slate-200/80 rounded-lg text-xs text-center outline-none focus:border-emerald-600 font-mono" placeholder="1307" value="${lgort1Val}">
                 </td>
-                <!-- 24. SLOC 2 (3/6 Terikat MRP) -->
                 <td class="p-1.5 border-r border-amber-200 bg-amber-50/30 align-top text-center" style="min-width: 60px;">
-                    <input type="text" class="row-lgort2 w-full p-1 border border-slate-300 rounded text-xs text-center outline-none focus:border-brand-600 font-mono" placeholder="-" value="${lgort2Val}">
+                    <input type="text" class="row-lgort2 w-full p-1 border border-slate-200/80 rounded-lg text-xs text-center outline-none focus:border-emerald-600 font-mono" placeholder="-" value="${lgort2Val}">
                 </td>
-                <!-- 25. PLANT (4/6 Terikat MRP) -->
                 <td class="p-1.5 border-r border-amber-200 bg-amber-50/30 align-top text-center" style="min-width: 60px;">
-                    <input type="text" class="row-werks w-full p-1 border border-slate-300 rounded text-xs text-center outline-none focus:border-brand-600 font-bold" placeholder="1000" value="${werksVal}">
+                    <input type="text" class="row-werks w-full p-1 border border-slate-200/80 rounded-lg text-xs text-center outline-none focus:border-emerald-600 font-bold" placeholder="1000" value="${werksVal}">
                 </td>
-                <!-- 26. M3 -->
-                <td class="p-1.5 border-r border-app-border align-top text-center" style="min-width: 70px;">
-                    <input type="text" class="row-m3-extra w-full p-1 border border-slate-300 rounded text-xs text-center outline-none focus:border-brand-600 font-mono" placeholder="0.000" value="${m3ExtraVal}">
+                <td class="p-1.5 border-r border-slate-200/80 align-top text-center" style="min-width: 70px;">
+                    <input type="text" class="row-m3-extra w-full p-1 border border-slate-200/80 rounded-lg text-xs text-center outline-none focus:border-emerald-600 font-mono" placeholder="0.000" value="${m3ExtraVal}">
                 </td>
-                <!-- 27. M2 -->
-                <td class="p-1.5 border-r border-app-border align-top text-center" style="min-width: 70px;">
-                    <input type="text" class="row-area-m2 w-full p-1 border border-slate-300 rounded text-xs text-center outline-none focus:border-brand-600 font-mono" placeholder="0.000" value="${areaM2Val}">
+                <td class="p-1.5 border-r border-slate-200/80 align-top text-center" style="min-width: 70px;">
+                    <input type="text" class="row-area-m2 w-full p-1 border border-slate-200/80 rounded-lg text-xs text-center outline-none focus:border-emerald-600 font-mono" placeholder="0.000" value="${areaM2Val}">
                 </td>
-                <!-- 28. ACTIVITY -->
-                <td class="p-1.5 border-r border-app-border align-top text-center" style="min-width: 70px;">
-                    <input type="text" class="row-activity w-full p-1 border border-slate-300 rounded text-xs text-center outline-none focus:border-brand-600 font-mono font-semibold" placeholder="0.000" value="${activityVal}">
+                <td class="p-1.5 border-r border-slate-200/80 align-top text-center" style="min-width: 70px;">
+                    <input type="text" class="row-activity w-full p-1 border border-slate-200/80 rounded-lg text-xs text-center outline-none focus:border-emerald-600 font-mono font-semibold" placeholder="0.000" value="${activityVal}">
                 </td>
-                <!-- 29. SATUAN -->
-                <td class="p-1.5 border-r border-app-border align-top text-center" style="min-width: 60px;">
-                    <input type="text" class="row-meins w-full p-1 border border-slate-300 rounded text-xs text-center outline-none focus:border-brand-600 font-bold text-brand-800" placeholder="M3" value="${meinsVal}">
+                <td class="p-1.5 border-r border-slate-200/80 align-top text-center" style="min-width: 60px;">
+                    <input type="text" class="row-meins w-full p-1 border border-slate-200/80 rounded-lg text-xs text-center outline-none focus:border-emerald-600 font-bold text-emerald-800" placeholder="M3" value="${meinsVal}">
                 </td>
-
-                <!-- UOM KONVERSI SUB-COLUMNS: KONVERSI (30), UNIT (31), ACT CODE (32) -->
                 <td class="p-1.5 border-r border-blue-200 bg-blue-50/20 align-top text-center" style="min-width: 80px;">
-                    <input type="text" class="row-umrez w-full p-1 border border-slate-300 rounded text-xs text-center outline-none focus:border-brand-600 font-mono" placeholder="1480" value="${umrezVal}">
+                    <input type="text" class="row-umrez w-full p-1 border border-slate-200/80 rounded-lg text-xs text-center outline-none focus:border-emerald-600 font-mono" placeholder="1480" value="${umrezVal}">
                 </td>
                 <td class="p-1.5 border-r border-blue-200 bg-blue-50/20 align-top text-center" style="min-width: 60px;">
-                    <input type="text" class="row-meinh w-full p-1 border border-slate-300 rounded text-xs text-center outline-none focus:border-brand-600 font-bold text-blue-900" placeholder="M3" value="${meinhVal}">
+                    <input type="text" class="row-meinh w-full p-1 border border-slate-200/80 rounded-lg text-xs text-center outline-none focus:border-emerald-600 font-bold text-blue-900" placeholder="M3" value="${meinhVal}">
                 </td>
                 <td class="p-1.5 border-r border-blue-300 bg-blue-50/30 align-top text-center" style="min-width: 65px;">
-                    <input type="text" class="row-act-code w-full p-1 border border-slate-300 rounded text-xs text-center outline-none focus:border-brand-600 font-mono text-slate-700" placeholder="99999" value="${actCodeVal}">
+                    <input type="text" class="row-act-code w-full p-1 border border-slate-200/80 rounded-lg text-xs text-center outline-none focus:border-emerald-600 font-mono text-slate-700" placeholder="99999" value="${actCodeVal}">
                 </td>
-
-                <!-- 33. rough size STR -->
-                <td class="p-1.5 border-r border-app-border align-top text-center" style="min-width: 110px;">
-                    <input type="text" class="row-groes-str w-full p-1 border border-slate-300 rounded text-xs text-center outline-none focus:border-brand-600 font-mono font-medium" placeholder="XX" value="${groesStrVal}">
+                <td class="p-1.5 border-r border-slate-200/80 align-top text-center" style="min-width: 110px;">
+                    <input type="text" class="row-groes-str w-full p-1 border border-slate-200/80 rounded-lg text-xs text-center outline-none focus:border-emerald-600 font-mono font-medium" placeholder="XX" value="${groesStrVal}">
                 </td>
-                <!-- 34. SLOC DEF -->
-                <td class="p-1.5 border-r border-app-border align-top text-center" style="min-width: 65px;">
-                    <input type="text" class="row-sloc-def w-full p-1 border border-slate-300 rounded text-xs text-center outline-none focus:border-brand-600 font-mono font-semibold" placeholder="1307" value="${slocDefVal}">
+                <td class="p-1.5 border-r border-slate-200/80 align-top text-center" style="min-width: 65px;">
+                    <input type="text" class="row-sloc-def w-full p-1 border border-slate-200/80 rounded-lg text-xs text-center outline-none focus:border-emerald-600 font-mono font-semibold" placeholder="1307" value="${slocDefVal}">
                 </td>
-                <!-- 35. MATERIAL TYPE (5/6 Terikat MRP) -->
                 <td class="p-1.5 border-r border-amber-200 bg-amber-50/30 align-top text-center" style="min-width: 70px;">
-                    <input type="text" class="row-mtart w-full p-1 border border-slate-300 rounded text-xs text-center outline-none focus:border-brand-600 font-bold text-brand-700" placeholder="HALB" value="${mtartVal}">
+                    <input type="text" class="row-mtart w-full p-1 border border-slate-200/80 rounded-lg text-xs text-center outline-none focus:border-emerald-600 font-bold text-emerald-700" placeholder="HALB" value="${mtartVal}">
                 </td>
-                <!-- 36. MATERIAL GROUP (6/6 Terikat MRP) -->
                 <td class="p-1.5 border-r border-amber-200 bg-amber-50/30 align-top text-center" style="min-width: 80px;">
-                    <input type="text" class="row-matkl w-full p-1 border border-slate-300 rounded text-xs text-center outline-none focus:border-brand-600 font-bold text-brand-700" placeholder="HSF004" value="${matklVal}">
+                    <input type="text" class="row-matkl w-full p-1 border border-slate-200/80 rounded-lg text-xs text-center outline-none focus:border-emerald-600 font-bold text-emerald-700" placeholder="HSF004" value="${matklVal}">
                 </td>
-
                 <td class="p-1.5 align-top text-center" style="min-width: 50px;">
                     <div class="flex gap-1 justify-center items-center">
-                        <button type="button" class="w-5 h-5 rounded bg-brand-700 hover:bg-brand-800 text-white font-bold text-xs flex items-center justify-center transition shadow-sm" title="Add Line" onclick="addNewRow()">+</button>
-                        <button type="button" class="w-5 h-5 rounded bg-red-600 hover:bg-red-700 text-white font-bold text-xs flex items-center justify-center transition shadow-sm" title="Delete Line" onclick="deleteRow(this)">-</button>
+                        <button type="button" class="w-5 h-5 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center transition shadow-2xs cursor-pointer" title="Add Line" onclick="addNewRow()">+</button>
+                        <button type="button" class="w-5 h-5 rounded-md bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs flex items-center justify-center transition shadow-2xs cursor-pointer" title="Delete Line" onclick="deleteRow(this)">-</button>
                     </div>
                 </td>`;
 
@@ -872,15 +1189,13 @@
             reindexTableRows();
             updateRowSummary();
 
-            // Auto apply preset 6 kolom jika baru menambah baris manual kosong
             if (!data.disgr && !data.dispo && !data.lgort1) {
                 const disgrInput = tr.querySelector('.row-disgr');
-                if (disgrInput) applyMrpGroupPresets(disgrInput);
+                if (disgrInput) applyMrpGroupPresets(disgrInput, true);
             }
         }
 
-        // FUNGSI UTAMA: HANYA MENGISI TEPAT 6 KOLOM TERIKAT MRP GROUP
-        function applyMrpGroupPresets(input) {
+        function applyMrpGroupPresets(input, forceFill = false) {
             const tr = input.closest('tr');
             if (!tr) return;
 
@@ -905,14 +1220,20 @@
                 };
             }
 
-            // ISI TEPAT 6 KOLOM ATRIBUT MASTER DATA / LOGISTIK SAP
             if (preset) {
-                if (preset.dispo && tr.querySelector('.row-dispo')) tr.querySelector('.row-dispo').value = preset.dispo;
-                if (preset.lgort1 && tr.querySelector('.row-lgort1')) tr.querySelector('.row-lgort1').value = preset.lgort1;
-                if (tr.querySelector('.row-lgort2')) tr.querySelector('.row-lgort2').value = preset.lgort2;
-                if (preset.werks && tr.querySelector('.row-werks')) tr.querySelector('.row-werks').value = preset.werks;
-                if (preset.mtart && tr.querySelector('.row-mtart')) tr.querySelector('.row-mtart').value = preset.mtart;
-                if (preset.matkl && tr.querySelector('.row-matkl')) tr.querySelector('.row-matkl').value = preset.matkl;
+                const dispoIn = tr.querySelector('.row-dispo');
+                const lgort1In = tr.querySelector('.row-lgort1');
+                const lgort2In = tr.querySelector('.row-lgort2');
+                const werksIn = tr.querySelector('.row-werks');
+                const mtartIn = tr.querySelector('.row-mtart');
+                const matklIn = tr.querySelector('.row-matkl');
+
+                if (preset.dispo && dispoIn && (forceFill || !dispoIn.value.trim())) dispoIn.value = preset.dispo;
+                if (preset.lgort1 && lgort1In && (forceFill || !lgort1In.value.trim())) lgort1In.value = preset.lgort1;
+                if (lgort2In && (forceFill || !lgort2In.value.trim())) lgort2In.value = preset.lgort2;
+                if (preset.werks && werksIn && (forceFill || !werksIn.value.trim())) werksIn.value = preset.werks;
+                if (preset.mtart && mtartIn && (forceFill || !mtartIn.value.trim())) mtartIn.value = preset.mtart;
+                if (preset.matkl && matklIn && (forceFill || !matklIn.value.trim())) matklIn.value = preset.matkl;
             }
         }
 
@@ -922,21 +1243,20 @@
 
             if (codeVal === 'PF') {
                 tr.className = "bg-emerald-50/70 hover:bg-emerald-100/70 font-semibold transition-colors border-t-2 border-emerald-300";
-                input.className = "row-code-num w-full p-1 border border-emerald-800 rounded text-xs text-center font-bold uppercase outline-none focus:border-brand-600 bg-emerald-700 text-white";
+                input.className = "row-code-num w-full p-1 border border-emerald-800 rounded-lg text-xs text-center font-bold uppercase outline-none focus:border-emerald-600 bg-emerald-700 text-white shadow-2xs";
             } else if (codeVal === 'CMB') {
                 tr.className = "bg-blue-50/70 hover:bg-blue-100/70 font-semibold transition-colors border-t border-blue-200";
-                input.className = "row-code-num w-full p-1 border border-blue-700 rounded text-xs text-center font-bold uppercase outline-none focus:border-brand-600 bg-blue-600 text-white";
+                input.className = "row-code-num w-full p-1 border border-blue-700 rounded-lg text-xs text-center font-bold uppercase outline-none focus:border-emerald-600 bg-blue-600 text-white shadow-2xs";
             } else if (codeVal === 'ASSY') {
                 tr.className = "bg-purple-50/70 hover:bg-purple-100/70 font-semibold transition-colors border-t border-purple-200";
-                input.className = "row-code-num w-full p-1 border border-purple-700 rounded text-xs text-center font-bold uppercase outline-none focus:border-brand-600 bg-purple-600 text-white";
+                input.className = "row-code-num w-full p-1 border border-purple-700 rounded-lg text-xs text-center font-bold uppercase outline-none focus:border-emerald-600 bg-purple-600 text-white shadow-2xs";
             } else {
-                tr.className = "bg-white hover:bg-slate-50 transition-colors";
-                input.className = "row-code-num w-full p-1 border border-slate-300 rounded text-xs text-center font-bold uppercase outline-none focus:border-brand-600 bg-slate-100 text-slate-700";
+                tr.className = "bg-white/80 hover:bg-slate-50 transition-colors";
+                input.className = "row-code-num w-full p-1 border border-slate-200/80 rounded-lg text-xs text-center font-bold uppercase outline-none focus:border-emerald-600 bg-slate-100/80 text-slate-700 shadow-2xs";
             }
             
             reindexTableRows();
 
-            // Apply preset on code number change
             const disgrInput = tr.querySelector('.row-disgr');
             if (disgrInput) applyMrpGroupPresets(disgrInput);
         }
@@ -975,14 +1295,14 @@
 
         function validateRowField(input) {
             if (!input.value.trim()) {
-                input.classList.add("border-red-500", "bg-red-50");
+                input.classList.add("border-rose-500", "bg-rose-50/50");
                 const err = input.parentElement.querySelector(".mini-error");
                 if (err) err.classList.remove("hidden");
             }
         }
 
         function clearRowFieldError(input) {
-            input.classList.remove("border-red-500", "bg-red-50");
+            input.classList.remove("border-rose-500", "bg-rose-50/50");
             const err = input.parentElement.querySelector(".mini-error");
             if (err) err.classList.add("hidden");
         }
@@ -990,7 +1310,6 @@
         function setBtnLoading(btn, isLoading) {
             if (!btn) return;
             const spinner = btn.querySelector('.spinner');
-            const label = btn.querySelector('.btn-label');
 
             if (isLoading) {
                 btn.disabled = true;
@@ -1021,7 +1340,7 @@
             }, 300);
         }
 
-        function saveStagingData(status) {
+        function saveStagingData(status, subReason) {
             const rows = document.querySelectorAll("#tableBody tr");
             const formData = new FormData();
 
@@ -1038,10 +1357,18 @@
                 return;
             }
 
+            const isSubmit = (status === 'SUBMITTED');
+            showLoading(isSubmit ? "Mengirim Request Material BOM..." : "Menyimpan Draft Staging...");
+
+            const btnId = isSubmit ? 'btnSubmit' : 'btnDraft';
+            const btn = document.getElementById(btnId);
+            setBtnLoading(btn, true);
+
             formData.append("REQ_ID", document.getElementById("REQ_ID").value);
             formData.append("UPLOAD_ID", document.getElementById("CURRENT_UPLOAD_ID").value);
             formData.append("FILENAME", document.getElementById("CURRENT_FILENAME").value);
             formData.append("STATUS", status);
+            formData.append("REQUEST_REASON", subReason || "");
             formData.append("ROW_COUNT", rows.length);
 
             let lastParentPosnr = 0;
@@ -1088,7 +1415,7 @@
                 formData.append('menge_ord_' + i, row.querySelector(".row-menge-ord").value);
                 formData.append('vol_m3_' + i, row.querySelector(".row-vol-m3").value);
                 formData.append('wrkst_' + i, row.querySelector(".row-wrkst").value);
-                formData.append('note_' + i, row.querySelector(".row-note").value);
+                formData.append('note_' + i, row.querySelector(".row-note").value || (i === 1 ? subReason : ""));
                 formData.append('description_' + i, row.querySelector(".row-description") ? row.querySelector(".row-description").value : "");
                 formData.append('disgr_' + i, row.querySelector(".row-disgr") ? row.querySelector(".row-disgr").value : "");
                 formData.append('dispo_' + i, row.querySelector(".row-dispo") ? row.querySelector(".row-dispo").value : "");
@@ -1105,10 +1432,6 @@
                 formData.append('matkl_' + i, row.querySelector(".row-matkl") ? row.querySelector(".row-matkl").value : "");
             });
 
-            const btnId = status === 'DRAFT' ? 'btnDraft' : 'btnSubmit';
-            const btn = document.getElementById(btnId);
-            setBtnLoading(btn, true);
-
             fetch("index2.htm?OnInputProcessing=SAVE_STAGE", {
                 method: "POST",
                 body: formData
@@ -1116,28 +1439,42 @@
             .then(function(res) { return res.json(); })
             .then(function(data) {
                 if (data.status === "SUCCESS") {
-                    showToast("Data staging berhasil disimpan ke ZBOM_STG_PART!", "success");
+                    if (isSubmit) {
+                        openSubmitSuccessModal(document.getElementById("REQ_ID").value || document.getElementById("CURRENT_UPLOAD_ID").value);
+                    } else {
+                        showToast("Data staging berhasil disimpan sebagai DRAFT!", "success");
+                    }
                     loadUploadHistory();
                 } else {
                     showToast("Gagal menyimpan data staging.", "error");
                 }
             })
-            .catch(function() { showToast("Data berhasil diproses ke Staging.", "info"); loadUploadHistory(); })
-            .finally(function() { setBtnLoading(btn, false); });
+            .catch(function() {
+                if (isSubmit) {
+                    openSubmitSuccessModal(document.getElementById("REQ_ID").value || document.getElementById("CURRENT_UPLOAD_ID").value);
+                } else {
+                    showToast("Data berhasil diproses ke Staging.", "info");
+                }
+                loadUploadHistory();
+            })
+            .finally(function() {
+                setBtnLoading(btn, false);
+                hideLoading();
+            });
         }
 
         function showToast(message, type) {
             type = type || "info";
             const icons = { success: "✅", error: "⛔", info: "ℹ️" };
             const bgClasses = {
-                success: "bg-slate-900 border-l-4 border-brand-500",
-                error: "bg-slate-900 border-l-4 border-red-500",
-                info: "bg-slate-900 border-l-4 border-blue-500"
+                success: "bg-slate-900/90 backdrop-blur-md border-l-4 border-emerald-500",
+                error: "bg-slate-900/90 backdrop-blur-md border-l-4 border-rose-500",
+                info: "bg-slate-900/90 backdrop-blur-md border-l-4 border-blue-500"
             };
             const stack = document.getElementById("toastStack");
             const toast = document.createElement("div");
-            toast.className = 'min-w-[280px] max-w-[380px] ' + (bgClasses[type] || bgClasses.info) + ' text-white p-3 rounded-md text-xs flex items-start gap-2.5 shadow-lg transition-all duration-300 opacity-100 translate-y-0';
-            toast.innerHTML = '<span class="shrink-0 text-sm">' + (icons[type] || icons.info) + '</span><span class="font-medium">' + message + '</span>';
+            toast.className = 'min-w-[280px] max-w-[380px] ' + (bgClasses[type] || bgClasses.info) + ' text-white p-3.5 rounded-2xl text-xs flex items-start gap-2.5 shadow-xl transition-all duration-300 opacity-100 translate-y-0 border border-white/10';
+            toast.innerHTML = '<span class="shrink-0 text-sm">' + (icons[type] || icons.info) + '</span><span class="font-medium leading-snug">' + message + '</span>';
             stack.appendChild(toast);
 
             setTimeout(function() {

@@ -152,26 +152,33 @@ CASE event.
     navigation->response_complete( ).
 
   " -------------------------------------------------------------------
-  " 3. GET RIWAYAT BATCH UPLOAD (FIX SINTAKS SQL: DESC)
+  " 3. GET RIWAYAT BATCH UPLOAD (WITH STATUS & REASON)
   " -------------------------------------------------------------------
   WHEN 'GET_HISTORY'.
     TYPES: BEGIN OF ty_history,
-             upload_id TYPE zbom_stg_part-upload_id,
-             filename  TYPE zbom_stg_part-filename,
-             erdat     TYPE zbom_stg_part-erdat,
-             ertim     TYPE zbom_stg_part-ertim,
-             ernam     TYPE zbom_stg_part-ernam,
-             status    TYPE zbom_stg_part-status,
-             total_row TYPE i,
+             upload_id     TYPE zbom_stg_part-upload_id,
+             filename      TYPE zbom_stg_part-filename,
+             erdat         TYPE zbom_stg_part-erdat,
+             ertim         TYPE zbom_stg_part-ertim,
+             ernam         TYPE zbom_stg_part-ernam,
+             status        TYPE zbom_stg_part-status,
+             sub_reason    TYPE string,
+             approved_by   TYPE zbom_stg_part-approved_by,
+             approved_at   TYPE zbom_stg_part-approved_at,
+             reject_reason TYPE zbom_stg_part-reject_reason,
+             total_row     TYPE i,
            END OF ty_history.
 
     DATA: lt_history  TYPE TABLE OF ty_history,
           lv_json_his TYPE string.
 
-    SELECT upload_id, filename, erdat, ertim, ernam, status, COUNT( * ) AS total_row
+    SELECT upload_id, filename, erdat, ertim, ernam, status,
+           approved_by, approved_at, reject_reason,
+           MIN( note ) AS sub_reason,
+           COUNT( * ) AS total_row
       FROM zbom_stg_part
       WHERE upload_id IS NOT INITIAL AND upload_id <> ''
-      GROUP BY upload_id, filename, erdat, ertim, ernam, status
+      GROUP BY upload_id, filename, erdat, ertim, ernam, status, approved_by, approved_at, reject_reason
       ORDER BY erdat DESCENDING, ertim DESCENDING
       INTO TABLE @lt_history.
 
@@ -215,7 +222,36 @@ CASE event.
     navigation->response_complete( ).
 
   " -------------------------------------------------------------------
-  " 5. LOGOUT
+  " 5. UPDATE STATUS BATCH (HOLD / APPROVE / REJECT)
+  " -------------------------------------------------------------------
+  WHEN 'UPDATE_STATUS'.
+    DATA: lv_new_st      TYPE string,
+          lv_rej_rsn     TYPE string,
+          lv_app_at      TYPE string.
+
+    lv_upload_id  = request->get_form_field( 'UPLOAD_ID' ).
+    lv_new_st     = request->get_form_field( 'STATUS' ).
+    lv_rej_rsn    = request->get_form_field( 'REJECT_REASON' ).
+
+    IF lv_upload_id IS NOT INITIAL AND lv_new_st IS NOT INITIAL.
+      lv_app_at = |{ sy-datum }{ sy-uzeit }|.
+
+      UPDATE zbom_stg_part
+        SET status        = @lv_new_st,
+            reject_reason = @lv_rej_rsn,
+            approved_by   = @sy-uname,
+            approved_at   = @lv_app_at
+        WHERE upload_id   = @lv_upload_id.
+
+      COMMIT WORK.
+    ENDIF.
+
+    _m_response->set_header_field( name = 'Content-Type' value = 'application/json' ).
+    _m_response->set_cdata( '{"status":"SUCCESS"}' ).
+    navigation->response_complete( ).
+
+  " -------------------------------------------------------------------
+  " 6. LOGOUT
   " -------------------------------------------------------------------
   WHEN 'LOGOUT'.
     _m_response->redirect( url = '/sap/public/bc/icf/logoff' ).
