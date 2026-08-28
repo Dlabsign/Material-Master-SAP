@@ -64,10 +64,7 @@
             border: 1px solid rgba(226, 232, 240, 0.7);
         }
 
-        .sticky-col-1 { position: sticky; left: 0px; z-index: 20; }
-        .sticky-col-2 { position: sticky; left: 45px; z-index: 20; }
-        .sticky-col-3 { position: sticky; left: 110px; z-index: 20; }
-        .sticky-col-4 { position: sticky; left: 240px; z-index: 20; box-shadow: 4px 0 6px -2px rgba(0,0,0,0.06); }
+
     </style>
 </head>
 <body class="text-[13px] font-sans leading-relaxed m-0 p-0 antialiased min-h-screen selection:bg-emerald-100 selection:text-emerald-900">
@@ -307,6 +304,46 @@
             return { t1: t.v1, t2: t.v2, w1: w.v1, w2: w.v2, l1: l.v1, l2: l.v2 };
         }
 
+        function formatSapDate(rawDate) {
+            if (!rawDate || rawDate === '-' || rawDate.toString().trim() === '') return '-';
+            var clean = rawDate.toString().trim();
+            if (clean.indexOf('-') !== -1) {
+                var parts = clean.split('T')[0].split('-');
+                if (parts.length === 3) {
+                    var yyyy = parts[0];
+                    var mm = parts[1].length === 1 ? '0' + parts[1] : parts[1];
+                    var dd = parts[2].length === 1 ? '0' + parts[2] : parts[2];
+                    return dd + '/' + mm + '/' + yyyy;
+                }
+            }
+            var numOnly = clean.replace(/\D/g, '');
+            if (numOnly.length >= 8) {
+                var yyyy = numOnly.substring(0, 4);
+                var mm = numOnly.substring(4, 6);
+                var dd = numOnly.substring(6, 8);
+                return dd + '/' + mm + '/' + yyyy;
+            }
+            return clean;
+        }
+
+        function formatSapTime(rawTime) {
+            if (!rawTime || rawTime.toString().trim() === '') return '';
+            var clean = rawTime.toString().trim();
+            if (clean.indexOf(':') !== -1) {
+                var parts = clean.split(':');
+                var hh = parts[0].length === 1 ? '0' + parts[0] : parts[0];
+                var mm = parts[1].length === 1 ? '0' + parts[1] : parts[1];
+                return hh + ':' + mm;
+            }
+            var numOnly = clean.replace(/\D/g, '');
+            if (numOnly.length >= 4) {
+                var hh = numOnly.substring(0, 2);
+                var mm = numOnly.substring(2, 4);
+                return hh + ':' + mm;
+            }
+            return clean;
+        }
+
         function loadUploadHistory() {
             var tbody = document.getElementById("historyTableBody");
             tbody.innerHTML = '<tr><td colspan="8" class="p-6 text-center text-slate-400 italic">Memuat riwayat...</td></tr>';
@@ -323,8 +360,8 @@
                 data.forEach(function(item, idx) {
                     var tr = document.createElement("tr");
                     tr.className = "hover:bg-emerald-50/40 transition-colors";
-                    var formattedDate = item.erdat ? (item.erdat.substring(6,8) + '/' + item.erdat.substring(4,6) + '/' + item.erdat.substring(0,4)) : "-";
-                    var formattedTime = item.ertim ? (item.ertim.substring(0,2) + ':' + item.ertim.substring(2,4)) : "";
+                    var formattedDate = formatSapDate(item.erdat);
+                    var formattedTime = formatSapTime(item.ertim);
 
                     tr.innerHTML = '<td class="p-3 text-center font-extrabold text-slate-700">' + (idx + 1) + '</td>' +
                         '<td class="p-3 font-mono text-slate-900 font-bold">' + (item.upload_id || '-') + '</td>' +
@@ -402,7 +439,7 @@
                     "MRP Controller", "Lot Sizing", "Min. Lot Size", "Max. Lot Size", "Rounding Value",
                     "Procurement Type", "Special procurement type", "Backflush Indicator", "In-house production", "Plan. Delivery Time",
                     "GR Processing Time", "Scheduling Margin Key", "Safety stock", "Strategy Group", "Consumption mode",
-                    "Forward Consumption period", "Backward Consumption period", "Col_78", "Col_79", "Availability Check",
+                    "Forward Consumption period", "Backward Consumption period", "", "", "Availability Check",
                     "Selection Method", "Individual Collective", "Unit of issue", "Production Storage Location", "Storage Location for EP",
                     "Prod. Scheduling Profile", "Underdelivery Tolerance", "Overdelivery Tolerance", "Unlimited Overdelivery", "Material-related Origin Ind.",
                     "Qty Structure Indicator", "Costing Lot Size", "Do Not Cost", "Block Plant-Specific Mat. Stat", "Stock Determination Group",
@@ -412,7 +449,7 @@
                     "Inspect by Characteristics", "Post to Inspection Stock", "Automatic Usage Decision Planned", "Sampling Procedure", "Dynamic Modification Rule",
                     "Inspection Percentage", "100% Inspection", "Skips Allowed", "Enter the Sample Manually", "Trigger Sample Calculation Manually",
                     "Serial Number Management Possible", "Average Inspection Duration", "Control of Inspection Lot Creation (Lot Summary)", "Procedure for Calculating Quality Score", "Allowed Share of Scrap (Percent) in Inspection Lot",
-                    "Record Appraisal Costs in Individual QM Order", "Order Number for Recording Appraisal Costs", "Preferred Inspection Type", "Inspection types to be deleted (QM ALE distribution)", "Long Material Number for MATERIAL Field",
+                    "Record Appraisal Costs in Individual QM Order", "Order Number for Recording Appraisal Costs", "Preferred Inspection Type", "Inspection types to be deleted  (QM ALE distributi", "Long Material Number for MATERIAL Field",
                     "External GUID for MATERIAL Field", "Version Number for MATERIAL Field", "Inspection for Handling Unit", "Indicator: Multiple Specifications", "Status"
                 ];
 
@@ -429,10 +466,10 @@
                 thead.innerHTML = hHtml;
             } else {
                 thead.innerHTML = '<tr class="text-left text-slate-800 font-extrabold text-[11px] uppercase tracking-wider bg-slate-100/90 sticky top-0 z-30 backdrop-blur-xs">' +
-                    '<th rowspan="2" class="p-2.5 border-b border-r border-slate-200/80 text-center sticky top-0 bg-slate-100 z-10 sticky-col-1" style="width:45px;">Pos</th>' +
-                    '<th rowspan="2" class="p-2.5 border-b border-r border-slate-200/80 text-center sticky top-0 bg-slate-100 z-10 sticky-col-2" style="width:65px;">Code Num</th>' +
-                    '<th rowspan="2" class="p-2.5 border-b border-r border-slate-200/80 sticky top-0 bg-slate-100 z-10 sticky-col-3" style="width:130px;">Bound Material Code</th>' +
-                    '<th rowspan="2" class="p-2.5 border-b border-r border-slate-200/80 sticky top-0 bg-slate-100 z-10 sticky-col-4" style="width:180px;">Part Name (MAKTX)</th>' +
+                    '<th rowspan="2" class="p-2.5 border-b border-r border-slate-200/80 text-center sticky top-0 bg-slate-100 z-10" style="width:45px;">Pos</th>' +
+                    '<th rowspan="2" class="p-2.5 border-b border-r border-slate-200/80 text-center sticky top-0 bg-slate-100 z-10" style="width:65px;">Code Num</th>' +
+                    '<th rowspan="2" class="p-2.5 border-b border-r border-slate-200/80 sticky top-0 bg-slate-100 z-10" style="width:130px;">Bound Material Code</th>' +
+                    '<th rowspan="2" class="p-2.5 border-b border-r border-slate-200/80 sticky top-0 bg-slate-100 z-10" style="width:180px;">Part Name (MAKTX)</th>' +
                     '<th colspan="6" class="p-2 border-b border-r border-sky-300 bg-sky-100/90 text-center text-[11px] text-sky-950 tracking-wider font-extrabold">ROUGH SIZE</th>' +
                     '<th colspan="3" class="p-2 border-b border-r border-emerald-300 bg-emerald-100/90 text-center text-[10.5px] text-emerald-950 tracking-wider font-extrabold">DIMENSIONS (MM)</th>' +
                     '<th rowspan="2" class="p-2.5 border-b border-r border-slate-200/80 text-center sticky top-0 bg-slate-100 z-10">QTY ITEM</th>' +
@@ -503,75 +540,21 @@
                 tr.className = trClass;
 
                 if (currentPreviewMode === 'EXCEL') {
-                    var rawMatnr = item.matnr || item.MATNR || '';
-                    var groesVal = item.groes || item.GROES || '';
-                    var groesFinVal = item.groes_fin || item.GROES_FIN || '';
-                    var matnr = '-';
-                    if (rawMatnr && rawMatnr !== '-' && rawMatnr !== groesVal &&
-                        rawMatnr !== groesFinVal && rawMatnr.indexOf('x') === -1) {
-                        matnr = rawMatnr;
-                    }
-                    var maktx = item.description || item.DESCRIPTION || item.maktx || item.MAKTX || '-';
-                    var mtart = item.material_type || item.MATERIAL_TYPE || item.mtart || item.MTART || 'HALB';
-                    var matkl = item.material_group || item.MATERIAL_GROUP || item.matkl || item.MATKL || 'HSF004';
-                    var meins = item.satuan || item.SATUAN || item.meins || item.MEINS || 'PC';
-                    var groes = item.groes_fin || item.GROES_FIN || item.groes || item.GROES || '-';
-                    var werks = item.plant || item.PLANT || item.werks || item.WERKS || '-';
-                    var lgort = item.sloc1 || item.SLOC1 || item.lgpro || item.LGPRO || item.lgort || item.LGORT || '-';
-                    var mrpGrp = item.mrp_group || item.MRP_GROUP || item.disgr || item.DISGR || '-';
-                    var mrpCtrl = item.mrp_ctrl || item.MRP_CTRL || item.dispo || item.DISPO || '-';
-                    var bklas = item.bklas || item.BKLAS || 'SF01';
-                    var bismt = item.bismt || item.BISMT || '-';
+                    var sapRow = buildSapRowArray(item);
+                    var rowHtml = '<td class="p-2 border-r border-slate-200/80 text-center font-extrabold text-slate-800">' + (item.posnr || (idx+1)*10) + '</td>';
+                    for (var cIdx = 0; cIdx < 134; cIdx++) {
+                        var cellVal = (sapRow[cIdx] !== null && sapRow[cIdx] !== undefined && sapRow[cIdx] !== "") ? sapRow[cIdx] : "-";
+                        var extraClass = "";
+                        if (cIdx === 0) extraClass = " font-mono font-bold text-emerald-900 bg-emerald-50/30";
+                        else if (cIdx === 3 || cIdx === 5 || cIdx === 13 || cIdx === 14 || cIdx === 83 || cIdx === 84) extraClass = " font-mono font-bold text-emerald-700";
+                        else if (cIdx === 6) extraClass = " font-semibold text-slate-900";
+                        else extraClass = " font-mono";
 
-                    tr.innerHTML = '<td class="p-2 border-r border-slate-200/80 text-center font-extrabold text-slate-800 sticky-col-1 bg-white">' + (item.posnr || (idx+1)*10) + '</td>' +
-                        '<td class="p-2 border-r border-slate-200/80 font-mono font-bold text-emerald-900 bg-emerald-50/30 sticky-col-2 bg-white">' + matnr + '</td>' +
-                        '<td class="p-2 border-r border-slate-200/80 text-center font-mono">F</td>' +
-                        '<td class="p-2 border-r border-slate-200/80 text-center font-mono sticky-col-3 bg-white">' + bismt + '</td>' +
-                        '<td class="p-2 border-r border-slate-200/80 text-center font-mono font-bold text-emerald-700">' + mtart + '</td>' +
-                        '<td class="p-2 border-r border-slate-200/80 text-center font-mono">' + matkl + '</td>' +
-                        '<td class="p-2 border-r border-slate-200/80 text-center font-mono font-bold text-emerald-700">' + meins + '</td>' +
-                        '<td class="p-2 border-r border-slate-200/80 font-semibold text-slate-900 sticky-col-4 bg-white">' + maktx + '</td>' +
-                        '<td class="p-2 border-r border-slate-200/80 text-center font-mono">M3</td>' +
-                        '<td class="p-2 border-r border-slate-200/80 text-center font-mono">NORM</td>' +
-                        '<td class="p-2 border-r border-slate-200/80 text-center font-mono">-</td>' +
-                        '<td class="p-2 border-r border-slate-200/80 text-center font-mono">0</td>' +
-                        '<td class="p-2 border-r border-slate-200/80 text-center font-mono">0</td>' +
-                        '<td class="p-2 border-r border-slate-200/80 text-center font-mono">' + groes + '</td>' +
-                        '<td class="p-2 border-r border-slate-200/80 text-center font-mono font-bold text-emerald-700">' + werks + '</td>' +
-                        '<td class="p-2 border-r border-slate-200/80 text-center font-mono font-bold text-emerald-700">' + lgort + '</td>' +
-                        '<td class="p-2 border-r border-slate-200/80 text-center font-mono">-</td>' +
-                        '<td class="p-2 border-r border-slate-200/80 text-center font-mono">-</td>' +
-                        '<td class="p-2 border-r border-slate-200/80 text-center font-mono">-</td>' +
-                        '<td class="p-2 border-r border-slate-200/80 text-center font-mono">-</td>' +
-                        '<td class="p-2 border-r border-slate-200/80 text-center font-mono">ID</td>' +
-                        '<td class="p-2 border-r border-slate-200/80 text-center font-mono">1</td>' +
-                        '<td class="p-2 border-r border-slate-200/80 text-center font-mono">MWST</td>' +
-                        '<td class="p-2 border-r border-slate-200/80 text-center font-mono">NORM</td>' +
-                        '<td class="p-2 border-r border-slate-200/80 text-center font-mono">-</td>' +
-                        '<td class="p-2 border-r border-slate-200/80 text-center font-mono">-</td>' +
-                        '<td class="p-2 border-r border-slate-200/80 text-center font-mono">-</td>' +
-                        '<td class="p-2 border-r border-slate-200/80 text-center font-mono">-</td>' +
-                        '<td class="p-2 border-r border-slate-200/80 text-center font-mono">-</td>' +
-                        '<td class="p-2 border-r border-slate-200/80 text-center font-mono">-</td>' +
-                        '<td class="p-2 border-r border-slate-200/80 text-center font-mono">0001</td>' +
-                        '<td class="p-2 border-r border-slate-200/80 text-center font-mono">0001</td>' +
-                        '<td class="p-2 border-r border-slate-200/80 text-center font-mono">ZMG1</td>' +
-                        '<td class="p-2 border-r border-slate-200/80 text-center font-mono">-</td>' +
-                        '<td class="p-2 border-r border-slate-200/80 text-center font-mono">X</td>' +
-                        '<td class="p-2 border-r border-slate-200/80 text-center font-mono">200301</td>' +
-                        '<td class="p-2 border-r border-slate-200/80 text-center font-mono">' + bklas + '</td>' +
-                        '<td class="p-2 border-r border-slate-200/80 text-center font-mono">1.14</td>' +
-                        '<td class="p-2 border-r border-slate-200/80 text-center font-mono">0</td>' +
-                        '<td class="p-2 border-r border-slate-200/80 text-center font-mono">1</td>' +
-                        '<td class="p-2 border-r border-slate-200/80 text-center font-mono">S</td>' +
-                        '<td class="p-2 border-r border-slate-200/80 text-center font-mono">0</td>' +
-                        '<td class="p-2 border-r border-slate-200/80 text-center font-mono">0</td>' +
-                        '<td class="p-2 border-r border-slate-200/80 text-center font-mono">-</td>' +
-                        '<td class="p-2 border-r border-slate-200/80 text-center font-mono">0</td>' +
-                        '<td class="p-2 border-r border-slate-200/80 text-center font-mono">-</td>' +
-                        '<td class="p-2 border-r border-slate-200/80 text-center font-mono">-</td>' +
-                        '<td class="p-2 border-r border-slate-200/80 text-center font-mono">-</td>' +
-                        '<td class="p-2 border-r border-slate-200/80 text-center font-bold text-[10px]">' + (item.status || item.STATUS || 'SUBMITTED') + '</td>';
+                        rowHtml += '<td class="p-2 border-r border-slate-200/80 text-center' + extraClass + '">' + cellVal + '</td>';
+                    }
+                    rowHtml += '<td class="p-2 border-r border-slate-200/80 text-center font-bold text-[10px]">' + (item.status || item.STATUS || 'SUBMITTED') + '</td>';
+                    tr.innerHTML = rowHtml;
+                }
                 } else {
                     var rawGroes = item.groes || item.GROES || "";
                     var rough = parseRoughSizeDetail(rawGroes);
@@ -583,10 +566,10 @@
                         fl = fp[2] ? fp[2].trim().replace('.', ',') : "-";
                     }
 
-                    tr.innerHTML = '<td class="p-2 border-r border-slate-200/80 text-center font-extrabold text-slate-800 sticky-col-1 bg-white">' + (item.posnr || (idx+1)*10) + '</td>' +
-                        '<td class="p-2 border-r border-slate-200/80 text-center sticky-col-2 bg-white"><span class="px-2 py-0.5 rounded text-[11px] ' + codeBadge + '">' + codeNum + '</span></td>' +
-                        '<td class="p-2 border-r border-slate-200/80 font-mono font-bold text-emerald-900 bg-emerald-50/30 sticky-col-3 bg-white">' + (item.matnr || item.MATNR || '-') + '</td>' +
-                        '<td class="p-2 border-r border-slate-200/80 font-semibold text-slate-900 sticky-col-4 bg-white">' + (item.maktx || item.MAKTX || '-') + '</td>' +
+                    tr.innerHTML = '<td class="p-2 border-r border-slate-200/80 text-center font-extrabold text-slate-800">' + (item.posnr || (idx+1)*10) + '</td>' +
+                        '<td class="p-2 border-r border-slate-200/80 text-center"><span class="px-2 py-0.5 rounded text-[11px] ' + codeBadge + '">' + codeNum + '</span></td>' +
+                        '<td class="p-2 border-r border-slate-200/80 font-mono font-bold text-emerald-900 bg-emerald-50/30">' + (item.matnr || item.MATNR || '-') + '</td>' +
+                        '<td class="p-2 border-r border-slate-200/80 font-semibold text-slate-900">' + (item.maktx || item.MAKTX || '-') + '</td>' +
                         '<td class="p-1.5 border-r border-sky-200 bg-sky-50/40 text-center font-mono font-bold text-red-600">' + rough.t1 + '</td>' +
                         '<td class="p-1.5 border-r border-sky-200 bg-sky-50/40 text-center font-mono font-bold text-sky-950">' + rough.t2 + '</td>' +
                         '<td class="p-1.5 border-r border-sky-200 bg-sky-50/40 text-center font-mono font-bold text-red-600">' + rough.w1 + '</td>' +
@@ -840,6 +823,114 @@
             });
         }
 
+        function getProfitCenterFromBackend(item) {
+            if (item.prctr || item.PRCTR) return item.prctr || item.PRCTR;
+            if (item.profit_center || item.PROFIT_CENTER) return item.profit_center || item.PROFIT_CENTER;
+
+            var werks = item.plant || item.PLANT || item.werks || item.WERKS || '';
+            if (!werks) return '';
+
+            try {
+                var plantEl = document.getElementById("plant-data");
+                if (plantEl && plantEl.textContent) {
+                    var plantList = JSON.parse(plantEl.textContent);
+                    var found = plantList.find(function(p) { return p.code === werks; });
+                    if (found && found.prctr) return found.prctr;
+                }
+            } catch(e) {}
+
+            return '';
+        }
+
+        function buildSapRowArray(item) {
+            var row = new Array(134);
+            for (var i = 0; i < 134; i++) { row[i] = null; }
+
+            var rawM = item.matnr || item.MATNR || '';
+            var gVal = item.groes || item.GROES || '';
+            var gFinVal = item.groes_fin || item.GROES_FIN || '';
+            var cleanM = (rawM && rawM !== '-' && rawM !== gVal &&
+                          rawM !== gFinVal && rawM.indexOf('x') === -1) ? rawM : "";
+
+            row[0]   = cleanM;
+            row[1]   = "F";
+            row[2]   = item.bismt || item.BISMT || "";
+            row[3]   = item.material_type || item.MATERIAL_TYPE || item.mtart || item.MTART || "";
+            row[4]   = item.material_group || item.MATERIAL_GROUP || item.matkl || item.MATKL || "HSF004";
+            row[5]   = item.satuan || item.SATUAN || item.meins || item.MEINS || "PC";
+            row[6]   = item.description || item.DESCRIPTION || item.maktx || item.MAKTX || "";
+            row[7]   = "M3";
+            row[8]   = "NORM";
+            row[10]  = item.wrkst || item.WRKST || item.basic_material || item.BASIC_MATERIAL || "";
+            row[11]  = 0;
+            row[12]  = item.groes_fin || item.GROES_FIN || item.groes || item.GROES || "";
+            row[13]  = item.plant || item.PLANT || item.werks || item.WERKS || "";
+            row[14]  = item.sloc1 || item.SLOC1 || item.lgort1 || item.LGORT1 || "";
+            row[19]  = "ID";
+            row[20]  = 1;
+            row[21]  = "MWST";
+            row[22]  = "NORM";
+            row[29]  = "0001";
+            row[30]  = "0001";
+            row[31]  = "ZMG1";
+            row[33]  = "X";
+            row[34]  = getProfitCenterFromBackend(item);
+            row[35]  = item.bklas || item.BKLAS || "7920";
+            row[36]  = 0;
+            row[37]  = 0;
+            row[38]  = 1;
+            row[39]  = "S";
+            row[40]  = 0;
+            row[41]  = 0;
+            row[43]  = 0;
+            row[44]  = "0,000";
+            row[45]  = "0,000";
+            row[46]  = "0,000";
+            row[48]  = 0;
+            row[49]  = "KG";
+            row[50]  = 0;
+            row[51]  = 0;
+            row[58]  = "PD";
+            row[59]  = item.mrp_group || item.MRP_GROUP || item.disgr || item.DISGR || "";
+            row[60]  = item.mrp_ctrl || item.MRP_CTRL || item.dispo || item.DISPO || "";
+            row[61]  = "EX";
+            row[65]  = "E";
+            row[67]  = 1;
+            row[68]  = 0;
+            row[70]  = 0;
+            row[71]  = 0;
+            row[73]  = 20;
+            row[77]  = "M";
+            row[78]  = "C1";
+            row[79]  = "KP";
+            row[81]  = 1;
+            row[83]  = item.lgort1 || item.LGORT1 || item.sloc1 || item.SLOC1 || "";
+            row[84]  = item.lgort2 || item.LGORT2 || item.sloc2 || item.SLOC2 || "";
+            row[86]  = 0;
+            row[87]  = "2,0";
+            row[89]  = "X";
+            row[90]  = "X";
+            row[91]  = "100,000";
+            row[94]  = "0001";
+            row[95]  = "04";
+            row[96]  = "X";
+            row[100] = "X";
+            row[101] = "X";
+            row[102] = "X";
+            row[103] = "X";
+            row[104] = "X";
+            row[106] = 0;
+            row[108] = "X";
+            row[109] = "X";
+            row[111] = "X";
+            row[112] = 0;
+            row[114] = "06";
+            row[115] = 6;
+            row[118] = "X";
+
+            return row;
+        }
+
         function exportSapMainTemplate() {
             if (!currentStagingData || currentStagingData.length === 0) {
                 showToast("Tidak ada data staging untuk di-export.", "error");
@@ -876,95 +967,14 @@
                 "Inspect by Characteristics", "Post to Inspection Stock", "Automatic Usage Decision Planned", "Sampling Procedure", "Dynamic Modification Rule",
                 "Inspection Percentage", "100% Inspection", "Skips Allowed", "Enter the Sample Manually", "Trigger Sample Calculation Manually",
                 "Serial Number Management Possible", "Average Inspection Duration", "Control of Inspection Lot Creation (Lot Summary)", "Procedure for Calculating Quality Score", "Allowed Share of Scrap (Percent) in Inspection Lot",
-                "Record Appraisal Costs in Individual QM Order", "Order Number for Recording Appraisal Costs", "Preferred Inspection Type", "Inspection types to be deleted (QM ALE distribution)", "Long Material Number for MATERIAL Field",
+                "Record Appraisal Costs in Individual QM Order", "Order Number for Recording Appraisal Costs", "Preferred Inspection Type", "Inspection types to be deleted  (QM ALE distributi", "Long Material Number for MATERIAL Field",
                 "External GUID for MATERIAL Field", "Version Number for MATERIAL Field", "Inspection for Handling Unit", "Indicator: Multiple Specifications"
             ];
 
             var rows = [mainHeaders];
 
             currentStagingData.forEach(function(item) {
-                var row = new Array(134);
-                for (var i = 0; i < 134; i++) { row[i] = null; }
-
-                var rawM = item.matnr || item.MATNR || '';
-                var gVal = item.groes || item.GROES || '';
-                var gFinVal = item.groes_fin || item.GROES_FIN || '';
-                var cleanM = (rawM && rawM !== '-' && rawM !== gVal &&
-                              rawM !== gFinVal && rawM.indexOf('x') === -1) ? rawM : "";
-
-                row[0]   = cleanM;
-                row[1]   = "F";
-                row[2]   = item.bismt || item.BISMT || "";
-                row[3]   = item.material_type || item.MATERIAL_TYPE || item.mtart || item.MTART || "";
-                row[4]   = item.material_group || item.MATERIAL_GROUP || item.matkl || item.MATKL || "HSF004";
-                row[5]   = item.satuan || item.SATUAN || item.meins || item.MEINS || "PC";
-                row[6]   = item.description || item.DESCRIPTION || item.maktx || item.MAKTX || "";
-                row[7]   = "M3";
-                row[8]   = "NORM";
-                row[10]  = 0;
-                row[11]  = 0;
-                row[12]  = item.groes_fin || item.GROES_FIN || item.groes || item.GROES || "";
-                row[13]  = item.plant || item.PLANT || item.werks || item.WERKS || "";
-                row[14]  = item.sloc1 || item.SLOC1 || item.lgort1 || item.LGORT1 || "";
-                row[19]  = "ID";
-                row[20]  = 1;
-                row[21]  = "MWST";
-                row[22]  = "NORM";
-                row[29]  = "0001";
-                row[30]  = "0001";
-                row[31]  = "ZMG1";
-                row[33]  = "X";
-                row[34]  = 200301;
-                row[35]  = item.bklas || item.BKLAS || "7920";
-                row[36]  = 1.14;
-                row[37]  = 0;
-                row[38]  = 1;
-                row[39]  = "S";
-                row[40]  = 0;
-                row[41]  = 0;
-                row[43]  = 0;
-                row[48]  = 0;
-                row[49]  = "KG";
-                row[50]  = 0;
-                row[51]  = 0;
-                row[58]  = "PD";
-                row[59]  = item.mrp_group || item.MRP_GROUP || item.disgr || item.DISGR || "";
-                row[60]  = item.mrp_ctrl || item.MRP_CTRL || item.dispo || item.DISPO || "";
-                row[61]  = "EX";
-                row[65]  = "E";
-                row[67]  = 1;
-                row[68]  = 0;
-                row[70]  = 0;
-                row[71]  = 0;
-                row[73]  = 20;
-                row[77]  = "M";
-                row[78]  = "C1";
-                row[79]  = "KP";
-                row[81]  = 1;
-                row[83]  = item.sloc1 || item.SLOC1 || item.lgort1 || item.LGORT1 || "";
-                row[84]  = item.sloc2 || item.SLOC2 || item.lgort2 || item.LGORT2 || "";
-                row[86]  = 0;
-                row[87]  = 0;
-                row[89]  = "X";
-                row[90]  = "X";
-                row[91]  = 100;
-                row[94]  = "0001";
-                row[95]  = "4";
-                row[96]  = "X";
-                row[100] = "X";
-                row[101] = "X";
-                row[102] = "X";
-                row[103] = "X";
-                row[104] = "X";
-                row[106] = 0;
-                row[108] = "X";
-                row[109] = "X";
-                row[111] = "X";
-                row[112] = 0;
-                row[114] = "06";
-                row[115] = 6;
-                row[118] = "X";
-
+                var row = buildSapRowArray(item);
                 rows.push(row);
             });
 

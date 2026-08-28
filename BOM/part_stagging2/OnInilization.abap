@@ -2,8 +2,10 @@
 * Event Handler : OnInitialization (Staging Preparation Page)
 *----------------------------------------------------------------------*
 TYPES: BEGIN OF ty_json_item,
-         code TYPE string,
-         name TYPE string,
+         code  TYPE string,
+         name  TYPE string,
+         prctr TYPE string,
+         bklas TYPE string,
        END OF ty_json_item.
 
 DATA: lt_plants     TYPE TABLE OF t001w,
@@ -22,8 +24,13 @@ CLEAR: lt_plants, lt_plant_json.
 SELECT werks, name1 FROM t001w INTO CORRESPONDING FIELDS OF TABLE @lt_plants.
 LOOP AT lt_plants INTO ls_plant.
   CLEAR ls_json_item.
-  ls_json_item-code = ls_plant-werks.
-  ls_json_item-name = COND #( WHEN ls_plant-name1 IS NOT INITIAL THEN ls_plant-name1 ELSE ls_plant-werks ).
+  ls_json_item-code  = ls_plant-werks.
+  ls_json_item-name  = COND #( WHEN ls_plant-name1 IS NOT INITIAL THEN ls_plant-name1 ELSE ls_plant-werks ).
+  ls_json_item-prctr = SWITCH #( ls_plant-werks
+                                 WHEN '1000' THEN '100301'
+                                 WHEN '2000' THEN '200301'
+                                 WHEN '1200' THEN '2002012'
+                                 ELSE '' ).
   APPEND ls_json_item TO lt_plant_json.
 ENDLOOP.
 
@@ -35,8 +42,9 @@ CLEAR: lt_matkl_tab, lt_matkl_json.
 SELECT matkl, wgbez FROM t023t WHERE spras = @sy-langu INTO CORRESPONDING FIELDS OF TABLE @lt_matkl_tab.
 LOOP AT lt_matkl_tab INTO ls_matkl_item.
   CLEAR ls_json_item.
-  ls_json_item-code = ls_matkl_item-matkl.
-  ls_json_item-name = COND #( WHEN ls_matkl_item-wgbez IS NOT INITIAL THEN ls_matkl_item-wgbez ELSE ls_matkl_item-matkl ).
+  ls_json_item-code  = ls_matkl_item-matkl.
+  ls_json_item-name  = COND #( WHEN ls_matkl_item-wgbez IS NOT INITIAL THEN ls_matkl_item-wgbez ELSE ls_matkl_item-matkl ).
+  ls_json_item-bklas = COND #( WHEN ls_matkl_item-matkl = 'HSF009' THEN 'SFS1' ELSE 'SF01' ).
   APPEND ls_json_item TO lt_matkl_json.
 ENDLOOP.
 

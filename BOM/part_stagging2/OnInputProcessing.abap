@@ -274,14 +274,11 @@ CASE event.
       <ls_row>-postp = 'L'.
       <ls_row>-peinh = '1'.
 
-      CASE lv_row_mtart.
-        WHEN 'HALB'.
-          <ls_row>-bklas = '7920'.
-        WHEN 'ZR01' OR 'ZR02' OR 'ROH'.
-          <ls_row>-bklas = '3000'.
-        WHEN OTHERS.
-          <ls_row>-bklas = '7920'.
-      ENDCASE.
+      IF <ls_row>-matkl = 'HSF009'.
+        <ls_row>-bklas = 'SFS1'.
+      ELSE.
+        <ls_row>-bklas = 'SF01'.
+      ENDIF.
 
       IF <ls_row>-meins IS INITIAL. <ls_row>-meins = 'PC'. ENDIF.
 

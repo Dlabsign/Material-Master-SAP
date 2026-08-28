@@ -1026,7 +1026,47 @@ transition">
                 renderHistoryTable();
             }
 
-            function renderHistoryTable() {
+            function formatSapDate(rawDate) {
+            if (!rawDate || rawDate === '-' || rawDate.toString().trim() === '') return '-';
+            var clean = rawDate.toString().trim();
+            if (clean.indexOf('-') !== -1) {
+                var parts = clean.split('T')[0].split('-');
+                if (parts.length === 3) {
+                    var yyyy = parts[0];
+                    var mm = parts[1].length === 1 ? '0' + parts[1] : parts[1];
+                    var dd = parts[2].length === 1 ? '0' + parts[2] : parts[2];
+                    return dd + '/' + mm + '/' + yyyy;
+                }
+            }
+            var numOnly = clean.replace(/\D/g, '');
+            if (numOnly.length >= 8) {
+                var yyyy = numOnly.substring(0, 4);
+                var mm = numOnly.substring(4, 6);
+                var dd = numOnly.substring(6, 8);
+                return dd + '/' + mm + '/' + yyyy;
+            }
+            return clean;
+        }
+
+        function formatSapTime(rawTime) {
+            if (!rawTime || rawTime.toString().trim() === '') return '';
+            var clean = rawTime.toString().trim();
+            if (clean.indexOf(':') !== -1) {
+                var parts = clean.split(':');
+                var hh = parts[0].length === 1 ? '0' + parts[0] : parts[0];
+                var mm = parts[1].length === 1 ? '0' + parts[1] : parts[1];
+                return hh + ':' + mm;
+            }
+            var numOnly = clean.replace(/\D/g, '');
+            if (numOnly.length >= 4) {
+                var hh = numOnly.substring(0, 2);
+                var mm = numOnly.substring(2, 4);
+                return hh + ':' + mm;
+            }
+            return clean;
+        }
+
+        function renderHistoryTable() {
                 const tbody = document.getElementById("historyTableBody");
                 if (!tbody) return;
 
@@ -1063,8 +1103,8 @@ transition">
                     const tr = document.createElement("tr");
                     tr.className = "hover:bg-slate-50/80 transition-colors";
 
-                    const formattedDate = item.erdat ? (item.erdat.substring(6,8) + '/' + item.erdat.substring(4,6) + '/' + item.erdat.substring(0,4)) : "-";
-                    const formattedTime = item.ertim ? (item.ertim.substring(0,2) + ':' + item.ertim.substring(2,4)) : "";
+                    const formattedDate = formatSapDate(item.erdat);
+                    const formattedTime = formatSapTime(item.ertim);
                     const dateTimeStr = formattedDate + (formattedTime ? ' ' + formattedTime : '');
 
                     const stUpper = (item.status || 'DRAFT').toUpperCase();
