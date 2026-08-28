@@ -2,7 +2,7 @@
 * Event Handler : OnInputProcessing (Staging Process & Binding Engine)
 *----------------------------------------------------------------------*
 DATA: event              TYPE string,
-      lv_upload_id       TYPE zbom_stg_part-upload_id,
+      lv_upload_id       TYPE string,
       lv_mtart           TYPE mtart,
       lv_matkl           TYPE matkl,
       lv_werks           TYPE werks_d,
@@ -16,28 +16,26 @@ event = event_id.
 CASE event.
 
   " -------------------------------------------------------------------
-  " 1. GET HISTORY BATCH UPLOAD
+  " 1. GET HISTORY BATCH UPLOAD DARI ZBOM_STG_HDR
   " -------------------------------------------------------------------
   WHEN 'GET_HISTORY'.
     TYPES: BEGIN OF ty_history,
-             upload_id TYPE zbom_stg_part-upload_id,
-             filename  TYPE zbom_stg_part-filename,
-             erdat     TYPE zbom_stg_part-erdat,
-             ertim     TYPE zbom_stg_part-ertim,
-             ernam     TYPE zbom_stg_part-ernam,
-             status    TYPE zbom_stg_part-status,
-             total_row TYPE i,
+             upload_id TYPE zbom_stg_hdr-upload_id,
+             filename  TYPE zbom_stg_hdr-filename,
+             erdat     TYPE zbom_stg_hdr-erdat,
+             ertim     TYPE zbom_stg_hdr-ertim,
+             ernam     TYPE zbom_stg_hdr-ernam,
+             status    TYPE zbom_stg_hdr-status,
+             total_row TYPE zbom_stg_hdr-total_items,
            END OF ty_history.
 
     DATA: lt_history  TYPE TABLE OF ty_history,
           lv_json_his TYPE string.
 
-    SELECT upload_id, filename, erdat, ertim, ernam, status, COUNT( * ) AS total_row
-      FROM zbom_stg_part
-      WHERE upload_id IS NOT INITIAL AND upload_id <> ''
-      GROUP BY upload_id, filename, erdat, ertim, ernam, status
+    SELECT upload_id, filename, erdat, ertim, ernam, status, total_items AS total_row
+      FROM zbom_stg_hdr
       ORDER BY erdat DESCENDING, ertim DESCENDING
-      INTO TABLE @lt_history.
+      INTO CORRESPONDING FIELDS OF TABLE @lt_history.
 
     _m_response->set_header_field( name = 'Content-Type' value = 'application/json' ).
     /ui2/cl_json=>serialize(
@@ -77,48 +75,12 @@ CASE event.
     lv_matkl     = request->get_form_field( 'MATKL' ).
     lv_werks     = request->get_form_field( 'WERKS' ).
 
-    IF lv_upload_id IS INITIAL OR lv_mtart IS INITIAL OR lv_matkl IS INITIAL OR lv_werks IS INITIAL.
+    IF lv_upload_id IS INITIAL.
       _m_response->set_header_field( name = 'Content-Type' value = 'application/json' ).
-      _m_response->set_cdata( '{"status":"ERROR","message":"Batch Upload, Material Type, Group, dan Plant wajib diisi!"}' ).
+      _m_response->set_cdata( '{"status":"ERROR","message":"Batch Upload wajib diisi!"}' ).
       navigation->response_complete( ).
       RETURN.
     ENDIF.
-
-    " A. PENENTUAN KODE PREFIX BERDASARKAN MATERIAL TYPE (MTART)
-    CLEAR lv_prefix.
-
-    CASE lv_mtart.
-      " KODE DEPAN 1000...
-      WHEN 'ZR01' OR 'ZR02'.
-        lv_prefix = '1000'.
-
-      " KODE DEPAN 2000...
-      WHEN 'HALB'.
-        lv_prefix = '2000'.
-
-      " KODE DEPAN 3000...
-      WHEN 'FERT'.
-        lv_prefix = '3000'.
-
-      " KODE DEPAN 4000...
-      WHEN 'ZR03' OR 'ZR04' OR 'ZR05' OR 'ZR06' OR 'ZR07' OR 'ZR08' OR 'ZR09'.
-        lv_prefix = '4000'.
-
-      " KODE DEPAN 5000...
-      WHEN 'ZOS1' OR 'ZOS2' OR 'ZOS3' OR 'VERP'.
-        lv_prefix = '5000'.
-
-      " KODE DEPAN 6000...
-      WHEN 'ERSA' OR 'FHMI'.
-        lv_prefix = '6000'.
-
-      " KODE DEPAN 7000...
-      WHEN 'NLAG'.
-        lv_prefix = '7000'.
-
-      WHEN OTHERS.
-        lv_prefix = '6000'.
-    ENDCASE.
 
     " B. Fetch Data Staging Batch Saat Ini
     SELECT * FROM zbom_stg_part
@@ -133,28 +95,20 @@ CASE event.
       RETURN.
     ENDIF.
 
-    " C. BACA AKTUAL DB: BACA SELURUH KODE TERPAKAI DI MARA & STAGING LAIN (PERBAIKAN TYPE & QUERY)
+    " C. BACA AKTUAL DB: BACA SELURUH KODE TERPAKAI DI MARA & STAGING LAIN
     DATA: lt_used_matnr TYPE HASHED TABLE OF string WITH UNIQUE KEY table_line,
-          lv_like_mara  TYPE string,
-          lv_like_stg   TYPE string,
           lv_matnr_ext  TYPE string.
 
-    lv_like_mara = '%0000' && lv_prefix && '%'.
-    lv_like_stg  = lv_prefix && '%'.
-
-    " 1. Ambil nomor dari MARA
+    " Ambil nomor dari MARA
     SELECT matnr FROM mara
-      WHERE matnr LIKE @lv_like_mara OR matnr LIKE @lv_like_stg
       INTO TABLE @DATA(lt_mara_exist).
 
-    " 2. Ambil nomor dari ZBOM_STG_PART (Hanya batch aktif, mengabaikan status CANCEL/REJECT/DRAFT)
+    " Ambil nomor dari ZBOM_STG_PART
     SELECT matnr FROM zbom_stg_part
       WHERE upload_id <> @lv_upload_id
-        AND matnr LIKE @lv_like_stg
-        AND status IN ( 'CODE_BOUND', 'READY_SAP', 'SUCCESS', 'COMPLETED' )
       INTO TABLE @DATA(lt_stg_exist).
 
-    " 3. Normalisasi ke String Clean (Mencegah mismatch padding spasi)
+    " Normalisasi ke String Clean
     LOOP AT lt_mara_exist INTO DATA(ls_m).
       CLEAR lv_matnr_ext.
       CALL FUNCTION 'CONVERSION_EXIT_MATN1_OUTPUT'
@@ -199,7 +153,7 @@ CASE event.
       ENDIF.
     ENDLOOP.
 
-    " D. GAP FILLING ENGINE (+1 INCREMENTAL DARI KODE TERKECIL)
+    " D. GENERATE KODE MATERIAL VIA FUNCTION MODULE ZFM_CHECK_MATERIAL
     TYPES: BEGIN OF ty_parent_map,
              posnr TYPE posnr_acc,
              matnr TYPE matnr,
@@ -210,34 +164,100 @@ CASE event.
           lv_seq        TYPE i,
           lv_first_code TYPE matnr,
           lv_found_code TYPE matnr,
-          lv_cand_str   TYPE string.
+          lv_cand_str   TYPE string,
+          lv_row_mtart  TYPE mtart,
+          lv_row_prefix TYPE string,
+          lv_is_avail   TYPE char1,
+          lv_next_num   TYPE matnr_ext,
+          lt_chk_ret    TYPE TABLE OF bapiret2.
 
     LOOP AT lt_detail ASSIGNING FIELD-SYMBOL(<ls_row>).
-      CLEAR: lv_found_code, lv_cand_str.
+      CLEAR: lv_found_code, lv_cand_str, lv_row_prefix, lv_is_avail, lv_next_num, lt_chk_ret.
 
-      lv_seq = 1.
+      IF <ls_row>-mtart IS NOT INITIAL.
+        lv_row_mtart = <ls_row>-mtart.
+      ELSEIF lv_mtart IS NOT INITIAL.
+        lv_row_mtart = lv_mtart.
+      ELSE.
+        lv_row_mtart = 'HALB'.
+      ENDIF.
 
-      DO 9999 TIMES.
-        " Format kandidat 8-digit murni (Contoh: 40000001)
-        lv_cand_str = |{ lv_prefix }{ lv_seq WIDTH = 4 PAD = '0' }|.
+      " 1. PANGGIL FUNCTION MODULE ZFM_CHECK_MATERIAL UNTUK CHECK & GENERATE KODE
+      CALL FUNCTION 'ZFM_CHECK_MATERIAL'
+        EXPORTING
+          iv_mtart        = lv_row_mtart
+        IMPORTING
+          ev_is_available = lv_is_avail
+          ev_next_number  = lv_next_num
+          et_return       = lt_chk_ret.
 
-        " Pengecekan O(1) di Hash Table Memori
-        READ TABLE lt_used_matnr WITH KEY table_line = lv_cand_str TRANSPORTING NO FIELDS.
-        IF sy-subrc <> 0.
-          " Nomor kosong terkecil ditemukan!
-          lv_found_code = lv_cand_str.
-
-          " Daftarkan ke Hash Table agar baris berikutnya memakai urutan +1
-          INSERT lv_cand_str INTO TABLE lt_used_matnr.
-          EXIT.
+      IF lv_next_num IS NOT INITIAL.
+        " Normalisasi nomor ke clean string jika diperlukan
+        CALL FUNCTION 'CONVERSION_EXIT_MATN1_OUTPUT'
+          EXPORTING input  = lv_next_num
+          IMPORTING output = lv_cand_str
+          EXCEPTIONS OTHERS = 1.
+        IF sy-subrc <> 0 OR lv_cand_str IS INITIAL.
+          lv_cand_str = lv_next_num.
         ENDIF.
+        SHIFT lv_cand_str LEFT DELETING LEADING '0'.
+        CONDENSE lv_cand_str NO-GAPS.
+      ENDIF.
 
-        lv_seq = lv_seq + 1.
-      ENDDO.
+      " 2. SAFETY CHECK ANTI-DUPLIKASI TERHADAP BATCH & MARA
+      IF lv_cand_str IS NOT INITIAL.
+        DO 100 TIMES.
+          READ TABLE lt_used_matnr WITH KEY table_line = lv_cand_str TRANSPORTING NO FIELDS.
+          IF sy-subrc <> 0.
+            " Nomor bebas & unik
+            lv_found_code = lv_cand_str.
+            INSERT lv_cand_str INTO TABLE lt_used_matnr.
+            EXIT.
+          ELSE.
+            " Increment nomor 1 tingkat jika sudah terpakai di batch/MARA
+            IF lv_cand_str CO '0123456789'.
+              DATA: lv_num_tmp TYPE string.
+              lv_num_tmp = CONV string( CONV i( lv_cand_str ) + 1 ).
+              CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
+                EXPORTING input  = lv_num_tmp
+                IMPORTING output = lv_cand_str.
+            ELSE.
+              CALL FUNCTION 'ZFM_CHECK_MATERIAL'
+                EXPORTING iv_mtart        = lv_row_mtart
+                IMPORTING ev_is_available = lv_is_avail
+                          ev_next_number  = lv_next_num
+                          et_return       = lt_chk_ret.
+              lv_cand_str = lv_next_num.
+            ENDIF.
+          ENDIF.
+        ENDDO.
+      ENDIF.
+
+      " 3. FALLBACK GENERATOR JIKA FM TIDAK MENGEMBALIKAN NOMOR (E.G. MOCK/DEV ENV)
+      IF lv_found_code IS INITIAL.
+        lv_seq = 1.
+        CASE lv_row_mtart.
+          WHEN 'ZR01' OR 'ZR02' OR 'ROH'.  lv_row_prefix = '1000'.
+          WHEN 'HALB'.                     lv_row_prefix = '2000'.
+          WHEN 'FERT'.                     lv_row_prefix = '3000'.
+          WHEN OTHERS.                     lv_row_prefix = '6000'.
+        ENDCASE.
+
+        DO 9999 TIMES.
+          lv_cand_str = |{ lv_row_prefix }{ lv_seq WIDTH = 4 PAD = '0' }|.
+          READ TABLE lt_used_matnr WITH KEY table_line = lv_cand_str TRANSPORTING NO FIELDS.
+          IF sy-subrc <> 0.
+            lv_found_code = lv_cand_str.
+            INSERT lv_cand_str INTO TABLE lt_used_matnr.
+            EXIT.
+          ENDIF.
+          lv_seq = lv_seq + 1.
+        ENDDO.
+      ENDIF.
 
       IF lv_found_code IS INITIAL.
         _m_response->set_header_field( name = 'Content-Type' value = 'application/json' ).
-        _m_response->set_cdata( '{"status":"ERROR","message":"Rentang Nomor Material SAP Sudah Penuh!"}' ).
+        _m_response->set_cdata( '{"status":"ERROR","message":"Gagal menggenerate nomor material dari ZFM_CHECK_MATERIAL!"}' ).
         navigation->response_complete( ).
         RETURN.
       ENDIF.
@@ -248,13 +268,13 @@ CASE event.
 
       " Assign Hasil Kode Material
       <ls_row>-matnr = lv_found_code.
-      <ls_row>-werks = lv_werks.
-      <ls_row>-matkl = lv_matkl.
-      <ls_row>-mtart = lv_mtart.
+      IF lv_werks IS NOT INITIAL AND <ls_row>-werks IS INITIAL. <ls_row>-werks = lv_werks. ENDIF.
+      IF lv_matkl IS NOT INITIAL AND <ls_row>-matkl IS INITIAL. <ls_row>-matkl = lv_matkl. ENDIF.
+      <ls_row>-mtart = lv_row_mtart.
       <ls_row>-postp = 'L'.
       <ls_row>-peinh = '1'.
 
-      CASE lv_mtart.
+      CASE lv_row_mtart.
         WHEN 'HALB'.
           <ls_row>-bklas = '7920'.
         WHEN 'ZR01' OR 'ZR02' OR 'ROH'.
@@ -264,9 +284,7 @@ CASE event.
       ENDCASE.
 
       IF <ls_row>-meins IS INITIAL. <ls_row>-meins = 'PC'. ENDIF.
-      <ls_row>-status = 'CODE_BOUND'.
 
-      " Simpan mapping Parent POSNR -> MATNR untuk pengikatan Child SF
       IF <ls_row>-code_num = 'PF'.
         ls_parent_map-posnr = <ls_row>-posnr.
         ls_parent_map-matnr = <ls_row>-matnr.
@@ -274,7 +292,7 @@ CASE event.
       ENDIF.
     ENDLOOP.
 
-    " Assign PARENT_MATNR ke anak komponen (SF) berdasarkan PARENT_POSNR
+    " Assign PARENT_MATNR ke anak komponen (SF)
     LOOP AT lt_detail ASSIGNING FIELD-SYMBOL(<ls_child>).
       IF <ls_child>-code_num <> 'PF' AND <ls_child>-parent_posnr IS NOT INITIAL.
         READ TABLE lt_parent_map WITH KEY posnr = <ls_child>-parent_posnr INTO ls_parent_map.
@@ -286,6 +304,12 @@ CASE event.
 
     " E. Simpan Hasil Binding ke Database
     MODIFY zbom_stg_part FROM TABLE @lt_detail.
+
+    " Update Status di ZBOM_STG_HDR
+    UPDATE zbom_stg_hdr
+       SET status      = 'CODE_BOUND'
+     WHERE upload_id   = @lv_upload_id.
+
     COMMIT WORK.
 
     " F. Return Result Payload JSON
@@ -305,9 +329,10 @@ CASE event.
     lv_upload_id = request->get_form_field( 'UPLOAD_ID' ).
 
     IF lv_upload_id IS NOT INITIAL.
-      UPDATE zbom_stg_part
-         SET status = 'READY_SAP'
-       WHERE upload_id = @lv_upload_id.
+      UPDATE zbom_stg_hdr
+         SET status      = 'READY_SAP',
+             approved_by = @sy-uname
+       WHERE upload_id   = @lv_upload_id.
       COMMIT WORK.
     ENDIF.
 
@@ -320,11 +345,14 @@ CASE event.
   " -------------------------------------------------------------------
   WHEN 'REJECT_STAGE'.
     lv_upload_id = request->get_form_field( 'UPLOAD_ID' ).
+    DATA(lv_reject_reason) = request->get_form_field( 'REASON' ).
 
     IF lv_upload_id IS NOT INITIAL.
-      UPDATE zbom_stg_part
-         SET status = 'REJECTED'
-       WHERE upload_id = @lv_upload_id.
+      UPDATE zbom_stg_hdr
+         SET status        = 'REJECTED',
+             rejected_by   = @sy-uname,
+             reject_reason = @lv_reject_reason
+       WHERE upload_id     = @lv_upload_id.
       COMMIT WORK.
     ENDIF.
 

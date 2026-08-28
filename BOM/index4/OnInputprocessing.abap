@@ -34,7 +34,7 @@ CASE event.
 
 
   " -------------------------------------------------------------------
-  " 2. SIMPAN MULTI-LINE DATA STAGING KE ZBOM_STG_PART
+  " 2. SIMPAN MULTI-LINE DATA STAGING KE ZBOM_STG_HDR & ZBOM_STG_PART
   " -------------------------------------------------------------------
   WHEN 'SAVE_STAGE'.
     req_id       = request->get_form_field( 'REQ_ID' ).
@@ -55,30 +55,57 @@ CASE event.
       TRY.
           lv_upload_id = cl_system_uuid=>create_uuid_c32_static( ).
         CATCH cx_uuid_error.
-          lv_upload_id = |UPL-{ sy-datum }-{ sy-uzeit }|.
+          lv_upload_id = |BOM-{ sy-datum }-{ sy-uzeit }|.
       ENDTRY.
     ENDIF.
 
-    DELETE FROM zbom_stg_part WHERE req_id = @req_id.
-
     lv_row_cnt = request->get_form_field( 'ROW_COUNT' ).
+
+    " 2A. SIMPAN HEADER BATCH UPLOAD KE ZBOM_STG_HDR
+    DATA: ls_stg_hdr TYPE zbom_stg_hdr.
+    CLEAR ls_stg_hdr.
+    ls_stg_hdr-mandt          = sy-mandt.
+    ls_stg_hdr-upload_id      = lv_upload_id.
+    ls_stg_hdr-req_id         = req_id.
+    ls_stg_hdr-filename       = lv_filename.
+    ls_stg_hdr-total_items    = lv_row_cnt.
+    ls_stg_hdr-status         = request->get_form_field( 'STATUS' ).
+    IF ls_stg_hdr-status IS INITIAL.
+      ls_stg_hdr-status = 'DRAFT'.
+    ENDIF.
+    ls_stg_hdr-ernam          = sy-uname.
+    ls_stg_hdr-erdat          = sy-datum.
+    ls_stg_hdr-ertim          = sy-uzeit.
+
+    MODIFY zbom_stg_hdr FROM @ls_stg_hdr.
+
+    " 2B. HAPUS & SIMPAN DETAIL LINE ITEMS KE ZBOM_STG_PART
+    DELETE FROM zbom_stg_part WHERE upload_id = @lv_upload_id.
 
     DO lv_row_cnt TIMES.
       lv_idx_str = sy-index.
       CONDENSE lv_idx_str.
 
       CLEAR ls_stg_item.
-      ls_stg_item-mandt     = sy-mandt.
-      ls_stg_item-req_id    = req_id.
-      ls_stg_item-upload_id = lv_upload_id.
+      ls_stg_item-mandt       = sy-mandt.
+      ls_stg_item-upload_id   = lv_upload_id.
+      ls_stg_item-req_id      = req_id.
 
-      lv_posnr              = sy-index * 10.
-      ls_stg_item-posnr     = lv_posnr.
+      lv_posnr                = sy-index * 10.
+      ls_stg_item-posnr       = lv_posnr.
 
       ls_stg_item-code_num     = request->get_form_field( 'code_num_' && lv_idx_str ).
       ls_stg_item-parent_posnr = request->get_form_field( 'parent_posnr_' && lv_idx_str ).
       ls_stg_item-matnr        = request->get_form_field( 'matnr_' && lv_idx_str ).
-      ls_stg_item-maktx        = request->get_form_field( 'maktx_' && lv_idx_str ).
+
+      DATA(lv_line_maktx)      = request->get_form_field( 'maktx_' && lv_idx_str ).
+      DATA(lv_line_desc)       = request->get_form_field( 'description_' && lv_idx_str ).
+      IF lv_line_desc IS NOT INITIAL.
+        ls_stg_item-maktx      = lv_line_desc.
+      ELSE.
+        ls_stg_item-maktx      = lv_line_maktx.
+      ENDIF.
+
       ls_stg_item-groes        = request->get_form_field( 'groes_' && lv_idx_str ).       " Rough Size
       ls_stg_item-groes_fin    = request->get_form_field( 'groes_fin_' && lv_idx_str ).   " Finish Size
 
@@ -87,9 +114,6 @@ CASE event.
       ls_stg_item-menge_ord    = request->get_form_field( 'menge_ord_' && lv_idx_str ).  " QTY Order
 
       ls_stg_item-meins        = request->get_form_field( 'meins_' && lv_idx_str ).
-      IF ls_stg_item-meins IS INITIAL.
-        ls_stg_item-meins = 'PC'.
-      ENDIF.
 
       ls_stg_item-vol_m3       = request->get_form_field( 'vol_m3_' && lv_idx_str ).     " M3
       ls_stg_item-wrkst        = request->get_form_field( 'wrkst_' && lv_idx_str ).      " Material
@@ -126,16 +150,8 @@ CASE event.
         ls_stg_item-matkl = request->get_form_field( 'MATKL' ).
       ENDIF.
 
-      ls_stg_item-postp        = 'L'.
-      ls_stg_item-peinh        = '1'.
-      ls_stg_item-filename     = lv_filename.
-      ls_stg_item-status       = request->get_form_field( 'STATUS' ).
-      IF ls_stg_item-status IS INITIAL.
-        ls_stg_item-status = 'DRAFT'.
-      ENDIF.
-      ls_stg_item-ernam        = sy-uname.
-      ls_stg_item-erdat        = sy-datum.
-      ls_stg_item-ertim        = sy-uzeit.
+      ls_stg_item-postp        = request->get_form_field( 'postp_' && lv_idx_str ).
+      ls_stg_item-peinh        = request->get_form_field( 'peinh_' && lv_idx_str ).
 
       IF ls_stg_item-maktx IS NOT INITIAL.
         APPEND ls_stg_item TO lt_stg_input.
@@ -152,35 +168,31 @@ CASE event.
     navigation->response_complete( ).
 
   " -------------------------------------------------------------------
-  " 3. GET RIWAYAT BATCH UPLOAD (WITH STATUS & REASON)
+  " 3. GET RIWAYAT BATCH UPLOAD DARI ZBOM_STG_HDR
   " -------------------------------------------------------------------
   WHEN 'GET_HISTORY'.
     TYPES: BEGIN OF ty_history,
-             upload_id     TYPE zbom_stg_part-upload_id,
-             filename      TYPE zbom_stg_part-filename,
-             erdat         TYPE zbom_stg_part-erdat,
-             ertim         TYPE zbom_stg_part-ertim,
-             ernam         TYPE zbom_stg_part-ernam,
-             status        TYPE zbom_stg_part-status,
-             sub_reason    TYPE string,
-             approved_by   TYPE zbom_stg_part-approved_by,
-             approved_at   TYPE zbom_stg_part-approved_at,
-             reject_reason TYPE zbom_stg_part-reject_reason,
-             total_row     TYPE i,
+             upload_id     TYPE zbom_stg_hdr-upload_id,
+             filename      TYPE zbom_stg_hdr-filename,
+             erdat         TYPE zbom_stg_hdr-erdat,
+             ertim         TYPE zbom_stg_hdr-ertim,
+             ernam         TYPE zbom_stg_hdr-ernam,
+             status        TYPE zbom_stg_hdr-status,
+             approved_by   TYPE zbom_stg_hdr-approved_by,
+             approved_at   TYPE zbom_stg_hdr-approved_at,
+             reject_reason TYPE zbom_stg_hdr-reject_reason,
+             sub_reason    TYPE zbom_stg_hdr-sub_reason,
+             total_row     TYPE zbom_stg_hdr-total_items,
            END OF ty_history.
 
     DATA: lt_history  TYPE TABLE OF ty_history,
           lv_json_his TYPE string.
 
-    SELECT upload_id, filename, erdat, ertim, ernam, status,
-           approved_by, approved_at, reject_reason,
-           MIN( note ) AS sub_reason,
-           COUNT( * ) AS total_row
-      FROM zbom_stg_part
-      WHERE upload_id IS NOT INITIAL AND upload_id <> ''
-      GROUP BY upload_id, filename, erdat, ertim, ernam, status, approved_by, approved_at, reject_reason
+    SELECT upload_id, filename, erdat, ertim, ernam, status, approved_by,
+           approved_at, reject_reason, sub_reason, total_items AS total_row
+      FROM zbom_stg_hdr
       ORDER BY erdat DESCENDING, ertim DESCENDING
-      INTO TABLE @lt_history.
+      INTO CORRESPONDING FIELDS OF TABLE @lt_history.
 
     /ui2/cl_json=>serialize(
       EXPORTING
@@ -194,7 +206,7 @@ CASE event.
     navigation->response_complete( ).
 
   " -------------------------------------------------------------------
-  " 4. GET DETAIL UPLOAD BERDASARKAN UPLOAD_ID (FIX SINTAKS SQL: ASC)
+  " 4. GET DETAIL UPLOAD BERDASARKAN UPLOAD_ID
   " -------------------------------------------------------------------
   WHEN 'GET_UPLOAD_DETAIL'.
     DATA: lt_detail   TYPE TABLE OF zbom_stg_part,
@@ -236,7 +248,7 @@ CASE event.
     IF lv_upload_id IS NOT INITIAL AND lv_new_st IS NOT INITIAL.
       lv_app_at = |{ sy-datum }{ sy-uzeit }|.
 
-      UPDATE zbom_stg_part
+      UPDATE zbom_stg_hdr
         SET status        = @lv_new_st,
             reject_reason = @lv_rej_rsn,
             approved_by   = @sy-uname,
@@ -251,7 +263,99 @@ CASE event.
     navigation->response_complete( ).
 
   " -------------------------------------------------------------------
-  " 6. LOGOUT
+  " 6. SEARCH MARA RECORDS
+  " -------------------------------------------------------------------
+  WHEN 'SEARCH_MARA'.
+    DATA: lv_str_matnr     TYPE string,
+          lv_str_maktx     TYPE string,
+          lv_str_mtart     TYPE string,
+          lv_str_matkl     TYPE string,
+          lv_filter_matnr  TYPE char40,
+          lv_filter_maktx  TYPE char40,
+          lv_filter_mtart  TYPE mara-mtart,
+          lv_filter_matkl  TYPE char10,
+          lv_pattern_matnr TYPE char50,
+          lv_pattern_maktx TYPE char50,
+          lv_pattern_matkl TYPE char20,
+          lv_matnr_padded  TYPE mara-matnr.
+
+    TYPES: BEGIN OF ty_mara_res,
+             matnr  TYPE mara-matnr,
+             maktx  TYPE makt-maktx,
+             werks  TYPE marc-werks,
+             disgr  TYPE marc-disgr,
+             dispo  TYPE marc-dispo,
+             lgort1 TYPE marc-lgpro,
+             lgort2 TYPE marc-lgfsb,
+             mtart  TYPE mara-mtart,
+             matkl  TYPE mara-matkl,
+             meins  TYPE mara-meins,
+             bismt  TYPE mara-bismt,
+             mbrsh  TYPE mara-mbrsh,
+             spart  TYPE mara-spart,
+           END OF ty_mara_res.
+
+    DATA: lt_mara_res TYPE TABLE OF ty_mara_res.
+
+    lv_str_matnr = request->get_form_field( 'FILTER_MATNR' ).
+    lv_str_maktx = request->get_form_field( 'FILTER_MAKTX' ).
+    lv_str_mtart = request->get_form_field( 'FILTER_MTART' ).
+    lv_str_matkl = request->get_form_field( 'FILTER_MATKL' ).
+
+    TRANSLATE lv_str_matnr TO UPPER CASE.
+    TRANSLATE lv_str_maktx TO UPPER CASE.
+    TRANSLATE lv_str_mtart TO UPPER CASE.
+    TRANSLATE lv_str_matkl TO UPPER CASE.
+
+    CONDENSE lv_str_matnr.
+    CONDENSE lv_str_maktx.
+    CONDENSE lv_str_mtart.
+    CONDENSE lv_str_matkl.
+
+    lv_filter_matnr = lv_str_matnr.
+    lv_filter_maktx = lv_str_maktx.
+    lv_filter_mtart = lv_str_mtart.
+    lv_filter_matkl = lv_str_matkl.
+
+    IF lv_filter_matnr IS NOT INITIAL.
+      CONCATENATE '%' lv_str_matnr '%' INTO lv_pattern_matnr.
+      IF lv_str_matnr CO '0123456789'.
+        lv_matnr_padded = lv_str_matnr.
+        CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
+          EXPORTING
+            input  = lv_matnr_padded
+          IMPORTING
+            output = lv_matnr_padded.
+      ENDIF.
+    ENDIF.
+
+    IF lv_filter_maktx IS NOT INITIAL.
+      CONCATENATE '%' lv_str_maktx '%' INTO lv_pattern_maktx.
+    ENDIF.
+
+    IF lv_filter_matkl IS NOT INITIAL.
+      CONCATENATE '%' lv_str_matkl '%' INTO lv_pattern_matkl.
+    ENDIF.
+
+    SELECT a~matnr, b~maktx, c~werks, c~disgr, c~dispo, c~lgpro AS lgort1, c~lgfsb AS lgort2,
+           a~mtart, a~matkl, a~meins, a~bismt, a~mbrsh, a~spart
+      FROM mara AS a
+      LEFT OUTER JOIN makt AS b ON a~matnr = b~matnr AND b~spras = @sy-langu
+      LEFT OUTER JOIN marc AS c ON a~matnr = c~matnr
+      WHERE ( @lv_filter_matnr IS INITIAL OR a~matnr LIKE @lv_pattern_matnr OR ( @lv_matnr_padded IS NOT INITIAL AND a~matnr = @lv_matnr_padded ) )
+        AND ( @lv_filter_maktx IS INITIAL OR b~maktx LIKE @lv_pattern_maktx )
+        AND ( @lv_filter_mtart IS INITIAL OR a~mtart = @lv_filter_mtart )
+        AND ( @lv_filter_matkl IS INITIAL OR a~matkl LIKE @lv_pattern_matkl )
+      INTO TABLE @lt_mara_res
+      UP TO 200 ROWS.
+
+    DATA(lv_json_mara) = /ui2/cl_json=>serialize( data = lt_mara_res compress = 'X' pretty_name = /ui2/cl_json=>pretty_mode-low_case ).
+    _m_response->set_header_field( name = 'Content-Type' value = 'application/json' ).
+    _m_response->set_cdata( lv_json_mara ).
+    navigation->response_complete( ).
+ 
+  " -------------------------------------------------------------------
+  " 7. LOGOUT
   " -------------------------------------------------------------------
   WHEN 'LOGOUT'.
     _m_response->redirect( url = '/sap/public/bc/icf/logoff' ).
