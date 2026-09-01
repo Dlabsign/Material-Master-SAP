@@ -1,6 +1,7 @@
-    <%@page language="ABAP" %>
+<%@page language="ABAP" %>
     <!DOCTYPE html>
     <html lang="en">
+
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,7 +10,8 @@
         <!-- Google Fonts: Inter -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+            rel="stylesheet">
 
         <!-- Tailwind CSS CDN -->
         <script src="https://cdn.tailwindcss.com"></script>
@@ -106,9 +108,17 @@
             }
 
             @keyframes progressGlow {
-                0% { background-position: 0% 50%; }
-                50% { background-position: 100% 50%; }
-                100% { background-position: 0% 50%; }
+                0% {
+                    background-position: 0% 50%;
+                }
+
+                50% {
+                    background-position: 100% 50%;
+                }
+
+                100% {
+                    background-position: 0% 50%;
+                }
             }
 
             .animated-progress-bar {
@@ -117,26 +127,38 @@
             }
         </style>
     </head>
-    <body class="text-[13px] font-sans leading-relaxed m-0 p-0 antialiased min-h-screen selection:bg-emerald-100 selection:text-emerald-900">
+
+    <body
+        class="text-[13px] font-sans leading-relaxed m-0 p-0 antialiased min-h-screen selection:bg-emerald-100 selection:text-emerald-900">
 
         <!-- TOP NAVIGATION BAR -->
-        <header class="bg-white/70 backdrop-blur-xl h-14 border-b border-white/60 sticky top-0 z-50 px-6 lg:px-10 flex items-center justify-between shadow-xs">
+        <header
+            class="bg-white/70 backdrop-blur-xl h-14 border-b border-white/60 sticky top-0 z-50 px-6 lg:px-10 flex items-center justify-between shadow-xs">
             <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 text-white flex items-center justify-center font-bold text-xs shadow-xs">
+                <div
+                    class="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 text-white flex items-center justify-center font-bold text-xs shadow-xs">
                     MM
                 </div>
                 <div>
-                    <span class="font-extrabold text-sm text-slate-900 block leading-none">Material Master Governance</span>
-                    <span class="text-[10px] text-emerald-700 font-semibold tracking-wide">Wood Part Staging Platform (R&amp;D)</span>
+                    <span class="font-extrabold text-sm text-slate-900 block leading-none">Material Master
+                        Governance</span>
+                    <span class="text-[10px] text-emerald-700 font-semibold tracking-wide">Wood Part Staging Platform
+                        (R&amp;D)</span>
                 </div>
             </div>
 
             <div class="flex items-center gap-3">
-                <div class="flex items-center gap-2 bg-white/80 border border-slate-200/80 px-3 py-1 rounded-full shadow-2xs">
-                    <div class="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-[10px]" id="userAvatarInitial">?</div>
-                    <span class="text-xs font-bold text-slate-800" id="userNameLabel"><%= sy-uname %></span>
+                <div
+                    class="flex items-center gap-2 bg-white/80 border border-slate-200/80 px-3 py-1 rounded-full shadow-2xs">
+                    <div class="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-[10px]"
+                        id="userAvatarInitial">?</div>
+                    <span class="text-xs font-bold text-slate-800" id="userNameLabel">
+                        <%= sy-uname %>
+                    </span>
                 </div>
-                <a href="?OnInputProcessing=LOGOUT" class="text-xs font-semibold text-slate-600 hover:text-emerald-700 px-3 py-1 rounded-full border border-slate-200/80 bg-white/50 hover:bg-white transition">Sign Out</a>
+                <a href="?OnInputProcessing=LOGOUT"
+                    class="text-xs font-semibold text-slate-600 hover:text-emerald-700 px-3 py-1 rounded-full border border-slate-200/80 bg-white/50 hover:bg-white transition">Sign
+                    Out</a>
             </div>
         </header>
 
@@ -156,7 +178,9 @@
             <!-- CENTERED PAGE HEADER -->
             <div class="mb-8 text-center flex flex-col items-center justify-center">
                 <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight text-center leading-tight">
-                    Part Staging Setup <span class="bg-gradient-to-r from-emerald-600 to-emerald-800 bg-clip-text text-transparent">(R&amp;D Wood Furniture)</span>
+                    Part Staging Setup <span
+                        class="bg-gradient-to-r from-emerald-600 to-emerald-800 bg-clip-text text-transparent">(R&amp;D
+                        Wood Furniture)</span>
                 </h1>
                 <p class="text-xs font-semibold text-slate-500 text-center mt-1">
                     Enterprise Material Master - Part Specification &amp; Dynamic Grouping Staging
@@ -168,21 +192,27 @@
                 <!-- HEADER CONTAINER 1 -->
                 <div class="flex items-center justify-between pb-4 mb-6 border-b border-slate-200/60 flex-wrap gap-3">
                     <div class="flex items-center gap-3">
-                        <span class="w-8 h-8 rounded-xl bg-emerald-600 text-white font-extrabold text-xs flex items-center justify-center shadow-xs">01</span>
+                        <span
+                            class="w-8 h-8 rounded-xl bg-emerald-600 text-white font-extrabold text-xs flex items-center justify-center shadow-xs">01</span>
                         <div>
-                            <h2 class="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                            <h2
+                                class="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
                                 Search Material
-                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/10 text-emerald-800 border border-emerald-500/20">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>LIVE TABLE
+                                <span
+                                    class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/10 text-emerald-800 border border-emerald-500/20">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>LIVE
+                                    TABLE
                                 </span>
                             </h2>
-                            <p class="text-[11px] text-slate-500 font-medium">Query reference records from SAP MARA to prefill BOM staging form.</p>
+                            <p class="text-[11px] text-slate-500 font-medium">Query reference records from SAP MARA to
+                                prefill BOM staging form.</p>
                         </div>
                     </div>
                     <button type="button" onclick="resetFilter()" class="text-xs text-slate-600 hover:text-emerald-700 font-bold px-3.5 py-1.5 rounded-full border border-slate-200/80 bg-white/60 hover:bg-white transition inline-flex items-center gap-1
 cursor-pointer">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                         </svg>
                         Clear Filters
                     </button>
@@ -193,8 +223,10 @@ cursor-pointer">
                     <!-- COLUMN 1: PARAMETER FILTER (Left Panel) -->
                     <div class="lg:col-span-4 glass-subpanel rounded-2xl p-5 flex flex-col justify-between">
                         <div>
-                            <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider mb-4 flex items-center gap-2 border-b border-slate-200/70 pb-2.5">
-                                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <h3
+                                class="text-xs font-black text-slate-800 uppercase tracking-wider mb-4 flex items-center gap-2 border-b border-slate-200/70 pb-2.5">
+                                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013
 6.586V4z" />
                                 </svg>
@@ -210,7 +242,8 @@ cursor-pointer">
                                 </div>
 
                                 <div>
-                                    <label class="block text-[11px] font-bold text-slate-700 mb-1">Deskripsi Material</label>
+                                    <label class="block text-[11px] font-bold text-slate-700 mb-1">Deskripsi
+                                        Material</label>
                                     <input type="text" id="filterMaktx"
                                         placeholder="Filter description (e.g. BEARING)..."
                                         onkeyup="handleFilterKeyup(event)"
@@ -220,16 +253,15 @@ cursor-pointer">
                                 <div>
                                     <label class="block text-[11px] font-bold text-slate-700 mb-1">Material Type</label>
                                     <input type="text" id="filterMtart" placeholder="Filter type (e.g. HALB, ZWH5)..."
-                                        onkeyup="handleFilterKeyup(event)"
-                                        class="w-full p-2.5 text-xs border border-slate-200/80 rounded-xl focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 bg-white/80 text-slate-800 font-mono uppercase transition
+                                        onkeyup="handleFilterKeyup(event)" class="w-full p-2.5 text-xs border border-slate-200/80 rounded-xl focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 bg-white/80 text-slate-800 font-mono uppercase transition
 shadow-2xs">
                                 </div>
 
                                 <div>
-                                    <label class="block text-[11px] font-bold text-slate-700 mb-1">Material Group</label>
+                                    <label class="block text-[11px] font-bold text-slate-700 mb-1">Material
+                                        Group</label>
                                     <input type="text" id="filterMatkl" placeholder="Filter group (e.g. HSF011)..."
-                                        onkeyup="handleFilterKeyup(event)"
-                                        class="w-full p-2.5 text-xs border border-slate-200/80 rounded-xl focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 bg-white/80 text-slate-800 font-mono uppercase transition
+                                        onkeyup="handleFilterKeyup(event)" class="w-full p-2.5 text-xs border border-slate-200/80 rounded-xl focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 bg-white/80 text-slate-800 font-mono uppercase transition
 shadow-2xs">
                                 </div>
                             </div>
@@ -239,7 +271,8 @@ shadow-2xs">
                             <button type="button" onclick="searchMaraSAP()" class="w-full py-3 px-4 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-black text-xs rounded-xl shadow-xs
 hover:shadow transition-all inline-flex items-center justify-center gap-2 cursor-pointer">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                 </svg>
                                 <span>Search SAP MARA</span>
                             </button>
@@ -247,23 +280,32 @@ hover:shadow transition-all inline-flex items-center justify-center gap-2 cursor
                     </div>
 
                     <!-- COLUMN 2: SAP MARA REFERENCE RESULTS (Right Panel) -->
-                    <div class="lg:col-span-8 glass-subpanel rounded-2xl p-5 flex flex-col justify-between min-h-[310px]">
+                    <div
+                        class="lg:col-span-8 glass-subpanel rounded-2xl p-5 flex flex-col justify-between min-h-[310px]">
                         <div>
-                            <div class="flex items-center justify-between pb-3.5 mb-3.5 border-b border-slate-200/70 flex-wrap gap-2">
-                                <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
-                                    <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                            <div
+                                class="flex items-center justify-between pb-3.5 mb-3.5 border-b border-slate-200/70 flex-wrap gap-2">
+                                <h3
+                                    class="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                                     </svg>
                                     Material Master Result
                                 </h3>
-                                <span id="maraResultBadge" class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">Ready to Search</span>
+                                <span id="maraResultBadge"
+                                    class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">Ready
+                                    to Search</span>
                             </div>
 
                             <!-- MARA TABLE RESULTS -->
-                            <div class="overflow-x-auto max-h-[250px] rounded-xl border border-slate-200/80 bg-white/60">
+                            <div
+                                class="overflow-x-auto max-h-[250px] rounded-xl border border-slate-200/80 bg-white/60">
                                 <table class="w-full text-left border-collapse">
                                     <thead>
-                                        <tr class="bg-slate-100/80 border-b border-slate-200 text-[10px] uppercase tracking-wider font-extrabold text-slate-600 sticky top-0 z-10 backdrop-blur-xs">
+                                        <tr
+                                            class="bg-slate-100/80 border-b border-slate-200 text-[10px] uppercase tracking-wider font-extrabold text-slate-600 sticky top-0 z-10 backdrop-blur-xs">
                                             <th class="p-2.5 text-center w-8">No</th>
                                             <th class="p-2.5">Kode Material</th>
                                             <th class="p-2.5">Description</th>
@@ -281,7 +323,8 @@ hover:shadow transition-all inline-flex items-center justify-center gap-2 cursor
                                     <tbody id="maraResultTbody" class="text-xs divide-y divide-slate-100/80">
                                         <tr>
                                             <td colspan="12" class="p-8 text-center text-slate-400 font-medium">
-                                                Specify criteria in <b>Query Parameters</b> and execute search to view records.
+                                                Specify criteria in <b>Query Parameters</b> and execute search to view
+                                                records.
                                             </td>
                                         </tr>
                                     </tbody>
@@ -289,9 +332,13 @@ hover:shadow transition-all inline-flex items-center justify-center gap-2 cursor
                             </div>
 
                             <!-- MARA PAGINATION FOOTER -->
-                            <div id="maraPaginationFooter" class="hidden mt-3 pt-2.5 border-t border-slate-200/60 flex flex-col sm:flex-row items-center justify-between gap-2.5 text-xs">
-                                <span id="maraPaginationSummary" class="text-[11px] font-bold text-slate-500 shrink-0">Showing 1-10 of 20 items</span>
-                                <div id="maraPaginationControls" class="flex items-center gap-1 flex-wrap justify-center sm:justify-end max-w-full overflow-hidden">
+                            <div id="maraPaginationFooter"
+                                class="hidden mt-3 pt-2.5 border-t border-slate-200/60 flex flex-col sm:flex-row items-center justify-between gap-2.5 text-xs">
+                                <span id="maraPaginationSummary"
+                                    class="text-[11px] font-bold text-slate-500 shrink-0">Showing 1-10 of 20
+                                    items</span>
+                                <div id="maraPaginationControls"
+                                    class="flex items-center gap-1 flex-wrap justify-center sm:justify-end max-w-full overflow-hidden">
                                 </div>
                             </div>
                         </div>
@@ -300,32 +347,47 @@ hover:shadow transition-all inline-flex items-center justify-center gap-2 cursor
             </section>
 
             <!-- SECTION 02: DETAIL PART TABLE -->
-            <section class="glass-panel rounded-3xl mb-8 overflow-hidden transition-all duration-300" id="partTableSection">
+            <section class="glass-panel rounded-3xl mb-8 overflow-hidden transition-all duration-300"
+                id="partTableSection">
                 <!-- HEADER CONTAINER 2 -->
-                <div class="bg-white/40 px-6 py-4 border-b border-slate-200/60 flex items-center justify-between flex-wrap gap-3">
+                <div
+                    class="bg-white/40 px-6 py-4 border-b border-slate-200/60 flex items-center justify-between flex-wrap gap-3">
                     <div class="flex items-center gap-3">
-                        <span class="w-8 h-8 rounded-xl bg-emerald-600 text-white font-extrabold text-xs flex items-center justify-center shadow-xs">02</span>
+                        <span
+                            class="w-8 h-8 rounded-xl bg-emerald-600 text-white font-extrabold text-xs flex items-center justify-center shadow-xs">02</span>
                         <h2 class="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
                             PART SPECIFICATIONS &amp; DYNAMIC GROUPING
-                            <span class="text-xs font-extrabold text-emerald-700 bg-emerald-100/80 px-3 py-0.5 rounded-full border border-emerald-200" id="rowCounterChip">1 Line</span>
+                            <span
+                                class="text-xs font-extrabold text-emerald-700 bg-emerald-100/80 px-3 py-0.5 rounded-full border border-emerald-200"
+                                id="rowCounterChip">1 Line</span>
                         </h2>
                     </div>
                     <div class="flex items-center gap-2.5 flex-wrap">
-                        <button type="button" class="bg-white/80 hover:bg-white text-slate-700 border border-slate-200/80 px-4 py-2 rounded-full font-extrabold text-xs transition shadow-2xs cursor-pointer flex items-center gap-1.5"
-onclick="downloadStandardExcelTemplate()">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                        <button type="button"
+                            class="bg-white/80 hover:bg-white text-slate-700 border border-slate-200/80 px-4 py-2 rounded-full font-extrabold text-xs transition shadow-2xs cursor-pointer flex items-center gap-1.5"
+                            onclick="downloadStandardExcelTemplate()">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
                             <span>Download Template</span>
                         </button>
 
-                        <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" class="hidden" onchange="parseStandardExcelRD(this)">
-                        <button type="button" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-full font-extrabold text-xs transition shadow-2xs cursor-pointer flex items-center gap-1.5"
-onclick="document.getElementById('excelFileInput').click()">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0
-0l-3 3m3-3v12"/></svg>
+                        <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" class="hidden"
+                            onchange="parseStandardExcelRD(this)">
+                        <button type="button"
+                            class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-full font-extrabold text-xs transition shadow-2xs cursor-pointer flex items-center gap-1.5"
+                            onclick="document.getElementById('excelFileInput').click()">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0
+0l-3 3m3-3v12" />
+                            </svg>
                             <span>Upload Excel R&amp;D</span>
                         </button>
 
-                        <button type="button" class="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-full font-extrabold text-xs transition shadow-xs cursor-pointer" onclick="addNewRow()">
+                        <button type="button"
+                            class="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-full font-extrabold text-xs transition shadow-xs cursor-pointer"
+                            onclick="addNewRow()">
                             + Add Line
                         </button>
                     </div>
@@ -333,52 +395,125 @@ onclick="document.getElementById('excelFileInput').click()">
 
                 <!-- TABLE PREVIEW -->
                 <div class="p-6">
-                    <div class="overflow-x-auto border border-slate-200/80 rounded-2xl max-h-[650px] bg-white/40 backdrop-blur-xs">
+                    <div
+                        class="overflow-x-auto border border-slate-200/80 rounded-2xl max-h-[650px] bg-white/40 backdrop-blur-xs">
                         <table class="w-full border-collapse text-xs whitespace-nowrap min-w-[2500px]" id="partTable">
                             <thead class="sticky top-0 z-10 bg-slate-100/90 backdrop-blur-xs shadow-2xs">
-                                <tr class="text-left text-slate-700 font-extrabold text-[11px] uppercase tracking-wider">
-                                    <th rowspan="2" class="p-2.5 border-b border-r border-slate-200 text-center bg-slate-100/95 sticky top-0 z-10">No.</th>
-                                    <th rowspan="2" class="p-2.5 border-b border-r border-slate-200 text-center bg-slate-100/95 sticky top-0 z-10">Code Number</th>
-                                    <th rowspan="2" class="p-2.5 border-b border-r border-slate-200 bg-slate-100/95 sticky top-0 z-10">CODE MATERIAL SAP</th>
-                                    <th rowspan="2" class="p-2.5 border-b border-r border-slate-200 bg-slate-100/95 sticky top-0 z-10" title="Dimension (Finish Size)">DIMENSION</th>
-                                    <th rowspan="2" class="p-2.5 border-b border-r border-slate-200 bg-slate-100/95 sticky top-0 z-10 min-w-[180px]">Part Name *</th>
-                                    <th colspan="6" class="p-1.5 border-b border-r border-amber-300 bg-amber-100/80 text-center text-[10.5px] text-amber-900 tracking-wider">ROUGH SIZE (MM)</th>
-                                    <th colspan="3" class="p-1.5 border-b border-r border-emerald-300 bg-emerald-100/80 text-center text-[10.5px] text-emerald-900 tracking-wider">FINISH SIZE (MM)</th>
-                                    <th rowspan="2" class="p-2.5 border-b border-r border-slate-200 text-center bg-slate-100/95 sticky top-0 z-10">QTY ITEM</th>
-                                    <th rowspan="2" class="p-2.5 border-b border-r border-slate-200 text-center bg-slate-100/95 sticky top-0 z-10">QTY ORDER</th>
-                                    <th rowspan="2" class="p-2.5 border-b border-r border-slate-200 text-center bg-slate-100/95 sticky top-0 z-10">M2/M3</th>
-                                    <th rowspan="2" class="p-2.5 border-b border-r border-slate-200 bg-slate-100/95 sticky top-0 z-10 min-w-[140px]">Material</th>
-                                    <th rowspan="2" class="p-2.5 border-b border-r border-slate-200 bg-slate-100/95 sticky top-0 z-10 min-w-[160px]">Note</th>
-                                    <th rowspan="2" class="p-2.5 border-b border-r border-slate-200 bg-slate-100/95 sticky top-0 z-10 min-w-[200px]">DESCRIPTION</th>
-                                    <th rowspan="2" class="p-2.5 border-b border-r border-amber-300 bg-amber-100/90 text-center text-amber-950 min-w-[90px]">MRP GROUP ⚡</th>
-                                    <th rowspan="2" class="p-2.5 border-b border-r border-amber-300 bg-amber-100/70 text-center text-amber-950">MRP CTRL ⚡</th>
-                                    <th rowspan="2" class="p-2.5 border-b border-r border-amber-300 bg-amber-100/70 text-center text-amber-950">SLOC 1 ⚡</th>
-                                    <th rowspan="2" class="p-2.5 border-b border-r border-amber-300 bg-amber-100/70 text-center text-amber-950">SLOC 2 ⚡</th>
-                                    <th rowspan="2" class="p-2.5 border-b border-r border-amber-300 bg-amber-100/70 text-center text-amber-950">PLANT ⚡</th>
-                                    <th rowspan="2" class="p-2.5 border-b border-r border-slate-200 text-center bg-slate-100/95 sticky top-0 z-10">M3</th>
-                                    <th rowspan="2" class="p-2.5 border-b border-r border-slate-200 text-center bg-slate-100/95 sticky top-0 z-10">M2</th>
-                                    <th rowspan="2" class="p-2.5 border-b border-r border-slate-200 text-center bg-slate-100/95 sticky top-0 z-10">ACTIVITY</th>
-                                    <th rowspan="2" class="p-2.5 border-b border-r border-slate-200 text-center bg-slate-100/95 sticky top-0 z-10">SATUAN</th>
-                                    <th colspan="3" class="p-1.5 border-b border-r border-blue-300 bg-blue-100/80 text-center text-[10.5px] text-blue-900 tracking-wider">UOM KONVERSI</th>
-                                    <th rowspan="2" class="p-2.5 border-b border-r border-slate-200 text-center bg-slate-100/95 sticky top-0 z-10 min-w-[110px]">rough size</th>
-                                    <th rowspan="2" class="p-2.5 border-b border-r border-slate-200 text-center bg-slate-100/95 sticky top-0 z-10">SLOC DEF</th>
-                                    <th rowspan="2" class="p-2.5 border-b border-r border-amber-300 bg-amber-100/70 text-center text-amber-950">MATERIAL TYPE ⚡</th>
-                                    <th rowspan="2" class="p-2.5 border-b border-r border-amber-300 bg-amber-100/70 text-center text-amber-950">MATERIAL GROUP ⚡</th>
-                                    <th rowspan="2" class="p-2.5 border-b border-slate-200 text-center bg-slate-100/95 sticky top-0 z-10">Action</th>
+                                <tr
+                                    class="text-left text-slate-700 font-extrabold text-[11px] uppercase tracking-wider">
+                                    <th rowspan="2"
+                                        class="p-2.5 border-b border-r border-slate-200 text-center bg-slate-100/95 sticky top-0 z-10">
+                                        No.</th>
+                                    <th rowspan="2"
+                                        class="p-2.5 border-b border-r border-slate-200 text-center bg-slate-100/95 sticky top-0 z-10">
+                                        Code Number</th>
+                                    <th rowspan="2"
+                                        class="p-2.5 border-b border-r border-slate-200 bg-slate-100/95 sticky top-0 z-10">
+                                        CODE MATERIAL SAP</th>
+                                    <th rowspan="2"
+                                        class="p-2.5 border-b border-r border-slate-200 bg-slate-100/95 sticky top-0 z-10"
+                                        title="Dimension (Finish Size)">DIMENSION</th>
+                                    <th rowspan="2"
+                                        class="p-2.5 border-b border-r border-slate-200 bg-slate-100/95 sticky top-0 z-10 min-w-[180px]">
+                                        Part Name *</th>
+                                    <th colspan="6"
+                                        class="p-1.5 border-b border-r border-amber-300 bg-amber-100/80 text-center text-[10.5px] text-amber-900 tracking-wider">
+                                        ROUGH SIZE (MM)</th>
+                                    <th colspan="3"
+                                        class="p-1.5 border-b border-r border-emerald-300 bg-emerald-100/80 text-center text-[10.5px] text-emerald-900 tracking-wider">
+                                        FINISH SIZE (MM)</th>
+                                    <th rowspan="2"
+                                        class="p-2.5 border-b border-r border-slate-200 text-center bg-slate-100/95 sticky top-0 z-10">
+                                        QTY ITEM</th>
+                                    <th rowspan="2"
+                                        class="p-2.5 border-b border-r border-slate-200 text-center bg-slate-100/95 sticky top-0 z-10">
+                                        QTY ORDER</th>
+                                    <th rowspan="2"
+                                        class="p-2.5 border-b border-r border-slate-200 text-center bg-slate-100/95 sticky top-0 z-10">
+                                        M2/M3</th>
+                                    <th rowspan="2"
+                                        class="p-2.5 border-b border-r border-slate-200 bg-slate-100/95 sticky top-0 z-10 min-w-[140px]">
+                                        Material</th>
+                                    <th rowspan="2"
+                                        class="p-2.5 border-b border-r border-slate-200 bg-slate-100/95 sticky top-0 z-10 min-w-[160px]">
+                                        Note</th>
+                                    <th rowspan="2"
+                                        class="p-2.5 border-b border-r border-slate-200 bg-slate-100/95 sticky top-0 z-10 min-w-[200px]">
+                                        DESCRIPTION</th>
+                                    <th rowspan="2"
+                                        class="p-2.5 border-b border-r border-amber-300 bg-amber-100/90 text-center text-amber-950 min-w-[90px]">
+                                        MRP GROUP ⚡</th>
+                                    <th rowspan="2"
+                                        class="p-2.5 border-b border-r border-amber-300 bg-amber-100/70 text-center text-amber-950">
+                                        MRP CTRL ⚡</th>
+                                    <th rowspan="2"
+                                        class="p-2.5 border-b border-r border-amber-300 bg-amber-100/70 text-center text-amber-950">
+                                        SLOC 1 ⚡</th>
+                                    <th rowspan="2"
+                                        class="p-2.5 border-b border-r border-amber-300 bg-amber-100/70 text-center text-amber-950">
+                                        SLOC 2 ⚡</th>
+                                    <th rowspan="2"
+                                        class="p-2.5 border-b border-r border-amber-300 bg-amber-100/70 text-center text-amber-950">
+                                        PLANT ⚡</th>
+                                    <th rowspan="2"
+                                        class="p-2.5 border-b border-r border-slate-200 text-center bg-slate-100/95 sticky top-0 z-10">
+                                        M3</th>
+                                    <th rowspan="2"
+                                        class="p-2.5 border-b border-r border-slate-200 text-center bg-slate-100/95 sticky top-0 z-10">
+                                        M2</th>
+                                    <th rowspan="2"
+                                        class="p-2.5 border-b border-r border-slate-200 text-center bg-slate-100/95 sticky top-0 z-10">
+                                        ACTIVITY</th>
+                                    <th rowspan="2"
+                                        class="p-2.5 border-b border-r border-slate-200 text-center bg-slate-100/95 sticky top-0 z-10">
+                                        SATUAN</th>
+                                    <th colspan="3"
+                                        class="p-1.5 border-b border-r border-blue-300 bg-blue-100/80 text-center text-[10.5px] text-blue-900 tracking-wider">
+                                        UOM KONVERSI</th>
+                                    <th rowspan="2"
+                                        class="p-2.5 border-b border-r border-slate-200 text-center bg-slate-100/95 sticky top-0 z-10 min-w-[110px]">
+                                        rough size</th>
+                                    <th rowspan="2"
+                                        class="p-2.5 border-b border-r border-slate-200 text-center bg-slate-100/95 sticky top-0 z-10">
+                                        SLOC DEF</th>
+                                    <th rowspan="2"
+                                        class="p-2.5 border-b border-r border-amber-300 bg-amber-100/70 text-center text-amber-950">
+                                        MATERIAL TYPE ⚡</th>
+                                    <th rowspan="2"
+                                        class="p-2.5 border-b border-r border-amber-300 bg-amber-100/70 text-center text-amber-950">
+                                        MATERIAL GROUP ⚡</th>
+                                    <th rowspan="2"
+                                        class="p-2.5 border-b border-slate-200 text-center bg-slate-100/95 sticky top-0 z-10">
+                                        Action</th>
                                 </tr>
                                 <tr class="text-center text-[10px] uppercase font-bold tracking-wider">
-                                    <th class="p-1 border-b border-r border-amber-200 bg-amber-50/70 text-amber-900">T1</th>
-                                    <th class="p-1 border-b border-r border-amber-200 bg-amber-50/70 text-amber-900">T2</th>
-                                    <th class="p-1 border-b border-r border-amber-200 bg-amber-50/70 text-amber-900">W1</th>
-                                    <th class="p-1 border-b border-r border-amber-200 bg-amber-50/70 text-amber-900">W2</th>
-                                    <th class="p-1 border-b border-r border-amber-200 bg-amber-50/70 text-amber-900">L1</th>
-                                    <th class="p-1 border-b border-r border-amber-300 bg-amber-50/70 text-amber-900">L2</th>
-                                    <th class="p-1 border-b border-r border-emerald-200 bg-emerald-50/70 text-emerald-900">T</th>
-                                    <th class="p-1 border-b border-r border-emerald-200 bg-emerald-50/70 text-emerald-900">W</th>
-                                    <th class="p-1 border-b border-r border-emerald-300 bg-emerald-50/70 text-emerald-900">L</th>
-                                    <th class="p-1 border-b border-r border-blue-200 bg-blue-50/70 text-blue-900">KONVERSI</th>
-                                    <th class="p-1 border-b border-r border-blue-200 bg-blue-50/70 text-blue-900">UNIT</th>
-                                    <th class="p-1 border-b border-r border-blue-300 bg-blue-50/70 text-blue-900">ACT CODE</th>
+                                    <th class="p-1 border-b border-r border-amber-200 bg-amber-50/70 text-amber-900">T1
+                                    </th>
+                                    <th class="p-1 border-b border-r border-amber-200 bg-amber-50/70 text-amber-900">T2
+                                    </th>
+                                    <th class="p-1 border-b border-r border-amber-200 bg-amber-50/70 text-amber-900">W1
+                                    </th>
+                                    <th class="p-1 border-b border-r border-amber-200 bg-amber-50/70 text-amber-900">W2
+                                    </th>
+                                    <th class="p-1 border-b border-r border-amber-200 bg-amber-50/70 text-amber-900">L1
+                                    </th>
+                                    <th class="p-1 border-b border-r border-amber-300 bg-amber-50/70 text-amber-900">L2
+                                    </th>
+                                    <th
+                                        class="p-1 border-b border-r border-emerald-200 bg-emerald-50/70 text-emerald-900">
+                                        T</th>
+                                    <th
+                                        class="p-1 border-b border-r border-emerald-200 bg-emerald-50/70 text-emerald-900">
+                                        W</th>
+                                    <th
+                                        class="p-1 border-b border-r border-emerald-300 bg-emerald-50/70 text-emerald-900">
+                                        L</th>
+                                    <th class="p-1 border-b border-r border-blue-200 bg-blue-50/70 text-blue-900">
+                                        KONVERSI</th>
+                                    <th class="p-1 border-b border-r border-blue-200 bg-blue-50/70 text-blue-900">UNIT
+                                    </th>
+                                    <th class="p-1 border-b border-r border-blue-300 bg-blue-50/70 text-blue-900">ACT
+                                        CODE</th>
                                 </tr>
                             </thead>
                             <tbody id="tableBody" class="divide-y divide-slate-200/60">
@@ -389,22 +524,28 @@ onclick="document.getElementById('excelFileInput').click()">
                 </div>
 
                 <!-- FOOTER BAR -->
-                <div class="glass-subpanel px-6 py-4 border-t border-slate-200/60 flex justify-between items-center flex-wrap gap-3 rounded-b-3xl">
+                <div
+                    class="glass-subpanel px-6 py-4 border-t border-slate-200/60 flex justify-between items-center flex-wrap gap-3 rounded-b-3xl">
                     <div class="text-xs text-slate-500 font-extrabold" id="footerSummary">1 line ready</div>
                     <div class="flex items-center gap-3 flex-wrap">
-                        <button type="button" class="bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white border border-rose-200/80 px-5 py-2.5 rounded-full font-bold text-xs transition shadow-2xs cursor-pointer inline-flex items-center gap-1.5"
-id="btnReset" onclick="resetForm()">
-                            <span class="spinner hidden w-3.5 h-3.5 border-2 border-red-600/30 border-t-red-600 rounded-full animate-spin"></span>
+                        <button type="button"
+                            class="bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white border border-rose-200/80 px-5 py-2.5 rounded-full font-bold text-xs transition shadow-2xs cursor-pointer inline-flex items-center gap-1.5"
+                            id="btnReset" onclick="resetForm()">
+                            <span
+                                class="spinner hidden w-3.5 h-3.5 border-2 border-red-600/30 border-t-red-600 rounded-full animate-spin"></span>
                             <span class="btn-label">↺ Reset Form</span>
                         </button>
-                        <button type="button" class="bg-white/80 hover:bg-white text-slate-700 border border-slate-200/80 px-5 py-2.5 rounded-full font-bold text-xs transition shadow-2xs cursor-pointer inline-flex items-center gap-1.5" id="btnDraft"
-onclick="saveStagingData('DRAFT')">
-                            <span class="spinner hidden w-3.5 h-3.5 border-2 border-emerald-600/30 border-t-emerald-600 rounded-full animate-spin"></span>
+                        <button type="button"
+                            class="bg-white/80 hover:bg-white text-slate-700 border border-slate-200/80 px-5 py-2.5 rounded-full font-bold text-xs transition shadow-2xs cursor-pointer inline-flex items-center gap-1.5"
+                            id="btnDraft" onclick="saveStagingData('DRAFT')">
+                            <span
+                                class="spinner hidden w-3.5 h-3.5 border-2 border-emerald-600/30 border-t-emerald-600 rounded-full animate-spin"></span>
                             <span class="btn-label">💾 Save Draft</span>
                         </button>
                         <button type="button" class="rounded-full bg-gradient-to-r from-emerald-600 via-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-extrabold text-xs px-7 py-2.5 shadow-xs hover:shadow
 transition-all inline-flex items-center gap-2 cursor-pointer" id="btnSubmit" onclick="openSubmitReasonModal()">
-                            <span class="spinner hidden w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
+                            <span
+                                class="spinner hidden w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
                             <span class="btn-label">✔ Submit Request</span>
                         </button>
                     </div>
@@ -417,58 +558,79 @@ transition-all inline-flex items-center gap-2 cursor-pointer" id="btnSubmit" onc
                 <div class="p-6 border-b border-slate-200/60 bg-white/40">
                     <div class="flex items-center justify-between gap-3 mb-5 flex-wrap">
                         <div class="flex items-center gap-3">
-                            <span class="w-8 h-8 rounded-xl bg-emerald-600 text-white font-extrabold text-xs flex items-center justify-center shadow-xs">03</span>
+                            <span
+                                class="w-8 h-8 rounded-xl bg-emerald-600 text-white font-extrabold text-xs flex items-center justify-center shadow-xs">03</span>
                             <div>
-                                <h2 class="text-xs font-black text-slate-900 uppercase tracking-wider">Riwayat Process Upload &amp; Status Tracker</h2>
-                                <p class="text-[11px] text-slate-500 font-medium">Tracking history for uploaded BOM staging requests.</p>
+                                <h2 class="text-xs font-black text-slate-900 uppercase tracking-wider">Riwayat Process
+                                    Upload &amp; Status Tracker</h2>
+                                <p class="text-[11px] text-slate-500 font-medium">Tracking history for uploaded BOM
+                                    staging requests.</p>
                             </div>
                         </div>
                         <button type="button" onclick="loadUploadHistory()" class="text-xs text-emerald-700 font-extrabold bg-emerald-50/80 hover:bg-emerald-100 border border-emerald-200 px-4 py-2 rounded-full transition flex items-center gap-1.5
 cursor-pointer shadow-2xs">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0
-0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0
+0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
                             <span>Refresh Log</span>
                         </button>
                     </div>
 
                     <!-- STAT MINI CARDS SUMMARY -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div class="glass-subpanel p-4 rounded-2xl border border-amber-500/20 flex items-center justify-between hover:border-amber-500/40 transition">
+                        <div
+                            class="glass-subpanel p-4 rounded-2xl border border-amber-500/20 flex items-center justify-between hover:border-amber-500/40 transition">
                             <div>
-                                <p class="text-[10px] font-black text-slate-500 uppercase tracking-wider">Pending Requests</p>
-                                <h3 class="text-xl font-black text-slate-900 mt-0.5" id="pendingCountCard">0 Request</h3>
+                                <p class="text-[10px] font-black text-slate-500 uppercase tracking-wider">Pending
+                                    Requests</p>
+                                <h3 class="text-xl font-black text-slate-900 mt-0.5" id="pendingCountCard">0 Request
+                                </h3>
                             </div>
-                            <span class="text-xs font-black text-amber-800 bg-amber-100/80 px-3 py-1 rounded-full border border-amber-200 shadow-2xs">PENDING</span>
+                            <span
+                                class="text-xs font-black text-amber-800 bg-amber-100/80 px-3 py-1 rounded-full border border-amber-200 shadow-2xs">PENDING</span>
                         </div>
 
-                        <div class="glass-subpanel p-4 rounded-2xl border border-blue-500/20 flex items-center justify-between hover:border-blue-500/40 transition">
+                        <div
+                            class="glass-subpanel p-4 rounded-2xl border border-blue-500/20 flex items-center justify-between hover:border-blue-500/40 transition">
                             <div>
-                                <p class="text-[10px] font-black text-slate-500 uppercase tracking-wider">Hold Requests</p>
+                                <p class="text-[10px] font-black text-slate-500 uppercase tracking-wider">Hold Requests
+                                </p>
                                 <h3 class="text-xl font-black text-slate-900 mt-0.5" id="holdCountCard">0 Request</h3>
                             </div>
-                            <span class="text-xs font-black text-blue-800 bg-blue-100/80 px-3 py-1 rounded-full border border-blue-200 shadow-2xs">HOLD</span>
+                            <span
+                                class="text-xs font-black text-blue-800 bg-blue-100/80 px-3 py-1 rounded-full border border-blue-200 shadow-2xs">HOLD</span>
                         </div>
 
-                        <div class="glass-subpanel p-4 rounded-2xl border border-emerald-500/20 flex items-center justify-between hover:border-emerald-500/40 transition">
+                        <div
+                            class="glass-subpanel p-4 rounded-2xl border border-emerald-500/20 flex items-center justify-between hover:border-emerald-500/40 transition">
                             <div>
-                                <p class="text-[10px] font-black text-slate-500 uppercase tracking-wider">Approved Requests</p>
-                                <h3 class="text-xl font-black text-slate-900 mt-0.5" id="approvedCountCard">0 Request</h3>
+                                <p class="text-[10px] font-black text-slate-500 uppercase tracking-wider">Approved
+                                    Requests</p>
+                                <h3 class="text-xl font-black text-slate-900 mt-0.5" id="approvedCountCard">0 Request
+                                </h3>
                             </div>
-                            <span class="text-xs font-black text-emerald-800 bg-emerald-100/80 px-3 py-1 rounded-full border border-emerald-200 shadow-2xs">APPROVED</span>
+                            <span
+                                class="text-xs font-black text-emerald-800 bg-emerald-100/80 px-3 py-1 rounded-full border border-emerald-200 shadow-2xs">APPROVED</span>
                         </div>
 
-                        <div class="glass-subpanel p-4 rounded-2xl border border-rose-500/20 flex items-center justify-between hover:border-rose-500/40 transition">
+                        <div
+                            class="glass-subpanel p-4 rounded-2xl border border-rose-500/20 flex items-center justify-between hover:border-rose-500/40 transition">
                             <div>
-                                <p class="text-[10px] font-black text-slate-500 uppercase tracking-wider">Rejected Requests</p>
-                                <h3 class="text-xl font-black text-slate-900 mt-0.5" id="rejectedCountCard">0 Request</h3>
+                                <p class="text-[10px] font-black text-slate-500 uppercase tracking-wider">Rejected
+                                    Requests</p>
+                                <h3 class="text-xl font-black text-slate-900 mt-0.5" id="rejectedCountCard">0 Request
+                                </h3>
                             </div>
-                            <span class="text-xs font-black text-rose-800 bg-rose-100/80 px-3 py-1 rounded-full border border-rose-200 shadow-2xs">REJECTED</span>
+                            <span
+                                class="text-xs font-black text-rose-800 bg-rose-100/80 px-3 py-1 rounded-full border border-rose-200 shadow-2xs">REJECTED</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- TAB PILL SWITCHER BAR (4 STATUS TABS: HOLD, PENDING, APPROVE, REJECT) -->
-                <div class="bg-white/50 px-6 py-4 border-b border-slate-200/60 flex items-center justify-between flex-wrap gap-3">
+                <div
+                    class="bg-white/50 px-6 py-4 border-b border-slate-200/60 flex items-center justify-between flex-wrap gap-3">
                     <div class="flex items-center gap-2.5 flex-wrap">
                         <button type="button" id="tabPendingBtn" onclick="switchHistoryTab('PENDING')" class="h-9 px-5 rounded-full font-extrabold text-xs inline-flex items-center justify-center whitespace-nowrap bg-amber-500 text-white shadow-xs
 transition-all cursor-pointer">
@@ -494,7 +656,8 @@ bg-white/80 hover:bg-white border border-slate-200/80 transition-all cursor-poin
                     <div class="overflow-x-auto rounded-2xl border border-slate-200/80 bg-white/60">
                         <table class="w-full border-collapse text-xs text-left">
                             <thead>
-                                <tr class="bg-slate-100/80 border-b border-slate-200 text-[10px] uppercase tracking-wider font-extrabold text-slate-600 sticky top-0 z-10 backdrop-blur-xs">
+                                <tr
+                                    class="bg-slate-100/80 border-b border-slate-200 text-[10px] uppercase tracking-wider font-extrabold text-slate-600 sticky top-0 z-10 backdrop-blur-xs">
                                     <th class="p-3 text-center" style="width: 4%;">#</th>
                                     <th class="p-3" style="width: 16%;">Batch / Upload ID</th>
                                     <th class="p-3" style="width: 20%;">Nama File Excel</th>
@@ -508,7 +671,8 @@ bg-white/80 hover:bg-white border border-slate-200/80 transition-all cursor-poin
                             </thead>
                             <tbody id="historyTableBody" class="divide-y divide-slate-100/80">
                                 <tr>
-                                    <td colspan="9" class="p-6 text-center text-slate-400 font-medium italic">Memuat riwayat upload...</td>
+                                    <td colspan="9" class="p-6 text-center text-slate-400 font-medium italic">Memuat
+                                        riwayat upload...</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -518,35 +682,46 @@ bg-white/80 hover:bg-white border border-slate-200/80 transition-all cursor-poin
         </main>
 
         <!-- LOADING OVERLAY -->
-        <div id="loadingOverlay" class="hidden fixed inset-0 z-[20000] flex flex-col items-center justify-center bg-slate-900/40 backdrop-blur-md transition-all">
-            <div class="glass-panel p-7 rounded-3xl shadow-2xl flex flex-col items-center max-w-sm w-full mx-4 border border-white/80 text-center">
-                <div class="w-14 h-14 rounded-2xl bg-emerald-50/80 border border-emerald-200 flex items-center justify-center mb-4 shadow-2xs">
-                    <div class="w-7 h-7 border-3 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
+        <div id="loadingOverlay"
+            class="hidden fixed inset-0 z-[20000] flex flex-col items-center justify-center bg-slate-900/40 backdrop-blur-md transition-all">
+            <div
+                class="glass-panel p-7 rounded-3xl shadow-2xl flex flex-col items-center max-w-sm w-full mx-4 border border-white/80 text-center">
+                <div
+                    class="w-14 h-14 rounded-2xl bg-emerald-50/80 border border-emerald-200 flex items-center justify-center mb-4 shadow-2xs">
+                    <div class="w-7 h-7 border-3 border-emerald-600 border-t-transparent rounded-full animate-spin">
+                    </div>
                 </div>
                 <h4 class="text-sm font-black text-slate-900 uppercase tracking-wide">Memproses Request</h4>
-                <p id="loadingText" class="text-xs text-slate-600 mt-1.5 font-medium leading-relaxed">Mohon tunggu sebentar, sistem sedang memproses data ke SAP Staging...</p>
+                <p id="loadingText" class="text-xs text-slate-600 mt-1.5 font-medium leading-relaxed">Mohon tunggu
+                    sebentar, sistem sedang memproses data ke SAP Staging...</p>
             </div>
         </div>
 
         <!-- SUBMISSION REASON MODAL POPUP -->
-        <div id="submitReasonModal" class="hidden fixed inset-0 z-[15000] flex items-center justify-center bg-slate-900/50 backdrop-blur-md p-4 transition-all">
+        <div id="submitReasonModal"
+            class="hidden fixed inset-0 z-[15000] flex items-center justify-center bg-slate-900/50 backdrop-blur-md p-4 transition-all">
             <div class="glass-panel border border-white/80 rounded-3xl shadow-2xl max-w-md w-full overflow-hidden">
                 <div class="bg-white/40 px-6 py-4 border-b border-slate-200/60 flex items-center justify-between">
-                    <h3 class="text-xs font-black text-slate-900 uppercase tracking-wider">Form Pengajuan Request Upload BOM</h3>
-                    <button type="button" onclick="closeSubmitReasonModal()" class="text-slate-400 hover:text-slate-700 font-bold p-1 text-base">&times;</button>
+                    <h3 class="text-xs font-black text-slate-900 uppercase tracking-wider">Form Pengajuan Request Upload
+                        BOM</h3>
+                    <button type="button" onclick="closeSubmitReasonModal()"
+                        class="text-slate-400 hover:text-slate-700 font-bold p-1 text-base">&times;</button>
                 </div>
                 <div class="p-6">
                     <label for="submitReasonInput" class="block text-xs font-bold text-slate-800 mb-1.5">
                         Alasan / Tujuan Upload BOM <span class="text-rose-500">*</span>
                     </label>
-                    <textarea id="submitReasonInput" rows="3" placeholder="Contoh: Pengajuan komponen baru produk meja lipat seri M-2026..." class="w-full p-3 text-xs border border-slate-200/80 rounded-2xl focus:outline-none focus:border-emerald-600
+                    <textarea id="submitReasonInput" rows="3"
+                        placeholder="Contoh: Pengajuan komponen baru produk meja lipat seri M-2026..."
+                        class="w-full p-3 text-xs border border-slate-200/80 rounded-2xl focus:outline-none focus:border-emerald-600
 focus:ring-2 focus:ring-emerald-500/10 bg-white/80 text-slate-800 resize-none font-sans shadow-2xs transition"></textarea>
                     <p id="submitReasonError" class="hidden mt-2 text-[11px] font-bold text-rose-600">
                         ⚠️ Alasan upload wajib diisi sebelum melakukan Submit Request.
                     </p>
                 </div>
                 <div class="glass-subpanel px-6 py-3.5 border-t border-slate-200/60 flex justify-end gap-2.5">
-                    <button type="button" onclick="closeSubmitReasonModal()" class="px-5 py-2 rounded-full text-xs font-bold text-slate-600 hover:text-slate-900 bg-white border border-slate-200/80 transition shadow-2xs">
+                    <button type="button" onclick="closeSubmitReasonModal()"
+                        class="px-5 py-2 rounded-full text-xs font-bold text-slate-600 hover:text-slate-900 bg-white border border-slate-200/80 transition shadow-2xs">
                         Batal
                     </button>
                     <button type="button" onclick="confirmSubmitWithReason()" class="rounded-full bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-extrabold text-xs px-6 py-2 shadow-xs
@@ -558,26 +733,36 @@ transition">
         </div>
 
         <!-- SUBMISSION SUCCESS MODAL POPUP -->
-        <div id="submitSuccessModal" class="hidden fixed inset-0 z-[15000] flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-4 transition-all">
-            <div class="glass-panel border border-white/80 rounded-3xl shadow-2xl max-w-md w-full overflow-hidden text-center">
-                <div class="bg-gradient-to-br from-emerald-600 to-emerald-800 p-7 text-white flex flex-col items-center">
-                    <div class="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center mb-3 backdrop-blur-xs">
-                        <div class="w-11 h-11 rounded-full bg-white flex items-center justify-center text-emerald-600 text-2xl font-bold shadow-xs">✓</div>
+        <div id="submitSuccessModal"
+            class="hidden fixed inset-0 z-[15000] flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-4 transition-all">
+            <div
+                class="glass-panel border border-white/80 rounded-3xl shadow-2xl max-w-md w-full overflow-hidden text-center">
+                <div
+                    class="bg-gradient-to-br from-emerald-600 to-emerald-800 p-7 text-white flex flex-col items-center">
+                    <div
+                        class="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center mb-3 backdrop-blur-xs">
+                        <div
+                            class="w-11 h-11 rounded-full bg-white flex items-center justify-center text-emerald-600 text-2xl font-bold shadow-xs">
+                            ✓</div>
                     </div>
                     <h3 class="text-base font-black text-white">Data Berhasil Di-upload!</h3>
-                    <p class="text-xs text-emerald-100 mt-1 font-medium">Permintaan BOM R&amp;D Anda telah tersimpan di staging SAP.</p>
+                    <p class="text-xs text-emerald-100 mt-1 font-medium">Permintaan BOM R&amp;D Anda telah tersimpan di
+                        staging SAP.</p>
                 </div>
                 <div class="p-6 space-y-4 bg-white/40">
                     <div class="glass-subpanel p-4 rounded-2xl border border-slate-200/80 text-left space-y-2 text-xs">
                         <div class="flex items-center justify-between border-b border-slate-200/60 pb-2">
                             <span class="text-slate-500 font-semibold">No. Request:</span>
-                            <span id="successModalReqId" class="font-mono font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">UPL-0000</span>
+                            <span id="successModalReqId"
+                                class="font-mono font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">UPL-0000</span>
                         </div>
                         <p class="text-[11px] text-slate-600 leading-relaxed">
-                            Data kini berada dalam status <strong class="text-amber-700">SUBMITTED (Pending)</strong> dan akan diproses untuk verifikasi approval.
+                            Data kini berada dalam status <strong class="text-amber-700">SUBMITTED (Pending)</strong>
+                            dan akan diproses untuk verifikasi approval.
                         </p>
                     </div>
-                    <button type="button" onclick="closeSubmitSuccessModal()" class="w-full py-2.5 rounded-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition shadow-xs">
+                    <button type="button" onclick="closeSubmitSuccessModal()"
+                        class="w-full py-2.5 rounded-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition shadow-xs">
                         Tutup Modal
                     </button>
                 </div>
@@ -600,7 +785,7 @@ transition">
                     .replace(/'/g, '&#039;');
             }
 
-            document.addEventListener("DOMContentLoaded", function() {
+            document.addEventListener("DOMContentLoaded", function () {
                 const nameLabel = document.getElementById("userNameLabel");
                 if (nameLabel && nameLabel.innerText.trim()) {
                     document.getElementById("userAvatarInitial").innerText = nameLabel.innerText.trim().charAt(0).toUpperCase();
@@ -695,7 +880,7 @@ transition">
                 document.getElementById("CURRENT_UPLOAD_ID").value = newUploadId;
                 document.getElementById("CURRENT_FILENAME").value = fileName;
 
-                reader.onload = function(e) {
+                reader.onload = function (e) {
                     try {
                         const data = new Uint8Array(e.target.result);
                         const workbook = XLSX.read(data, { type: 'array' });
@@ -796,31 +981,31 @@ transition">
                                 matnrVal = autoFinStr || groesFinStrVal;
                             }
 
-                            const mengeVal     = getCellStr(row, colMap.menge);
-                            const mengeOrdVal  = getCellStr(row, colMap.mengeOrd);
-                            const volM3Val     = getCellStr(row, colMap.volM3);
+                            const mengeVal = getCellStr(row, colMap.menge);
+                            const mengeOrdVal = getCellStr(row, colMap.mengeOrd);
+                            const volM3Val = getCellStr(row, colMap.volM3);
 
-                            const wrkstVal     = getCellStr(row, colMap.wrkst);
-                            const noteVal      = getCellStr(row, colMap.note);
-                            const descVal      = getCellStr(row, colMap.description);
+                            const wrkstVal = getCellStr(row, colMap.wrkst);
+                            const noteVal = getCellStr(row, colMap.note);
+                            const descVal = getCellStr(row, colMap.description);
 
-                            const disgrVal     = getCellStr(row, colMap.disgr);
-                            const dispoVal     = getCellStr(row, colMap.dispo);
-                            const lgort1Val    = getCellStr(row, colMap.lgort1);
-                            const lgort2Val    = getCellStr(row, colMap.lgort2);
-                            const werksVal     = getCellStr(row, colMap.werks);
+                            const disgrVal = getCellStr(row, colMap.disgr);
+                            const dispoVal = getCellStr(row, colMap.dispo);
+                            const lgort1Val = getCellStr(row, colMap.lgort1);
+                            const lgort2Val = getCellStr(row, colMap.lgort2);
+                            const werksVal = getCellStr(row, colMap.werks);
 
-                            const m3ExtraVal   = getCellStr(row, colMap.m3Extra);
-                            const areaM2Val    = getCellStr(row, colMap.areaM2);
-                            const activityVal  = getCellStr(row, colMap.activity);
-                            const meinsVal     = getCellStr(row, colMap.meins);
-                            const umrezVal     = getCellStr(row, colMap.umrez);
-                            const meinhVal     = getCellStr(row, colMap.meinh);
-                            const actCodeVal   = getCellStr(row, colMap.actCode);
-                            const groesStrVal  = getCellStr(row, colMap.groesStr);
-                            const slocDefVal   = getCellStr(row, colMap.slocDef);
-                            const mtartVal     = getCellStr(row, colMap.mtart);
-                            const matklVal     = getCellStr(row, colMap.matkl);
+                            const m3ExtraVal = getCellStr(row, colMap.m3Extra);
+                            const areaM2Val = getCellStr(row, colMap.areaM2);
+                            const activityVal = getCellStr(row, colMap.activity);
+                            const meinsVal = getCellStr(row, colMap.meins);
+                            const umrezVal = getCellStr(row, colMap.umrez);
+                            const meinhVal = getCellStr(row, colMap.meinh);
+                            const actCodeVal = getCellStr(row, colMap.actCode);
+                            const groesStrVal = getCellStr(row, colMap.groesStr);
+                            const slocDefVal = getCellStr(row, colMap.slocDef);
+                            const mtartVal = getCellStr(row, colMap.mtart);
+                            const matklVal = getCellStr(row, colMap.matkl);
 
                             addNewRowData({
                                 groupNo: col0,
@@ -906,35 +1091,35 @@ transition">
                             method: "POST",
                             body: formData
                         })
-                        .then(function (res) { return res.json(); })
-                        .then(function (data) {
-                            const list = Array.isArray(data) ? data : [];
-                            if (list.length > 0) {
-                                const item = list[0];
-                                if (isMissingDisgr && (item.disgr || item.DISGR)) disgrEl.value = item.disgr || item.DISGR;
-                                if (isMissingDispo && (item.dispo || item.DISPO)) dispoEl.value = item.dispo || item.DISPO;
-                                if (isMissingLgort1 && (item.lgort1 || item.LGORT1)) lgort1El.value = item.lgort1 || item.LGORT1;
-                                if (isMissingLgort2 && (item.lgort2 || item.LGORT2)) lgort2El.value = item.lgort2 || item.LGORT2;
-                                if (isMissingWerks && (item.werks || item.WERKS)) werksEl.value = item.werks || item.WERKS;
-                            }
-
-                            const fieldsToCheck = [
-                                { name: "MRP Group", input: disgrEl },
-                                { name: "MRP Controller", input: dispoEl },
-                                { name: "SLoc 1", input: lgort1El },
-                                { name: "SLoc 2", input: lgort2El },
-                                { name: "Plant", input: werksEl }
-                            ];
-
-                            fieldsToCheck.forEach(function (f) {
-                                if (f.input && !f.input.value.trim()) {
-                                    console.log("Field: " + f.name + " | Source: Use.xlsx (empty) | Target: Template Bom.xlsx / SAP MARC | Reason: Data not found in SAP MARC for material " + matnrVal);
+                            .then(function (res) { return res.json(); })
+                            .then(function (data) {
+                                const list = Array.isArray(data) ? data : [];
+                                if (list.length > 0) {
+                                    const item = list[0];
+                                    if (isMissingDisgr && (item.disgr || item.DISGR)) disgrEl.value = item.disgr || item.DISGR;
+                                    if (isMissingDispo && (item.dispo || item.DISPO)) dispoEl.value = item.dispo || item.DISPO;
+                                    if (isMissingLgort1 && (item.lgort1 || item.LGORT1)) lgort1El.value = item.lgort1 || item.LGORT1;
+                                    if (isMissingLgort2 && (item.lgort2 || item.LGORT2)) lgort2El.value = item.lgort2 || item.LGORT2;
+                                    if (isMissingWerks && (item.werks || item.WERKS)) werksEl.value = item.werks || item.WERKS;
                                 }
+
+                                const fieldsToCheck = [
+                                    { name: "MRP Group", input: disgrEl },
+                                    { name: "MRP Controller", input: dispoEl },
+                                    { name: "SLoc 1", input: lgort1El },
+                                    { name: "SLoc 2", input: lgort2El },
+                                    { name: "Plant", input: werksEl }
+                                ];
+
+                                fieldsToCheck.forEach(function (f) {
+                                    if (f.input && !f.input.value.trim()) {
+                                        console.log("Field: " + f.name + " | Source: Use.xlsx (empty) | Target: Template Bom.xlsx / SAP MARC | Reason: Data not found in SAP MARC for material " + matnrVal);
+                                    }
+                                });
+                            })
+                            .catch(function (err) {
+                                console.error("SAP MARC auto-lookup error for material " + matnrVal + ":", err);
                             });
-                        })
-                        .catch(function (err) {
-                            console.error("SAP MARC auto-lookup error for material " + matnrVal + ":", err);
-                        });
                     }
                 });
 
@@ -1006,7 +1191,7 @@ transition">
                     { id: 'tabRejectedBtn', name: 'REJECTED', bgClass: 'bg-rose-600 text-white' }
                 ];
 
-                tabs.forEach(function(t) {
+                tabs.forEach(function (t) {
                     const btn = document.getElementById(t.id);
                     if (!btn) return;
 
@@ -1027,52 +1212,52 @@ transition">
             }
 
             function formatSapDate(rawDate) {
-            if (!rawDate || rawDate === '-' || rawDate.toString().trim() === '') return '-';
-            var clean = rawDate.toString().trim();
-            if (clean.indexOf('-') !== -1) {
-                var parts = clean.split('T')[0].split('-');
-                if (parts.length === 3) {
-                    var yyyy = parts[0];
-                    var mm = parts[1].length === 1 ? '0' + parts[1] : parts[1];
-                    var dd = parts[2].length === 1 ? '0' + parts[2] : parts[2];
+                if (!rawDate || rawDate === '-' || rawDate.toString().trim() === '') return '-';
+                var clean = rawDate.toString().trim();
+                if (clean.indexOf('-') !== -1) {
+                    var parts = clean.split('T')[0].split('-');
+                    if (parts.length === 3) {
+                        var yyyy = parts[0];
+                        var mm = parts[1].length === 1 ? '0' + parts[1] : parts[1];
+                        var dd = parts[2].length === 1 ? '0' + parts[2] : parts[2];
+                        return dd + '/' + mm + '/' + yyyy;
+                    }
+                }
+                var numOnly = clean.replace(/\D/g, '');
+                if (numOnly.length >= 8) {
+                    var yyyy = numOnly.substring(0, 4);
+                    var mm = numOnly.substring(4, 6);
+                    var dd = numOnly.substring(6, 8);
                     return dd + '/' + mm + '/' + yyyy;
                 }
+                return clean;
             }
-            var numOnly = clean.replace(/\D/g, '');
-            if (numOnly.length >= 8) {
-                var yyyy = numOnly.substring(0, 4);
-                var mm = numOnly.substring(4, 6);
-                var dd = numOnly.substring(6, 8);
-                return dd + '/' + mm + '/' + yyyy;
-            }
-            return clean;
-        }
 
-        function formatSapTime(rawTime) {
-            if (!rawTime || rawTime.toString().trim() === '') return '';
-            var clean = rawTime.toString().trim();
-            if (clean.indexOf(':') !== -1) {
-                var parts = clean.split(':');
-                var hh = parts[0].length === 1 ? '0' + parts[0] : parts[0];
-                var mm = parts[1].length === 1 ? '0' + parts[1] : parts[1];
-                return hh + ':' + mm;
+            function formatSapTime(rawTime) {
+                if (!rawTime || rawTime.toString().trim() === '') return '';
+                var clean = rawTime.toString().trim();
+                if (clean.indexOf(':') !== -1) {
+                    var parts = clean.split(':');
+                    var hh = parts[0].length === 1 ? '0' + parts[0] : parts[0];
+                    var mm = parts[1].length === 1 ? '0' + parts[1] : parts[1];
+                    return hh + ':' + mm;
+                }
+                var numOnly = clean.replace(/\D/g, '');
+                if (numOnly.length >= 4) {
+                    var hh = numOnly.substring(0, 2);
+                    var mm = numOnly.substring(2, 4);
+                    return hh + ':' + mm;
+                }
+                return clean;
             }
-            var numOnly = clean.replace(/\D/g, '');
-            if (numOnly.length >= 4) {
-                var hh = numOnly.substring(0, 2);
-                var mm = numOnly.substring(2, 4);
-                return hh + ':' + mm;
-            }
-            return clean;
-        }
 
-        function renderHistoryTable() {
+            function renderHistoryTable() {
                 const tbody = document.getElementById("historyTableBody");
                 if (!tbody) return;
 
                 let pendingCount = 0, holdCount = 0, approvedCount = 0, rejectedCount = 0;
 
-                globalHistoryData.forEach(function(item) {
+                globalHistoryData.forEach(function (item) {
                     const st = (item.status || 'DRAFT').toUpperCase();
                     if (st === 'HOLD') holdCount++;
                     else if (st === 'APPROVED') approvedCount++;
@@ -1085,7 +1270,7 @@ transition">
                 if (document.getElementById("approvedCountCard")) document.getElementById("approvedCountCard").innerText = approvedCount + " Request";
                 if (document.getElementById("rejectedCountCard")) document.getElementById("rejectedCountCard").innerText = rejectedCount + " Request";
 
-                const filtered = globalHistoryData.filter(function(item) {
+                const filtered = globalHistoryData.filter(function (item) {
                     const st = (item.status || 'DRAFT').toUpperCase();
                     if (currentHistoryTab === 'HOLD') return st === 'HOLD';
                     if (currentHistoryTab === 'APPROVED') return st === 'APPROVED';
@@ -1099,7 +1284,7 @@ transition">
                     return;
                 }
 
-                filtered.forEach(function(item, idx) {
+                filtered.forEach(function (item, idx) {
                     const tr = document.createElement("tr");
                     tr.className = "hover:bg-slate-50/80 transition-colors";
 
@@ -1148,14 +1333,14 @@ inline-flex items-center gap-1 cursor-pointer">
                 tbody.innerHTML = '<tr><td colspan="9" class="p-6 text-center text-slate-400 italic">Memuat riwayat upload...</td></tr>';
 
                 fetch("?OnInputProcessing=GET_HISTORY")
-                .then(function(res) { return res.json(); })
-                .then(function(data) {
-                    globalHistoryData = data || [];
-                    renderHistoryTable();
-                })
-                .catch(function() {
-                    tbody.innerHTML = '<tr><td colspan="9" class="p-6 text-center text-slate-400 italic">Gagal memuat riwayat upload dari server.</td></tr>';
-                });
+                    .then(function (res) { return res.json(); })
+                    .then(function (data) {
+                        globalHistoryData = data || [];
+                        renderHistoryTable();
+                    })
+                    .catch(function () {
+                        tbody.innerHTML = '<tr><td colspan="9" class="p-6 text-center text-slate-400 italic">Gagal memuat riwayat upload dari server.</td></tr>';
+                    });
             }
 
             function loadUploadDetail(uploadId, filename) {
@@ -1170,96 +1355,96 @@ inline-flex items-center gap-1 cursor-pointer">
                     method: "POST",
                     body: formData
                 })
-                .then(function(res) { return res.json(); })
-                .then(function(data) {
-                    if (!data || data.length === 0) {
-                        showToast("Data detail tidak ditemukan.", "error");
-                        return;
-                    }
-
-                    document.getElementById("CURRENT_UPLOAD_ID").value = uploadId;
-                    document.getElementById("CURRENT_FILENAME").value = filename || "";
-
-                    document.getElementById("tableBody").innerHTML = "";
-                    rowCounter = 0;
-
-                    let currentGrpNo = 0;
-
-                    data.forEach(function(item) {
-                        const codeNum = item.code_num || item.CODE_NUM || "SF";
-                        if (codeNum === 'PF') currentGrpNo++;
-
-                        let rt1 = "", rt2 = "", rw1 = "", rw2 = "", rl1 = "", rl2 = "";
-                        const groes = item.groes || item.GROES || "";
-                        if (groes) {
-                            const parts = groes.split(/X|x/i);
-                            if (parts.length >= 1) {
-                                const tParts = parts[0].trim().split('/');
-                                if (tParts.length > 1) { rt1 = tParts[0].trim(); rt2 = tParts[1].trim(); } else { rt2 = tParts[0].trim(); }
-                            }
-                            if (parts.length >= 2) {
-                                const wParts = parts[1].trim().split('/');
-                                if (wParts.length > 1) { rw1 = wParts[0].trim(); rw2 = wParts[1].trim(); } else { rw2 = wParts[0].trim(); }
-                            }
-                            if (parts.length >= 3) {
-                                const lParts = parts[2].trim().split('/');
-                                if (lParts.length > 1) { rl1 = lParts[0].trim(); rl2 = lParts[1].trim(); } else { rl2 = lParts[0].trim(); }
-                            }
+                    .then(function (res) { return res.json(); })
+                    .then(function (data) {
+                        if (!data || data.length === 0) {
+                            showToast("Data detail tidak ditemukan.", "error");
+                            return;
                         }
 
-                        let ft = "", fw = "", fl = "";
-                        const groesFin = item.groes_fin || item.GROES_FIN || "";
-                        if (groesFin) {
-                            const finParts = groesFin.split(/X|x/i);
-                            ft = finParts[0] ? finParts[0].trim() : "";
-                            fw = finParts[1] ? finParts[1].trim() : "";
-                            fl = finParts[2] ? finParts[2].trim() : "";
-                        }
+                        document.getElementById("CURRENT_UPLOAD_ID").value = uploadId;
+                        document.getElementById("CURRENT_FILENAME").value = filename || "";
 
-                        addNewRowData({
-                            groupNo: item.groupNo || (codeNum === 'PF' ? currentGrpNo : ""),
-                            codeNum: codeNum,
-                            matnr: item.matnr || item.MATNR || "",
-                            groesFinStr: groesFin,
-                            maktx: item.maktx || item.MAKTX || "",
-                            wrkst: item.wrkst || item.WRKST || "",
-                            rt1: rt1, rt2: rt2,
-                            rw1: rw1, rw2: rw2,
-                            rl1: rl1, rl2: rl2,
-                            ft: ft, fw: fw, fl: fl,
-                            menge: item.menge || item.MENGE || 1,
-                            mengeOrd: item.menge_ord || item.MENGE_ORD || "",
-                            volM3: item.vol_m3 || item.VOL_M3 || "",
-                            note: item.note || item.NOTE || "",
-                            description: item.description || item.DESCRIPTION || "",
-                            disgr: item.disgr || item.DISGR || "",
-                            dispo: item.dispo || item.DISPO || "",
-                            lgort1: item.lgort1 || item.LGORT1 || "",
-                            lgort2: item.lgort2 || item.LGORT2 || "",
-                            werks: item.werks || item.WERKS || "",
-                            m3Extra: item.m3 || item.M3 || "",
-                            areaM2: item.area_m2 || item.AREA_M2 || "",
-                            activity: item.activity || item.ACTIVITY || "",
-                            meins: item.meins || item.MEINS || "",
-                            umrez: item.umrez || item.UMREZ || "",
-                            meinh: item.meinh || item.MEINH || "",
-                            actCode: item.act_code || item.ACT_CODE || "",
-                            groesStr: item.groes || item.GROES || "",
-                            slocDef: item.sloc_def || item.SLOC_DEF || "",
-                            mtart: item.mtart || item.MTART || "",
-                            matkl: item.matkl || item.MATKL || ""
+                        document.getElementById("tableBody").innerHTML = "";
+                        rowCounter = 0;
+
+                        let currentGrpNo = 0;
+
+                        data.forEach(function (item) {
+                            const codeNum = item.code_num || item.CODE_NUM || "SF";
+                            if (codeNum === 'PF') currentGrpNo++;
+
+                            let rt1 = "", rt2 = "", rw1 = "", rw2 = "", rl1 = "", rl2 = "";
+                            const groes = item.groes || item.GROES || "";
+                            if (groes) {
+                                const parts = groes.split(/X|x/i);
+                                if (parts.length >= 1) {
+                                    const tParts = parts[0].trim().split('/');
+                                    if (tParts.length > 1) { rt1 = tParts[0].trim(); rt2 = tParts[1].trim(); } else { rt2 = tParts[0].trim(); }
+                                }
+                                if (parts.length >= 2) {
+                                    const wParts = parts[1].trim().split('/');
+                                    if (wParts.length > 1) { rw1 = wParts[0].trim(); rw2 = wParts[1].trim(); } else { rw2 = wParts[0].trim(); }
+                                }
+                                if (parts.length >= 3) {
+                                    const lParts = parts[2].trim().split('/');
+                                    if (lParts.length > 1) { rl1 = lParts[0].trim(); rl2 = lParts[1].trim(); } else { rl2 = lParts[0].trim(); }
+                                }
+                            }
+
+                            let ft = "", fw = "", fl = "";
+                            const groesFin = item.groes_fin || item.GROES_FIN || "";
+                            if (groesFin) {
+                                const finParts = groesFin.split(/X|x/i);
+                                ft = finParts[0] ? finParts[0].trim() : "";
+                                fw = finParts[1] ? finParts[1].trim() : "";
+                                fl = finParts[2] ? finParts[2].trim() : "";
+                            }
+
+                            addNewRowData({
+                                groupNo: item.groupNo || (codeNum === 'PF' ? currentGrpNo : ""),
+                                codeNum: codeNum,
+                                matnr: item.matnr || item.MATNR || "",
+                                groesFinStr: groesFin,
+                                maktx: item.maktx || item.MAKTX || "",
+                                wrkst: item.wrkst || item.WRKST || "",
+                                rt1: rt1, rt2: rt2,
+                                rw1: rw1, rw2: rw2,
+                                rl1: rl1, rl2: rl2,
+                                ft: ft, fw: fw, fl: fl,
+                                menge: item.menge || item.MENGE || 1,
+                                mengeOrd: item.menge_ord || item.MENGE_ORD || "",
+                                volM3: item.vol_m3 || item.VOL_M3 || "",
+                                note: item.note || item.NOTE || "",
+                                description: item.description || item.DESCRIPTION || "",
+                                disgr: item.disgr || item.DISGR || "",
+                                dispo: item.dispo || item.DISPO || "",
+                                lgort1: item.lgort1 || item.LGORT1 || "",
+                                lgort2: item.lgort2 || item.LGORT2 || "",
+                                werks: item.werks || item.WERKS || "",
+                                m3Extra: item.m3 || item.M3 || "",
+                                areaM2: item.area_m2 || item.AREA_M2 || "",
+                                activity: item.activity || item.ACTIVITY || "",
+                                meins: item.meins || item.MEINS || "",
+                                umrez: item.umrez || item.UMREZ || "",
+                                meinh: item.meinh || item.MEINH || "",
+                                actCode: item.act_code || item.ACT_CODE || "",
+                                groesStr: item.groes || item.GROES || "",
+                                slocDef: item.sloc_def || item.SLOC_DEF || "",
+                                mtart: item.mtart || item.MTART || "",
+                                matkl: item.matkl || item.MATKL || ""
+                            });
                         });
-                    });
 
-                    showToast("Berhasil memuat " + data.length + " baris data dari " + (filename || uploadId), "success");
-                    window.scrollTo({ top: 300, behavior: 'smooth' });
-                })
-                .catch(function() {
-                    showToast("Gagal mengambil detail data batch.", "error");
-                })
-                .finally(function() {
-                    hideLoading();
-                });
+                        showToast("Berhasil memuat " + data.length + " baris data dari " + (filename || uploadId), "success");
+                        window.scrollTo({ top: 300, behavior: 'smooth' });
+                    })
+                    .catch(function () {
+                        showToast("Gagal mengambil detail data batch.", "error");
+                    })
+                    .finally(function () {
+                        hideLoading();
+                    });
             }
 
             function addNewRow() {
@@ -1535,7 +1720,7 @@ onclick="deleteRow(this)">-</button>
                 const rows = document.querySelectorAll("#tableBody tr");
                 let currentGrpNo = 0;
 
-                rows.forEach(function(row, idx) {
+                rows.forEach(function (row, idx) {
                     const codeNumInput = row.querySelector(".row-code-num");
                     const codeVal = codeNumInput ? codeNumInput.value.trim().toUpperCase() : "";
 
@@ -1587,7 +1772,7 @@ onclick="deleteRow(this)">-</button>
                 const btn = document.getElementById("btnReset");
                 setBtnLoading(btn, true);
 
-                setTimeout(function() {
+                setTimeout(function () {
                     document.getElementById("CURRENT_UPLOAD_ID").value = "";
                     document.getElementById("CURRENT_FILENAME").value = "";
                     document.getElementById("tableBody").innerHTML = "";
@@ -1604,7 +1789,7 @@ onclick="deleteRow(this)">-</button>
                 const formData = new FormData();
 
                 let hasError = false;
-                rows.forEach(function(row) {
+                rows.forEach(function (row) {
                     const maktxInput = row.querySelector(".row-maktx");
                     if (maktxInput && !maktxInput.value.trim()) {
                         validateRowField(maktxInput);
@@ -1631,7 +1816,7 @@ onclick="deleteRow(this)">-</button>
                 formData.append("ROW_COUNT", rows.length);
 
                 let lastParentPosnr = 0;
-                rows.forEach(function(row, idx) {
+                rows.forEach(function (row, idx) {
                     const i = idx + 1;
                     const currentPosnr = i * 10;
                     const codeNum = row.querySelector(".row-code-num").value;
@@ -1699,31 +1884,31 @@ onclick="deleteRow(this)">-</button>
                     method: "POST",
                     body: formData
                 })
-                .then(function(res) { return res.json(); })
-                .then(function(data) {
-                    if (data.status === "SUCCESS") {
+                    .then(function (res) { return res.json(); })
+                    .then(function (data) {
+                        if (data.status === "SUCCESS") {
+                            if (isSubmit) {
+                                openSubmitSuccessModal(document.getElementById("REQ_ID").value || document.getElementById("CURRENT_UPLOAD_ID").value);
+                            } else {
+                                showToast("Data staging berhasil disimpan sebagai DRAFT!", "success");
+                            }
+                            loadUploadHistory();
+                        } else {
+                            showToast("Gagal menyimpan data staging.", "error");
+                        }
+                    })
+                    .catch(function () {
                         if (isSubmit) {
                             openSubmitSuccessModal(document.getElementById("REQ_ID").value || document.getElementById("CURRENT_UPLOAD_ID").value);
                         } else {
-                            showToast("Data staging berhasil disimpan sebagai DRAFT!", "success");
+                            showToast("Data berhasil diproses ke Staging.", "info");
                         }
                         loadUploadHistory();
-                    } else {
-                        showToast("Gagal menyimpan data staging.", "error");
-                    }
-                })
-                .catch(function() {
-                    if (isSubmit) {
-                        openSubmitSuccessModal(document.getElementById("REQ_ID").value || document.getElementById("CURRENT_UPLOAD_ID").value);
-                    } else {
-                        showToast("Data berhasil diproses ke Staging.", "info");
-                    }
-                    loadUploadHistory();
-                })
-                .finally(function() {
-                    setBtnLoading(btn, false);
-                    hideLoading();
-                });
+                    })
+                    .finally(function () {
+                        setBtnLoading(btn, false);
+                        hideLoading();
+                    });
             }
 
             // ==========================================
@@ -2201,11 +2386,12 @@ transition shadow-2xs inline-flex items-center gap-1 cursor-pointer">`;
                     '</span><span class="font-medium leading-snug">' + message + '</span>';
                 stack.appendChild(toast);
 
-                setTimeout(function() {
+                setTimeout(function () {
                     toast.classList.add("opacity-0", "translate-y-2");
-                    setTimeout(function() { toast.remove(); }, 300);
+                    setTimeout(function () { toast.remove(); }, 300);
                 }, 3500);
             }
         </script>
     </body>
+
     </html>

@@ -578,18 +578,13 @@ cursor-pointer">&times;</button>
                 actionBtns += 'font-extrabold px-3 py-1 rounded-full shadow-2xs transition cursor-pointer flex items-center gap-1">Delete</button>';
             }
 
-            var canApprove = (item.status === 'SUBMITTED' || item.status === 'CHECKED' || item.status === 'CODED' || item.status === 'FAILED');
-            var isChecked = canApprove && (selectedReqNos.indexOf(item.req_no) >= 0);
+            var isChecked = selectedReqNos.indexOf(item.req_no) >= 0;
 
             var htmlStr = '';
-            // 1. Checkbox (Hanya aktif untuk status yang bisa di-approve)
+            // 1. Checkbox
             htmlStr += '<td class="p-3 text-center">';
-            if (canApprove) {
-                htmlStr += '<input type="checkbox" value="' + reqNoEsc + '" ' + (isChecked ? 'checked' : '') + ' ';
-                htmlStr += 'onchange="toggleSelectRow(this)" class="row-checkbox w-3.5 h-3.5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer">';
-            } else {
-                htmlStr += '<input type="checkbox" disabled class="w-3.5 h-3.5 rounded border-slate-200 text-slate-300 cursor-not-allowed opacity-40" title="Request sudah approved/rejected">';
-            }
+            htmlStr += '<input type="checkbox" value="' + reqNoEsc + '" ' + (isChecked ? 'checked' : '') + ' ';
+            htmlStr += 'onchange="toggleSelectRow(this)" class="row-checkbox w-3.5 h-3.5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer">';
             htmlStr += '</td>';
 
             // 2. Detail
@@ -893,15 +888,13 @@ cursor-pointer">&times;</button>
     }
 
     function toggleSelectAll(master) {
-        var checkboxes = document.querySelectorAll(".row-checkbox:not(:disabled)");
+        var checkboxes = document.querySelectorAll(".row-checkbox");
         selectedReqNos = [];
 
         checkboxes.forEach(function(cb) {
             cb.checked = master.checked;
             if (master.checked) {
-                if (selectedReqNos.indexOf(cb.value) < 0) {
-                    selectedReqNos.push(cb.value);
-                }
+                selectedReqNos.push(cb.value);
             }
         });
         updateBatchActionBar();
@@ -909,7 +902,7 @@ cursor-pointer">&times;</button>
 
     function toggleSelectRow(cb) {
         if (cb.checked) {
-            if (selectedReqNos.indexOf(cb.value) < 0) selectedReqNos.push(cb.value);
+            if (!selectedReqNos.includes(cb.value)) selectedReqNos.push(cb.value);
         } else {
             selectedReqNos = selectedReqNos.filter(function(id) { return id !== cb.value; });
         }
@@ -1017,16 +1010,15 @@ cursor-pointer">&times;</button>
             // Debug logging: 4
             console.log("%c[APPROVE DEBUG] 4. Response dari backend diterima:", "color: #059669; font-weight: bold;", data);
 
-            if (data && (data.status === "SUCCESS" || data.status === "PARTIAL")) {
-                var isPartial = (data.status === "PARTIAL");
+            if (data && data.status === "SUCCESS") {
                 // Debug logging: 5
-                console.log("%c[APPROVE DEBUG] 5. Status: " + (isPartial ? "PARTIAL" : "BERHASIL (SUCCESS)") + " - Request: " + targetDocsStr, "color: #059669; font-weight: bold;", data.message);
+                console.log("%c[APPROVE DEBUG] 5. Status: BERHASIL (SUCCESS) - Request: " + targetDocsStr, "color: #059669; font-weight: bold;", data.message);
 
-                var successTitle = isPartial ? "MASS APPROVAL SEBAGIAN SELESAI (PARTIAL)" : "MASS APPROVAL BERHASIL & TERUPLOAD KE SAP S/4HANA";
-                var successMsg = data.message || ("Request " + targetDocsStr + " telah BERHASIL divalidasi dan TERUPLOAD ke SAP S/4HANA Master Data!");
-                showToast(successMsg, isPartial ? "info" : "success");
-                showPageApprovalAlert(!isPartial, successTitle, successMsg, data.message);
-                showUploadResultNotification(!isPartial, successTitle, successMsg, data.message);
+                var successTitle = "APPROVE BERHASIL & TERUPLOAD KE SAP S/4HANA";
+                var successMsg = "Request " + targetDocsStr + " telah BERHASIL divalidasi dan TERUPLOAD ke SAP S/4HANA Master Data!";
+                showToast("Request " + targetDocsStr + " approved successfully.", "success");
+                showPageApprovalAlert(true, successTitle, successMsg, data.message);
+                showUploadResultNotification(true, "Approve Successful", successMsg, data.message);
             } else {
                 var errorMsg = (data && data.message) ? data.message : "Approval failed without details from server.";
                 // Debug logging: 5 & 6

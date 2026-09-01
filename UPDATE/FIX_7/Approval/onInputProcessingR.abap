@@ -57,13 +57,10 @@
           lt_returnmes            TYPE TABLE OF bapi_matreturn2,
           ls_returnmes            TYPE bapi_matreturn2.
 
-    DATA: lv_has_error   TYPE sap_bool,
-          lv_err_msg     TYPE string,
-          lv_last_err    TYPE string,
-          lv_coded_cnt   TYPE i,
-          lv_success_cnt TYPE i,
-          lv_fail_cnt    TYPE i,
-          lv_curr_stat   TYPE zmdg_req_hdr-status.
+    DATA: lv_has_error TYPE sap_bool,
+          lv_err_msg   TYPE string,
+          lv_last_err  TYPE string,
+          lv_coded_cnt TYPE i.
 
     TYPES: BEGIN OF ty_resp,
             status    TYPE string,
@@ -164,20 +161,12 @@
           ENDIF.
 
           SPLIT lv_req_nos AT ',' INTO TABLE lt_req_split.
-          lv_has_error   = abap_false.
-          lv_success_cnt = 0.
-          lv_fail_cnt    = 0.
+          lv_has_error = abap_false.
           CLEAR lv_last_err.
 
           LOOP AT lt_req_split INTO lv_req_item.
             CONDENSE lv_req_item.
             CHECK lv_req_item IS NOT INITIAL.
-
-            CLEAR lv_curr_stat.
-            SELECT SINGLE status FROM zmdg_req_hdr INTO @lv_curr_stat WHERE req_no = @lv_req_item.
-            IF sy-subrc = 0 AND ( lv_curr_stat = 'APPROVED' OR lv_curr_stat = 'REJECTED' ).
-              CONTINUE.
-            ENDIF.
 
             UPDATE zmdg_req_hdr
               SET status   = 'VALIDATING',
@@ -609,7 +598,6 @@
               CALL FUNCTION 'BAPI_TRANSACTION_ROLLBACK'.
               lv_has_error = abap_true.
               lv_last_err  = lv_err_msg.
-              lv_fail_cnt  = lv_fail_cnt + 1.
 
               UPDATE zmdg_req_hdr
                 SET status     = 'FAILED',
@@ -620,7 +608,6 @@
                 WHERE req_no   = @lv_req_item.
             ELSE.
               CALL FUNCTION 'BAPI_TRANSACTION_COMMIT' EXPORTING wait = 'X'.
-              lv_success_cnt = lv_success_cnt + 1.
 
               UPDATE zmdg_req_hdr
                 SET status     = 'APPROVED',
@@ -633,27 +620,20 @@
 
           ENDLOOP.
 
-          IF lv_fail_cnt > 0 AND lv_success_cnt = 0.
+          IF lv_has_error = abap_true.
             CLEAR ls_resp.
             ls_resp-status  = 'ERROR'.
-            ls_resp-message = 'Proses approval gagal: ' && lv_last_err.
-            lv_json = /ui2/cl_json=>serialize( data = ls_resp compress = 'X' pretty_name = /ui2/cl_json=>pretty_mode-low_case ).
-          ELSEIF lv_fail_cnt > 0 AND lv_success_cnt > 0.
-            CLEAR ls_resp.
-            ls_resp-status  = 'PARTIAL'.
-            ls_resp-message = lv_success_cnt && ' request BERHASIL di-approve & di-upload ke SAP, ' && lv_fail_cnt && ' request GAGAL. Error: ' && lv_last_err.
+            ls_resp-message = 'Proses gagal: ' && lv_last_err.
             lv_json = /ui2/cl_json=>serialize( data = ls_resp compress = 'X' pretty_name = /ui2/cl_json=>pretty_mode-low_case ).
           ELSE.
             CLEAR ls_resp.
             ls_resp-status    = 'SUCCESS'.
             ls_resp-matnr     = ls_dtl_db-matnr_ext.
             ls_resp-matnr_ext = ls_dtl_db-matnr_ext.
-            IF lv_success_cnt > 1.
-              ls_resp-message = lv_success_cnt && ' request berhasil divalidasi dan di-upload ke SAP S/4HANA!'.
-            ELSEIF ls_dtl_db-matnr_ext IS NOT INITIAL.
-              ls_resp-message = 'Data berhasil divalidasi dan di-upload ke SAP S/4HANA! (Nomor Material: ' && ls_dtl_db-matnr_ext && ')'.
+            IF ls_dtl_db-matnr_ext IS NOT INITIAL.
+              ls_resp-message = 'Seluruh data berhasil divalidasi dan di-upload ke SAP S/4HANA! (Nomor Material: ' && ls_dtl_db-matnr_ext && ')'.
             ELSE.
-              ls_resp-message = 'Data berhasil divalidasi dan di-upload ke SAP S/4HANA!'.
+              ls_resp-message = 'Seluruh data berhasil divalidasi dan di-upload ke SAP S/4HANA!'.
             ENDIF.
             lv_json = /ui2/cl_json=>serialize( data = ls_resp compress = 'X' pretty_name = /ui2/cl_json=>pretty_mode-low_case ).
           ENDIF.
