@@ -33,7 +33,9 @@ DATA: lv_is_available TYPE char1,
       lt_check_return TYPE TABLE OF bapiret2,
       ls_check_return TYPE bapiret2,
       lv_exist_mara   TYPE mara-matnr,
-      lv_exist_stage  TYPE zmdg_req_hdr-status.
+      lv_exist_stage  TYPE zmdg_req_hdr-status,
+      lt_used_matnr   TYPE TABLE OF string,
+      lv_cand_matnr   TYPE string.
 
 " Struktur & Variabel BAPI Material Master
 DATA: ls_headdata            TYPE bapimathead,
@@ -57,10 +59,13 @@ DATA: ls_headdata            TYPE bapimathead,
       lt_returnmes            TYPE TABLE OF bapi_matreturn2,
       ls_returnmes            TYPE bapi_matreturn2.
 
-DATA: lv_has_error TYPE sap_bool,
-      lv_err_msg   TYPE string,
-      lv_last_err  TYPE string,
-      lv_coded_cnt TYPE i.
+DATA: lv_has_error   TYPE sap_bool,
+      lv_err_msg     TYPE string,
+      lv_last_err    TYPE string,
+      lv_coded_cnt   TYPE i,
+      lv_success_cnt TYPE i,
+      lv_fail_cnt    TYPE i,
+      lv_curr_stat   TYPE zmdg_req_hdr-status.
 
 TYPES: BEGIN OF ty_resp,
          status    TYPE string,
@@ -161,12 +166,20 @@ IF lv_action IS NOT INITIAL.
       ENDIF.
 
       SPLIT lv_req_nos AT ',' INTO TABLE lt_req_split.
-      lv_has_error = abap_false.
+      lv_has_error   = abap_false.
+      lv_success_cnt = 0.
+      lv_fail_cnt    = 0.
       CLEAR lv_last_err.
 
       LOOP AT lt_req_split INTO lv_req_item.
         CONDENSE lv_req_item.
         CHECK lv_req_item IS NOT INITIAL.
+
+        CLEAR lv_curr_stat.
+        SELECT SINGLE status FROM zmdg_req_hdr INTO @lv_curr_stat WHERE req_no = @lv_req_item.
+        IF sy-subrc = 0 AND ( lv_curr_stat = 'APPROVED' OR lv_curr_stat = 'REJECTED' ).
+          CONTINUE.
+        ENDIF.
 
         UPDATE zmdg_req_hdr
           SET status   = 'VALIDATING',
@@ -191,42 +204,23 @@ IF lv_action IS NOT INITIAL.
         ENDIF.
 
         CLEAR lv_err_msg.
+        CLEAR lt_used_matnr.
+
+        " Pre-populate lt_used_matnr dengan nomor material yang sudah terisi di staging batch
+        LOOP AT lt_dtl_db INTO ls_dtl_db WHERE matnr_ext IS NOT INITIAL.
+          APPEND ls_dtl_db-matnr_ext TO lt_used_matnr.
+        ENDLOOP.
 
         " LOOP UNTUK EDIT/VALIDASI SETIAP ITEM IN BATCH
         LOOP AT lt_dtl_db INTO ls_dtl_db.
 
-          " A. GENERATE KODE MATERIAL JIKA MATNR MASIH KOSONG
-          IF ls_dtl_db-matnr_ext IS INITIAL.
-            CLEAR: lv_is_available, lv_next_number, lt_check_return.
-
-            CALL FUNCTION 'ZFM_CHECK_MATERIAL'
-              EXPORTING
-                iv_mtart        = ls_dtl_db-mtart
-              IMPORTING
-                ev_is_available = lv_is_available
-                ev_next_number  = lv_next_number
-                et_return       = lt_check_return.
-
-            IF lv_is_available = 'X' AND lv_next_number IS NOT INITIAL.
-              ls_dtl_db-matnr_ext = lv_next_number.
-
-              " Update nomor yang dihasilkan ke tabel staging detail
-              UPDATE zmdg_req_dtl
-                SET matnr_ext = @ls_dtl_db-matnr_ext
-                WHERE req_no  = @ls_dtl_db-req_no
-                  AND item_no = @ls_dtl_db-item_no.
-            ELSE.
-              READ TABLE lt_check_return INTO ls_check_return WITH KEY type = 'E'.
-              IF sy-subrc = 0.
-                lv_err_msg = |Item { ls_dtl_db-item_no }: Auto-gen gagal - { ls_check_return-message }|.
-              ELSE.
-                lv_err_msg = |Item { ls_dtl_db-item_no }: Gagal generate nomor material untuk MTART { ls_dtl_db-mtart }|.
-              ENDIF.
-              EXIT.
-            ENDIF.
+          " Clean up & normalize Material Type per item (remove spaces & uppercase)
+          IF ls_dtl_db-mtart IS NOT INITIAL.
+            CONDENSE ls_dtl_db-mtart NO-GAPS.
+            TRANSLATE ls_dtl_db-mtart TO UPPER CASE.
           ENDIF.
 
-          " B. VALIDASI MANDATORY FIELD
+          " B. VALIDASI MANDATORY FIELDS PER ITEM
           IF ls_dtl_db-mbrsh IS INITIAL OR ls_dtl_db-mtart IS INITIAL.
             lv_err_msg = 'Industry Sector dan Material Type wajib diisi (Item ' && ls_dtl_db-item_no && ')'.
             EXIT.
@@ -247,11 +241,78 @@ IF lv_action IS NOT INITIAL.
             EXIT.
           ENDIF.
 
+          " A. GENERATE KODE MATERIAL AUTOMATIC PER ITEM BERDASARKAN MTART SEBAGAI NUMBER RANGE
+          CLEAR lv_exist_mara.
+          IF ls_dtl_db-matnr_ext IS NOT INITIAL.
+            SELECT SINGLE matnr FROM mara INTO @lv_exist_mara WHERE matnr = @ls_dtl_db-matnr_ext.
+          ENDIF.
+
+          IF ls_dtl_db-matnr_ext IS INITIAL OR sy-subrc = 0.
+            " Jika nomor belum ada ATAU nomor lama sudah terdaftar di MARA, generate nomor baru per MTART item
+            CLEAR: lv_is_available, lv_next_number, lt_check_return.
+
+            CALL FUNCTION 'ZFM_CHECK_MATERIAL'
+              EXPORTING
+                iv_mtart        = ls_dtl_db-mtart
+              IMPORTING
+                ev_is_available = lv_is_available
+                ev_next_number  = lv_next_number
+                et_return       = lt_check_return.
+
+            IF lv_is_available = 'X' AND lv_next_number IS NOT INITIAL.
+              lv_cand_matnr = lv_next_number.
+
+              " Safety check: Pastikan lv_cand_matnr belum dipakai di MARA maupun lt_used_matnr (untuk batch multi-item dengan MTART sama)
+              DO 100 TIMES.
+                CLEAR lv_exist_mara.
+                SELECT SINGLE matnr FROM mara INTO @lv_exist_mara WHERE matnr = @lv_cand_matnr.
+                READ TABLE lt_used_matnr WITH KEY table_line = lv_cand_matnr TRANSPORTING NO FIELDS.
+
+                IF sy-subrc <> 0 AND lv_exist_mara IS INITIAL.
+                  " Nomor bebas & unik
+                  EXIT.
+                ELSE.
+                  " Jika nomor sudah terpakai di batch/MARA, increment 1 tingkat
+                  IF lv_cand_matnr CO '0123456789'.
+                    DATA: lv_num_tmp TYPE string.
+                    lv_num_tmp = CONV string( CONV i( lv_cand_matnr ) + 1 ).
+                    CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
+                      EXPORTING
+                        input  = lv_num_tmp
+                      IMPORTING
+                        output = lv_cand_matnr.
+                  ELSE.
+                    EXIT.
+                  ENDIF.
+                ENDIF.
+              ENDDO.
+
+              ls_dtl_db-matnr_ext = lv_cand_matnr.
+              APPEND ls_dtl_db-matnr_ext TO lt_used_matnr.
+
+              " Update nomor yang dihasilkan ke tabel staging detail
+              UPDATE zmdg_req_dtl
+                SET matnr_ext = @ls_dtl_db-matnr_ext
+                WHERE req_no  = @ls_dtl_db-req_no
+                  AND item_no = @ls_dtl_db-item_no.
+            ELSE.
+              READ TABLE lt_check_return INTO ls_check_return WITH KEY type = 'E'.
+              IF sy-subrc = 0 AND ls_check_return-message IS NOT INITIAL.
+                lv_err_msg = |Item { ls_dtl_db-item_no }: Auto-gen gagal - { ls_check_return-message }|.
+              ELSE.
+                lv_err_msg = |Item { ls_dtl_db-item_no }: Auto-gen gagal - Gagal mengambil Number Range otomatis untuk Material Type { ls_dtl_db-mtart }.|.
+              ENDIF.
+              EXIT.
+            ENDIF.
+          ELSE.
+            APPEND ls_dtl_db-matnr_ext TO lt_used_matnr.
+          ENDIF.
+
           " C. CHECK DUPLIKASI KODE DI TABEL MARA (SAP MASTER DATA)
           CLEAR lv_exist_mara.
           SELECT SINGLE matnr FROM mara INTO @lv_exist_mara WHERE matnr = @ls_dtl_db-matnr_ext.
           IF sy-subrc = 0.
-            lv_err_msg = |Kode Material { ls_dtl_db-matnr_ext } sudah terdaftar di MARA SAP|.
+            lv_err_msg = |Kode Material { ls_dtl_db-matnr_ext } sudah terdaftar di MARA SAP (Item { ls_dtl_db-item_no })|.
             EXIT.
           ENDIF.
 
@@ -562,6 +623,7 @@ IF lv_action IS NOT INITIAL.
           CALL FUNCTION 'BAPI_TRANSACTION_ROLLBACK'.
           lv_has_error = abap_true.
           lv_last_err  = lv_err_msg.
+          lv_fail_cnt  = lv_fail_cnt + 1.
 
           UPDATE zmdg_req_hdr
             SET status     = 'FAILED',
@@ -572,6 +634,7 @@ IF lv_action IS NOT INITIAL.
             WHERE req_no   = @lv_req_item.
         ELSE.
           CALL FUNCTION 'BAPI_TRANSACTION_COMMIT' EXPORTING wait = 'X'.
+          lv_success_cnt = lv_success_cnt + 1.
 
           UPDATE zmdg_req_hdr
             SET status     = 'APPROVED',
@@ -584,20 +647,27 @@ IF lv_action IS NOT INITIAL.
 
       ENDLOOP.
 
-      IF lv_has_error = abap_true.
+      IF lv_fail_cnt > 0 AND lv_success_cnt = 0.
         CLEAR ls_resp.
         ls_resp-status  = 'ERROR'.
-        ls_resp-message = 'Proses gagal: ' && lv_last_err.
+        ls_resp-message = 'Proses approval gagal: ' && lv_last_err.
+        lv_json = /ui2/cl_json=>serialize( data = ls_resp compress = 'X' pretty_name = /ui2/cl_json=>pretty_mode-low_case ).
+      ELSEIF lv_fail_cnt > 0 AND lv_success_cnt > 0.
+        CLEAR ls_resp.
+        ls_resp-status  = 'PARTIAL'.
+        ls_resp-message = lv_success_cnt && ' request BERHASIL di-approve & di-upload ke SAP, ' && lv_fail_cnt && ' request GAGAL. Error: ' && lv_last_err.
         lv_json = /ui2/cl_json=>serialize( data = ls_resp compress = 'X' pretty_name = /ui2/cl_json=>pretty_mode-low_case ).
       ELSE.
         CLEAR ls_resp.
         ls_resp-status    = 'SUCCESS'.
         ls_resp-matnr     = ls_dtl_db-matnr_ext.
         ls_resp-matnr_ext = ls_dtl_db-matnr_ext.
-        IF ls_dtl_db-matnr_ext IS NOT INITIAL.
-          ls_resp-message = 'Seluruh data berhasil divalidasi dan di-upload ke SAP S/4HANA! (Nomor Material: ' && ls_dtl_db-matnr_ext && ')'.
+        IF lv_success_cnt > 1.
+          ls_resp-message = lv_success_cnt && ' request berhasil divalidasi dan di-upload ke SAP S/4HANA!'.
+        ELSEIF ls_dtl_db-matnr_ext IS NOT INITIAL.
+          ls_resp-message = 'Data berhasil divalidasi dan di-upload ke SAP S/4HANA! (Nomor Material: ' && ls_dtl_db-matnr_ext && ')'.
         ELSE.
-          ls_resp-message = 'Seluruh data berhasil divalidasi dan di-upload ke SAP S/4HANA!'.
+          ls_resp-message = 'Data berhasil divalidasi dan di-upload ke SAP S/4HANA!'.
         ENDIF.
         lv_json = /ui2/cl_json=>serialize( data = ls_resp compress = 'X' pretty_name = /ui2/cl_json=>pretty_mode-low_case ).
       ENDIF.

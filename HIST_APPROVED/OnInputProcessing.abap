@@ -6,6 +6,7 @@
 TYPES: BEGIN OF ty_staging_list,
          req_no     TYPE string,
          remarks    TYPE string,
+         sub_reason TYPE string,
          req_date   TYPE string,
          req_time   TYPE string,
          requestor  TYPE string,
@@ -77,6 +78,7 @@ IF lv_action_ha IS NOT INITIAL.
         CLEAR ls_list_app.
         ls_list_app-req_no     = CONV #( ls_hdr_app-req_no ).
         ls_list_app-remarks    = CONV #( ls_hdr_app-remarks ).
+        ls_list_app-sub_reason = CONV #( ls_hdr_app-sub_reason ).
         ls_list_app-req_date   = CONV #( ls_hdr_app-req_date ).
         ls_list_app-req_time   = CONV #( ls_hdr_app-req_time ).
         ls_list_app-requestor  = CONV #( ls_hdr_app-requestor ).

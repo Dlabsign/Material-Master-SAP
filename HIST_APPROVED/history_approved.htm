@@ -542,7 +542,7 @@ outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 bg-
                     var matGenEsc = escapeHtml(matGenFormatted);
                     var remarksEsc = escapeHtml(item.remarks);
                     var requestorEsc = escapeHtml(item.requestor);
-                    var titleVal = item.sub_reason || item.maktx_desc || (item.remarks ? item.remarks.replace(/\.[^/.]+$/, "") : "") || item.req_no || '-';
+                    var titleVal = item.sub_reason || item.remarks || '-';
                     var titleEsc = escapeHtml(titleVal);
 
                     var fDate = (item.req_date && item.req_date.length === 8) ? (item.req_date.substring(6,8) + '/' + item.req_date.substring(4,6) + '/' + item.req_date.substring(0,4)) : (escapeHtml(item.req_date) || "-");
