@@ -758,6 +758,12 @@ CASE lv_action.
       INTO TABLE @lt_mara_res
       UP TO 200 ROWS.
 
+    lv_json = /ui2/cl_json=>serialize( data = lt_mara_res compress = 'X' pretty_name = /ui2/cl_json=>pretty_mode-low_case ).
+    _m_response->set_content_type( 'application/json' ).
+    _m_response->set_cdata( lv_json ).
+    navigation->goto_page( '' ).
+    RETURN.
+
   " ==================================================================
   " 5. AI ASSISTANT: DUPLICATE CHECK, SIMILARITY & RECOMMENDATION
   " ==================================================================

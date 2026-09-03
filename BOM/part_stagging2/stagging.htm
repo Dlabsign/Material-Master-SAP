@@ -172,6 +172,13 @@ disabled:opacity-50 disabled:cursor-not-allowed">
                                 class="hidden w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
                             <span id="bindBtnText">Auto Bind Material Code</span>
                         </button>
+                        <button type="button" onclick="prepareForSAP()" id="btnProcessSap"
+                            class="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white font-extrabold text-xs rounded-full shadow-2xs transition-all flex items-center gap-2 cursor-pointer 
+disabled:opacity-50 disabled:cursor-not-allowed">
+                            <span id="sapSpinner"
+                                class="hidden w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
+                            <span id="sapBtnText">Proses Masuk ke SAP</span>
+                        </button>
 
                         <div
                             class="flex items-center bg-slate-200/80 p-1 rounded-full text-xs font-medium border border-slate-300/60 shadow-2xs">
@@ -817,30 +824,95 @@ disabled:opacity-50 disabled:cursor-not-allowed">
                     });
             }
 
+            var isProcessingSap = false;
+
             function prepareForSAP() {
                 var uploadId = document.getElementById("CURRENT_UPLOAD_ID").value;
-                if (!uploadId) return;
+                if (!uploadId) {
+                    showToast("Pilih Batch Upload terlebih dahulu dari tabel riwayat!", "error");
+                    return;
+                }
+                if (isGeneratingCode || isBindingCode || isProcessingSap) return;
 
-                console.log("[DEBUG MATERIAL] payload saat klik Simpan (Lock & Approve):", uploadId, currentStagingData);
+                // Validate if material codes are generated/bound
+                var hasMatnr = currentStagingData.some(function (item) {
+                    var m = item.matnr || item.MATNR;
+                    return m && m !== '-' && m.trim() !== '';
+                });
 
-                var formData = new FormData();
-                formData.append("UPLOAD_ID", uploadId);
+                if (!hasMatnr) {
+                    showToast("Harap lakukan Generate & Auto Bind Material Code sebelum memproses ke SAP!", "error");
+                    return;
+                }
 
-                fetch("?OnInputProcessing=PREPARE_FOR_SAP", {
-                    method: "POST",
-                    body: formData
-                })
-                    .then(function (res) { return res.json(); })
-                    .then(function (data) {
-                        console.log("[DEBUG MATERIAL] response dari proses create ke SAP:", data);
-                        if (data.status === "SUCCESS") {
-                            showToast(data.message, "success");
-                            loadUploadHistory();
-                        }
+                isProcessingSap = true;
+                var btnSap = document.getElementById("btnProcessSap");
+                var sapText = document.getElementById("sapBtnText");
+                var spinner = document.getElementById("sapSpinner");
+
+                if (btnSap) btnSap.disabled = true;
+                if (spinner) spinner.classList.remove("hidden");
+                if (sapText) sapText.innerText = "Memvalidasi Data Staging...";
+
+                setTimeout(function () {
+                    if (sapText) sapText.innerText = "Posting Material Master ke SAP...";
+
+                    var formData = new FormData();
+                    formData.append("UPLOAD_ID", uploadId);
+
+                    fetch("?OnInputProcessing=PREPARE_FOR_SAP", {
+                        method: "POST",
+                        body: formData
                     })
-                    .catch(function (err) {
-                        console.error("[DEBUG MATERIAL] Error prepare for SAP:", err);
-                    });
+                        .then(function (res) {
+                            if (!res.ok) throw new Error("HTTP error status: " + res.status);
+                            return res.json();
+                        })
+                        .then(function (data) {
+                            console.log("%c[DEBUG SAP POST] Server Response Payload:", "color: #0284c7; font-weight: bold; font-size: 12px;", data);
+
+                            if (data.logs && data.logs.length > 0) {
+                                console.group("%c[DEBUG SAP POST DETAILS] Item BAPI & Staging Logs (" + data.logs.length + " Items):", "color: #dc2626; font-weight: bold;");
+                                data.logs.forEach(function (log) {
+                                    if (log.type === 'E' || log.status === 'ERROR_SAP') {
+                                        console.error("[ERROR SAP BAPI] Pos " + (log.posnr || '-') + " | Matnr: " + (log.matnr || '-') + " | Message: " + log.message);
+                                    } else if (log.status === 'SKIPPED' || log.type === 'W') {
+                                        console.warn("[WARNING STAGING] Pos " + (log.posnr || '-') + " | Matnr: " + (log.matnr || '-') + " | Message: " + log.message);
+                                    } else {
+                                        console.log("[SUCCESS SAP] Pos " + (log.posnr || '-') + " | Matnr: " + (log.matnr || '-') + " | Message: " + log.message);
+                                    }
+                                });
+                                console.groupEnd();
+                            }
+
+                            if (data.status === "SUCCESS") {
+                                if (sapText) sapText.innerText = "Posting Berhasil!";
+                                showToast(data.message || "Berhasil memproses posting ke SAP Material Master!", "success");
+                                loadUploadDetail(uploadId);
+                                loadUploadHistory();
+                            } else if (data.status === "WARNING") {
+                                if (sapText) sapText.innerText = "Selesai Parsial";
+                                showToast(data.message || "Proses posting SAP selesai parsial. Periksa Console (F12) untuk detail.", "info");
+                                loadUploadDetail(uploadId);
+                                loadUploadHistory();
+                            } else {
+                                if (sapText) sapText.innerText = "Gagal Posting";
+                                showToast(data.message || "Gagal memproses posting ke SAP. Lihat Console F12.", "error");
+                            }
+                        })
+                        .catch(function (err) {
+                            console.error("[DEBUG SAP POST] Error prepare for SAP:", err);
+                            showToast("Terjadi kesalahan koneksi saat posting ke SAP: " + err.message, "error");
+                        })
+                        .finally(function () {
+                            setTimeout(function () {
+                                if (sapText) sapText.innerText = "Proses Masuk ke SAP";
+                                if (btnSap) btnSap.disabled = false;
+                                if (spinner) spinner.classList.add("hidden");
+                                isProcessingSap = false;
+                            }, 1200);
+                        });
+                }, 400);
             }
 
             function openRejectModal() {
