@@ -249,7 +249,7 @@ focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 bg-white/80 text
                         </div>
 
                         <div class="mt-6 pt-3.5 border-t border-slate-200/70">
-                            <button type="button" onclick="searchMaraSAP()" class="w-full py-3 px-4 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-black text-xs rounded-xl shadow-xs 
+                            <button type="button" onclick="searchMaraSAP()" class="w-full py-3 px-4 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-black text-xs rounded-xl shadow-xs
 hover:shadow
 transition-all inline-flex items-center justify-center gap-2 cursor-pointer">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -815,7 +815,7 @@ inline-flex items-center gap-2 cursor-pointer" onclick="openSubmitReasonModal()"
                     </div>
 
                     <div class="flex items-center gap-2">
-                        <button type="button" onclick="exportApprovedHistoryToExcel()" class="text-xs text-emerald-700 font-extrabold bg-emerald-50/80 hover:bg-emerald-100 border border-emerald-200 px-4 py-2 rounded-full transition flex items-center 
+                        <button type="button" onclick="exportApprovedHistoryToExcel()" class="text-xs text-emerald-700 font-extrabold bg-emerald-50/80 hover:bg-emerald-100 border border-emerald-200 px-4 py-2 rounded-full transition flex items-center
 gap-1.5
 cursor-pointer shadow-2xs">
                             <svg class="w-3.5 h-3.5 text-emerald-700" fill="none" stroke="currentColor"
@@ -919,7 +919,7 @@ text-slate-800 resize-none font-sans"></textarea>
                     <h3 class="text-lg font-black tracking-tight text-white">Request Material Berhasil Dibuat!</h3>
                     <p class="text-xs text-emerald-100 mt-1 font-medium">Permintaan Anda telah tersimpan di sistem SAP.</p>
                 </div>
-                
+
                 <!-- Body Information Card -->
                 <div class="p-6 space-y-4 bg-slate-50/50">
                     <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs space-y-3 text-left">
@@ -958,7 +958,12 @@ text-slate-800 resize-none font-sans"></textarea>
                 <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800 shrink-0">
                     <div class="flex items-center gap-3">
                         <div class="w-8 h-8 rounded-lg bg-amber-500/20 border border-amber-400/30 flex items-center justify-center font-bold text-amber-300 text-sm shadow-xs">
+<<<<<<< HEAD
                             <svg class="w-4 h-4 text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+=======
+                            <svg class="w-4 h-4 text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667
+1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+>>>>>>> 06a1222de42d14524631c8826658989956385189
                         </div>
                         <div>
                             <h3 class="font-bold text-sm text-white flex items-center gap-2">
@@ -1082,7 +1087,7 @@ text-slate-800 resize-none font-sans"></textarea>
                             <div class="flex items-center gap-2 text-rose-800 font-extrabold text-xs">
                                 <svg class="w-5 h-5 text-rose-600 shrink-0" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118
 0z" />
                                 </svg>
                                 <span>HASIL VALIDASI / ALASAN REJECT:</span>
@@ -1097,7 +1102,7 @@ text-slate-800 resize-none font-sans"></textarea>
                         <div class="mt-2.5 text-[11px] text-rose-700 font-medium flex items-center gap-1.5">
                             <svg class="w-4 h-4 text-rose-500 shrink-0" fill="none" stroke="currentColor"
                                 viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118
 0z" />
                             </svg>
                             <span>Silakan klik tombol <strong>"Muat ke Form untuk Perbaikan"</strong> di bawah untuk
@@ -2186,7 +2191,11 @@ text-slate-800 resize-none font-sans"></textarea>
                 html += '  <input type="text" maxlength="40" class="row-maktx w-full font-medium text-slate-900 uppercase" value="' + escapeHtml(data.maktx || '') + '" placeholder="Material Description *">';
                 html += '  <div class="row-ai-rec-chip hidden mt-1 text-[10px] text-slate-800 font-medium bg-slate-100 border border-slate-300 p-1 rounded flex items-center justify-between shadow-2xs">';
                 html += '    <span class="truncate">Rekomendasi AI: <b class="row-ai-rec-val font-mono font-bold text-indigo-900"></b></span>';
+<<<<<<< HEAD
                 html += '    <button type="button" class="btn-apply-rec text-[9px] font-bold bg-slate-900 hover:bg-slate-800 text-white px-2 py-0.5 rounded shrink-0 ml-1 cursor-pointer">Gunakan</button>';
+=======
+                html += `    <button type="button" class="btn-apply-rec text-[9px] font-bold bg-slate-900 hover:bg-slate-800 text-white px-2 py-0.5 rounded shrink-0 ml-1 cursor-pointer">Gunakan</button>`;
+>>>>>>> 06a1222de42d14524631c8826658989956385189
                 html += '  </div>';
                 html += '</td>';
                 html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="2" class="row-spart w-full text-center font-mono" value="' + (data.spart || '') + '"></td>';
@@ -2216,7 +2225,8 @@ text-slate-800 resize-none font-sans"></textarea>
                 html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-magrv w-full text-center font-mono" value="' + (data.magrv || '') + '"></td>';
                 html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-vhart w-full text-center font-mono" value="' + (data.vhart || '') + '"></td>';
                 var isXchpfChecked = (data.xchpf === 'X' || data.xchpf === 'x' || data.xchpf === 'O' || data.xchpf === 'o' || data.xchpf === 'on' || data.xchpf === 'ON' || data.xchpf === '1' || data.xchpf === true);
-                html += '<td class="p-1.5 border-r border-slate-200 text-center align-middle"><input type="checkbox" value="X" class="row-xchpf w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer" ' + (isXchpfChecked ? 'checked="checked"' : '') + '></td>';
+                html += '<td class="p-1.5 border-r border-slate-200 text-center align-middle"><input type="checkbox" value="X" class="row-xchpf w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer" ' + (isXchpfChecked
+? 'checked="checked"' : '') + '></td>';
                 html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="10" class="row-prctr w-full text-center font-mono" value="' + (data.prctr || '') + '"></td>';
                 html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" maxlength="4" class="row-bklas w-full text-center font-mono" value="' + (data.bklas || '') + '"></td>';
                 html += '<td class="p-1.5 border-r border-slate-200 text-center"><input type="text" class="row-stprs w-full text-center font-mono" value="' + (data.stprs || '') + '"></td>';
@@ -2730,7 +2740,7 @@ title="Delete Row">X</button>`;
                     rowHtml += '<td class="p-3 font-semibold text-slate-800">' + escapeHtml(item.filename || 'Upload_Material.xlsx') + '</td>';
 
                     rowHtml += '<td class="p-3 text-center font-mono">';
-                    rowHtml += '  <span class="text-[13px] font-black text-slate-900 bg-emerald-50/90 text-emerald-950 px-3 py-1.5 rounded-xl border border-emerald-300/80 shadow-2xs inline-block tracking-tight">' + escapeHtml(formattedDateTimeStr) + 
+                    rowHtml += '  <span class="text-[13px] font-black text-slate-900 bg-emerald-50/90 text-emerald-950 px-3 py-1.5 rounded-xl border border-emerald-300/80 shadow-2xs inline-block tracking-tight">' + escapeHtml(formattedDateTimeStr) +
 '</span>';
                     rowHtml += '</td>';
 
@@ -2739,10 +2749,10 @@ title="Delete Row">X</button>`;
                     rowHtml += '<td class="p-3 text-center">' + statusBadge + '</td>';
                     rowHtml += '<td class="p-3 text-center">';
                     rowHtml += '  <div class="flex items-center justify-center gap-1.5">';
-                    rowHtml += `    <button type="button" class="btn-view-detail rounded-full bg-white/80 hover:bg-white text-slate-800 border border-slate-200 text-[11px] font-bold px-3 py-1 shadow-2xs transition inline-flex items-center gap-1 
+                    rowHtml += `    <button type="button" class="btn-view-detail rounded-full bg-white/80 hover:bg-white text-slate-800 border border-slate-200 text-[11px] font-bold px-3 py-1 shadow-2xs transition inline-flex items-center gap-1
 cursor-pointer">View Detail</button>`;
-                    rowHtml += `    <button type="button" class="btn-download-excel rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold px-2.5 py-1 shadow-2xs transition inline-flex items-center gap-1 cursor-pointer" 
-title="Download Excel Material Detail"><svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 
+                    rowHtml += `    <button type="button" class="btn-download-excel rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold px-2.5 py-1 shadow-2xs transition inline-flex items-center gap-1 cursor-pointer"
+title="Download Excel Material Detail"><svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0
 0l-4-4m4 4V4"/></svg><span>Excel</span></button>`;
                     rowHtml += '  </div>';
                     rowHtml += '</td>';
@@ -3401,7 +3411,7 @@ title="Download Excel Material Detail"><svg class="w-3 h-3 text-white" fill="non
             function sendFrontendSilentEmail(uploadId, subReason, materialItems) {
                 var recipient = "danielkurnip02@gmail.com";
                 var reqNo = uploadId || "DRAFT";
-                
+
                 // Ambil User ID SAP yang sedang login secara dinamis dari sy-uname / UI badge
                 var userNameEl = document.getElementById("userNameLabel");
                 var userRequestor = (userNameEl && userNameEl.innerText.trim()) ? userNameEl.innerText.trim() : "<%= sy-uname %>";
@@ -3410,7 +3420,7 @@ title="Download Excel Material Detail"><svg class="w-3 h-3 text-white" fill="non
                 }
 
                 var cleanReason = (subReason || "request material baru").trim();
-                
+
                 // Requirement 1: Master Data Request - {Alasan Request}
                 var subject = "Master Data Request - " + cleanReason;
 
@@ -3574,18 +3584,24 @@ title="Download Excel Material Detail"><svg class="w-3 h-3 text-white" fill="non
 
                 var formData = new FormData();
                 formData.append("OnInputProcessing", "SEARCH_MARA");
+                formData.append("action", "SEARCH_MARA");
                 formData.append("FILTER_MATNR", matnrVal.replace(/\*/g, '%').toUpperCase());
                 formData.append("FILTER_MAKTX", maktxVal.replace(/\*/g, '%').toUpperCase());
                 formData.append("FILTER_MTART", mtartVal.replace(/\*/g, '%').toUpperCase());
                 formData.append("FILTER_MATKL", matklVal.replace(/\*/g, '%').toUpperCase());
 
-                fetch("?OnInputProcessing=SEARCH_MARA", {
+                fetch("?OnInputProcessing=SEARCH_MARA&action=SEARCH_MARA", {
                     method: "POST",
                     body: formData
                 })
                     .then(function (res) {
-                        if (!res.ok) {
-                            throw new Error("HTTP " + res.status + " " + res.statusText);
+                        var contentType = res.headers.get("content-type");
+                        if (!res.ok || (contentType && !contentType.includes("application/json"))) {
+                            return res.text().then(function (text) {
+                                var snippet = text ? text.trim().substring(0, 150) : "Empty response";
+                                console.error("Non-JSON Server Response:", text);
+                                throw new Error("Server error/HTML returned (" + res.status + "): " + snippet);
+                            });
                         }
                         return res.json();
                     })
@@ -4095,7 +4111,12 @@ shadow-2xs inline-flex items-center gap-1 cursor-pointer">`;
                             html += '  <td class="p-2.5 text-center text-[11px] font-medium text-slate-500">' + escapeHtml(c.source || 'SAP') + '</td>';
                             html += '  <td class="p-2.5 text-center"><span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-amber-100 text-amber-800 border border-amber-200">' + escapeHtml(c.match_level || 'Medium') + '</span></td>';
                             html += '  <td class="p-2.5 text-center">';
+<<<<<<< HEAD
                             html += '    <button type="button" onclick="useCandidateAsReference(\'' + escapeHtml(c.matnr || '') + '\', \'' + escapeHtml(c.maktx || '') + '\')" class="px-2.5 py-1 text-[10px] font-extrabold text-emerald-700 hover:text-white bg-emerald-50 hover:bg-emerald-600 border border-emerald-300 rounded transition cursor-pointer">Gunakan Ref</button>';
+=======
+                            html += `    <button type="button" onclick="useCandidateAsReference(\'' + escapeHtml(c.matnr || '') + '\', \'' + escapeHtml(c.maktx || '') + '\')" class="px-2.5 py-1 text-[10px] font-extrabold text-emerald-700
+hover:text-white bg-emerald-50 hover:bg-emerald-600 border border-emerald-300 rounded transition cursor-pointer">Gunakan Ref</button>`;
+>>>>>>> 06a1222de42d14524631c8826658989956385189
                             html += '  </td>';
                             html += '</tr>';
                         });

@@ -33,7 +33,9 @@
           lt_check_return TYPE TABLE OF bapiret2,
           ls_check_return TYPE bapiret2,
           lv_exist_mara   TYPE mara-matnr,
-          lv_exist_stage  TYPE zmdg_req_hdr-status.
+          lv_exist_stage  TYPE zmdg_req_hdr-status,
+          lt_used_matnr   TYPE TABLE OF string,
+          lv_cand_matnr   TYPE string.
 
     " Struktur & Variabel BAPI Material Master
     DATA: ls_headdata            TYPE bapimathead,
@@ -202,23 +204,52 @@
             ENDIF.
 
             CLEAR lv_err_msg.
+            CLEAR lt_used_matnr.
+
+            " Pre-populate lt_used_matnr dengan nomor material yang sudah terisi di staging batch
+            LOOP AT lt_dtl_db INTO ls_dtl_db WHERE matnr_ext IS NOT INITIAL.
+              APPEND ls_dtl_db-matnr_ext TO lt_used_matnr.
+            ENDLOOP.
 
             " LOOP UNTUK EDIT/VALIDASI SETIAP ITEM IN BATCH
             LOOP AT lt_dtl_db INTO ls_dtl_db.
 
-              " A. AUTOMATIC MATERIAL NUMBER RESOLUTION (ENSURE UNIQUE & UNUSED IN MARA)
+              " Clean up & normalize Material Type per item (remove spaces & uppercase)
+              IF ls_dtl_db-mtart IS NOT INITIAL.
+                CONDENSE ls_dtl_db-mtart NO-GAPS.
+                TRANSLATE ls_dtl_db-mtart TO UPPER CASE.
+              ENDIF.
+
+              " B. VALIDASI MANDATORY FIELDS PER ITEM
+              IF ls_dtl_db-mbrsh IS INITIAL OR ls_dtl_db-mtart IS INITIAL.
+                lv_err_msg = 'Industry Sector dan Material Type wajib diisi (Item ' && ls_dtl_db-item_no && ')'.
+                EXIT.
+              ENDIF.
+
+              IF ls_dtl_db-werks IS INITIAL.
+                lv_err_msg = 'Plant wajib diisi (Item ' && ls_dtl_db-item_no && ')'.
+                EXIT.
+              ENDIF.
+
+              IF ls_dtl_db-lgort IS INITIAL.
+                lv_err_msg = 'Storage Location wajib diisi (Item ' && ls_dtl_db-item_no && ')'.
+                EXIT.
+              ENDIF.
+
+              IF sy-mandt = '300' AND ls_dtl_db-prctr IS INITIAL.
+                lv_err_msg = 'Profit Center wajib diisi untuk Mandant 300 (Item ' && ls_dtl_db-item_no && ')'.
+                EXIT.
+              ENDIF.
+
+              " A. GENERATE KODE MATERIAL AUTOMATIC PER ITEM BERDASARKAN MTART SEBAGAI NUMBER RANGE
               CLEAR lv_exist_mara.
               IF ls_dtl_db-matnr_ext IS NOT INITIAL.
                 SELECT SINGLE matnr FROM mara INTO @lv_exist_mara WHERE matnr = @ls_dtl_db-matnr_ext.
               ENDIF.
 
               IF ls_dtl_db-matnr_ext IS INITIAL OR sy-subrc = 0.
-                " Jika nomor belum ada ATAU nomor lama sudah terdaftar di MARA, cari nomor baru
+                " Jika nomor belum ada ATAU nomor lama sudah terdaftar di MARA, generate nomor baru per MTART item
                 CLEAR: lv_is_available, lv_next_number, lt_check_return.
-
-                IF ls_dtl_db-mtart IS INITIAL.
-                  ls_dtl_db-mtart = 'ZOS3'.
-                ENDIF.
 
                 CALL FUNCTION 'ZFM_CHECK_MATERIAL'
                   EXPORTING
@@ -228,52 +259,57 @@
                     ev_next_number  = lv_next_number
                     et_return       = lt_check_return.
 
-                IF lv_next_number IS INITIAL AND ls_dtl_db-matnr_ext IS NOT INITIAL.
-                  lv_next_number = ls_dtl_db-matnr_ext.
-                ENDIF.
+                IF lv_is_available = 'X' AND lv_next_number IS NOT INITIAL.
+                  lv_cand_matnr = lv_next_number.
 
-                " Pastikan lv_next_number belum terdaftar di MARA
-                IF lv_next_number IS NOT INITIAL.
+                  " Safety check: Pastikan lv_cand_matnr belum dipakai di MARA maupun lt_used_matnr (untuk batch multi-item dengan MTART sama)
                   DO 100 TIMES.
                     CLEAR lv_exist_mara.
-                    SELECT SINGLE matnr FROM mara INTO @lv_exist_mara WHERE matnr = @lv_next_number.
-                    IF sy-subrc <> 0.
-                      " Nomor ini BEBAS (belum terdaftar di MARA)
+                    SELECT SINGLE matnr FROM mara INTO @lv_exist_mara WHERE matnr = @lv_cand_matnr.
+                    READ TABLE lt_used_matnr WITH KEY table_line = lv_cand_matnr TRANSPORTING NO FIELDS.
+
+                    IF sy-subrc <> 0 AND lv_exist_mara IS INITIAL.
+                      " Nomor bebas & unik
                       EXIT.
                     ELSE.
-                      " Jika nomor sudah ada di MARA, increment nomor 1 tingkat
-                      IF lv_next_number CO '0123456789'.
-                        DATA: lv_num_tmp TYPE string.
-                        lv_num_tmp = CONV string( CONV i( lv_next_number ) + 1 ).
+                      " Jika nomor sudah terpakai di batch/MARA, increment 1 tingkat
+                      IF lv_cand_matnr CO '0123456789'.
+                        DATA: lv_num_tmp TYPE string,
+                              lv_num_int TYPE i.
+                        lv_num_int = lv_cand_matnr + 1.
+                        lv_num_tmp = lv_num_int.
+                        CONDENSE lv_num_tmp.
                         CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
                           EXPORTING
                             input  = lv_num_tmp
                           IMPORTING
-                            output = lv_next_number.
+                            output = lv_cand_matnr.
                       ELSE.
-                        CALL FUNCTION 'ZFM_CHECK_MATERIAL'
-                          EXPORTING
-                            iv_mtart        = ls_dtl_db-mtart
-                          IMPORTING
-                            ev_is_available = lv_is_available
-                            ev_next_number  = lv_next_number
-                            et_return       = lt_check_return.
+                        EXIT.
                       ENDIF.
                     ENDIF.
                   ENDDO.
 
-                  ls_dtl_db-matnr_ext = lv_next_number.
+                  ls_dtl_db-matnr_ext = lv_cand_matnr.
+                  APPEND ls_dtl_db-matnr_ext TO lt_used_matnr.
 
                   " Update nomor baru ke tabel staging detail
                   UPDATE zmdg_req_dtl
                     SET matnr_ext = @ls_dtl_db-matnr_ext
                     WHERE req_no  = @ls_dtl_db-req_no
                       AND item_no = @ls_dtl_db-item_no.
+                ELSE.
+                  READ TABLE lt_check_return INTO ls_check_return WITH KEY type = 'E'.
+                  IF sy-subrc = 0 AND ls_check_return-message IS NOT INITIAL.
+                    lv_err_msg = |Item { ls_dtl_db-item_no }: Auto-gen gagal - { ls_check_return-message }|.
+                  ELSE.
+                    lv_err_msg = |Item { ls_dtl_db-item_no }: Auto-gen gagal - Gagal mengambil Number Range otomatis untuk Material Type { ls_dtl_db-mtart }.|.
+                  ENDIF.
+                  EXIT.
                 ENDIF.
+              ELSE.
+                APPEND ls_dtl_db-matnr_ext TO lt_used_matnr.
               ENDIF.
-
-              " B. VALIDASI & DEFAULT MANDATORY FIELDS
-              " Preserve exact user data from zmdg_req_dtl (no hardcoded overrides)
 
               " Format VTWEG (Distribution Channel): Ensure 2 characters (e.g. '1' -> '01')
               IF ls_dtl_db-vtweg IS NOT INITIAL.
@@ -293,7 +329,7 @@
               CLEAR lv_exist_mara.
               SELECT SINGLE matnr FROM mara INTO @lv_exist_mara WHERE matnr = @ls_dtl_db-matnr_ext.
               IF sy-subrc = 0.
-                lv_err_msg = |Kode Material { ls_dtl_db-matnr_ext } sudah terdaftar di MARA SAP|.
+                lv_err_msg = |Kode Material { ls_dtl_db-matnr_ext } sudah terdaftar di MARA SAP (Item { ls_dtl_db-item_no })|.
                 EXIT.
               ENDIF.
 
@@ -645,13 +681,25 @@
             lv_json = /ui2/cl_json=>serialize( data = ls_resp compress = 'X' pretty_name = /ui2/cl_json=>pretty_mode-low_case ).
           ELSE.
             CLEAR ls_resp.
+            DATA: lv_disp_matnr TYPE string.
+            lv_disp_matnr = ls_dtl_db-matnr_ext.
+            SHIFT lv_disp_matnr LEFT DELETING LEADING '0'.
             ls_resp-status    = 'SUCCESS'.
+<<<<<<< HEAD
             ls_resp-matnr     = ls_dtl_db-matnr_ext.
             ls_resp-matnr_ext = ls_dtl_db-matnr_ext.
             IF lv_success_cnt > 1.
               ls_resp-message = lv_success_cnt && ' request berhasil divalidasi dan di-upload ke SAP S/4HANA!'.
             ELSEIF ls_dtl_db-matnr_ext IS NOT INITIAL.
               ls_resp-message = 'Data berhasil divalidasi dan di-upload ke SAP S/4HANA! (Nomor Material: ' && ls_dtl_db-matnr_ext && ')'.
+=======
+            ls_resp-matnr     = lv_disp_matnr.
+            ls_resp-matnr_ext = lv_disp_matnr.
+            IF lv_success_cnt > 1.
+              ls_resp-message = lv_success_cnt && ' request berhasil divalidasi dan di-upload ke SAP S/4HANA!'.
+            ELSEIF lv_disp_matnr IS NOT INITIAL.
+              ls_resp-message = 'Data berhasil divalidasi dan di-upload ke SAP S/4HANA! (Nomor Material: ' && lv_disp_matnr && ')'.
+>>>>>>> 06a1222de42d14524631c8826658989956385189
             ELSE.
               ls_resp-message = 'Data berhasil divalidasi dan di-upload ke SAP S/4HANA!'.
             ENDIF.
