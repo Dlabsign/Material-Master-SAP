@@ -3576,18 +3576,24 @@ title="Download Excel Material Detail"><svg class="w-3 h-3 text-white" fill="non
 
                 var formData = new FormData();
                 formData.append("OnInputProcessing", "SEARCH_MARA");
+                formData.append("action", "SEARCH_MARA");
                 formData.append("FILTER_MATNR", matnrVal.replace(/\*/g, '%').toUpperCase());
                 formData.append("FILTER_MAKTX", maktxVal.replace(/\*/g, '%').toUpperCase());
                 formData.append("FILTER_MTART", mtartVal.replace(/\*/g, '%').toUpperCase());
                 formData.append("FILTER_MATKL", matklVal.replace(/\*/g, '%').toUpperCase());
 
-                fetch("?OnInputProcessing=SEARCH_MARA", {
+                fetch("?OnInputProcessing=SEARCH_MARA&action=SEARCH_MARA", {
                     method: "POST",
                     body: formData
                 })
                     .then(function (res) {
-                        if (!res.ok) {
-                            throw new Error("HTTP " + res.status + " " + res.statusText);
+                        var contentType = res.headers.get("content-type");
+                        if (!res.ok || (contentType && !contentType.includes("application/json"))) {
+                            return res.text().then(function (text) {
+                                var snippet = text ? text.trim().substring(0, 150) : "Empty response";
+                                console.error("Non-JSON Server Response:", text);
+                                throw new Error("Server error/HTML returned (" + res.status + "): " + snippet);
+                            });
                         }
                         return res.json();
                     })

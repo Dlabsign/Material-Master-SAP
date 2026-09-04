@@ -274,8 +274,11 @@
                     ELSE.
                       " Jika nomor sudah terpakai di batch/MARA, increment 1 tingkat
                       IF lv_cand_matnr CO '0123456789'.
-                        DATA: lv_num_tmp TYPE string.
-                        lv_num_tmp = CONV string( CONV i( lv_cand_matnr ) + 1 ).
+                        DATA: lv_num_tmp TYPE string,
+                              lv_num_int TYPE i.
+                        lv_num_int = lv_cand_matnr + 1.
+                        lv_num_tmp = lv_num_int.
+                        CONDENSE lv_num_tmp.
                         CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
                           EXPORTING
                             input  = lv_num_tmp
@@ -678,13 +681,16 @@
             lv_json = /ui2/cl_json=>serialize( data = ls_resp compress = 'X' pretty_name = /ui2/cl_json=>pretty_mode-low_case ).
           ELSE.
             CLEAR ls_resp.
+            DATA: lv_disp_matnr TYPE string.
+            lv_disp_matnr = ls_dtl_db-matnr_ext.
+            SHIFT lv_disp_matnr LEFT DELETING LEADING '0'.
             ls_resp-status    = 'SUCCESS'.
-            ls_resp-matnr     = ls_dtl_db-matnr_ext.
-            ls_resp-matnr_ext = ls_dtl_db-matnr_ext.
+            ls_resp-matnr     = lv_disp_matnr.
+            ls_resp-matnr_ext = lv_disp_matnr.
             IF lv_success_cnt > 1.
               ls_resp-message = lv_success_cnt && ' request berhasil divalidasi dan di-upload ke SAP S/4HANA!'.
-            ELSEIF ls_dtl_db-matnr_ext IS NOT INITIAL.
-              ls_resp-message = 'Data berhasil divalidasi dan di-upload ke SAP S/4HANA! (Nomor Material: ' && ls_dtl_db-matnr_ext && ')'.
+            ELSEIF lv_disp_matnr IS NOT INITIAL.
+              ls_resp-message = 'Data berhasil divalidasi dan di-upload ke SAP S/4HANA! (Nomor Material: ' && lv_disp_matnr && ')'.
             ELSE.
               ls_resp-message = 'Data berhasil divalidasi dan di-upload ke SAP S/4HANA!'.
             ENDIF.

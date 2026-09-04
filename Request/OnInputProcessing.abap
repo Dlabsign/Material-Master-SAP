@@ -164,6 +164,9 @@ DATA: lt_detail_json TYPE TABLE OF ty_detail_json,
       ls_detail_json TYPE ty_detail_json.
 
 lv_action = request->get_form_field( 'OnInputProcessing' ).
+IF lv_action IS INITIAL.
+  lv_action = request->get_form_field( 'action' ).
+ENDIF.
 
 CASE lv_action.
 
