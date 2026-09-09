@@ -1,0 +1,1077 @@
+<%@page language="ABAP" %>
+<%
+  IF sy-uname <> 'ABAPER04'.
+%>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Access Forbidden - Master Data Governance</title>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 font-sans min-h-screen flex items-center justify-center p-4 antialiased selection:bg-emerald-500 selection:text-white">
+    <div class="relative w-full max-w-md">
+        <!-- Background Ambient Glow -->
+        <div class="absolute -top-10 -left-10 w-44 h-44 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-10 -right-10 w-44 h-44 bg-teal-500/20 rounded-full blur-3xl pointer-events-none"></div>
+
+        <!-- Main Container Card -->
+        <div class="relative bg-slate-900/90 backdrop-blur-2xl border border-emerald-500/20 rounded-3xl shadow-2xl p-8 text-center space-y-6 overflow-hidden">
+            <!-- Top Gradient Accent Line -->
+            <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-600"></div>
+
+            <!-- Shield Icon Badge -->
+            <div class="w-16 h-16 bg-gradient-to-br from-emerald-500/20 to-teal-500/10 border border-emerald-500/30 text-emerald-400 rounded-2xl flex items-center justify-center mx-auto shadow-inner">
+                <svg class="w-8 h-8 stroke-current" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+            </div>
+
+            <!-- Message Headings -->
+            <div class="space-y-2">
+                <h1 class="text-xl sm:text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 via-teal-200 to-emerald-400 tracking-tight leading-snug">
+                    MASTER DATA GOVERNANCE is forbidden
+                </h1>
+                <p class="text-sm font-medium text-emerald-100/70">
+                    Access to this page is very limited.
+                </p>
+            </div>
+
+            <!-- Logged In User Metadata -->
+            <div class="pt-4 border-t border-emerald-900/60">
+                <div class="inline-flex items-center gap-2 bg-emerald-950/80 border border-emerald-500/20 px-3.5 py-1.5 rounded-full text-xs text-emerald-300/80">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span>Logged in user: <strong class="font-mono text-emerald-200"><%= sy-uname %></strong></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+<%
+    RETURN.
+  ENDIF.
+%>
+<%
+  TYPES: BEGIN OF ty_staging_list,
+           req_no     TYPE string,
+           remarks    TYPE string,
+           sub_reason TYPE string,
+           req_date   TYPE string,
+           req_time   TYPE string,
+           requestor  TYPE string,
+           status     TYPE string,
+           total_item TYPE i,
+           matnr_gen  TYPE string,
+           rej_reason TYPE string,
+           maktx_desc TYPE string,
+         END OF ty_staging_list.
+
+  DATA: lv_action_h  TYPE string,
+        lt_hdr_rej   TYPE TABLE OF zmdg_req_hdr,
+        ls_hdr_rej   TYPE zmdg_req_hdr,
+        lt_list_rej  TYPE TABLE OF ty_staging_list,
+        ls_list_rej  TYPE ty_staging_list,
+        lv_json_rej  TYPE string,
+        lv_req_no_h  TYPE zmdg_req_hdr-req_no,
+        lt_dtl_h     TYPE TABLE OF zmdg_req_dtl,
+        lv_badge_approved TYPE i,
+        lv_badge_rejected TYPE i,
+        lv_badge_draft    TYPE i.
+
+  SELECT COUNT( * ) FROM zmdg_req_hdr WHERE status = 'APPROVED' INTO @lv_badge_approved.
+  SELECT COUNT( * ) FROM zmdg_req_hdr WHERE status IN ( 'REJECTED', 'FAILED' ) INTO @lv_badge_rejected.
+  SELECT COUNT( * ) FROM zmdg_req_hdr WHERE status = 'DRAFT' OR status IS INITIAL OR status = '' INTO @lv_badge_draft.
+
+  lv_action_h = request->get_form_field( 'action' ).
+  IF lv_action_h IS INITIAL.
+    lv_action_h = request->get_form_field( 'OnInputProcessing' ).
+  ENDIF.
+  TRANSLATE lv_action_h TO UPPER CASE.
+
+  " Handler AJAX: GET_COUNTERS
+  IF lv_action_h = 'GET_COUNTERS'.
+    DATA: lv_cnt_p TYPE i, lv_cnt_a TYPE i, lv_cnt_r TYPE i, lv_json_cnt TYPE string.
+    SELECT COUNT( * ) FROM zmdg_req_hdr WHERE status IN ( 'CHECKED', 'CODED', 'SUBMITTED' ) INTO @lv_cnt_p.
+    SELECT COUNT( * ) FROM zmdg_req_hdr WHERE status = 'APPROVED' INTO @lv_cnt_a.
+    SELECT COUNT( * ) FROM zmdg_req_hdr WHERE status IN ( 'REJECTED', 'FAILED' ) INTO @lv_cnt_r.
+
+    lv_json_cnt = '{"pending":' && lv_cnt_p && ',"approved":' && lv_cnt_a && ',"rejected":' && lv_cnt_r && '}'.
+    _m_response->set_content_type( 'application/json' ).
+    _m_response->set_cdata( lv_json_cnt ).
+    _m_navigation->response_complete( ).
+    RETURN.
+  ENDIF.
+
+  " Handler AJAX: GET_REJECTED_LIST
+  IF lv_action_h = 'GET_REJECTED_LIST'.
+    CLEAR: lt_hdr_rej, lt_list_rej.
+    SELECT * FROM zmdg_req_hdr
+      INTO TABLE @lt_hdr_rej
+      WHERE status = 'REJECTED' OR status = 'FAILED'
+      ORDER BY req_date DESCENDING, req_time DESCENDING.
+
+    LOOP AT lt_hdr_rej INTO ls_hdr_rej.
+      CLEAR ls_list_rej.
+      ls_list_rej-req_no     = CONV #( ls_hdr_rej-req_no ).
+      ls_list_rej-remarks    = CONV #( ls_hdr_rej-remarks ).
+      ls_list_rej-sub_reason = CONV #( ls_hdr_rej-sub_reason ).
+      ls_list_rej-req_date   = CONV #( ls_hdr_rej-req_date ).
+      ls_list_rej-req_time   = CONV #( ls_hdr_rej-req_time ).
+      ls_list_rej-requestor  = CONV #( ls_hdr_rej-requestor ).
+      ls_list_rej-status     = CONV #( ls_hdr_rej-status ).
+      ls_list_rej-rej_reason = CONV #( ls_hdr_rej-rej_reason ).
+
+      SELECT COUNT( * ) FROM zmdg_req_dtl WHERE req_no = @ls_hdr_rej-req_no INTO @ls_list_rej-total_item.
+
+      " Gather generated/assigned material codes and material descriptions
+      DATA: lt_dtl_temp TYPE TABLE OF zmdg_req_dtl,
+            ls_dtl_temp TYPE zmdg_req_dtl,
+            lv_codes_str TYPE string,
+            lv_maktx_str TYPE string.
+      CLEAR: lt_dtl_temp, lv_codes_str, lv_maktx_str.
+      SELECT * FROM zmdg_req_dtl WHERE req_no = @ls_hdr_rej-req_no INTO TABLE @lt_dtl_temp.
+      LOOP AT lt_dtl_temp INTO ls_dtl_temp.
+        IF ls_dtl_temp-maktx IS NOT INITIAL.
+          IF lv_maktx_str IS INITIAL.
+            lv_maktx_str = ls_dtl_temp-maktx.
+          ELSE.
+            lv_maktx_str = lv_maktx_str && ', ' && ls_dtl_temp-maktx.
+          ENDIF.
+        ENDIF.
+
+        IF ls_dtl_temp-matnr_ext IS NOT INITIAL.
+          DATA: lv_clean_code TYPE string.
+          lv_clean_code = ls_dtl_temp-matnr_ext.
+          SHIFT lv_clean_code LEFT DELETING LEADING '0'.
+          IF lv_clean_code IS INITIAL AND ls_dtl_temp-matnr_ext IS NOT INITIAL.
+            lv_clean_code = '0'.
+          ENDIF.
+
+          IF lv_codes_str IS INITIAL.
+            lv_codes_str = lv_clean_code.
+          ELSE.
+            lv_codes_str = lv_codes_str && ', ' && lv_clean_code.
+          ENDIF.
+        ENDIF.
+      ENDLOOP.
+      ls_list_rej-matnr_gen  = lv_codes_str.
+      ls_list_rej-maktx_desc = lv_maktx_str.
+
+      APPEND ls_list_rej TO lt_list_rej.
+    ENDLOOP.
+
+    lv_json_rej = /ui2/cl_json=>serialize( data = lt_list_rej compress = 'X' pretty_name = /ui2/cl_json=>pretty_mode-low_case ).
+    _m_response->set_content_type( 'application/json' ).
+    _m_response->set_cdata( lv_json_rej ).
+    _m_navigation->response_complete( ).
+    RETURN.
+  ENDIF.
+
+  " Handler AJAX: GET_UPLOAD_DETAIL
+  IF lv_action_h = 'GET_UPLOAD_DETAIL'.
+    lv_req_no_h = request->get_form_field( 'REQ_NO' ).
+    IF lv_req_no_h IS INITIAL.
+      lv_req_no_h = request->get_form_field( 'UPLOAD_ID' ).
+    ENDIF.
+    SELECT * FROM zmdg_req_dtl WHERE req_no = @lv_req_no_h INTO TABLE @lt_dtl_h.
+
+    lv_json_rej = /ui2/cl_json=>serialize( data = lt_dtl_h compress = 'X' pretty_name = /ui2/cl_json=>pretty_mode-low_case ).
+    _m_response->set_content_type( 'application/json' ).
+    _m_response->set_cdata( lv_json_rej ).
+    _m_navigation->response_complete( ).
+    RETURN.
+  ENDIF.
+
+  " Pre-load data untuk tampilan pertama saat halaman dibuka
+  CLEAR: lt_hdr_rej, lt_list_rej.
+  SELECT * FROM zmdg_req_hdr
+    INTO TABLE @lt_hdr_rej
+    WHERE status = 'REJECTED' OR status = 'FAILED'
+    ORDER BY req_date DESCENDING, req_time DESCENDING.
+
+  LOOP AT lt_hdr_rej INTO ls_hdr_rej.
+    CLEAR ls_list_rej.
+    ls_list_rej-req_no     = CONV #( ls_hdr_rej-req_no ).
+    ls_list_rej-remarks    = CONV #( ls_hdr_rej-remarks ).
+    ls_list_rej-sub_reason = CONV #( ls_hdr_rej-sub_reason ).
+    ls_list_rej-req_date   = CONV #( ls_hdr_rej-req_date ).
+    ls_list_rej-req_time   = CONV #( ls_hdr_rej-req_time ).
+    ls_list_rej-requestor  = CONV #( ls_hdr_rej-requestor ).
+    ls_list_rej-status     = CONV #( ls_hdr_rej-status ).
+    ls_list_rej-rej_reason = CONV #( ls_hdr_rej-rej_reason ).
+
+    SELECT COUNT( * ) FROM zmdg_req_dtl WHERE req_no = @ls_hdr_rej-req_no INTO @ls_list_rej-total_item.
+
+    DATA: lv_maktx_str2 TYPE string.
+    CLEAR: lt_dtl_temp, lv_codes_str, lv_maktx_str2.
+    SELECT * FROM zmdg_req_dtl WHERE req_no = @ls_hdr_rej-req_no INTO TABLE @lt_dtl_temp.
+    LOOP AT lt_dtl_temp INTO ls_dtl_temp.
+      IF ls_dtl_temp-maktx IS NOT INITIAL.
+        IF lv_maktx_str2 IS INITIAL.
+          lv_maktx_str2 = ls_dtl_temp-maktx.
+        ELSE.
+          lv_maktx_str2 = lv_maktx_str2 && ', ' && ls_dtl_temp-maktx.
+        ENDIF.
+      ENDIF.
+
+      IF ls_dtl_temp-matnr_ext IS NOT INITIAL.
+        DATA: lv_clean_code2 TYPE string.
+        lv_clean_code2 = ls_dtl_temp-matnr_ext.
+        SHIFT lv_clean_code2 LEFT DELETING LEADING '0'.
+        IF lv_clean_code2 IS INITIAL AND ls_dtl_temp-matnr_ext IS NOT INITIAL.
+          lv_clean_code2 = '0'.
+        ENDIF.
+
+        IF lv_codes_str IS INITIAL.
+          lv_codes_str = lv_clean_code2.
+        ELSE.
+          lv_codes_str = lv_codes_str && ', ' && lv_clean_code2.
+        ENDIF.
+      ENDIF.
+    ENDLOOP.
+    ls_list_rej-matnr_gen  = lv_codes_str.
+    ls_list_rej-maktx_desc = lv_maktx_str2.
+
+    APPEND ls_list_rej TO lt_list_rej.
+  ENDLOOP.
+
+  lv_json_rej = /ui2/cl_json=>serialize( data = lt_list_rej compress = 'X' pretty_name = /ui2/cl_json=>pretty_mode-low_case ).
+  IF lv_json_rej IS INITIAL OR lv_json_rej = 'null'.
+    lv_json_rej = '[]'.
+  ENDIF.
+%>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Material Master - Rejected History</title>
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+                    colors: {
+                        emerald: {
+                            50:  '#ecfdf5',
+                            100: '#d1fae5',
+                            200: '#a7f3d0',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065f46',
+                            900: '#064e3b',
+                        },
+                        brand: {
+                            50: '#f0fdf4', 100: '#dcfce7', 200: '#bbf7d0',
+                            500: '#10b981', 600: '#059669', 700: '#047857',
+                            800: '#065f46', 900: '#022c22',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background-color: #f8fafc;
+            background-image:
+                radial-gradient(at 10% 10%, rgba(16, 185, 129, 0.05) 0px, transparent 40%),
+                radial-gradient(at 90% 15%, rgba(100, 116, 139, 0.05) 0px, transparent 45%),
+                radial-gradient(at 50% 85%, rgba(16, 185, 129, 0.03) 0px, transparent 50%);
+            background-attachment: fixed;
+            color: #0f172a;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(241, 245, 249, 0.6);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #10b981;
+        }
+
+        .glass-panel {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.03), 0 2px 6px -1px rgba(15, 23, 42, 0.02);
+        }
+
+        .custom-select {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%6b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.75rem center;
+            background-repeat: no-repeat;
+            background-size: 1.25em 1.25em;
+            padding-right: 2.25rem;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+    </style>
+</head>
+<body class="text-[13px] font-sans leading-relaxed m-0 p-0 antialiased min-h-screen">
+
+    <div class="flex min-h-screen">
+        <!-- REUSABLE SIDEBAR PAGE FRAGMENT -->
+        <%@include file="sidebar_approval.htm" %>
+
+        <!-- MAIN CONTENT AREA -->
+        <div class="flex-1 min-w-0 flex flex-col">
+            <!-- TOP NAVBAR -->
+            <header class="bg-white/80 backdrop-blur-xl h-16 border-b border-slate-200/80 sticky top-0 z-50 px-6 lg:px-10 flex items-center justify-between shadow-2xs">
+                <!-- BRAND LOGO -->
+                <a href="landing_page.htm" class="flex items-center gap-3 decoration-none">
+                    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-700 via-emerald-600 to-emerald-800 text-white font-extrabold text-xs flex items-center justify-center shadow-xs">
+                        KMI
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-sm font-extrabold text-slate-900 leading-none">PT Kayu Mebel Indonesia</span>
+                        <span class="text-[11px] font-semibold text-slate-500 mt-0.5">Wood & Furniture Manufacturing</span>
+                    </div>
+                </a>
+
+                <!-- USER PROFILE WIDGET -->
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-2.5 bg-white border border-slate-200 px-3 py-1.5 rounded-full shadow-2xs">
+                        <div class="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-700 text-white flex items-center justify-center font-extrabold text-xs" id="userAvatarInitial">
+                            A
+                        </div>
+                        <span class="text-xs font-bold text-slate-800" id="userNameLabel">
+                            <%= sy-uname %>
+                        </span>
+                    </div>
+                    <a href="?action=LOGOUT" class="text-xs font-semibold text-slate-600 hover:text-rose-700 px-3.5 py-1.5 rounded-full border border-slate-200 bg-white hover:bg-rose-50/50 transition">
+                        Sign Out
+                    </a>
+                </div>
+            </header>
+
+            <!-- MAIN CONTENT BODY -->
+            <main class="max-w-[1700px] my-6 mx-auto px-4 sm:px-8 space-y-8 flex-1 w-full">
+
+                <!-- MINIMALIST HERO TITLE SECTION -->
+                <section class="text-center py-2 flex flex-col items-center justify-center">
+                    <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900">
+                        Master Data Governance
+                    </h1>
+                    <p class="text-xs font-bold text-rose-600 uppercase tracking-widest mt-1.5">
+                        Rejected History Log
+                    </p>
+                </section>
+
+                <!-- SUMMARY BADGES SECTION -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                    <!-- Total Approved -->
+                    <div class="bg-gradient-to-r from-emerald-700 via-emerald-600 to-teal-700 text-white rounded-2xl px-5 py-3.5 shadow-sm border border-emerald-500/20 transition-all hover:shadow-md">
+                        <span class="text-[11px] font-medium tracking-wide text-emerald-100 block">Total Approved</span>
+                        <span class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight block mt-0.5" id="statApprovedCount"><%= lv_badge_approved %></span>
+                    </div>
+
+                    <!-- Total Reject -->
+                    <div class="bg-gradient-to-r from-emerald-700 via-emerald-600 to-teal-700 text-white rounded-2xl px-5 py-3.5 shadow-sm border border-emerald-500/20 transition-all hover:shadow-md">
+                        <span class="text-[11px] font-medium tracking-wide text-emerald-100 block">Total Reject</span>
+                        <span class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight block mt-0.5" id="statRejectedCount"><%= lv_badge_rejected %></span>
+                    </div>
+
+                    <!-- Total Belum di Submit -->
+                    <div class="bg-gradient-to-r from-emerald-700 via-emerald-600 to-teal-700 text-white rounded-2xl px-5 py-3.5 shadow-sm border border-emerald-500/20 transition-all hover:shadow-md">
+                        <span class="text-[11px] font-medium tracking-wide text-emerald-100 block">Total Belum di Submit</span>
+                        <span class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight block mt-0.5" id="statDraftCount"><%= lv_badge_draft %></span>
+                    </div>
+                </div>
+
+                <!-- SEARCH BAR -->
+                <div class="glass-panel rounded-2xl p-4 mb-6 transition-all duration-300 flex items-center justify-between gap-4">
+                    <div class="relative flex-1 max-w-md">
+                        <svg class="w-4 h-4 text-slate-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114
+0z"/></svg>
+                        <input type="text" id="searchInput" onkeyup="applyFilter()" placeholder="Search by Request ID, Remarks, Rejection Reason, or Requestor..." class="w-full pl-9 pr-3.5 py-2 border border-slate-200/80 rounded-xl text-xs outline-none
+focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 bg-white/80 text-slate-800 font-medium transition shadow-2xs">
+                    </div>
+                    <div class="text-xs font-semibold text-slate-500" id="summaryLabel">Showing 0 requests</div>
+                </div>
+
+                <!-- TABLE -->
+                <section class="glass-panel rounded-3xl overflow-hidden mb-8 transition-all duration-300">
+                    <div class="overflow-x-auto min-h-[350px]">
+                        <table class="w-full min-w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-100/80 border-b border-slate-200/80 text-[10px] font-black text-slate-600 uppercase tracking-wider backdrop-blur-xs">
+                                    <th class="p-3.5 text-center" style="width: 55px;">Detail</th>
+                                    <th class="p-3.5">Permintaan</th>
+                                    <th class="p-3.5 text-center" style="width: 140px;">Request Date</th>
+                                    <th class="p-3.5 text-center" style="width: 120px;">Requestor</th>
+                                    <th class="p-3.5 text-center" style="width: 110px;">Status</th>
+                                    <th class="p-3.5 text-center" style="width: 120px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="stagingTableBody" class="divide-y divide-slate-100 text-xs">
+                                <tr><td colspan="6" class="p-8 text-center text-slate-400 font-medium">Loading rejected history...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        var fullData = [];
+        var loadedBatchDetails = {};
+
+        document.addEventListener("DOMContentLoaded", function() {
+            var nameLabel = document.getElementById("userNameLabel");
+            if (nameLabel && nameLabel.innerText.trim()) {
+                var initial = nameLabel.innerText.trim().charAt(0).toUpperCase();
+                var avatar = document.getElementById("userAvatarInitial");
+                if (avatar) avatar.innerText = initial;
+            }
+            loadRejectedHistory();
+            loadSidebarCounters();
+        });
+
+        function formatMaterialCode(code) {
+            if (!code) return '-';
+            var str = String(code).trim();
+            var clean = str.replace(/^0+/, '');
+            return clean || '0';
+        }
+
+        function formatMaterialCodeList(codesStr) {
+            if (!codesStr) return '';
+            return codesStr.split(',').map(function(c) {
+                var trimmed = c.trim();
+                return trimmed ? (trimmed.replace(/^0+/, '') || '0') : '';
+            }).filter(Boolean).join(', ');
+        }
+
+        function loadSidebarCounters() {
+            fetch("?action=GET_COUNTERS", { method: "POST" })
+            .then(function(res) { return res.json(); })
+            .then(function(cnts) {
+                var p = document.getElementById("sbBadgePending");
+                var a = document.getElementById("sbBadgeApproved");
+                var r = document.getElementById("sbBadgeRejected");
+                if (p) p.innerText = cnts.pending || 0;
+                if (a) a.innerText = cnts.approved || 0;
+                if (r) r.innerText = cnts.rejected || 0;
+
+                var elApproved = document.getElementById("statApprovedCount");
+                if (elApproved && cnts.approved !== undefined) elApproved.innerText = cnts.approved;
+                var elRejected = document.getElementById("statRejectedCount");
+                if (elRejected && cnts.rejected !== undefined) elRejected.innerText = cnts.rejected;
+                var elDraft = document.getElementById("statDraftCount");
+                if (elDraft && cnts.draft !== undefined) elDraft.innerText = cnts.draft;
+            })
+            .catch(function(e) { console.error("Counter load err", e); });
+        }
+
+        function loadRejectedHistory() {
+            var tbody = document.getElementById("stagingTableBody");
+            if (tbody) {
+                tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-slate-400 italic">Loading rejected requests...</td></tr>';
+            }
+
+            fetch("?action=GET_REJECTED_LIST", { method: "POST" })
+            .then(res => res.json())
+            .then(data => {
+                fullData = data || [];
+                updateKPIs(fullData);
+                applyFilter();
+            })
+            .catch(err => {
+                console.error(err);
+                if (tbody) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-red-500 italic">Failed to load rejected history.</td></tr>';
+                }
+            });
+        }
+
+        function updateKPIs(data) {
+            var elCount = document.getElementById("kpiRejectedCount");
+            if (elCount) elCount.innerText = data ? data.length : 0;
+            var totalItems = 0;
+            if (data && data.length) {
+                data.forEach(function(i) { totalItems += (i.total_item || 0); });
+            }
+            var elItems = document.getElementById("kpiRejectedItemsCount");
+            if (elItems) elItems.innerText = totalItems;
+        }
+
+        function applyFilter() {
+            var search = (document.getElementById("searchInput").value || '').toLowerCase();
+            var filtered = fullData.filter(function(item) {
+                return !search ||
+                    (item.req_no || '').toLowerCase().includes(search) ||
+                    (item.remarks || '').toLowerCase().includes(search) ||
+                    (item.sub_reason || '').toLowerCase().includes(search) ||
+                    (item.maktx_desc || '').toLowerCase().includes(search) ||
+                    (item.requestor || '').toLowerCase().includes(search) ||
+                    (item.rej_reason || '').toLowerCase().includes(search);
+            });
+            renderTable(filtered);
+        }
+
+        function escapeHtml(str) {
+            if (str === null || str === undefined) return '';
+            return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+
+        function renderTable(data) {
+            var tbody = document.getElementById("stagingTableBody");
+            if (!tbody) return;
+            tbody.innerHTML = "";
+
+            var labelElem = document.getElementById("summaryLabel");
+            if (labelElem) {
+                labelElem.innerText = 'Showing ' + data.length + ' of ' + fullData.length + ' rejected requests';
+            }
+
+            if (!data || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-slate-400 italic">No rejected requests found.</td></tr>';
+                return;
+            }
+
+            data.forEach(function(item, idx) {
+                var tr = document.createElement("tr");
+                tr.className = "hover:bg-slate-50/80 transition-colors border-b border-slate-100";
+
+                var reqNoEsc = escapeHtml(item.req_no);
+                var matGenFormatted = formatMaterialCodeList(item.matnr_gen);
+                var matGenEsc = escapeHtml(matGenFormatted);
+                var remarksEsc = escapeHtml(item.remarks);
+                var requestorEsc = escapeHtml(item.requestor);
+                var rejReasonEsc = escapeHtml(item.rej_reason);
+                var titleVal = item.sub_reason || item.maktx_desc || (item.remarks ? item.remarks.replace(/\.[^/.]+$/, "") : "") || item.req_no || '-';
+                var titleEsc = escapeHtml(titleVal);
+
+                var fDate = (item.req_date && item.req_date.length === 8) ? (item.req_date.substring(6,8) + '/' + item.req_date.substring(4,6) + '/' + item.req_date.substring(0,4)) : (escapeHtml(item.req_date) || "-");
+                var fTime = (item.req_time && item.req_time.length >= 4) ? (item.req_time.substring(0,2) + ':' + item.req_time.substring(2,4)) : "";
+                var dateTimeStr = fDate + (fTime ? ' ' + fTime : '');
+
+                // 1. Detail (Expand Button)
+                var tdDetail = document.createElement("td");
+                tdDetail.className = "p-3 text-center";
+                var btnExpand = document.createElement("button");
+                btnExpand.type = "button";
+                btnExpand.id = "expand_btn_" + item.req_no;
+                btnExpand.className = "w-7 h-7 rounded-full bg-slate-100 hover:bg-rose-100 text-slate-700 hover:text-rose-800 font-extrabold flex items-center justify-center transition shadow-2xs text-[10px] cursor-pointer mx-auto";
+                btnExpand.innerHTML = "&#9660;";
+                btnExpand.onclick = (function(rNo) {
+                    return function() { toggleExpandRow(rNo); };
+                })(item.req_no);
+                tdDetail.appendChild(btnExpand);
+
+                // 2. Permintaan
+                var tdPermintaan = document.createElement("td");
+                tdPermintaan.className = "p-3 font-medium text-slate-800 max-w-[340px]";
+                var pStr = '<div class="font-extrabold text-slate-900 text-xs leading-snug">' + titleEsc + '</div>';
+                pStr += '<div class="flex items-center gap-2 mt-1 flex-wrap">';
+                if (reqNoEsc) {
+                    pStr += '<span class="text-[10px] font-mono text-rose-800 font-bold">ID: ' + reqNoEsc + ' (' + (item.total_item || 0) + ' items)</span>';
+                }
+                if (remarksEsc) {
+                    pStr += '<span class="text-[10px] text-slate-500 font-semibold bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200" title="File Name">File: ' + remarksEsc + '</span>';
+                }
+                if (matGenEsc) {
+                    pStr += '<span class="inline-flex items-center bg-rose-500/10 text-rose-800 border border-rose-500/20 px-2 py-0.5 rounded-full font-mono text-[10px] font-extrabold">Mat Code: ' + matGenEsc + '</span>';
+                }
+                pStr += '</div>';
+
+                if (rejReasonEsc) {
+                    pStr += '<div class="text-[11px] text-rose-800 font-medium mt-1.5 bg-rose-50/90 p-2 rounded-xl border border-rose-200/80 shadow-2xs">';
+                    pStr += '<strong class="font-extrabold">Rejection Reason:</strong> ' + rejReasonEsc + '</div>';
+                }
+                tdPermintaan.innerHTML = pStr;
+
+                // 3. Request Date
+                var tdDate = document.createElement("td");
+                tdDate.className = "p-3 text-center font-mono text-slate-600 text-[11px]";
+                tdDate.innerText = dateTimeStr;
+
+                // 4. Requestor
+                var tdUser = document.createElement("td");
+                tdUser.className = "p-3 text-center font-extrabold text-emerald-800 font-mono";
+                tdUser.innerText = requestorEsc || "-";
+
+                // 5. Status
+                var tdBadge = document.createElement("td");
+                tdBadge.className = "p-3 text-center";
+                var badgeSpan = document.createElement("span");
+                if (item.status === 'FAILED') {
+                    badgeSpan.className = "inline-flex items-center gap-1.5 bg-rose-500/10 text-rose-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-rose-500/20";
+                    badgeSpan.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>FAILED';
+                } else {
+                    badgeSpan.className = "inline-flex items-center gap-1.5 bg-rose-500/10 text-rose-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-rose-500/20";
+                    badgeSpan.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>REJECTED';
+                }
+                tdBadge.appendChild(badgeSpan);
+
+                // 6. Actions
+                var tdActions = document.createElement("td");
+                tdActions.className = "p-3 text-center";
+                var btnAction = document.createElement("button");
+                btnAction.type = "button";
+                btnAction.className = "bg-slate-100 hover:bg-rose-100 text-slate-700 hover:text-rose-800 border border-slate-200 text-[11px] font-extrabold px-3 py-1 rounded-full shadow-2xs transition cursor-pointer flex items-center gap-1 mx-auto";
+                btnAction.innerText = "View Items";
+                btnAction.onclick = (function(rNo) {
+                    return function() { toggleExpandRow(rNo); };
+                })(item.req_no);
+                tdActions.appendChild(btnAction);
+
+                tr.appendChild(tdDetail);
+                tr.appendChild(tdPermintaan);
+                tr.appendChild(tdDate);
+                tr.appendChild(tdUser);
+                tr.appendChild(tdBadge);
+                tr.appendChild(tdActions);
+
+                tbody.appendChild(tr);
+
+                // Expand Detail Row
+                var expandTr = document.createElement("tr");
+                expandTr.id = "expand_row_" + item.req_no;
+                expandTr.className = "hidden bg-slate-50/90 border-b border-app-border";
+
+                var tdExp = document.createElement("td");
+                tdExp.colSpan = 6;
+                tdExp.className = "p-2 sm:p-3 max-w-0";
+
+                var cardDiv = document.createElement("div");
+                cardDiv.className = "p-3 bg-slate-100/90 border border-slate-200 rounded-lg shadow-inner w-full max-w-full overflow-hidden";
+
+                var hdrDiv = document.createElement("div");
+                hdrDiv.className = "flex items-center justify-between gap-2 mb-2 px-1";
+
+                var titleSpan = document.createElement("span");
+                titleSpan.className = "text-[11px] font-bold text-slate-800 uppercase tracking-wider";
+                titleSpan.innerHTML = 'Rejected Items (ID: <span class="font-mono text-red-800">' + reqNoEsc + '</span>)';
+
+                var countSpan = document.createElement("span");
+                countSpan.className = "text-[10px] font-semibold text-slate-600 bg-white px-2 py-0.5 rounded border border-slate-200 shadow-xs";
+                countSpan.innerText = (item.total_item || 0) + " items";
+
+                hdrDiv.appendChild(titleSpan);
+                hdrDiv.appendChild(countSpan);
+
+                var contentDiv = document.createElement("div");
+                contentDiv.id = "expand_content_" + item.req_no;
+                contentDiv.className = "w-full max-w-full max-h-[350px] overflow-x-auto overflow-y-auto border border-slate-200 rounded-md bg-white shadow-xs";
+                contentDiv.innerHTML = '<div class="p-4 text-center text-slate-400 italic text-xs">Loading items...</div>';
+
+                cardDiv.appendChild(hdrDiv);
+                cardDiv.appendChild(contentDiv);
+                tdExp.appendChild(cardDiv);
+                expandTr.appendChild(tdExp);
+
+                tbody.appendChild(expandTr);
+            });
+        }
+
+        function toggleExpandRow(reqNo) {
+            var expandTr = document.getElementById("expand_row_" + reqNo);
+            var expandBtn = document.getElementById("expand_btn_" + reqNo);
+            if (!expandTr) return;
+
+            var isHidden = expandTr.classList.contains("hidden");
+
+            if (isHidden) {
+                expandTr.classList.remove("hidden");
+                if (expandBtn) expandBtn.innerHTML = "&#9650;";
+                if (!loadedBatchDetails[reqNo]) fetchBatchDetail(reqNo);
+            } else {
+                expandTr.classList.add("hidden");
+                if (expandBtn) expandBtn.innerHTML = "&#9660;";
+            }
+        }
+
+        function fetchBatchDetail(reqNo) {
+            var container = document.getElementById("expand_content_" + reqNo);
+            if (!container) return;
+
+            var formData = new FormData();
+            formData.append("REQ_NO", reqNo);
+
+            fetch("?action=GET_UPLOAD_DETAIL", { method: "POST", body: formData })
+            .then(res => res.json())
+            .then(data => {
+                loadedBatchDetails[reqNo] = data || [];
+                renderExpandDetailTable(reqNo, loadedBatchDetails[reqNo]);
+            })
+            .catch(() => {
+                container.innerHTML = '<div class="p-3 text-center text-red-500 font-semibold italic text-xs">Failed to load items.</div>';
+            });
+        }
+
+        var detailColumnsConfig = [
+            { label: '#', width: '40px', align: 'center', sticky: true, left: '0px' },
+            { label: 'Material Code', width: '140px', align: 'left', fontClass: 'font-mono font-bold text-red-800' },
+            { label: 'Industry Sector', width: '90px', align: 'center' },
+            { label: 'Old Material Number', width: '130px', align: 'left' },
+            { label: 'Material Type', width: '90px', align: 'center' },
+            { label: 'Material Group', width: '100px', align: 'center' },
+            { label: 'Base Unit of Measure', width: '120px', align: 'center' },
+            { label: 'Material Description', width: '220px', align: 'left' },
+            { label: 'Division', width: '70px', align: 'center' },
+            { label: 'General item cat. group', width: '120px', align: 'center' },
+            { label: 'Prod./insp. memo', width: '110px', align: 'left' },
+            { label: 'Document num.', width: '110px', align: 'left' },
+            { label: 'Industry Standard Desc.', width: '130px', align: 'left' },
+            { label: 'Dimensions', width: '90px', align: 'left' },
+            { label: 'Plant', width: '60px', align: 'center' },
+            { label: 'Storage Location', width: '90px', align: 'center' },
+            { label: 'Sales Organization', width: '110px', align: 'center' },
+            { label: 'Distribution Channel', width: '120px', align: 'center' },
+            { label: 'Delivering Plant', width: '90px', align: 'center' },
+            { label: 'Sales Unit', width: '70px', align: 'center' },
+            { label: 'Country of Origin', width: '100px', align: 'center' },
+            { label: 'Tax Class', width: '70px', align: 'center' },
+            { label: 'Tax Category', width: '80px', align: 'center' },
+            { label: 'Item Category Group', width: '110px', align: 'center' },
+            { label: 'Account Assignment', width: '110px', align: 'center' },
+            { label: 'Mat Group 1', width: '80px', align: 'center' },
+            { label: 'Mat Group 2', width: '80px', align: 'center' },
+            { label: 'Mat Group 3', width: '80px', align: 'center' },
+            { label: 'Mat Group 4', width: '80px', align: 'center' },
+            { label: 'Mat Group 5', width: '80px', align: 'center' },
+            { label: 'Transportation Group', width: '120px', align: 'center' },
+            { label: 'Loading Group', width: '90px', align: 'center' },
+            { label: 'Material Package', width: '100px', align: 'center' },
+            { label: 'Material Pack. Type', width: '110px', align: 'center' },
+            { label: 'Batch Management', width: '110px', align: 'center' },
+            { label: 'Profit Center', width: '90px', align: 'center' },
+            { label: 'Valuation Class', width: '90px', align: 'center' },
+            { label: 'Standard price', width: '90px', align: 'right' },
+            { label: 'Moving Average Price', width: '120px', align: 'right' },
+            { label: 'Price Unit', width: '70px', align: 'center' },
+            { label: 'Price Control', width: '80px', align: 'center' },
+            { label: 'Price Unit Hard Currency', width: '140px', align: 'center' },
+            { label: 'Denominator', width: '80px', align: 'center' },
+            { label: 'Alternative UoM', width: '90px', align: 'center' },
+            { label: 'Numerator', width: '70px', align: 'center' },
+            { label: 'Length', width: '60px', align: 'center' },
+            { label: 'Width', width: '60px', align: 'center' },
+            { label: 'Height', width: '60px', align: 'center' },
+            { label: 'Unit of Dimension', width: '100px', align: 'center' },
+            { label: 'Gross weight', width: '80px', align: 'right' },
+            { label: 'Weight Unit', width: '70px', align: 'center' },
+            { label: 'Net weight', width: '70px', align: 'right' },
+            { label: 'Volume', width: '70px', align: 'right' },
+            { label: 'Purchasing Group', width: '100px', align: 'center' },
+            { label: 'Volume unit', width: '80px', align: 'center' },
+            { label: 'Proportion Units', width: '100px', align: 'center' },
+            { label: 'Class', width: '70px', align: 'center' },
+            { label: 'Warna', width: '70px', align: 'center' },
+            { label: 'Volume Product', width: '100px', align: 'center' },
+            { label: 'MRP Type', width: '80px', align: 'center' },
+            { label: 'MRP Group', width: '80px', align: 'center' },
+            { label: 'MRP Controller', width: '90px', align: 'center' },
+            { label: 'Lot Sizing', width: '80px', align: 'center' },
+            { label: 'Min. Lot Size', width: '90px', align: 'center' },
+            { label: 'Max. Lot Size', width: '90px', align: 'center' },
+            { label: 'Rounding Value', width: '90px', align: 'center' },
+            { label: 'Procurement Type', width: '100px', align: 'center' },
+            { label: 'Special procurement type', width: '130px', align: 'center' },
+            { label: 'Backflush Indicator', width: '110px', align: 'center' },
+            { label: 'In-house production', width: '110px', align: 'center' },
+            { label: 'Plan. Delivery Time', width: '110px', align: 'center' },
+            { label: 'GR Processing Time', width: '110px', align: 'center' },
+            { label: 'Scheduling Margin Key', width: '130px', align: 'center' },
+            { label: 'Safety stock', width: '80px', align: 'center' },
+            { label: 'Strategy Group', width: '90px', align: 'center' },
+            { label: 'Consumption mode', width: '110px', align: 'center' },
+            { label: 'Forward Consumption period', width: '140px', align: 'center' },
+            { label: 'Backward Consumption period', width: '140px', align: 'center' },
+            { label: 'period indicator', width: '90px', align: 'center' },
+            { label: 'fiscal year', width: '70px', align: 'center' },
+            { label: 'Availability Check', width: '100px', align: 'center' },
+            { label: 'Selection Method', width: '100px', align: 'center' },
+            { label: 'Individual Collective', width: '110px', align: 'center' },
+            { label: 'Unit of issue', width: '80px', align: 'center' },
+            { label: 'Production Storage Location', width: '150px', align: 'center' },
+            { label: 'Storage Location for EP', width: '130px', align: 'center' },
+            { label: 'Prod. Scheduling Profile', width: '130px', align: 'center' },
+            { label: 'Underdelivery Tolerance', width: '130px', align: 'center' },
+            { label: 'Overdelivery Tolerance', width: '130px', align: 'center' },
+            { label: 'Unlimited Overdelivery', width: '130px', align: 'center' },
+            { label: 'Material-related Origin Ind.', width: '150px', align: 'center' },
+            { label: 'Qty Structure Indicator', width: '130px', align: 'center' },
+            { label: 'Costing Lot Size', width: '90px', align: 'center' },
+            { label: 'Do Not Cost', width: '80px', align: 'center' },
+            { label: 'Block Plant-Specific Mat. Stat', width: '160px', align: 'center' },
+            { label: 'Stock Determination Group', width: '140px', align: 'center' },
+            { label: 'Origin Group', width: '80px', align: 'center' },
+            { label: 'Variance Key', width: '80px', align: 'center' },
+            { label: 'Production Version', width: '100px', align: 'center' },
+            { label: 'Period Indicator', width: '90px', align: 'center' },
+            { label: 'Valuation Area', width: '90px', align: 'center' },
+            { label: 'Material Statistics Group', width: '130px', align: 'center' },
+            { label: 'QM in Procurement is Active', width: '150px', align: 'center' },
+            { label: 'Control Key for QM in Procurement', width: '180px', align: 'center' },
+            { label: 'Inspection Type', width: '100px', align: 'center' },
+            { label: 'Inspection Type - Material Combination is Active', width: '220px', align: 'center' },
+            { label: 'Inspection with Task List', width: '140px', align: 'center' },
+            { label: 'Inspect with Material Specification', width: '190px', align: 'center' },
+            { label: 'Inspection Specifications from Configuration', width: '220px', align: 'center' },
+            { label: 'Inspection Specifications from Batch Determination', width: '240px', align: 'center' },
+            { label: 'Automatic Specification Assignment', width: '190px', align: 'center' },
+            { label: 'Inspect by Characteristics', width: '140px', align: 'center' },
+            { label: 'Post to Inspection Stock', width: '130px', align: 'center' },
+            { label: 'Automatic Usage Decision Planned', width: '190px', align: 'center' },
+            { label: 'Sampling Procedure', width: '120px', align: 'center' },
+            { label: 'Dynamic Modification Rule', width: '140px', align: 'center' },
+            { label: 'Inspection Percentage', width: '130px', align: 'center' },
+            { label: '100% Inspection', width: '100px', align: 'center' },
+            { label: 'Skips Allowed', width: '90px', align: 'center' },
+            { label: 'Enter the Sample Manually', width: '140px', align: 'center' },
+            { label: 'Trigger Sample Calculation Manually', width: '200px', align: 'center' },
+            { label: 'Serial Number Management Possible', width: '190px', align: 'center' },
+            { label: 'Average Inspection Duration', width: '150px', align: 'center' },
+            { label: 'Control of Inspection Lot Creation (Lot Summary)', width: '230px', align: 'center' },
+            { label: 'Procedure for Calculating Quality Score', width: '210px', align: 'center' },
+            { label: 'Allowed Share of Scrap (Percent) in Inspection Lot', width: '240px', align: 'center' },
+            { label: 'Record Appraisal Costs in Individual QM Order', width: '220px', align: 'center' },
+            { label: 'Order Number for Recording Appraisal Costs', width: '220px', align: 'center' },
+            { label: 'Preferred Inspection Type', width: '140px', align: 'center' },
+            { label: 'Inspection types to be deleted (QM ALE distribution)', width: '240px', align: 'center' },
+            { label: 'Long Material Number for MATERIAL Field', width: '220px', align: 'center' },
+            { label: 'External GUID for MATERIAL Field', width: '200px', align: 'center' },
+            { label: 'Version Number for MATERIAL Field', width: '200px', align: 'center' },
+            { label: 'Inspection for Handling Unit', width: '160px', align: 'center' },
+            { label: 'Indicator: Multiple Specifications', width: '190px', align: 'center' }
+        ];
+
+        function renderExpandDetailTable(reqNo, items) {
+            var container = document.getElementById("expand_content_" + reqNo);
+            if (!container) return;
+
+            if (!items || items.length === 0) {
+                container.innerHTML = '<div class="p-4 text-center text-slate-400 italic text-xs">No items found.</div>';
+                return;
+            }
+
+            var table = document.createElement("table");
+            table.className = "w-full text-xs text-slate-700 border-collapse whitespace-nowrap";
+
+            var thead = document.createElement("thead");
+            var thRow = document.createElement("tr");
+            thRow.className = "text-left font-bold uppercase tracking-wider bg-slate-100 text-slate-700 border-b border-slate-200 sticky top-0 z-10 text-[11px]";
+
+            detailColumnsConfig.forEach(function(col) {
+                var th = document.createElement("th");
+                var cls = "p-2 border-r border-slate-200 " + (col.fontClass || "");
+                if (col.align === 'center') cls += " text-center";
+                else if (col.align === 'right') cls += " text-right";
+                if (col.sticky) cls += " sticky bg-slate-100 z-20";
+                th.className = cls;
+                if (col.width) th.style.minWidth = col.width;
+                if (col.left) th.style.left = col.left;
+                th.innerText = col.label;
+                thRow.appendChild(th);
+            });
+
+            thead.appendChild(thRow);
+            table.appendChild(thead);
+
+            var tbody = document.createElement("tbody");
+            tbody.className = "divide-y divide-slate-200 bg-white";
+
+            items.forEach(function(row, i) {
+                var tr = document.createElement("tr");
+                tr.className = "hover:bg-slate-50 transition-colors";
+
+                function cTd(val, align, extraClass, isSticky, stickyLeft) {
+                    var td = document.createElement("td");
+                    var cls = "p-2 border-r border-slate-200 " + (extraClass || "");
+                    if (align === 'center') cls += " text-center";
+                    else if (align === 'right') cls += " text-right";
+                    if (isSticky) cls += " sticky bg-white z-10";
+                    td.className = cls;
+                    if (stickyLeft) td.style.left = stickyLeft;
+                    td.innerText = (val !== null && val !== undefined && val !== '') ? val : '-';
+                    return td;
+                }
+
+                // 1. Index
+                tr.appendChild(cTd(row.item_no || (i + 1), 'center', 'font-bold text-slate-700', true, '0px'));
+
+                // 2. Material Code (Cleaned without leading zeros)
+                var rawMat = row.matnr_ext || row.matnr;
+                var cleanMat = formatMaterialCode(rawMat);
+                tr.appendChild(cTd(cleanMat, 'left', 'font-mono font-bold text-red-800'));
+
+                // All SAP Material attributes in order
+                tr.appendChild(cTd(row.mbrsh || 'F', 'center'));
+                tr.appendChild(cTd(row.bismt, 'left', 'font-mono'));
+                tr.appendChild(cTd(row.mtart || 'ZOS3', 'center', 'font-bold'));
+                tr.appendChild(cTd(row.matkl, 'center', 'font-mono'));
+                tr.appendChild(cTd(row.meins || 'PC', 'center'));
+                tr.appendChild(cTd(row.maktx, 'left', 'font-medium text-slate-900'));
+                tr.appendChild(cTd(row.spart || 'M1', 'center'));
+                tr.appendChild(cTd(row.mtpos_mara || 'NORM', 'center'));
+                tr.appendChild(cTd(row.ferth, 'left'));
+                tr.appendChild(cTd(row.zeinr, 'left', 'font-mono'));
+                tr.appendChild(cTd(row.normt, 'left'));
+                tr.appendChild(cTd(row.groes, 'left'));
+                tr.appendChild(cTd(row.werks || '1200', 'center', 'font-mono'));
+                tr.appendChild(cTd(row.lgort || '1201', 'center', 'font-mono'));
+                tr.appendChild(cTd(row.vkorg, 'center', 'font-mono'));
+                tr.appendChild(cTd(row.vtweg || '1', 'center'));
+                tr.appendChild(cTd(row.dwerk, 'center', 'font-mono'));
+                tr.appendChild(cTd(row.vrkme, 'center'));
+                tr.appendChild(cTd(row.herkl || 'ID', 'center'));
+                tr.appendChild(cTd(row.taxkm || '1', 'center'));
+                tr.appendChild(cTd(row.tatyp || 'MWST', 'center'));
+                tr.appendChild(cTd(row.mtpos || 'NORM', 'center'));
+                tr.appendChild(cTd(row.ktgrm || 'M6', 'center'));
+                tr.appendChild(cTd(row.mvgr1, 'center'));
+                tr.appendChild(cTd(row.mvgr2, 'center'));
+                tr.appendChild(cTd(row.mvgr3, 'center'));
+                tr.appendChild(cTd(row.mvgr4, 'center'));
+                tr.appendChild(cTd(row.mvgr5, 'center'));
+                tr.appendChild(cTd(row.tragr || '0001', 'center'));
+                tr.appendChild(cTd(row.ladgr || '0001', 'center'));
+                tr.appendChild(cTd(row.magrv || 'ZMG1', 'center'));
+                tr.appendChild(cTd(row.vhart, 'center'));
+                tr.appendChild(cTd(row.xchpf || 'X', 'center'));
+                tr.appendChild(cTd(row.prctr || '200201', 'center', 'font-mono'));
+                tr.appendChild(cTd(row.bklas || 'OS01', 'center', 'font-mono'));
+                tr.appendChild(cTd(row.stprs || '0', 'right'));
+                tr.appendChild(cTd(row.verpr || '0', 'right'));
+                tr.appendChild(cTd(row.peinh || '1', 'center'));
+                tr.appendChild(cTd(row.vprsv || 'V', 'center'));
+                tr.appendChild(cTd(row.peinh_2, 'center'));
+                tr.appendChild(cTd(row.umren, 'center'));
+                tr.appendChild(cTd(row.meinh, 'center'));
+                tr.appendChild(cTd(row.umrez, 'center'));
+                tr.appendChild(cTd(row.laeng, 'center'));
+                tr.appendChild(cTd(row.breit, 'center'));
+                tr.appendChild(cTd(row.hoehe, 'center'));
+                tr.appendChild(cTd(row.meabm, 'center'));
+                tr.appendChild(cTd(row.brgew, 'right'));
+                tr.appendChild(cTd(row.gewei, 'center'));
+                tr.appendChild(cTd(row.ntgew, 'right'));
+                tr.appendChild(cTd(row.volum, 'right'));
+                tr.appendChild(cTd(row.ekgrp || 'K01', 'center'));
+                tr.appendChild(cTd(row.voleh, 'center'));
+                tr.appendChild(cTd(row.kzwsm, 'center'));
+                tr.appendChild(cTd(row.class, 'center'));
+                tr.appendChild(cTd(row.warna, 'center'));
+                tr.appendChild(cTd(row.vol_prod, 'center'));
+                tr.appendChild(cTd(row.dismm || 'PD', 'center'));
+                tr.appendChild(cTd(row.disgr || 'ZWH5', 'center'));
+                tr.appendChild(cTd(row.dispo || 'RW8', 'center'));
+                tr.appendChild(cTd(row.disls || 'PB', 'center'));
+                tr.appendChild(cTd(row.bstmi, 'center'));
+                tr.appendChild(cTd(row.bstma, 'center'));
+                tr.appendChild(cTd(row.bstrf, 'center'));
+                tr.appendChild(cTd(row.beskz || 'F', 'center'));
+                tr.appendChild(cTd(row.sobsl, 'center'));
+                tr.appendChild(cTd(row.rgekz || '1', 'center'));
+                tr.appendChild(cTd(row.dzeit, 'center'));
+                tr.appendChild(cTd(row.plifz, 'center'));
+                tr.appendChild(cTd(row.webaz, 'center'));
+                tr.appendChild(cTd(row.fhori || '000', 'center'));
+                tr.appendChild(cTd(row.eisbe, 'center'));
+                tr.appendChild(cTd(row.strgr, 'center'));
+                tr.appendChild(cTd(row.vrmod, 'center'));
+                tr.appendChild(cTd(row.vint1, 'center'));
+                tr.appendChild(cTd(row.vint2, 'center'));
+                tr.appendChild(cTd(row.perkz || 'M', 'center'));
+                tr.appendChild(cTd(row.periv || 'C1', 'center'));
+                tr.appendChild(cTd(row.mtvfp || 'KP', 'center'));
+                tr.appendChild(cTd(row.altsl, 'center'));
+                tr.appendChild(cTd(row.kzkst || '2', 'center'));
+                tr.appendChild(cTd(row.ausme, 'center'));
+                tr.appendChild(cTd(row.lgpro || '1201', 'center'));
+                tr.appendChild(cTd(row.lgpro_ep || row.lgpro || '1201', 'center'));
+                tr.appendChild(cTd(row.sfpro, 'center'));
+                tr.appendChild(cTd(row.uneto, 'center'));
+                tr.appendChild(cTd(row.ueeto, 'center'));
+                tr.appendChild(cTd(row.ueetk, 'center'));
+                tr.appendChild(cTd(row.hkmat || 'X', 'center'));
+                tr.appendChild(cTd(row.ekalr || 'X', 'center'));
+                tr.appendChild(cTd(row.losgr || '100', 'center'));
+                tr.appendChild(cTd(row.ncost, 'center'));
+                tr.appendChild(cTd(row.mmsta, 'center'));
+                tr.appendChild(cTd(row.eprio || '0001', 'center'));
+                tr.appendChild(cTd(row.herbl, 'center'));
+                tr.appendChild(cTd(row.klrab, 'center'));
+                tr.appendChild(cTd(row.verid, 'center'));
+                tr.appendChild(cTd(row.perkz_2 || row.perkz || 'M', 'center'));
+                tr.appendChild(cTd(row.bwkey || '1000', 'center'));
+                tr.appendChild(cTd(row.versg, 'center'));
+                tr.appendChild(cTd(row.ssqss, 'center'));
+                tr.appendChild(cTd(row.qssys, 'center'));
+                tr.appendChild(cTd(row.insptype, 'center'));
+                tr.appendChild(cTd(row.insptype_comb, 'center'));
+                tr.appendChild(cTd(row.insp_task, 'center'));
+                tr.appendChild(cTd(row.insp_mat, 'center'));
+                tr.appendChild(cTd(row.insp_conf, 'center'));
+                tr.appendChild(cTd(row.insp_batch, 'center'));
+                tr.appendChild(cTd(row.auto_spec, 'center'));
+                tr.appendChild(cTd(row.insp_char, 'center'));
+                tr.appendChild(cTd(row.post_insp, 'center'));
+                tr.appendChild(cTd(row.auto_ud, 'center'));
+                tr.appendChild(cTd(row.sample_proc, 'center'));
+                tr.appendChild(cTd(row.dyn_mod, 'center'));
+                tr.appendChild(cTd(row.insp_pct, 'center'));
+                tr.appendChild(cTd(row.insp_100, 'center'));
+                tr.appendChild(cTd(row.skips_allow, 'center'));
+                tr.appendChild(cTd(row.sample_man, 'center'));
+                tr.appendChild(cTd(row.sample_trig, 'center'));
+                tr.appendChild(cTd(row.sernp, 'center'));
+                tr.appendChild(cTd(row.insp_dur, 'center'));
+                tr.appendChild(cTd(row.lot_summary, 'center'));
+                tr.appendChild(cTd(row.qual_score, 'center'));
+                tr.appendChild(cTd(row.scrap_pct, 'center'));
+                tr.appendChild(cTd(row.qm_order_rec, 'center'));
+                tr.appendChild(cTd(row.qm_order_num, 'center'));
+                tr.appendChild(cTd(row.pref_insptype, 'center'));
+                tr.appendChild(cTd(row.insptype_del, 'center'));
+                tr.appendChild(cTd(row.matnr_long, 'center'));
+                tr.appendChild(cTd(row.matnr_guid, 'center'));
+                tr.appendChild(cTd(row.matnr_ver, 'center'));
+                tr.appendChild(cTd(row.insp_hu, 'center'));
+                tr.appendChild(cTd(row.mult_spec, 'center'));
+
+                tbody.appendChild(tr);
+            });
+
+            table.appendChild(tbody);
+            container.innerHTML = "";
+            container.appendChild(table);
+        }
+    </script>
+</body>
+</html>

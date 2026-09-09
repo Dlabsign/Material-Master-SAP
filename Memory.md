@@ -228,3 +228,40 @@
 2. **Transaction Identifier (`UPLOAD_CODE`)**:
    - 1 File Excel Upload = 1 `UPLOAD_CODE` unik di `ZBOM_STG_HDR` (PK) yang terhubung dengan N baris item BOM di `ZBOM_STG_PART` (PK: `MANDT` + `UPLOAD_CODE` + `POSNR`, FK: `UPLOAD_CODE`).
    - Eliminasi duplikasi data histori di setiap baris item BOM.
+
+---
+
+## 18. Redesign UI Business Partner Request (`BUSINESS PARTNER/bp_request.htm`)
+- **Tanggal Pekerjaan**: 05 September 2026
+- **Tujuan**: Merombak total tampilan antarmuka `BUSINESS PARTNER/bp_request.htm` agar 100% konsisten dengan desain enterprise Material Master Request (`Request/request_form.htm`).
+- **Komponen yang Diimplementasikan**:
+  1. **Design System & Typography**: Mengintegrasikan Google Fonts `Inter` dan palette extended Tailwind CSS `emerald-50` s/d `emerald-900`.
+  2. **Latar Belakang & Glassmorphism**: Radial gradient `#eef2f6` dengan aksen emerald, class `.glass-panel` (blur 16px, border white/80) dan `.glass-subpanel`.
+  3. **Top Enterprise Header**: Sticky navbar, icon box gradien `BP`, chip Request ID, status pill (Drafter Mode / Steward Review), dan avatar user pill.
+  4. **Centered Title & Workflow Stepper**: Stepper 3 tahap (Draft Entry, Steward Review, Active SAP BP) dengan indikator aktif/selesai berbasis status dokumen.
+  5. **Alert & Deduplication Panel**: Tampilan alert modern (`gt_messages`) dan tabel deteksi duplikat SAP (`gt_duplicates`) dengan styling modern dan badge status.
+  6. **Numbered Form Sections (01 - 04)**: General & Legal Entity, Postal & Address Information, Accounting & Financial Posting Controls, dan Steward Approval Controls.
+  7. **Sticky Bottom Action Bar**: Footer mengambang dengan tombol aksi Drafter (Check Duplicate, Save Draft, Submit Request) dan Approver (Switch View, Reject, Approve & Activate).
+  8. **SE80 Compliance**: Seluruh baris HTML/CSS dipastikan memiliki panjang maksimum 181 karakter (jauh di bawah batas 255 karakter SE80). Semua tag ABAP dan nama field form dipertahankan 100%.
+
+---
+
+## 19. Refinement Form BP Sesuai Konsep SAP T-Code BP (`bp_request.htm`)
+- **Tanggal Pekerjaan**: 05 September 2026
+- **Tujuan**: Memperbaiki layout dan struktur halaman `bp_request.htm` agar merefleksikan alur kerja transaksi standar SAP T-Code `BP` (Maintain Business Partner) dengan tetap mengadopsi design system `request_form.htm`.
+- **Perubahan Utama**:
+  1. **Pembersihan Header**: Menghapus workflow stepper dan badge yang tidak diperlukan (`Draft Entry`, `Steward Review`, `Active SAP BP`) serta 4 stat mini cards di bagian atas.
+  2. **Judul Halaman Bersih**: Mengubah judul menjadi `Request Create Business Partner` dan menghapus subtitle panjang.
+  3. **Section 01 Mandiri di Bagian Teratas**: `01 — Search & Duplicate Check` dipindahkan ke posisi paling atas, mengadopsi struktur pencarian T-Code `BP` (*Find*, *By*, *Business Partner*, *Max. Hits*, dan tombol *Search*).
+  4. **Pembersihan Identifier Material Master**: Menghilangkan seluruh label/identifier `(MATNR)` dan `(ID1)` dari tampilan.
+  5. **Struktur Form T-Code BP**:
+     - Quick Switcher Kategori BP di bagian header form: `Person`, `Organization`, `Group`.
+     - Pengelompokan field mengikuti hirarki SAP BP:
+       - `01. General Data` (BP Category, Legal Name 1, Name 2, Search Term 1, Tax Number / NPWP).
+       - `02. Roles` (BP Role dropdown seperti FLVN00, FLCU00, BUP000, serta CVI info banner).
+       - `03. Address & Communication` (Street, Building/House No., City, Postal Code, Country, Region, Telephone, Email).
+       - `04. Company Code (CVI)` (Company Code, Reconciliation Account, Payment Terms, Currency).
+       - `05. Steward Governance` (Rejection Reason, SAP BP Number banner).
+  6. **SE80 Compliance & Integrasi**:
+     - 100% baris di bawah 250 karakter (maksimum 168 karakter).
+     - Seluruh tag ABAP dan backend action mapping (`CHECK_DUP`, `SAVE_DRAFT`, `SUBMIT`, `SWITCH_DRAFTER`, `REJECT`, `APPROVE`) tetap utuh dan berfungsi.

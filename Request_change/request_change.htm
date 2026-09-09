@@ -1,0 +1,2094 @@
+<%@page language="ABAP" %>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Material Master - Request Change Material</title>
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+                    colors: {
+                        emerald: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            200: '#a7f3d0',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065f46',
+                            900: '#064e3b'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background-color: #eef2f6;
+            background-image:
+                radial-gradient(at 10% 10%, rgba(16, 185, 129, 0.08) 0px, transparent 40%),
+                radial-gradient(at 90% 15%, rgba(100, 116, 139, 0.08) 0px, transparent 45%),
+                radial-gradient(at 50% 85%, rgba(16, 185, 129, 0.05) 0px, transparent 50%);
+            background-attachment: fixed;
+            color: #0f172a;
+        }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(241, 245, 249, 0.6); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #10b981; }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.72);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.05);
+        }
+
+        .glass-subpanel {
+            background: rgba(248, 250, 252, 0.65);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(226, 232, 240, 0.7);
+        }
+
+        .form-input-custom {
+            width: 100%;
+            padding: 8px 12px;
+            font-size: 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            background: rgba(255, 255, 255, 0.8);
+            color: #0f172a;
+            transition: all 0.2s ease;
+        }
+        .form-input-custom:focus {
+            outline: none;
+            border-color: #059669;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+            background: #ffffff;
+        }
+        .form-input-modified {
+            border-color: #10b981 !important;
+            background-color: #ecfdf5 !important;
+            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2) !important;
+        }
+        .form-input-readonly {
+            background-color: #f1f5f9 !important;
+            border-color: #e2e8f0 !important;
+            color: #64748b !important;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body class="text-[13px] font-sans leading-relaxed m-0 p-0 antialiased min-h-screen">
+
+    <!-- TOP NAVIGATION BAR -->
+    <header class="bg-white/70 backdrop-blur-xl h-14 border-b border-white/60 sticky top-0 z-50 px-6 lg:px-10 flex items-center justify-between shadow-xs">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 text-white flex items-center justify-center font-bold text-xs shadow-xs">
+                MM
+            </div>
+            <div>
+                <span class="font-extrabold text-sm text-slate-900 block leading-none">Material Master Governance</span>
+                <span class="text-[10px] text-emerald-700 font-semibold tracking-wide">Request Change Material Platform</span>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2 bg-white/80 border border-slate-200/80 px-3 py-1 rounded-full shadow-2xs">
+                <div class="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-[10px]" id="userAvatarInitial">?</div>
+                <span class="text-xs font-bold text-slate-800" id="userNameLabel"><%= sy-uname %></span>
+            </div>
+            <a href="?OnInputProcessing=LOGOUT" class="text-xs font-semibold text-slate-600 hover:text-emerald-700 px-3 py-1 rounded-full border border-slate-200/80 bg-white/50 hover:bg-white transition">Sign Out</a>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="max-w-[1800px] my-6 mx-auto px-4 sm:px-8">
+        <input type="hidden" id="CHG_REQ_NO" value="<%= request->get_form_field( 'req_id' ) %>">
+        <input type="hidden" id="SELECTED_MATNR" value="">
+        <input type="hidden" id="SELECTED_WERKS" value="">
+
+        <!-- CENTERED PAGE HEADER -->
+        <div class="mb-8 text-center flex flex-col items-center justify-center">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 font-bold text-[11px] mb-2 shadow-2xs">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>SAP S/4HANA Master Data Governance</span>
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight text-center leading-tight">
+                Request <span class="bg-gradient-to-r from-emerald-600 to-emerald-800 bg-clip-text text-transparent">Change Material</span>
+            </h1>
+            <p class="text-xs font-semibold text-slate-500 text-center mt-1">
+                Pilih material SAP yang sudah ada, sesuaikan atribut yang diizinkan, dan kirimkan permohonan perubahan ke Data Steward.
+            </p>
+        </div>
+
+        <!-- 1. CONTAINER 01: SEARCH & SELECT EXISTING MATERIAL (2-COLUMN GRID) -->
+        <section class="glass-panel rounded-3xl p-6 lg:p-7 mb-8 transition-all duration-300">
+            <div class="flex items-center justify-between pb-4 mb-6 border-b border-slate-200/60 flex-wrap gap-3">
+                <div class="flex items-center gap-3">
+                    <span class="w-8 h-8 rounded-xl bg-emerald-600 text-white font-extrabold text-xs flex items-center justify-center shadow-xs">01</span>
+                    <div>
+                        <h2 class="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                            Search &amp; Select Material
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/10 text-emerald-800 border border-emerald-500/20">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>LIVE SAP CATALOG
+                            </span>
+                        </h2>
+                        <p class="text-[11px] text-slate-500 font-medium">Cari data material SAP yang akan diajukan perubahannya.</p>
+                    </div>
+                </div>
+                <button type="button" onclick="resetSearchFilters()"
+        class="text-xs text-slate-600 hover:text-emerald-700 font-bold px-3.5 py-1.5 rounded-full border border-slate-200/80 bg-white/60 hover:bg-white transition inline-flex items-center gap-1 cursor-pointer">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Clear Filters
+                </button>
+            </div>
+
+            <!-- 2-COLUMN SEARCH LAYOUT -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- LEFT COLUMN: FILTER PARAMETERS -->
+                <div class="lg:col-span-4 glass-subpanel rounded-2xl p-5 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider mb-4 flex items-center gap-2 border-b border-slate-200/70 pb-2.5">
+                            <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+      d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                            </svg>
+                            Query Parameters
+                        </h3>
+
+                        <div class="space-y-3.5">
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-700 mb-1">Kode Material (MATNR)</label>
+                                <input type="text" id="filterMatnr"
+       placeholder="Cari Kode Material (e.g. 50025217)..."
+       onkeyup="handleFilterKeyup(event)"
+       class="w-full p-2.5 text-xs border border-slate-200/80 rounded-xl focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 bg-white/80 text-slate-800 font-mono transition shadow-2xs">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-700 mb-1">Deskripsi Material (MAKTX)</label>
+                                <input type="text" id="filterMaktx"
+       placeholder="Cari deskripsi (e.g. BEARING, KAYU)..."
+       onkeyup="handleFilterKeyup(event)"
+       class="w-full p-2.5 text-xs border border-slate-200/80 rounded-xl focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 bg-white/80 text-slate-800 font-medium transition shadow-2xs">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-700 mb-1">Material Type (MTART)</label>
+                                <input type="text" id="filterMtart"
+       placeholder="e.g. ROH, HALB, FERT, ERSA..."
+       onkeyup="handleFilterKeyup(event)"
+       class="w-full p-2.5 text-xs border border-slate-200/80 rounded-xl focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 bg-white/80 text-slate-800 uppercase font-mono transition shadow-2xs">
+                            </div>
+                            <div class="pt-1">
+                                <p class="text-[10px] text-slate-400 font-medium leading-relaxed">
+                                    Cari berdasarkan salah satu atau kombinasi parameter di atas.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 pt-3.5 border-t border-slate-200/70 flex items-center gap-2">
+                        <button type="button" onclick="searchMaterialSAP()"
+        class="flex-1 py-3 px-4 bg-gradient-to-r from-emerald-600 to-emerald-700
+        hover:from-emerald-700 hover:to-emerald-800 text-white font-black text-xs
+        rounded-xl shadow-xs hover:shadow transition-all inline-flex items-center
+        justify-center gap-2 cursor-pointer">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                            <span>Search SAP Material</span>
+                        </button>
+                        <button type="button" onclick="resetSearchFilters()" title="Reset Filters"
+        class="p-3 bg-white hover:bg-slate-100 text-slate-500 hover:text-slate-700 border border-slate-200/80 rounded-xl transition cursor-pointer">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- RIGHT COLUMN: SEARCH RESULTS TABLE -->
+                <div class="lg:col-span-8 glass-subpanel rounded-2xl p-5 flex flex-col justify-between min-h-[350px]">
+                    <div>
+                        <div class="flex items-center justify-between pb-3.5 mb-3.5 border-b border-slate-200/70 flex-wrap gap-2">
+                            <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                </svg>
+                                Material Catalog Results
+                            </h3>
+                            <span id="searchStatusBadge" class="text-[11px] font-bold text-slate-500">Ready to search</span>
+                        </div>
+
+                        <div class="overflow-x-auto max-h-[340px] rounded-xl border border-slate-200/80 bg-white/60">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-100/80 border-b border-slate-200 text-[10px] uppercase tracking-wider font-extrabold text-slate-600 sticky top-0 z-10 backdrop-blur-xs">
+                                        <th class="p-2.5 text-center w-8">No</th>
+                                        <th class="p-2.5">Kode Material</th>
+                                        <th class="p-2.5">Deskripsi</th>
+                                        <th class="p-2.5 text-center">Type</th>
+                                        <th class="p-2.5 text-center">Plant</th>
+                                        <th class="p-2.5 text-center">MRP Ctrl</th>
+                                        <th class="p-2.5 text-center">SLoc</th>
+                                        <th class="p-2.5 text-center w-28">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="materialResultTbody" class="text-xs divide-y divide-slate-100/80">
+                                    <tr>
+                                        <td colspan="8" class="p-8 text-center text-slate-400 font-medium">
+                                            Masukkan parameter pencarian dan klik <b>Search SAP Material</b> untuk menampilkan daftar.
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- PAGINATION FOOTER -->
+                        <div id="searchPaginationFooter" class="hidden mt-3 pt-2.5 border-t border-slate-200/60 flex flex-col sm:flex-row items-center justify-between gap-2.5 text-xs">
+                            <span id="searchPaginationSummary" class="text-[11px] font-bold text-slate-500 shrink-0">Showing 0-0 of 0</span>
+                            <div id="searchPaginationControls" class="flex items-center gap-1 flex-wrap justify-center sm:justify-end"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. CONTAINER 02: CHANGE MATERIAL WORKSPACE -->
+        <section id="changeWorkspaceSection" class="glass-panel rounded-3xl p-6 lg:p-7 mb-8 transition-all duration-300 hidden">
+            <!-- HEADER WORKSPACE -->
+            <div class="flex items-center justify-between pb-4 mb-6 border-b border-slate-200/60 flex-wrap gap-4">
+                <div class="flex items-center gap-3">
+                    <span class="w-8 h-8 rounded-xl bg-emerald-600 text-white font-extrabold text-xs flex items-center justify-center shadow-xs">02</span>
+                    <div>
+                        <h2 class="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                            Change Material Workspace
+                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-500/10 text-blue-700 border border-blue-500/20">
+                                ACTIVE SELECTION
+                            </span>
+                        </h2>
+                        <p class="text-[11px] text-slate-500 font-medium">Ubah atribut material yang diperlukan. Nilai semula (Current Value) tersimpan sebagai acuan audit.</p>
+                    </div>
+                </div>
+
+                <!-- SELECTED MATERIAL INFO CARD -->
+                <div class="flex items-center gap-3 bg-white/80 border border-slate-200/80 rounded-2xl px-4 py-2 shadow-2xs flex-wrap">
+                    <div>
+                        <span class="text-[10px] font-bold text-slate-400 block leading-tight">SELECTED MATERIAL:</span>
+                        <span id="dispMatnr" class="font-mono font-extrabold text-emerald-700 text-sm">-</span>
+                    </div>
+                    <div class="h-6 w-px bg-slate-200"></div>
+                    <div>
+                        <span class="text-[10px] font-bold text-slate-400 block leading-tight">TYPE / PLANT:</span>
+                        <span id="dispTypePlant" class="font-bold text-slate-800 text-xs">-</span>
+                    </div>
+                    <div class="h-6 w-px bg-slate-200"></div>
+                    <div>
+                        <span class="text-[10px] font-bold text-slate-400 block leading-tight">BASE UOM:</span>
+                        <span id="dispMeins" class="font-bold text-slate-800 text-xs">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TABBED CATEGORY SWITCHER -->
+            <div class="flex items-center gap-2 border-b border-slate-200 pb-3 mb-6 overflow-x-auto">
+                <button type="button" onclick="switchFormTab('basic')"
+        id="tabBtn_basic"
+        class="px-4 py-2 rounded-xl text-xs font-bold transition-all bg-emerald-600 text-white shadow-xs">
+                    1. Basic Data
+                </button>
+                <button type="button" onclick="switchFormTab('plant')"
+        id="tabBtn_plant"
+        class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:text-emerald-700 bg-white/60 hover:bg-white border border-slate-200/80 transition-all">
+                    2. Plant &amp; Storage
+                </button>
+                <button type="button" onclick="switchFormTab('mrp')"
+        id="tabBtn_mrp"
+        class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:text-emerald-700 bg-white/60 hover:bg-white border border-slate-200/80 transition-all">
+                    3. MRP &amp; Planning
+                </button>
+                <button type="button" onclick="switchFormTab('valuation')"
+        id="tabBtn_valuation" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:text-emerald-700 bg-white/60 hover:bg-white border border-slate-200/80 transition-all">
+                    4. Valuation &amp; Accounting
+                </button>
+            </div>
+
+            <!-- FORM TAB 1: BASIC DATA -->
+            <div id="tabContent_basic" class="form-tab-content space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                    <!-- MATNR (READ-ONLY) -->
+                    <div class="space-y-1">
+                        <label class="block text-[11px] font-bold text-slate-700">Material Number (MATNR)</label>
+                        <input type="text" id="f_matnr" readonly class="form-input-custom form-input-readonly font-mono">
+                        <span class="text-[10px] text-slate-400 block font-medium">Struktur kunci SAP (Read-Only)</span>
+                    </div>
+
+                    <!-- MAKTX (EDITABLE) -->
+                    <div class="space-y-1">
+                        <div class="flex items-center justify-between">
+                            <label class="block text-[11px] font-bold text-slate-700">Material Description (MAKTX) <span class="text-rose-500">*</span></label>
+                            <span id="badge_maktx"
+        class="hidden text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">MODIFIED</span>
+                        </div>
+                        <input type="text" id="f_maktx" oninput="handleFieldChange('MAKTX', 'Material Description', 'MAKT', this)" class="form-input-custom">
+                        <span id="orig_maktx" class="text-[10px] text-slate-500 block font-medium">Current: -</span>
+                    </div>
+
+                    <!-- MTART (READ-ONLY) -->
+                    <div class="space-y-1">
+                        <label class="block text-[11px] font-bold text-slate-700">Material Type (MTART)</label>
+                        <input type="text" id="f_mtart" readonly class="form-input-custom form-input-readonly font-mono">
+                        <span class="text-[10px] text-slate-400 block font-medium">Tipe Material baku SAP (Read-Only)</span>
+                    </div>
+
+                    <!-- MATKL (EDITABLE) -->
+                    <div class="space-y-1">
+                        <div class="flex items-center justify-between">
+                            <label class="block text-[11px] font-bold text-slate-700">Material Group (MATKL)</label>
+                            <span id="badge_matkl" class="hidden text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">MODIFIED</span>
+                        </div>
+                        <input type="text" id="f_matkl" oninput="handleFieldChange('MATKL', 'Material Group', 'MARA', this)" class="form-input-custom font-mono uppercase">
+                        <span id="orig_matkl" class="text-[10px] text-slate-500 block font-medium">Current: -</span>
+                    </div>
+
+                    <!-- MEINS (READ-ONLY) -->
+                    <div class="space-y-1">
+                        <label class="block text-[11px] font-bold text-slate-700">Base Unit of Measure (MEINS)</label>
+                        <input type="text" id="f_meins" readonly class="form-input-custom form-input-readonly font-mono">
+                        <span class="text-[10px] text-slate-400 block font-medium">Terkunci untuk material aktif (Read-Only)</span>
+                    </div>
+
+                    <!-- BISMT (EDITABLE) -->
+                    <div class="space-y-1">
+                        <div class="flex items-center justify-between">
+                            <label class="block text-[11px] font-bold text-slate-700">Old Material Number (BISMT)</label>
+                            <span id="badge_bismt" class="hidden text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">MODIFIED</span>
+                        </div>
+                        <input type="text" id="f_bismt" oninput="handleFieldChange('BISMT', 'Old Material Number', 'MARA', this)" class="form-input-custom">
+                        <span id="orig_bismt" class="text-[10px] text-slate-500 block font-medium">Current: -</span>
+                    </div>
+
+                    <!-- GROES (EDITABLE) -->
+                    <div class="space-y-1">
+                        <div class="flex items-center justify-between">
+                            <label class="block text-[11px] font-bold text-slate-700">Dimensions / Size (GROES)</label>
+                            <span id="badge_groes" class="hidden text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">MODIFIED</span>
+                        </div>
+                        <input type="text" id="f_groes" oninput="handleFieldChange('GROES', 'Dimensions/Size', 'MARA', this)" class="form-input-custom">
+                        <span id="orig_groes" class="text-[10px] text-slate-500 block font-medium">Current: -</span>
+                    </div>
+
+                    <!-- BRGEW (EDITABLE) -->
+                    <div class="space-y-1">
+                        <div class="flex items-center justify-between">
+                            <label class="block text-[11px] font-bold text-slate-700">Gross Weight (BRGEW)</label>
+                            <span id="badge_brgew" class="hidden text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">MODIFIED</span>
+                        </div>
+                        <input type="text" id="f_brgew" oninput="handleFieldChange('BRGEW', 'Gross Weight', 'MARA', this)" class="form-input-custom">
+                        <span id="orig_brgew" class="text-[10px] text-slate-500 block font-medium">Current: -</span>
+                    </div>
+
+                    <!-- NTGEW (EDITABLE) -->
+                    <div class="space-y-1">
+                        <div class="flex items-center justify-between">
+                            <label class="block text-[11px] font-bold text-slate-700">Net Weight (NTGEW)</label>
+                            <span id="badge_ntgew" class="hidden text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">MODIFIED</span>
+                        </div>
+                        <input type="text" id="f_ntgew" oninput="handleFieldChange('NTGEW', 'Net Weight', 'MARA', this)" class="form-input-custom">
+                        <span id="orig_ntgew" class="text-[10px] text-slate-500 block font-medium">Current: -</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FORM TAB 2: PLANT & STORAGE -->
+            <div id="tabContent_plant" class="form-tab-content space-y-4 hidden">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                    <!-- WERKS (READ-ONLY) -->
+                    <div class="space-y-1">
+                        <label class="block text-[11px] font-bold text-slate-700">Plant (WERKS)</label>
+                        <input type="text" id="f_werks" readonly class="form-input-custom form-input-readonly font-mono">
+                        <span class="text-[10px] text-slate-400 block font-medium">Plant terasosiasi saat ini</span>
+                    </div>
+
+                    <!-- LGPRO / LGORT (EDITABLE) -->
+                    <div class="space-y-1">
+                        <div class="flex items-center justify-between">
+                            <label class="block text-[11px] font-bold text-slate-700">Production SLoc (LGPRO) <span class="text-rose-500">*</span></label>
+                            <span id="badge_lgpro" class="hidden text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">MODIFIED</span>
+                        </div>
+                        <input type="text" id="f_lgpro" oninput="handleFieldChange('LGPRO', 'Production SLoc', 'MARC', this)" class="form-input-custom font-mono uppercase">
+                        <span id="orig_lgpro" class="text-[10px] text-slate-500 block font-medium">Current: -</span>
+                    </div>
+
+                    <!-- LGFSB (EDITABLE) -->
+                    <div class="space-y-1">
+                        <div class="flex items-center justify-between">
+                            <label class="block text-[11px] font-bold text-slate-700">External Procurement SLoc (LGFSB)</label>
+                            <span id="badge_lgfsb" class="hidden text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">MODIFIED</span>
+                        </div>
+                        <input type="text" id="f_lgfsb" oninput="handleFieldChange('LGFSB', 'Ext Procurement SLoc', 'MARC', this)" class="form-input-custom font-mono uppercase">
+                        <span id="orig_lgfsb" class="text-[10px] text-slate-500 block font-medium">Current: -</span>
+                    </div>
+
+                    <!-- EKGRP (EDITABLE) -->
+                    <div class="space-y-1">
+                        <div class="flex items-center justify-between">
+                            <label class="block text-[11px] font-bold text-slate-700">Purchasing Group (EKGRP)</label>
+                            <span id="badge_ekgrp" class="hidden text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">MODIFIED</span>
+                        </div>
+                        <input type="text" id="f_ekgrp" oninput="handleFieldChange('EKGRP', 'Purchasing Group', 'MARC', this)" class="form-input-custom font-mono uppercase">
+                        <span id="orig_ekgrp" class="text-[10px] text-slate-500 block font-medium">Current: -</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FORM TAB 3: MRP & PLANNING -->
+            <div id="tabContent_mrp" class="form-tab-content space-y-4 hidden">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                    <!-- DISMM (EDITABLE) -->
+                    <div class="space-y-1">
+                        <div class="flex items-center justify-between">
+                            <label class="block text-[11px] font-bold text-slate-700">MRP Type (DISMM)</label>
+                            <span id="badge_dismm" class="hidden text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">MODIFIED</span>
+                        </div>
+                        <input type="text" id="f_dismm" oninput="handleFieldChange('DISMM', 'MRP Type', 'MARC', this)" class="form-input-custom font-mono uppercase">
+                        <span id="orig_dismm" class="text-[10px] text-slate-500 block font-medium">Current: -</span>
+                    </div>
+
+                    <!-- DISGR (EDITABLE) -->
+                    <div class="space-y-1">
+                        <div class="flex items-center justify-between">
+                            <label class="block text-[11px] font-bold text-slate-700">MRP Group (DISGR)</label>
+                            <span id="badge_disgr" class="hidden text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">MODIFIED</span>
+                        </div>
+                        <input type="text" id="f_disgr" oninput="handleFieldChange('DISGR', 'MRP Group', 'MARC', this)" class="form-input-custom font-mono uppercase">
+                        <span id="orig_disgr" class="text-[10px] text-slate-500 block font-medium">Current: -</span>
+                    </div>
+
+                    <!-- DISPO (EDITABLE) -->
+                    <div class="space-y-1">
+                        <div class="flex items-center justify-between">
+                            <label class="block text-[11px] font-bold text-slate-700">MRP Controller (DISPO)</label>
+                            <span id="badge_dispo" class="hidden text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">MODIFIED</span>
+                        </div>
+                        <input type="text" id="f_dispo" oninput="handleFieldChange('DISPO', 'MRP Controller', 'MARC', this)" class="form-input-custom font-mono uppercase">
+                        <span id="orig_dispo" class="text-[10px] text-slate-500 block font-medium">Current: -</span>
+                    </div>
+
+                    <!-- DISLS (EDITABLE) -->
+                    <div class="space-y-1">
+                        <div class="flex items-center justify-between">
+                            <label class="block text-[11px] font-bold text-slate-700">Lot Sizing Procedure (DISLS)</label>
+                            <span id="badge_disls" class="hidden text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">MODIFIED</span>
+                        </div>
+                        <input type="text" id="f_disls" oninput="handleFieldChange('DISLS', 'Lot Sizing', 'MARC', this)" class="form-input-custom font-mono uppercase">
+                        <span id="orig_disls" class="text-[10px] text-slate-500 block font-medium">Current: -</span>
+                    </div>
+
+                    <!-- PLIFZ (EDITABLE) -->
+                    <div class="space-y-1">
+                        <div class="flex items-center justify-between">
+                            <label class="block text-[11px] font-bold text-slate-700">Planned Delivery Time (Days) (PLIFZ)</label>
+                            <span id="badge_plifz" class="hidden text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">MODIFIED</span>
+                        </div>
+                        <input type="text" id="f_plifz" oninput="handleFieldChange('PLIFZ', 'Planned Delivery Time', 'MARC', this)" class="form-input-custom font-mono">
+                        <span id="orig_plifz" class="text-[10px] text-slate-500 block font-medium">Current: -</span>
+                    </div>
+
+                    <!-- DZEIT (EDITABLE) -->
+                    <div class="space-y-1">
+                        <div class="flex items-center justify-between">
+                            <label class="block text-[11px] font-bold text-slate-700">In-house Production Time (Days) (DZEIT)</label>
+                            <span id="badge_dzeit" class="hidden text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">MODIFIED</span>
+                        </div>
+                        <input type="text" id="f_dzeit" oninput="handleFieldChange('DZEIT', 'In-house Prod Time', 'MARC', this)" class="form-input-custom font-mono">
+                        <span id="orig_dzeit" class="text-[10px] text-slate-500 block font-medium">Current: -</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FORM TAB 4: VALUATION & ACCOUNTING -->
+            <div id="tabContent_valuation" class="form-tab-content space-y-4 hidden">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                    <!-- PRCTR (EDITABLE) -->
+                    <div class="space-y-1">
+                        <div class="flex items-center justify-between">
+                            <label class="block text-[11px] font-bold text-slate-700">Profit Center (PRCTR)</label>
+                            <span id="badge_prctr" class="hidden text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">MODIFIED</span>
+                        </div>
+                        <input type="text" id="f_prctr" oninput="handleFieldChange('PRCTR', 'Profit Center', 'MARC', this)" class="form-input-custom font-mono">
+                        <span id="orig_prctr" class="text-[10px] text-slate-500 block font-medium">Current: -</span>
+                    </div>
+
+                    <!-- BWKEY (READ-ONLY) -->
+                    <div class="space-y-1">
+                        <label class="block text-[11px] font-bold text-slate-700">Valuation Area (BWKEY)</label>
+                        <input type="text" id="f_bwkey" readonly class="form-input-custom form-input-readonly font-mono">
+                        <span class="text-[10px] text-slate-400 block font-medium">Area penilaian akuntansi</span>
+                    </div>
+
+                    <!-- BKLAS (READ-ONLY) -->
+                    <div class="space-y-1">
+                        <label class="block text-[11px] font-bold text-slate-700">Valuation Class (BKLAS)</label>
+                        <input type="text" id="f_bklas" readonly class="form-input-custom form-input-readonly font-mono">
+                        <span class="text-[10px] text-slate-400 block font-medium">Kelas Penilaian (Read-Only)</span>
+                    </div>
+
+                    <!-- STPRS (EDITABLE IF AUTHORIZED) -->
+                    <div class="space-y-1">
+                        <div class="flex items-center justify-between">
+                            <label class="block text-[11px] font-bold text-slate-700">Standard Price (STPRS)</label>
+                            <span id="badge_stprs" class="hidden text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">MODIFIED</span>
+                        </div>
+                        <input type="text" id="f_stprs" oninput="handleFieldChange('STPRS', 'Standard Price', 'MBEW', this)" class="form-input-custom font-mono">
+                        <span id="orig_stprs" class="text-[10px] text-slate-500 block font-medium">Current: -</span>
+                    </div>
+
+                    <!-- VPRSV (READ-ONLY) -->
+                    <div class="space-y-1">
+                        <label class="block text-[11px] font-bold text-slate-700">Price Control (VPRSV)</label>
+                        <input type="text" id="f_vprsv" readonly class="form-input-custom form-input-readonly font-mono">
+                        <span class="text-[10px] text-slate-400 block font-medium">S = Standar, V = Moving Average</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. CONTAINER 03: REVIEW CHANGES SUMMARY -->
+        <section id="reviewChangesSection" class="glass-panel rounded-3xl p-6 lg:p-7 mb-8 transition-all duration-300 hidden">
+            <div class="flex items-center justify-between pb-4 mb-6 border-b border-slate-200/60 flex-wrap gap-3">
+                <div class="flex items-center gap-3">
+                    <span class="w-8 h-8 rounded-xl bg-emerald-600 text-white font-extrabold text-xs flex items-center justify-center shadow-xs">03</span>
+                    <div>
+                        <h2 class="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                            Review Changes Summary
+                            <span id="changedFieldsCountBadge" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/10 text-emerald-800 border border-emerald-500/20">
+                                0 FIELDS MODIFIED
+                            </span>
+                        </h2>
+                        <p class="text-[11px] text-slate-500 font-medium">Hanya field-field yang mengalami perubahan yang akan dikirimkan sebagai audit request.</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="confirmResetAllChanges()"
+        class="text-xs text-rose-600 hover:text-rose-700 font-bold px-3.5 py-1.5 rounded-full border border-rose-200 bg-rose-50/50 hover:bg-rose-50 transition inline-flex items-center gap-1 cursor-pointer">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        Revert All
+                    </button>
+                </div>
+            </div>
+
+            <!-- DIFF TABLE -->
+            <div class="overflow-x-auto rounded-2xl border border-slate-200/80 bg-white/70 shadow-2xs mb-6">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-100/90 border-b border-slate-200 text-[10px] uppercase tracking-wider font-extrabold text-slate-600">
+                            <th class="p-3 text-center w-12">No</th>
+                            <th class="p-3 w-28">Table</th>
+                            <th class="p-3">Field Name</th>
+                            <th class="p-3">Field Description</th>
+                            <th class="p-3">Current Value (SAP)</th>
+                            <th class="p-3">Proposed New Value</th>
+                            <th class="p-3 text-center w-24">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reviewDiffTbody" class="text-xs divide-y divide-slate-100">
+                        <tr>
+                            <td colspan="7" class="p-8 text-center text-slate-400 font-medium">
+                                Belum ada perubahan data. Silakan edit nilai pada Section 02 di atas.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- ACTION BAR (SAVE DRAFT & SUBMIT REQUEST) -->
+            <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-200/70 flex-wrap">
+                <button type="button" onclick="saveDraftChangeRequest()"
+        class="px-5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 font-bold text-xs hover:bg-slate-50 transition shadow-2xs cursor-pointer inline-flex items-center gap-2">
+                    <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                    </svg>
+                    Save as Draft
+                </button>
+                <button type="button" onclick="openSubmitReasonModal()"
+        class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-extrabold text-xs shadow-xs hover:shadow transition-all inline-flex items-center gap-2 cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Submit Request Change
+                </button>
+            </div>
+        </section>
+
+        <!-- 4. CONTAINER 04: CHANGE REQUEST HISTORY TRACKER -->
+        <section class="glass-panel rounded-3xl p-6 lg:p-7 mb-8 transition-all duration-300">
+            <div class="flex items-center justify-between pb-4 mb-5 border-b border-slate-200/60 flex-wrap gap-3">
+                <div class="flex items-center gap-3">
+                    <span class="w-8 h-8 rounded-xl bg-emerald-600 text-white font-extrabold text-xs flex items-center justify-center shadow-xs">04</span>
+                    <div>
+                        <h2 class="text-xs font-black text-slate-900 uppercase tracking-wider">Change Request History</h2>
+                        <p class="text-[11px] text-slate-500 font-medium">Pelacakan status seluruh permohonan perubahan material yang pernah diajukan.</p>
+                    </div>
+                </div>
+                <button type="button" onclick="loadChangeHistory()"
+        class="text-xs text-slate-600 hover:text-emerald-700 font-bold px-3.5 py-1.5 rounded-full border border-slate-200/80 bg-white/60 hover:bg-white transition inline-flex items-center gap-1.5 cursor-pointer shadow-2xs">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Refresh History
+                </button>
+            </div>
+
+            <!-- STATUS SUMMARY CARDS (4 STATUSES) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <!-- 1. PENDING -->
+                <div class="glass-subpanel p-4 rounded-2xl border border-amber-500/20 flex items-center justify-between hover:border-amber-500/40 transition cursor-pointer" onclick="switchHistoryTab('PENDING')">
+                    <div>
+                        <p class="text-[10px] font-black text-slate-500 uppercase tracking-wider">Pending Requests</p>
+                        <h3 class="text-xl font-black text-slate-900 mt-0.5" id="pendingHistoryCount">0 Request</h3>
+                    </div>
+                    <span class="text-xs font-black text-amber-800 bg-amber-100/80 px-3 py-1 rounded-full border border-amber-200 shadow-2xs">SUBMITTED</span>
+                </div>
+
+                <!-- 2. CHECKED -->
+                <div class="glass-subpanel p-4 rounded-2xl border border-blue-500/20 flex items-center justify-between hover:border-blue-500/40 transition cursor-pointer" onclick="switchHistoryTab('CHECKED')">
+                    <div>
+                        <p class="text-[10px] font-black text-slate-500 uppercase tracking-wider">Checked Requests</p>
+                        <h3 class="text-xl font-black text-slate-900 mt-0.5" id="checkedHistoryCount">0 Request</h3>
+                    </div>
+                    <span class="text-xs font-black text-blue-800 bg-blue-100/80 px-3 py-1 rounded-full border border-blue-200 shadow-2xs">CHECKED</span>
+                </div>
+
+                <!-- 3. APPROVED -->
+                <div class="glass-subpanel p-4 rounded-2xl border border-emerald-500/20 flex items-center justify-between hover:border-emerald-500/40 transition cursor-pointer" onclick="switchHistoryTab('APPROVED')">
+                    <div>
+                        <p class="text-[10px] font-black text-slate-500 uppercase tracking-wider">Approved Requests</p>
+                        <h3 class="text-xl font-black text-slate-900 mt-0.5" id="approvedHistoryCount">0 Request</h3>
+                    </div>
+                    <span class="text-xs font-black text-emerald-800 bg-emerald-100/80 px-3 py-1 rounded-full border border-emerald-200 shadow-2xs">APPROVED</span>
+                </div>
+
+                <!-- 4. REJECTED -->
+                <div class="glass-subpanel p-4 rounded-2xl border border-rose-500/20 flex items-center justify-between hover:border-rose-500/40 transition cursor-pointer" onclick="switchHistoryTab('REJECTED')">
+                    <div>
+                        <p class="text-[10px] font-black text-slate-500 uppercase tracking-wider">Rejected Requests</p>
+                        <h3 class="text-xl font-black text-slate-900 mt-0.5" id="rejectedHistoryCount">0 Request</h3>
+                    </div>
+                    <span class="text-xs font-black text-rose-800 bg-rose-100/80 px-3 py-1 rounded-full border border-rose-200 shadow-2xs">REJECTED</span>
+                </div>
+            </div>
+
+            <!-- TAB PILL SWITCHER & SEARCH BAR -->
+            <div class="bg-white/60 p-3 rounded-2xl border border-slate-200/80 mb-4 flex items-center justify-between flex-wrap gap-3 shadow-2xs">
+                <!-- 4 TABS: PENDING, CHECKED, APPROVED, REJECTED -->
+                <div class="flex items-center gap-2 flex-wrap">
+                    <button type="button" id="tabHistoryPendingBtn" onclick="switchHistoryTab('PENDING')"
+                        class="h-9 px-4 rounded-full font-extrabold text-xs inline-flex items-center justify-center whitespace-nowrap transition-all cursor-pointer bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-xs">
+                        <span>Pending</span>
+                        <span id="tabPendingBadge" class="ml-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/20 text-white font-mono">0</span>
+                    </button>
+                    <button type="button" id="tabHistoryCheckedBtn" onclick="switchHistoryTab('CHECKED')"
+                        class="h-9 px-4 rounded-full font-extrabold text-xs inline-flex items-center justify-center
+                        whitespace-nowrap transition-all cursor-pointer text-slate-600 hover:text-slate-900
+                        bg-white/80 hover:bg-white border border-slate-200/80 shadow-2xs">
+                        <span>Checked</span>
+                        <span id="tabCheckedBadge" class="ml-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 font-mono">0</span>
+                    </button>
+                    <button type="button" id="tabHistoryApprovedBtn" onclick="switchHistoryTab('APPROVED')"
+                        class="h-9 px-4 rounded-full font-extrabold text-xs inline-flex items-center justify-center
+                        whitespace-nowrap transition-all cursor-pointer text-slate-600 hover:text-slate-900
+                        bg-white/80 hover:bg-white border border-slate-200/80 shadow-2xs">
+                        <span class="inline-flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                            <span>Approved</span>
+                        </span>
+                        <span id="tabApprovedBadge" class="ml-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 font-mono">0</span>
+                    </button>
+                    <button type="button" id="tabHistoryRejectedBtn" onclick="switchHistoryTab('REJECTED')"
+                        class="h-9 px-4 rounded-full font-extrabold text-xs inline-flex items-center justify-center
+                        whitespace-nowrap transition-all cursor-pointer text-slate-600 hover:text-slate-900
+                        bg-white/80 hover:bg-white border border-slate-200/80 shadow-2xs">
+                        <span>Rejected</span>
+                        <span id="tabRejectedBadge" class="ml-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 font-mono">0</span>
+                    </button>
+                </div>
+
+                <!-- SEARCH FILTER INPUT -->
+                <div class="flex items-center gap-3 flex-1 sm:flex-initial justify-end">
+                    <div class="relative min-w-[220px] sm:min-w-[280px]">
+                        <input type="text" id="historySearchInput"
+                            placeholder="Cari Material, Deskripsi, Material Type, Group..."
+                            onkeyup="handleHistorySearch(event)"
+                            class="w-full pl-8 pr-3 py-1.5 text-xs border border-slate-200/80 rounded-xl
+                            focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10
+                            bg-white/90 text-slate-800 placeholder:text-slate-400 font-medium transition shadow-2xs">
+                        <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- HISTORY TABLE -->
+            <div class="overflow-x-auto max-h-[380px] rounded-2xl border border-slate-200/80 bg-white/70 shadow-2xs">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-100/90 border-b border-slate-200 text-[10px] uppercase tracking-wider
+                            font-extrabold text-slate-600 sticky top-0 z-10 backdrop-blur-xs">
+                            <th class="p-3 text-center w-12">No</th>
+                            <th class="p-3">Material Code</th>
+                            <th class="p-3">Description</th>
+                            <th class="p-3 text-center">Material Type</th>
+                            <th class="p-3 text-center">Material Group</th>
+                            <th class="p-3 text-center">Inspection Location</th>
+                            <th class="p-3" id="historyThDate">Date</th>
+                            <th class="p-3 text-center">Status</th>
+                            <th class="p-3 text-center w-32">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableTbody" class="text-xs divide-y divide-slate-100">
+                        <tr>
+                            <td colspan="9" class="p-8 text-center text-slate-400 font-medium">Memuat riwayat permohonan...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- PAGINATION FOOTER -->
+            <div id="historyPaginationFooter" class="hidden mt-3 pt-2.5 border-t border-slate-200/60 flex flex-col sm:flex-row items-center justify-between gap-2.5 text-xs">
+                <span id="historyPaginationSummary" class="text-[11px] font-bold text-slate-500 shrink-0">Showing 0-0 of 0</span>
+                <div id="historyPaginationControls" class="flex items-center gap-1 flex-wrap justify-center sm:justify-end"></div>
+            </div>
+        </section>
+    </main>
+
+    <!-- SUBMIT REASON MODAL -->
+    <div id="submitReasonModal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+                    <span class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-black">!</span>
+                    Konfirmasi Submit Permohonan
+                </h3>
+                <button type="button" onclick="closeSubmitReasonModal()" class="text-slate-400 hover:text-slate-600 text-lg leading-none cursor-pointer">&times;</button>
+            </div>
+            <div>
+                <p class="text-xs text-slate-600 mb-2">
+                    Silakan masukkan alasan / justifikasi bisnis permohonan perubahan data material ini untuk bahan verifikasi Data Steward:
+                </p>
+                <textarea id="submitReasonText" rows="3"
+          placeholder="Contoh: Perubahan spesifikasi dimensi part kayu mengikuti revisi CAD R&D No. 04..."
+          class="w-full p-3 text-xs border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 bg-slate-50/50 text-slate-800"></textarea>
+            </div>
+            <div class="flex items-center justify-end gap-2 pt-2">
+                <button type="button" onclick="closeSubmitReasonModal()" class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer">Batal</button>
+                <button type="button" onclick="executeSubmitChangeRequest()" class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-xs cursor-pointer">Kirim Permohonan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONFIRMATION DIALOG MODAL -->
+    <div id="confirmDialogModal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4 text-center">
+            <div class="w-12 h-12 rounded-full bg-rose-100 text-rose-600 mx-auto flex items-center justify-center font-bold text-xl">?</div>
+            <div>
+                <h3 id="confirmDialogTitle" class="font-extrabold text-slate-900 text-sm">Konfirmasi</h3>
+                <p id="confirmDialogMsg" class="text-xs text-slate-500 mt-1">Apakah Anda yakin?</p>
+            </div>
+            <div class="flex items-center justify-center gap-3 pt-2">
+                <button type="button" onclick="closeConfirmDialog()" class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer">Batal</button>
+                <button type="button" id="confirmDialogProceedBtn" class="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-extrabold shadow-xs cursor-pointer">Lanjutkan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- DETAIL CHANGE MODAL (AUDIT POP-UP / VIEW CHANGES) -->
+    <div id="detailChangeModal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-3xl w-full p-6 shadow-2xl border border-slate-100 space-y-4 max-h-[90vh] flex flex-col">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3.5">
+                <div class="flex items-center gap-3">
+                    <div id="modalHeaderIconBg" class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm font-black shadow-xs">
+                        <svg class="w-5 h-5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+                            <span>Change Details</span>
+                            <span id="modalDetailReqId" class="text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-lg font-mono text-xs font-bold">CHG-000</span>
+                        </h3>
+                        <p id="modalDetailSubDesc" class="text-[11px] text-slate-500 font-medium mt-0.5">Material: -</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeDetailChangeModal()" class="text-slate-400 hover:text-slate-600 text-xl leading-none p-1.5 rounded-xl hover:bg-slate-100 transition cursor-pointer">&times;</button>
+            </div>
+
+            <div class="overflow-y-auto flex-1 pr-1 space-y-4">
+                <!-- REQUEST OVERVIEW & APPROVAL INFORMATION (2 COLUMNS) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <!-- Left: Request & Material Info -->
+                    <div class="bg-slate-50/80 rounded-2xl p-3.5 border border-slate-200/70 text-xs space-y-1.5">
+                        <div class="flex justify-between items-center pb-1 border-b border-slate-200/50">
+                            <span class="text-[10px] font-black uppercase tracking-wider text-slate-500">Request Information</span>
+                            <span id="modalDetailStatusBadge" class="font-bold">-</span>
+                        </div>
+                        <div class="flex justify-between"><span class="text-slate-500 font-medium">Requestor:</span><span id="modalDetailRequestor" class="font-bold text-slate-800">-</span></div>
+                        <div class="flex justify-between"><span class="text-slate-500 font-medium">Request Date:</span><span id="modalDetailReqDate" class="font-mono text-slate-700 font-semibold">-</span></div>
+                        <div class="flex justify-between"><span class="text-slate-500 font-medium">Plant:</span><span id="modalDetailWerks" class="font-mono text-slate-700 font-bold">-</span></div>
+                        <div class="pt-1"><span class="text-slate-500 font-medium block text-[11px]">Justifikasi / Alasan:</span><p id="modalDetailReason" class="font-semibold text-slate-700 text-xs mt-0.5">-</p></div>
+                    </div>
+
+                    <!-- Right: Approval Information -->
+                    <div id="modalApprovalCard" class="bg-emerald-50/50 rounded-2xl p-3.5 border border-emerald-200/70 text-xs space-y-1.5">
+                        <div class="flex justify-between items-center pb-1 border-b border-emerald-200/50">
+                            <span class="text-[10px] font-black uppercase tracking-wider text-emerald-800 flex items-center gap-1">
+                                <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                Approval Information
+                            </span>
+                            <span id="modalApprovalStatusBadge" class="font-bold">-</span>
+                        </div>
+                        <div class="flex justify-between"><span class="text-slate-500 font-medium">Approved By:</span><span id="modalDetailApprover" class="font-bold text-slate-800">-</span></div>
+                        <div class="flex justify-between"><span class="text-slate-500 font-medium">Approved Date:</span><span id="modalDetailAppDate" class="font-mono text-slate-700 font-semibold">-</span></div>
+                        <div id="modalApprovalRemarkContainer" class="pt-1 hidden">
+                            <span class="text-slate-500 font-medium block text-[11px]">Approval Remark / Comment:</span>
+                            <p id="modalApprovalRemark" class="font-semibold text-slate-700 text-xs mt-0.5">-</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CHANGE SUMMARY SECTION (BEFORE CHANGE VS AFTER CHANGE) -->
+                <div>
+                    <div class="flex items-center justify-between mb-2.5">
+                        <h4 class="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                            <span>Change Summary</span>
+                            <span id="modalChangesCountBadge" class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200">0 Changes</span>
+                        </h4>
+                        <span class="text-[11px] text-slate-400 font-medium">Hanya field yang mengalami perubahan yang ditampilkan.</span>
+                    </div>
+
+                    <div class="overflow-x-auto rounded-xl border border-slate-200/80 bg-white shadow-2xs">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="bg-slate-100/90 border-b border-slate-200 text-[10px] uppercase font-black text-slate-600">
+                                    <th class="p-3 w-10 text-center">No</th>
+                                    <th class="p-3">Field</th>
+                                    <th class="p-3">Before Change (Old Value)</th>
+                                    <th class="p-3">After Change (New Value)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="modalDetailDiffTbody" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="flex justify-end pt-3 border-t border-slate-100">
+                <button type="button" onclick="closeDetailChangeModal()" class="px-5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer shadow-2xs">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- LOADING OVERLAY -->
+    <div id="loadingOverlay" class="fixed inset-0 z-50 bg-slate-900/30 backdrop-blur-2xs flex items-center justify-center hidden">
+        <div class="bg-white/90 border border-slate-200/80 px-6 py-4 rounded-2xl shadow-xl flex items-center gap-3">
+            <svg class="animate-spin h-5 w-5 text-emerald-600" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span class="text-xs font-bold text-slate-800" id="loadingText">Processing...</span>
+        </div>
+    </div>
+
+    <!-- ES5 VANILLA JAVASCRIPT LOGIC -->
+    <script>
+        // State Management
+        var searchResults = [];
+        var searchCurrentPage = 1;
+        var searchPageSize = 10;
+        var activeMaterial = null;
+        var originalValues = {};
+        var modifiedChanges = {}; // Key: FieldName -> { fieldName, fieldLabel, tableName, oldValue, newValue }
+
+        // Initialize on DOM Ready
+        window.onload = function() {
+            var avatar = document.getElementById('userAvatarInitial');
+            var userName = document.getElementById('userNameLabel');
+            if (avatar && userName) {
+                var nameText = userName.innerText.trim();
+                avatar.innerText = nameText ? nameText.charAt(0).toUpperCase() : 'U';
+            }
+            loadChangeHistory();
+        };
+
+        function showLoading(text) {
+            var overlay = document.getElementById('loadingOverlay');
+            var txt = document.getElementById('loadingText');
+            if (overlay && txt) {
+                txt.innerText = text || 'Processing...';
+                overlay.classList.remove('hidden');
+            }
+        }
+
+        function hideLoading() {
+            var overlay = document.getElementById('loadingOverlay');
+            if (overlay) overlay.classList.add('hidden');
+        }
+
+        function showToast(message, type) {
+            var container = document.getElementById('toastContainer');
+            if (!container) return;
+
+            var toast = document.createElement('div');
+            var bgClass = 'bg-slate-900 text-white';
+            if (type === 'success') bgClass = 'bg-emerald-700 text-white';
+            if (type === 'error') bgClass = 'bg-rose-700 text-white';
+            if (type === 'warning') bgClass = 'bg-amber-600 text-white';
+
+            toast.className = 'pointer-events-auto px-4 py-2.5 rounded-xl shadow-lg text-xs font-bold transition-all duration-300 transform translate-y-2 opacity-0 flex items-center gap-2 ' + bgClass;
+            toast.innerText = message;
+            container.appendChild(toast);
+
+            setTimeout(function() {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            setTimeout(function() {
+                toast.classList.add('opacity-0');
+                setTimeout(function() {
+                    if (toast.parentNode) toast.parentNode.removeChild(toast);
+                }, 300);
+            }, 3500);
+        }
+
+        function handleFilterKeyup(event) {
+            if (event.keyCode === 13) {
+                searchMaterialSAP();
+            }
+        }
+
+        function resetSearchFilters() {
+            document.getElementById('filterMatnr').value = '';
+            document.getElementById('filterMaktx').value = '';
+            document.getElementById('filterMtart').value = '';
+            searchResults = [];
+            renderSearchResults();
+            document.getElementById('searchStatusBadge').innerText = 'Ready to search';
+        }
+
+        // Search SAP Materials via AJAX
+        function searchMaterialSAP() {
+            var matnr = document.getElementById('filterMatnr').value.trim();
+            var maktx = document.getElementById('filterMaktx').value.trim();
+            var mtart = document.getElementById('filterMtart').value.trim();
+
+            if (!matnr && !maktx && !mtart) {
+                showToast('Masukkan minimal salah satu kriteria pencarian (Kode, Deskripsi, atau Type).', 'info');
+                return;
+            }
+
+            showLoading('Searching SAP Materials...');
+            var formData = new FormData();
+            formData.append('action', 'SEARCH_MARA');
+            formData.append('FILTER_MATNR', matnr.replace(/\*/g, '%').toUpperCase());
+            formData.append('FILTER_MAKTX', maktx.replace(/\*/g, '%').toUpperCase());
+            formData.append('FILTER_MTART', mtart.replace(/\*/g, '%').toUpperCase());
+
+            fetch('?OnInputProcessing=SEARCH_MARA&action=SEARCH_MARA', {
+                method: 'POST',
+                body: formData
+            })
+            .then(function(res) {
+                var contentType = res.headers.get('content-type');
+                if (!res.ok || (contentType && contentType.indexOf('application/json') === -1)) {
+                    return res.text().then(function(text) {
+                        console.error('Non-JSON Server Response:', text);
+                        throw new Error('Server error (' + res.status + ')');
+                    });
+                }
+                return res.json();
+            })
+            .then(function(data) {
+                hideLoading();
+                searchResults = data || [];
+                searchCurrentPage = 1;
+                renderSearchResults();
+                document.getElementById('searchStatusBadge').innerText = searchResults.length + ' material(s) found';
+                if (searchResults.length === 0) {
+                    showToast('Tidak ada material yang cocok dengan kriteria pencarian.', 'info');
+                }
+            })
+            .catch(function(err) {
+                hideLoading();
+                console.error('SAP Material Search Error:', err);
+                showToast('Gagal memproses hasil pencarian SAP: ' + (err.message || 'Error'), 'error');
+            });
+        }
+
+        function getSearchPaginationRange(currentPage, totalPages) {
+            if (totalPages <= 7) {
+                var range = [];
+                for (var i = 1; i <= totalPages; i++) {
+                    range.push(i);
+                }
+                return range;
+            }
+            if (currentPage <= 4) {
+                return [1, 2, 3, 4, 5, '...', totalPages];
+            }
+            if (currentPage >= totalPages - 3) {
+                return [1, '...', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+            }
+            return [1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages];
+        }
+
+        function renderSearchResults() {
+            var tbody = document.getElementById('materialResultTbody');
+            var footer = document.getElementById('searchPaginationFooter');
+            var summary = document.getElementById('searchPaginationSummary');
+            var controls = document.getElementById('searchPaginationControls');
+
+            if (!searchResults || searchResults.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="p-8 text-center text-slate-400 font-medium">Data material tidak ditemukan sesuai kriteria.</td></tr>';
+                footer.classList.add('hidden');
+                return;
+            }
+
+            footer.classList.remove('hidden');
+            var totalItems = searchResults.length;
+            var totalPages = Math.ceil(totalItems / searchPageSize);
+            var startIndex = (searchCurrentPage - 1) * searchPageSize;
+            var endIndex = Math.min(startIndex + searchPageSize, totalItems);
+
+            summary.innerText = 'Showing ' + (startIndex + 1) + '-' + endIndex + ' of ' + totalItems + ' items (Page ' + searchCurrentPage + ' of ' + totalPages + ')';
+
+            var html = '';
+            for (var i = startIndex; i < endIndex; i++) {
+                var item = searchResults[i];
+                var cleanMatnr = (item.matnr || '').replace(/^0+/, '');
+                var werksDisplay = item.werks || '-';
+                var dispoDisplay = item.dispo || '-';
+                var lgproDisplay = item.lgpro || '-';
+
+                html += '<tr class="hover:bg-emerald-50/40 transition">';
+                html += '<td class="p-2.5 text-center font-bold text-slate-500">' + (i + 1) + '</td>';
+                html += '<td class="p-2.5 font-mono font-bold text-emerald-800">' + cleanMatnr + '</td>';
+                html += '<td class="p-2.5 font-medium text-slate-800">' + (item.maktx || '-') + '</td>';
+                html += '<td class="p-2.5 text-center font-mono font-bold text-slate-600">' + (item.mtart || '-') + '</td>';
+                html += '<td class="p-2.5 text-center font-mono font-bold text-slate-700">' + werksDisplay + '</td>';
+                html += '<td class="p-2.5 text-center font-mono text-slate-600">' + dispoDisplay + '</td>';
+                html += '<td class="p-2.5 text-center font-mono text-slate-600">' + lgproDisplay + '</td>';
+                html += '<td class="p-2.5 text-center">';
+                html += '<button type="button" onclick="selectMaterialIndex(' + i + ')" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[11px] font-bold shadow-2xs transition cursor-pointer">';
+                html += 'Select';
+                html += '</button>';
+                html += '</td>';
+                html += '</tr>';
+            }
+            tbody.innerHTML = html;
+
+            // Render Windowed Pagination Controls
+            var pagHtml = '';
+
+            // Previous Button
+            var isPrevDisabled = (searchCurrentPage <= 1);
+            var prevClass = isPrevDisabled
+                ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed opacity-60'
+                : 'bg-white text-slate-700 hover:bg-slate-50 hover:text-emerald-700 border-slate-300 cursor-pointer shadow-2xs';
+            var prevClick = isPrevDisabled ? '' : 'onclick="goToSearchPage(' + (searchCurrentPage - 1) + ')"';
+
+            pagHtml += '<button type="button" ' + prevClick + ' ' + (isPrevDisabled ? 'disabled' : '') +
+                ' class="px-2.5 py-1 rounded-lg border text-[11px] font-bold transition inline-flex items-center gap-1 ' + prevClass + '">';
+            pagHtml += '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>';
+            pagHtml += '<span>Prev</span>';
+            pagHtml += '</button>';
+
+            // Page Numbers & Ellipsis
+            var pageRange = getSearchPaginationRange(searchCurrentPage, totalPages);
+            for (var r = 0; r < pageRange.length; r++) {
+                var pageNum = pageRange[r];
+                if (pageNum === '...') {
+                    pagHtml += '<span class="px-1.5 py-1 text-slate-400 font-extrabold text-[11px] select-none">...</span>';
+                } else {
+                    var isCurrent = (pageNum === searchCurrentPage);
+                    var btnClass = isCurrent
+                        ? 'bg-emerald-600 text-white border-emerald-600 font-black shadow-xs'
+                        : 'bg-white text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 border-slate-300 font-bold shadow-2xs cursor-pointer';
+                    pagHtml += '<button type="button" onclick="goToSearchPage(' + pageNum + ')"' +
+                        ' class="min-w-[28px] h-7 px-2 rounded-lg text-[11px] border transition ' + btnClass + '">' +
+                        pageNum + '</button>';
+                }
+            }
+
+            // Next Button
+            var isNextDisabled = (searchCurrentPage >= totalPages);
+            var nextClass = isNextDisabled
+                ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed opacity-60'
+                : 'bg-white text-slate-700 hover:bg-slate-50 hover:text-emerald-700 border-slate-300 cursor-pointer shadow-2xs';
+            var nextClick = isNextDisabled ? '' : 'onclick="goToSearchPage(' + (searchCurrentPage + 1) + ')"';
+
+            pagHtml += '<button type="button" ' + nextClick + ' ' + (isNextDisabled ? 'disabled' : '') +
+                ' class="px-2.5 py-1 rounded-lg border text-[11px] font-bold transition inline-flex items-center gap-1 ' + nextClass + '">';
+            pagHtml += '<span>Next</span>';
+            pagHtml += '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>';
+            pagHtml += '</button>';
+
+            controls.innerHTML = pagHtml;
+        }
+
+        function goToSearchPage(page) {
+            var totalPages = Math.ceil((searchResults ? searchResults.length : 0) / searchPageSize);
+            if (page < 1) page = 1;
+            if (totalPages > 0 && page > totalPages) page = totalPages;
+            searchCurrentPage = page;
+            renderSearchResults();
+        }
+
+        // Select Material and Load Full Details
+        function selectMaterialIndex(idx) {
+            var item = searchResults[idx];
+            if (!item) return;
+
+            showLoading('Loading Material Master Details...');
+            var formData = new FormData();
+            formData.append('action', 'GET_MATERIAL_DETAIL');
+            formData.append('MATNR', item.matnr);
+            formData.append('WERKS', item.werks || '');
+
+            fetch('?OnInputProcessing=GET_MATERIAL_DETAIL&action=GET_MATERIAL_DETAIL', {
+                method: 'POST',
+                body: formData
+            })
+            .then(function(res) {
+                var contentType = res.headers.get('content-type');
+                if (!res.ok || (contentType && contentType.indexOf('application/json') === -1)) {
+                    return res.text().then(function(text) {
+                        console.error('Non-JSON Server Response:', text);
+                        throw new Error('Server error (' + res.status + ')');
+                    });
+                }
+                return res.json();
+            })
+            .then(function(data) {
+                hideLoading();
+                if (data.status === 'ERROR') {
+                    showToast(data.message || 'Gagal memuat detail material.', 'error');
+                    return;
+                }
+                populateMaterialForm(data);
+                document.getElementById('changeWorkspaceSection').classList.remove('hidden');
+                document.getElementById('reviewChangesSection').classList.remove('hidden');
+                document.getElementById('changeWorkspaceSection').scrollIntoView({ behavior: 'smooth' });
+                showToast('Material ' + (data.matnr || '').replace(/^0+/, '') + ' berhasil dipilih.', 'success');
+            })
+            .catch(function(err) {
+                hideLoading();
+                console.error('Load Material Detail Error:', err);
+                showToast('Format data detail material tidak valid: ' + (err.message || 'Error'), 'error');
+            });
+        }
+
+        function populateMaterialForm(data) {
+            activeMaterial = data;
+            originalValues = {};
+            modifiedChanges = {};
+
+            var cleanMatnr = (data.matnr || '').replace(/^0+/, '');
+            document.getElementById('SELECTED_MATNR').value = data.matnr || '';
+            document.getElementById('SELECTED_WERKS').value = data.werks || '';
+
+            document.getElementById('dispMatnr').innerText = cleanMatnr;
+            document.getElementById('dispTypePlant').innerText = (data.mtart || '-') + ' / ' + (data.werks || '-');
+            document.getElementById('dispMeins').innerText = data.meins || '-';
+
+            // Populate Form Fields and Store Originals
+            setFieldData('f_matnr', 'orig_matnr', cleanMatnr, true);
+            setFieldData('f_maktx', 'orig_maktx', data.maktx || '', false);
+            setFieldData('f_mtart', 'orig_mtart', data.mtart || '', true);
+            setFieldData('f_matkl', 'orig_matkl', data.matkl || '', false);
+            setFieldData('f_meins', 'orig_meins', data.meins || '', true);
+            setFieldData('f_bismt', 'orig_bismt', data.bismt || '', false);
+            setFieldData('f_groes', 'orig_groes', data.groes || '', false);
+            setFieldData('f_brgew', 'orig_brgew', data.brgew || '', false);
+            setFieldData('f_ntgew', 'orig_ntgew', data.ntgew || '', false);
+
+            setFieldData('f_werks', 'orig_werks', data.werks || '', true);
+            setFieldData('f_lgpro', 'orig_lgpro', data.lgpro || '', false);
+            setFieldData('f_lgfsb', 'orig_lgfsb', data.lgfsb || '', false);
+            setFieldData('f_ekgrp', 'orig_ekgrp', data.ekgrp || '', false);
+
+            setFieldData('f_dismm', 'orig_dismm', data.dismm || '', false);
+            setFieldData('f_disgr', 'orig_disgr', data.disgr || '', false);
+            setFieldData('f_dispo', 'orig_dispo', data.dispo || '', false);
+            setFieldData('f_disls', 'orig_disls', data.disls || '', false);
+            setFieldData('f_plifz', 'orig_plifz', data.plifz || '', false);
+            setFieldData('f_dzeit', 'orig_dzeit', data.dzeit || '', false);
+
+            setFieldData('f_prctr', 'orig_prctr', (data.prctr || '').replace(/^0+/, ''), false);
+            setFieldData('f_bwkey', 'orig_bwkey', data.bwkey || '', true);
+            setFieldData('f_bklas', 'orig_bklas', data.bklas || '', true);
+            setFieldData('f_stprs', 'orig_stprs', data.stprs || '', false);
+            setFieldData('f_vprsv', 'orig_vprsv', data.vprsv || '', true);
+
+            renderReviewDiffTable();
+        }
+
+        function setFieldData(inputId, origId, val, isReadOnly) {
+            var inp = document.getElementById(inputId);
+            var orig = document.getElementById(origId);
+            if (inp) {
+                inp.value = val;
+                inp.classList.remove('form-input-modified');
+            }
+            if (orig) {
+                orig.innerText = 'Current: ' + (val ? val : '(empty)');
+            }
+            // Store original value for comparison
+            originalValues[inputId] = val;
+
+            // Hide modified badge if any
+            var fieldName = inputId.replace('f_', '');
+            var badge = document.getElementById('badge_' + fieldName);
+            if (badge) badge.classList.add('hidden');
+        }
+
+        // Live Change Handler
+        function handleFieldChange(fieldName, fieldLabel, tableName, inputElem) {
+            var inputId = inputElem.id;
+            var origVal = originalValues[inputId] || '';
+            var newVal = inputElem.value.trim();
+
+            var badge = document.getElementById('badge_' + fieldName.toLowerCase());
+
+            if (newVal !== origVal) {
+                inputElem.classList.add('form-input-modified');
+                if (badge) badge.classList.remove('hidden');
+
+                modifiedChanges[fieldName] = {
+                    fieldName: fieldName,
+                    fieldLabel: fieldLabel,
+                    tableName: tableName,
+                    oldValue: origVal,
+                    newValue: newVal
+                };
+            } else {
+                inputElem.classList.remove('form-input-modified');
+                if (badge) badge.classList.add('hidden');
+                delete modifiedChanges[fieldName];
+            }
+
+            renderReviewDiffTable();
+        }
+
+        // Revert a single modified field
+        function revertSingleField(fieldName) {
+            var inputId = 'f_' + fieldName.toLowerCase();
+            var inp = document.getElementById(inputId);
+            if (inp && originalValues[inputId] !== undefined) {
+                inp.value = originalValues[inputId];
+                inp.classList.remove('form-input-modified');
+                var badge = document.getElementById('badge_' + fieldName.toLowerCase());
+                if (badge) badge.classList.add('hidden');
+                delete modifiedChanges[fieldName];
+                renderReviewDiffTable();
+                showToast('Field ' + fieldName + ' dikembalikan ke nilai semula.', 'warning');
+            }
+        }
+
+        // Render Review Changes Diff Table
+        function renderReviewDiffTable() {
+            var tbody = document.getElementById('reviewDiffTbody');
+            var badge = document.getElementById('changedFieldsCountBadge');
+            var keys = Object.keys(modifiedChanges);
+
+            badge.innerText = keys.length + ' FIELD(S) MODIFIED';
+
+            if (keys.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-slate-400 font-medium">Belum ada perubahan data. Silakan ubah data pada Section 02 di atas.</td></tr>';
+                return;
+            }
+
+            var html = '';
+            for (var i = 0; i < keys.length; i++) {
+                var change = modifiedChanges[keys[i]];
+                html += '<tr class="hover:bg-emerald-50/30 transition">';
+                html += '<td class="p-3 text-center font-bold text-slate-500">' + (i + 1) + '</td>';
+                html += '<td class="p-3 font-mono font-bold text-slate-600">' + change.tableName + '</td>';
+                html += '<td class="p-3 font-mono font-bold text-emerald-800">' + change.fieldName + '</td>';
+                html += '<td class="p-3 font-medium text-slate-800">' + change.fieldLabel + '</td>';
+                html += '<td class="p-3"><span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-mono text-[11px]">' + (change.oldValue ? change.oldValue : '<em>(empty)</em>') + '</span></td>';
+                html += '<td class="p-3"><span class="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-900 font-mono font-bold text-[11px]">' + change.newValue + '</span></td>';
+                html += '<td class="p-3 text-center">';
+                html += '<button type="button" onclick="revertSingleField(\'' + change.fieldName + '\')" ' +
+                    'class="text-rose-600 hover:text-rose-800 font-bold text-[11px] px-2 py-1 rounded hover:bg-rose-50 transition cursor-pointer">Revert</button>';
+                html += '</td>';
+                html += '</tr>';
+            }
+            tbody.innerHTML = html;
+        }
+
+        // Tab Switcher inside Workspace
+        function switchFormTab(tabName) {
+            var tabs = ['basic', 'plant', 'mrp', 'valuation'];
+            for (var i = 0; i < tabs.length; i++) {
+                var t = tabs[i];
+                var content = document.getElementById('tabContent_' + t);
+                var btn = document.getElementById('tabBtn_' + t);
+                if (t === tabName) {
+                    if (content) content.classList.remove('hidden');
+                    if (btn) {
+                        btn.className = 'px-4 py-2 rounded-xl text-xs font-bold transition-all bg-emerald-600 text-white shadow-xs';
+                    }
+                } else {
+                    if (content) content.classList.add('hidden');
+                    if (btn) {
+                        btn.className = 'px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:text-emerald-700 bg-white/60 hover:bg-white border border-slate-200/80 transition-all';
+                    }
+                }
+            }
+        }
+
+        // Confirm Reset All Changes
+        function confirmResetAllChanges() {
+            var keys = Object.keys(modifiedChanges);
+            if (keys.length === 0) {
+                showToast('Tidak ada perubahan yang sedang aktif.', 'warning');
+                return;
+            }
+            openConfirmDialog('Batalkan Semua Perubahan?', 'Seluruh nilai yang telah diubah akan dikembalikan ke nilai asli dari master SAP.', function() {
+                if (activeMaterial) {
+                    populateMaterialForm(activeMaterial);
+                    showToast('Seluruh perubahan berhasil dibatalkan.', 'warning');
+                }
+            });
+        }
+
+        // Confirmation Dialog Helper
+        var currentConfirmCallback = null;
+        function openConfirmDialog(title, msg, onConfirm) {
+            document.getElementById('confirmDialogTitle').innerText = title;
+            document.getElementById('confirmDialogMsg').innerText = msg;
+            currentConfirmCallback = onConfirm;
+            document.getElementById('confirmDialogModal').classList.remove('hidden');
+
+            document.getElementById('confirmDialogProceedBtn').onclick = function() {
+                closeConfirmDialog();
+                if (currentConfirmCallback) currentConfirmCallback();
+            };
+        }
+
+        function closeConfirmDialog() {
+            document.getElementById('confirmDialogModal').classList.add('hidden');
+            currentConfirmCallback = null;
+        }
+
+        // Save as Draft
+        function saveDraftChangeRequest() {
+            var keys = Object.keys(modifiedChanges);
+            if (keys.length === 0) {
+                showToast('Tidak ada perubahan field untuk disimpan sebagai draft.', 'warning');
+                return;
+            }
+            sendChangeRequest('DRAFT', 'Penyimpanan draft perubahan.');
+        }
+
+        // Open Submit Reason Modal
+        function openSubmitReasonModal() {
+            var keys = Object.keys(modifiedChanges);
+            if (keys.length === 0) {
+                showToast('Tidak ada perubahan yang dilakukan. Silakan ubah minimal satu field sebelum submit.', 'warning');
+                return;
+            }
+            document.getElementById('submitReasonText').value = '';
+            document.getElementById('submitReasonModal').classList.remove('hidden');
+        }
+
+        function closeSubmitReasonModal() {
+            document.getElementById('submitReasonModal').classList.add('hidden');
+        }
+
+        function executeSubmitChangeRequest() {
+            var reason = document.getElementById('submitReasonText').value.trim();
+            if (!reason) {
+                showToast('Silakan isi alasan / justifikasi perubahan sebelum mengirim permohonan.', 'warning');
+                return;
+            }
+            closeSubmitReasonModal();
+            sendChangeRequest('SUBMITTED', reason);
+        }
+
+        // Send Change Request to Backend ABAP
+        function sendChangeRequest(status, reason) {
+            var keys = Object.keys(modifiedChanges);
+            var reqId = document.getElementById('CHG_REQ_NO').value.trim();
+            var matnr = document.getElementById('SELECTED_MATNR').value.trim();
+            var werks = document.getElementById('SELECTED_WERKS').value.trim();
+
+            showLoading(status === 'SUBMITTED' ? 'Submitting Change Request...' : 'Saving Draft...');
+
+            var formData = new FormData();
+            formData.append('action', 'SAVE_CHANGE');
+            formData.append('CHG_REQ_NO', reqId);
+            formData.append('MATNR', matnr);
+            formData.append('WERKS', werks);
+            formData.append('STATUS', status);
+            formData.append('CHANGE_REASON', reason);
+            formData.append('CHANGES_COUNT', keys.length);
+
+            for (var i = 0; i < keys.length; i++) {
+                var c = modifiedChanges[keys[i]];
+                var idx = (i + 1);
+                formData.append('table_name_' + idx, c.tableName);
+                formData.append('field_name_' + idx, c.fieldName);
+                formData.append('field_label_' + idx, c.fieldLabel);
+                formData.append('old_val_' + idx, c.oldValue);
+                formData.append('new_val_' + idx, c.newValue);
+            }
+
+            fetch('?OnInputProcessing=SAVE_CHANGE&action=SAVE_CHANGE', {
+                method: 'POST',
+                body: formData
+            })
+            .then(function(res) {
+                var contentType = res.headers.get('content-type');
+                if (!res.ok || (contentType && contentType.indexOf('application/json') === -1)) {
+                    return res.text().then(function(text) {
+                        console.error('Non-JSON Server Response:', text);
+                        throw new Error('Server error (' + res.status + ')');
+                    });
+                }
+                return res.json();
+            })
+            .then(function(resp) {
+                hideLoading();
+                if (resp.status === 'SUCCESS') {
+                    showToast(resp.message || 'Permohonan berhasil diproses.', 'success');
+                    document.getElementById('CHG_REQ_NO').value = resp.chg_req_no || '';
+                    loadChangeHistory();
+                    if (status === 'SUBMITTED') {
+                        // Reset workspace after submit
+                        modifiedChanges = {};
+                        renderReviewDiffTable();
+                    }
+                } else {
+                    showToast(resp.message || 'Gagal memproses permohonan.', 'error');
+                }
+            })
+            .catch(function(err) {
+                hideLoading();
+                console.error('Save Change Request Error:', err);
+                showToast('Gagal memproses respon dari server: ' + (err.message || 'Error'), 'error');
+            });
+        }
+
+        // Global History State
+        var globalHistoryList = [];
+        var currentHistoryTab = 'PENDING'; // 'PENDING' | 'CHECKED' | 'APPROVED' | 'REJECTED'
+        var historySearchQuery = '';
+        var historyCurrentPage = 1;
+        var historyPageSize = 10;
+
+        // Escape HTML string safely
+        function escapeHtml(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        // Format Date to "05 Sep 2026" and optional time
+        function formatDisplayDate(dStr, tStr, dateOnly) {
+            if (!dStr) return '-';
+            var dClean = String(dStr).replace(/\D/g, '');
+            var year = '', monthNum = 0, day = '';
+            if (dClean.length === 8) {
+                year = dClean.substring(0, 4);
+                monthNum = parseInt(dClean.substring(4, 6), 10);
+                day = dClean.substring(6, 8);
+            } else if (String(dStr).indexOf('.') !== -1) {
+                var p = String(dStr).split('.');
+                day = p[0];
+                monthNum = parseInt(p[1], 10);
+                year = p[2];
+            } else if (String(dStr).indexOf('-') !== -1) {
+                var p2 = String(dStr).split('-');
+                year = p2[0];
+                monthNum = parseInt(p2[1], 10);
+                day = p2[2];
+            } else {
+                return dStr;
+            }
+            var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                          'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            var mName = (monthNum >= 1 && monthNum <= 12) ? months[monthNum - 1] : String(monthNum);
+            var dateFormatted = (day.length === 1 ? '0' + day : day) + ' ' + mName + ' ' + year;
+
+            if (!dateOnly && tStr) {
+                var tClean = String(tStr).replace(/\D/g, '');
+                if (tClean.length >= 4) {
+                    dateFormatted += ' ' + tClean.substring(0, 2) + ':' + tClean.substring(2, 4);
+                } else if (String(tStr).indexOf(':') !== -1) {
+                    dateFormatted += ' ' + tStr.substring(0, 5);
+                }
+            }
+            return dateFormatted;
+        }
+
+        // Load Change Request History
+        function loadChangeHistory() {
+            var tbody = document.getElementById('historyTableTbody');
+            var formData = new FormData();
+            formData.append('action', 'GET_HISTORY');
+
+            fetch('?OnInputProcessing=GET_HISTORY&action=GET_HISTORY', {
+                method: 'POST',
+                body: formData
+            })
+            .then(function(res) {
+                var contentType = res.headers.get('content-type');
+                if (!res.ok || (contentType && contentType.indexOf('application/json') === -1)) {
+                    return res.text().then(function(text) {
+                        console.error('Non-JSON Server Response:', text);
+                        throw new Error('Server error (' + res.status + ')');
+                    });
+                }
+                return res.json();
+            })
+            .then(function(list) {
+                globalHistoryList = list || [];
+                updateHistoryCounters();
+                renderHistoryTable();
+            })
+            .catch(function(err) {
+                console.error('Load History Error:', err);
+                tbody.innerHTML = '<tr><td colspan="9" class="p-8 text-center text-slate-400 font-medium">Gagal memuat riwayat: ' + (err.message || 'Error') + '</td></tr>';
+            });
+        }
+
+        // Update Counter Badges for 4 Statuses
+        function updateHistoryCounters() {
+            var pendingCnt = 0;
+            var checkedCnt = 0;
+            var approvedCnt = 0;
+            var rejectedCnt = 0;
+
+            for (var i = 0; i < globalHistoryList.length; i++) {
+                var item = globalHistoryList[i];
+                var st = (item.status || '').toUpperCase();
+                if (st === 'SUBMITTED' || st === 'DRAFT' || st === 'PENDING') {
+                    pendingCnt++;
+                } else if (st === 'CHECKED') {
+                    checkedCnt++;
+                } else if (st === 'APPROVED') {
+                    approvedCnt++;
+                } else if (st === 'REJECTED' || st === 'FAILED') {
+                    rejectedCnt++;
+                }
+            }
+
+            var pndCard = document.getElementById('pendingHistoryCount');
+            var chkCard = document.getElementById('checkedHistoryCount');
+            var appCard = document.getElementById('approvedHistoryCount');
+            var rejCard = document.getElementById('rejectedHistoryCount');
+
+            if (pndCard) pndCard.innerText = pendingCnt + ' Request' + (pendingCnt !== 1 ? 's' : '');
+            if (chkCard) chkCard.innerText = checkedCnt + ' Request' + (checkedCnt !== 1 ? 's' : '');
+            if (appCard) appCard.innerText = approvedCnt + ' Request' + (approvedCnt !== 1 ? 's' : '');
+            if (rejCard) rejCard.innerText = rejectedCnt + ' Request' + (rejectedCnt !== 1 ? 's' : '');
+
+            var pndBadge = document.getElementById('tabPendingBadge');
+            var chkBadge = document.getElementById('tabCheckedBadge');
+            var appBadge = document.getElementById('tabApprovedBadge');
+            var rejBadge = document.getElementById('tabRejectedBadge');
+
+            if (pndBadge) pndBadge.innerText = pendingCnt;
+            if (chkBadge) chkBadge.innerText = checkedCnt;
+            if (appBadge) appBadge.innerText = approvedCnt;
+            if (rejBadge) rejBadge.innerText = rejectedCnt;
+        }
+
+        // Switch History Tab
+        function switchHistoryTab(tabName) {
+            currentHistoryTab = tabName;
+            historyCurrentPage = 1;
+
+            var btnPending = document.getElementById('tabHistoryPendingBtn');
+            var btnChecked = document.getElementById('tabHistoryCheckedBtn');
+            var btnApproved = document.getElementById('tabHistoryApprovedBtn');
+            var btnRejected = document.getElementById('tabHistoryRejectedBtn');
+
+            var baseCls = 'h-9 px-4 rounded-full font-extrabold text-xs inline-flex items-center justify-center whitespace-nowrap transition-all cursor-pointer ';
+            var inactiveStyle = baseCls + 'text-slate-600 hover:text-slate-900 bg-white/80 hover:bg-white border border-slate-200/80 shadow-2xs';
+
+            var pendingActive = baseCls + 'bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-xs';
+            var checkedActive = baseCls + 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-xs';
+            var approvedActive = baseCls + 'bg-gradient-to-r from-emerald-600 to-emerald-700 text-white shadow-xs';
+            var rejectedActive = baseCls + 'bg-gradient-to-r from-rose-600 to-rose-700 text-white shadow-xs';
+
+            if (btnPending) btnPending.className = (tabName === 'PENDING') ? pendingActive : inactiveStyle;
+            if (btnChecked) btnChecked.className = (tabName === 'CHECKED') ? checkedActive : inactiveStyle;
+            if (btnApproved) btnApproved.className = (tabName === 'APPROVED') ? approvedActive : inactiveStyle;
+            if (btnRejected) btnRejected.className = (tabName === 'REJECTED') ? rejectedActive : inactiveStyle;
+
+            // Update badge contrast
+            var pndBadge = document.getElementById('tabPendingBadge');
+            var chkBadge = document.getElementById('tabCheckedBadge');
+            var appBadge = document.getElementById('tabApprovedBadge');
+            var rejBadge = document.getElementById('tabRejectedBadge');
+
+            var badgeActive = 'ml-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/20 text-white font-mono';
+            var badgeInactive = 'ml-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 font-mono';
+
+            if (pndBadge) pndBadge.className = (tabName === 'PENDING') ? badgeActive : badgeInactive;
+            if (chkBadge) chkBadge.className = (tabName === 'CHECKED') ? badgeActive : badgeInactive;
+            if (appBadge) appBadge.className = (tabName === 'APPROVED') ? badgeActive : badgeInactive;
+            if (rejBadge) rejBadge.className = (tabName === 'REJECTED') ? badgeActive : badgeInactive;
+
+            renderHistoryTable();
+        }
+
+        // Handle Quick Search in History
+        function handleHistorySearch(event) {
+            historySearchQuery = document.getElementById('historySearchInput').value.trim();
+            historyCurrentPage = 1;
+            renderHistoryTable();
+        }
+
+        // History Pagination Helpers
+        function getHistoryPaginationRange(currentPage, totalPages) {
+            if (totalPages <= 7) {
+                var range = [];
+                for (var i = 1; i <= totalPages; i++) { range.push(i); }
+                return range;
+            }
+            if (currentPage <= 4) {
+                return [1, 2, 3, 4, 5, '...', totalPages];
+            }
+            if (currentPage >= totalPages - 3) {
+                return [1, '...', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+            }
+            return [1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages];
+        }
+
+        function goToHistoryPage(page) {
+            historyCurrentPage = page;
+            renderHistoryTable();
+        }
+
+        // Render History Table according to Active Tab & Filters
+        function renderHistoryTable() {
+            var tbody = document.getElementById('historyTableTbody');
+            var footer = document.getElementById('historyPaginationFooter');
+            var summary = document.getElementById('historyPaginationSummary');
+            var controls = document.getElementById('historyPaginationControls');
+
+            var thDate = document.getElementById('historyThDate');
+            var thActor = document.getElementById('historyThActor');
+
+            // Adapt Table Column Headers according to Tab
+            if (currentHistoryTab === 'APPROVED') {
+                if (thDate) thDate.innerText = 'Approval Date';
+                if (thActor) thActor.innerText = 'Approver';
+            } else if (currentHistoryTab === 'CHECKED') {
+                if (thDate) thDate.innerText = 'Checked Date';
+                if (thActor) thActor.innerText = 'Checked By';
+            } else if (currentHistoryTab === 'REJECTED') {
+                if (thDate) thDate.innerText = 'Rejected Date';
+                if (thActor) thActor.innerText = 'Rejected By';
+            } else {
+                if (thDate) thDate.innerText = 'Request Date';
+                if (thActor) thActor.innerText = 'Requestor';
+            }
+
+            // Filter by active Tab
+            var filtered = [];
+            for (var i = 0; i < globalHistoryList.length; i++) {
+                var it = globalHistoryList[i];
+                var st = (it.status || '').toUpperCase();
+                var matchTab = false;
+
+                if (currentHistoryTab === 'PENDING') {
+                    matchTab = (st === 'SUBMITTED' || st === 'DRAFT' || st === 'PENDING');
+                } else if (currentHistoryTab === 'CHECKED') {
+                    matchTab = (st === 'CHECKED');
+                } else if (currentHistoryTab === 'APPROVED') {
+                    matchTab = (st === 'APPROVED');
+                } else if (currentHistoryTab === 'REJECTED') {
+                    matchTab = (st === 'REJECTED' || st === 'FAILED');
+                }
+
+                if (!matchTab) continue;
+
+                // Search query filter
+                if (historySearchQuery) {
+                    var q = historySearchQuery.toLowerCase();
+                    var matchQuery = (
+                        (it.chg_req_no && it.chg_req_no.toLowerCase().indexOf(q) !== -1) ||
+                        (it.matnr && it.matnr.toLowerCase().indexOf(q) !== -1) ||
+                        (it.old_maktx && it.old_maktx.toLowerCase().indexOf(q) !== -1) ||
+                        (it.new_maktx && it.new_maktx.toLowerCase().indexOf(q) !== -1) ||
+                        (it.mtart && it.mtart.toLowerCase().indexOf(q) !== -1) ||
+                        (it.matkl && it.matkl.toLowerCase().indexOf(q) !== -1) ||
+                        (it.dismm && it.dismm.toLowerCase().indexOf(q) !== -1) ||
+                        (it.lgpro && it.lgpro.toLowerCase().indexOf(q) !== -1) ||
+                        (it.lgort && it.lgort.toLowerCase().indexOf(q) !== -1) ||
+                        (it.disgr && it.disgr.toLowerCase().indexOf(q) !== -1) ||
+                        (it.requestor && it.requestor.toLowerCase().indexOf(q) !== -1) ||
+                        (it.approver && it.approver.toLowerCase().indexOf(q) !== -1) ||
+                        (it.change_reason && it.change_reason.toLowerCase().indexOf(q) !== -1)
+                    );
+                    if (!matchQuery) continue;
+                }
+
+                filtered.push(it);
+            }
+
+            if (!filtered || filtered.length === 0) {
+                var emptyMsg = 'Tidak ada permohonan pada tab ' + currentHistoryTab + '.';
+                if (historySearchQuery) {
+                    emptyMsg = 'Tidak ada data pada tab ' + currentHistoryTab + ' yang cocok dengan kata kunci "' + escapeHtml(historySearchQuery) + '".';
+                }
+                tbody.innerHTML = '<tr><td colspan="9" class="p-8 text-center text-slate-400 font-medium">' + emptyMsg + '</td></tr>';
+                if (footer) footer.classList.add('hidden');
+                return;
+            }
+
+            if (footer) footer.classList.remove('hidden');
+
+            var totalItems = filtered.length;
+            var totalPages = Math.ceil(totalItems / historyPageSize);
+            if (historyCurrentPage < 1) historyCurrentPage = 1;
+            if (totalPages > 0 && historyCurrentPage > totalPages) historyCurrentPage = totalPages;
+
+            var startIndex = (historyCurrentPage - 1) * historyPageSize;
+            var endIndex = Math.min(startIndex + historyPageSize, totalItems);
+
+            if (summary) {
+                summary.innerText = 'Showing ' + (startIndex + 1) + '-' + endIndex + ' of ' + totalItems + ' requests (Page ' + historyCurrentPage + ' of ' + totalPages + ')';
+            }
+
+            var html = '';
+            for (var k = startIndex; k < endIndex; k++) {
+                var item = filtered[k];
+                var cleanMatnr = (item.matnr || '').replace(/^0+/, '') || item.matnr || '-';
+                var descDisplay = item.new_maktx || item.old_maktx || '-';
+                var stUpper = (item.status || '').toUpperCase();
+
+                // Status Badge styling
+                var statusBadge = '';
+                if (stUpper === 'APPROVED') {
+                    statusBadge = '<span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 ' +
+                        'text-[10px] font-extrabold border border-emerald-200 inline-flex items-center gap-1">' +
+                        '<span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>APPROVED</span>';
+                } else if (stUpper === 'CHECKED') {
+                    statusBadge = '<span class="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 ' +
+                        'text-[10px] font-extrabold border border-blue-200 inline-flex items-center gap-1">' +
+                        '<span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span>CHECKED</span>';
+                } else if (stUpper === 'REJECTED' || stUpper === 'FAILED') {
+                    statusBadge = '<span class="px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 ' +
+                        'text-[10px] font-extrabold border border-rose-200 inline-flex items-center gap-1">' +
+                        '<span class="w-1.5 h-1.5 rounded-full bg-rose-600"></span>REJECTED</span>';
+                } else {
+                    statusBadge = '<span class="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 ' +
+                        'text-[10px] font-extrabold border border-amber-200 inline-flex items-center gap-1">' +
+                        '<span class="w-1.5 h-1.5 rounded-full bg-amber-600"></span>SUBMITTED</span>';
+                }
+
+                // Date determination depending on context
+                var rawDate = '';
+                var rawTime = '';
+
+                if (currentHistoryTab === 'APPROVED' || currentHistoryTab === 'CHECKED' || currentHistoryTab === 'REJECTED') {
+                    rawDate = item.app_date || item.req_date;
+                    rawTime = item.app_time || item.req_time;
+                } else {
+                    rawDate = item.req_date;
+                    rawTime = item.req_time;
+                }
+
+                var dateDisplay = formatDisplayDate(rawDate, rawTime, true);
+
+                // User's change reason as Description
+                var userDesc = item.change_reason || '-';
+
+                // Material Type (MTART / NLAG), Material Group (MATKL / NSU003), Inspection Location (LGORT / LGPRO)
+                var matType = item.mtart || item.MTART || item.dismm || item.mrp_type || '';
+                var matGroup = item.matkl || item.MATKL || item.disgr || item.mrp_group || '';
+                var inspLoc = item.lgort || item.lgpro || item.inspection_loc || item.insploc || item.insp_loc || item.LGORT || item.LGPRO || '';
+
+                if (item.changes && item.changes.length) {
+                    for (var cIdx = 0; cIdx < item.changes.length; cIdx++) {
+                        var cItem = item.changes[cIdx];
+                        var fName = (cItem.field_name || '').toUpperCase();
+                        if ((fName === 'MTART' || fName === 'DISMM') && cItem.new_value) matType = cItem.new_value;
+                        if ((fName === 'MATKL' || fName === 'DISGR') && cItem.new_value) matGroup = cItem.new_value;
+                        if ((fName === 'LGPRO' || fName === 'LGORT') && cItem.new_value) inspLoc = cItem.new_value;
+                    }
+                }
+
+                html += '<tr class="hover:bg-emerald-50/30 transition">';
+                html += '<td class="p-3 text-center font-bold text-slate-500">' + (k + 1) + '</td>';
+                html += '<td class="p-3 font-mono font-bold text-emerald-800 text-xs">';
+                html += '  <div>' + escapeHtml(cleanMatnr) + '</div>';
+                html += '  <div class="text-[10px] text-slate-500 font-sans font-medium truncate max-w-[150px]" title="' + escapeHtml(descDisplay) + '">' + escapeHtml(descDisplay) + '</div>';
+                html += '</td>';
+                html += '<td class="p-3">';
+                html += '  <div class="font-medium text-slate-800 text-xs leading-relaxed max-w-[260px] line-clamp-2" title="' + escapeHtml(userDesc) + '">' + escapeHtml(userDesc) + '</div>';
+                html += '  <div class="text-[10px] text-slate-400 font-mono">Req: ' + escapeHtml(item.chg_req_no || '') + (item.werks ? ' &bull; Plant ' + escapeHtml(item.werks) : '') + '</div>';
+                html += '</td>';
+                html += '<td class="p-3 text-center">';
+                html += '  <span class="inline-block px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-800 font-mono font-bold text-xs">' + escapeHtml(matType || '-') + '</span>';
+                html += '</td>';
+                html += '<td class="p-3 text-center">';
+                html += '  <span class="inline-block px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-800 font-mono font-bold text-xs">' + escapeHtml(matGroup || '-') + '</span>';
+                html += '</td>';
+                html += '<td class="p-3 text-center">';
+                html += '  <span class="inline-block px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-800 font-mono font-bold text-xs">' + escapeHtml(inspLoc || '-') + '</span>';
+                html += '</td>';
+                html += '<td class="p-3 whitespace-nowrap">';
+                html += '  <span class="font-bold text-slate-900 text-xs tracking-tight">' + escapeHtml(dateDisplay) + '</span>';
+                html += '</td>';
+                html += '<td class="p-3 text-center">' + statusBadge + '</td>';
+                html += '<td class="p-3 text-center">';
+
+                // Action Button (View Changes)
+                if (currentHistoryTab === 'APPROVED') {
+                    html += '<button type="button" onclick="viewHistoryDetail(\'' + escapeHtml(item.chg_req_no) + '\')" ';
+                    html += 'class="px-3 py-1.5 bg-gradient-to-r from-emerald-600 to-emerald-700 ' +
+                        'hover:from-emerald-700 hover:to-emerald-800 text-white rounded-xl text-[11px] ' +
+                        'font-extrabold shadow-2xs transition inline-flex items-center gap-1.5 cursor-pointer">';
+                    html += '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+                        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" ' +
+                        'd="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>' +
+                        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" ' +
+                        'd="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7' +
+                        '-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>';
+                    html += '<span>View Changes</span>';
+                    html += '</button>';
+                } else {
+                    html += '<button type="button" onclick="viewHistoryDetail(\'' + escapeHtml(item.chg_req_no) + '\')" ';
+                    html += 'class="px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 ' +
+                        'text-slate-700 rounded-xl text-[11px] font-bold shadow-2xs transition ' +
+                        'inline-flex items-center gap-1.5 cursor-pointer">';
+                    html += '<svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+                        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" ' +
+                        'd="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2' +
+                        'a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>';
+                    html += '<span>View Changes</span>';
+                    html += '</button>';
+                }
+                html += '</td>';
+                html += '</tr>';
+            }
+            tbody.innerHTML = html;
+
+            // Render Pagination Controls
+            var pagHtml = '';
+
+            // Previous Button
+            var isPrevDisabled = (historyCurrentPage <= 1);
+            var prevClass = isPrevDisabled
+                ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed opacity-60'
+                : 'bg-white text-slate-700 hover:bg-slate-50 hover:text-emerald-700 border-slate-300 cursor-pointer shadow-2xs';
+            var prevClick = isPrevDisabled ? '' : 'onclick="goToHistoryPage(' + (historyCurrentPage - 1) + ')"';
+
+            pagHtml += '<button type="button" ' + prevClick + ' ' + (isPrevDisabled ? 'disabled' : '') +
+                ' class="px-2.5 py-1 rounded-lg border text-[11px] font-bold transition inline-flex items-center gap-1 ' + prevClass + '">';
+            pagHtml += '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>';
+            pagHtml += '<span>Prev</span>';
+            pagHtml += '</button>';
+
+            // Page Numbers & Ellipsis
+            var pageRange = getHistoryPaginationRange(historyCurrentPage, totalPages);
+            for (var r = 0; r < pageRange.length; r++) {
+                var pageNum = pageRange[r];
+                if (pageNum === '...') {
+                    pagHtml += '<span class="px-1.5 py-1 text-slate-400 font-extrabold text-[11px] select-none">...</span>';
+                } else {
+                    var isCurrent = (pageNum === historyCurrentPage);
+                    var btnClass = isCurrent
+                        ? 'bg-emerald-600 text-white border-emerald-600 font-black shadow-xs'
+                        : 'bg-white text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 border-slate-300 font-bold shadow-2xs cursor-pointer';
+                    pagHtml += '<button type="button" onclick="goToHistoryPage(' + pageNum + ')"' +
+                        ' class="min-w-[28px] h-7 px-2 rounded-lg text-[11px] border transition ' + btnClass + '">' +
+                        pageNum + '</button>';
+                }
+            }
+
+            // Next Button
+            var isNextDisabled = (historyCurrentPage >= totalPages);
+            var nextClass = isNextDisabled
+                ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed opacity-60'
+                : 'bg-white text-slate-700 hover:bg-slate-50 hover:text-emerald-700 border-slate-300 cursor-pointer shadow-2xs';
+            var nextClick = isNextDisabled ? '' : 'onclick="goToHistoryPage(' + (historyCurrentPage + 1) + ')"';
+
+            pagHtml += '<button type="button" ' + nextClick + ' ' + (isNextDisabled ? 'disabled' : '') +
+                ' class="px-2.5 py-1 rounded-lg border text-[11px] font-bold transition inline-flex items-center gap-1 ' + nextClass + '">';
+            pagHtml += '<span>Next</span>';
+            pagHtml += '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>';
+            pagHtml += '</button>';
+
+            if (controls) controls.innerHTML = pagHtml;
+        }
+
+        // View Past Change Request Detail & Changes Summary
+        function viewHistoryDetail(reqId) {
+            showLoading('Loading Request Detail & Changes...');
+            var formData = new FormData();
+            formData.append('action', 'GET_CHANGE_DETAIL');
+            formData.append('CHG_REQ_NO', reqId);
+
+            fetch('?OnInputProcessing=GET_CHANGE_DETAIL&action=GET_CHANGE_DETAIL', {
+                method: 'POST',
+                body: formData
+            })
+            .then(function(res) {
+                var contentType = res.headers.get('content-type');
+                if (!res.ok || (contentType && contentType.indexOf('application/json') === -1)) {
+                    return res.text().then(function(text) {
+                        console.error('Non-JSON Server Response:', text);
+                        throw new Error('Server error (' + res.status + ')');
+                    });
+                }
+                return res.json();
+            })
+            .then(function(data) {
+                hideLoading();
+                var hdr = data.header || {};
+                var changes = data.changes || [];
+                var stUpper = (hdr.status || '').toUpperCase();
+
+                // 1. Header Information
+                document.getElementById('modalDetailReqId').innerText = hdr.chg_req_no || reqId;
+                var cleanMat = (hdr.matnr || '').replace(/^0+/, '');
+                var matDesc = hdr.new_maktx || hdr.old_maktx || '';
+                document.getElementById('modalDetailSubDesc').innerText = 'Material: ' + cleanMat + (matDesc ? ' (' + matDesc + ')' : '');
+
+                // Status Badges
+                var statusBadgeHtml = '';
+                var approvalBadgeHtml = '';
+                var iconBg = document.getElementById('modalHeaderIconBg');
+
+                if (stUpper === 'APPROVED') {
+                    statusBadgeHtml = '<span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 ' +
+                        'text-[10px] font-extrabold border border-emerald-200 inline-flex items-center gap-1">' +
+                        '<span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>APPROVED</span>';
+                    approvalBadgeHtml = '<span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-extrabold border border-emerald-200">APPROVED</span>';
+                    if (iconBg) iconBg.className = 'w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm font-black shadow-xs';
+                } else if (stUpper === 'CHECKED') {
+                    statusBadgeHtml = '<span class="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 ' +
+                        'text-[10px] font-extrabold border border-blue-200 inline-flex items-center gap-1">' +
+                        '<span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span>CHECKED</span>';
+                    approvalBadgeHtml = '<span class="px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 text-[10px] font-extrabold border border-blue-200">ON QUEUE</span>';
+                    if (iconBg) iconBg.className = 'w-9 h-9 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center text-sm font-black shadow-xs';
+                } else if (stUpper === 'REJECTED' || stUpper === 'FAILED') {
+                    statusBadgeHtml = '<span class="px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 ' +
+                        'text-[10px] font-extrabold border border-rose-200 inline-flex items-center gap-1">' +
+                        '<span class="w-1.5 h-1.5 rounded-full bg-rose-600"></span>REJECTED</span>';
+                    approvalBadgeHtml = '<span class="px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 text-[10px] font-extrabold border border-rose-200">REJECTED</span>';
+                    if (iconBg) iconBg.className = 'w-9 h-9 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center text-sm font-black shadow-xs';
+                } else {
+                    statusBadgeHtml = '<span class="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 ' +
+                        'text-[10px] font-extrabold border border-amber-200 inline-flex items-center gap-1">' +
+                        '<span class="w-1.5 h-1.5 rounded-full bg-amber-600"></span>SUBMITTED</span>';
+                    approvalBadgeHtml = '<span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-extrabold border border-slate-200">PENDING</span>';
+                    if (iconBg) iconBg.className = 'w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-sm font-black shadow-xs';
+                }
+
+                document.getElementById('modalDetailStatusBadge').innerHTML = statusBadgeHtml;
+                document.getElementById('modalApprovalStatusBadge').innerHTML = approvalBadgeHtml;
+
+                document.getElementById('modalDetailRequestor').innerText = hdr.requestor || '-';
+                document.getElementById('modalDetailReqDate').innerText = formatDisplayDate(hdr.req_date, hdr.req_time);
+                document.getElementById('modalDetailWerks').innerText = hdr.werks || '-';
+                document.getElementById('modalDetailReason').innerText = hdr.change_reason || '-';
+
+                // 2. Approval Information
+                document.getElementById('modalDetailApprover').innerText = hdr.approver || (stUpper === 'APPROVED' ? 'Approval User' : '-');
+                document.getElementById('modalDetailAppDate').innerText = (hdr.app_date) ? formatDisplayDate(hdr.app_date, hdr.app_time) : '-';
+
+                var remarkContainer = document.getElementById('modalApprovalRemarkContainer');
+                var remarkElem = document.getElementById('modalApprovalRemark');
+                var remarkText = hdr.rej_reason || hdr.remarks || '';
+                if (remarkText) {
+                    remarkElem.innerText = remarkText;
+                    remarkContainer.classList.remove('hidden');
+                } else {
+                    remarkContainer.classList.add('hidden');
+                }
+
+                // 3. Change Summary (Before Change vs After Change)
+                var diffTbody = document.getElementById('modalDetailDiffTbody');
+                var countBadge = document.getElementById('modalChangesCountBadge');
+                var diffHtml = '';
+                var changeCount = 0;
+
+                for (var j = 0; j < changes.length; j++) {
+                    var ch = changes[j];
+                    // Only show rows that actually changed if possible
+                    var oldV = (ch.old_value !== null && ch.old_value !== undefined) ? String(ch.old_value).trim() : '';
+                    var newV = (ch.new_value !== null && ch.new_value !== undefined) ? String(ch.new_value).trim() : '';
+
+                    changeCount++;
+                    diffHtml += '<tr class="hover:bg-emerald-50/20 transition">';
+                    diffHtml += '<td class="p-3 text-center font-bold text-slate-400">' + changeCount + '</td>';
+                    diffHtml += '<td class="p-3">';
+                    diffHtml += '  <div class="font-bold text-slate-900 text-xs">' + escapeHtml(ch.field_label || ch.field_name) + '</div>';
+                    diffHtml += '  <div class="text-[10px] font-mono text-slate-400">' + escapeHtml(ch.field_name || '') + '</div>';
+                    diffHtml += '</td>';
+                    diffHtml += '<td class="p-3">';
+                    diffHtml += '  <span class="inline-block px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200 text-slate-700 font-mono text-[11px]">' + (oldV ? escapeHtml(oldV) : '<em class="text-slate-400 font-sans">(empty)</em>') + '</span>';
+                    diffHtml += '</td>';
+                    diffHtml += '<td class="p-3">';
+                    diffHtml += '  <span class="inline-block px-2.5 py-1 rounded-lg bg-emerald-100 border border-emerald-300 text-emerald-950 font-mono font-bold text-[11px] shadow-2xs">' + (newV ? escapeHtml(newV) : '-') + '</span>';
+                    diffHtml += '</td>';
+                    diffHtml += '</tr>';
+                }
+
+                countBadge.innerText = changeCount + ' Field' + (changeCount !== 1 ? 's' : '') + ' Modified';
+                diffTbody.innerHTML = diffHtml || '<tr><td colspan="4" class="p-6 text-center text-slate-400 font-medium">Tidak ada data detail perubahan yang tercatat.</td></tr>';
+
+                document.getElementById('detailChangeModal').classList.remove('hidden');
+            })
+            .catch(function(err) {
+                hideLoading();
+                console.error('View History Detail Error:', err);
+                showToast('Gagal memproses detail perubahan: ' + (err.message || 'Error'), 'error');
+            });
+        }
+
+        function closeDetailChangeModal() {
+            document.getElementById('detailChangeModal').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>

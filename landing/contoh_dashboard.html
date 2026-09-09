@@ -1,0 +1,1948 @@
+Konten dibuat oleh pengguna dan belum diverifikasi.
+
+
+3
+Pelajari tentang artifacts
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wood Furniture CNC — Maintenance Suite</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #12151b;
+            --bg-2: #171b23;
+            --panel: #1c212b;
+            --panel-2: #232936;
+            --line: #2c3444;
+            --line-soft: #242b38;
+            --ink: #eef2f8;
+            --ink-2: #aab4c5;
+            --ink-3: #6b7688;
+            --amber: #f2b21c;
+            --amber-ink: #1a1400;
+            --green: #37c46b;
+            --run-dim: #1c6d3e;
+            --red: #f0403f;
+            --blue: #3f8cff;
+            --g-breakdown: #f0403f;
+            --g-setup: #f2b21c;
+            --g-material: #3f8cff;
+            --g-quality: #a56cf0;
+            --g-operator: #29c3c9;
+            --g-utility: #ff7a1a;
+            --g-planned: #37c46b;
+            --g-other: #7a879b;
+            --mono: 'IBM Plex Mono', ui-monospace, monospace;
+            --sans: 'Archivo', system-ui, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        html,
+        body {
+            margin: 0
+        }
+
+        body {
+            font-family: var(--sans);
+            background: var(--bg);
+            color: var(--ink);
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh
+        }
+
+        .wrap {
+            max-width: 1240px;
+            margin: 0 auto;
+            padding: 0 18px 72px
+        }
+
+        header.top {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            background: linear-gradient(180deg, #12151b 60%, rgba(18, 21, 27, .94));
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid var(--line)
+        }
+
+        .hazard {
+            height: 6px;
+            background: repeating-linear-gradient(-45deg, var(--amber) 0 16px, #12151b 16px 32px);
+            opacity: .9
+        }
+
+        .top-inner {
+            max-width: 1240px;
+            margin: 0 auto;
+            padding: 12px 18px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-right: auto
+        }
+
+        .logo {
+            width: 38px;
+            height: 38px;
+            flex: none;
+            border-radius: 9px;
+            background: var(--amber);
+            color: var(--amber-ink);
+            display: grid;
+            place-items: center;
+            font-weight: 900;
+            font-size: 19px
+        }
+
+        .brand h1 {
+            font-size: 17px;
+            font-weight: 800;
+            letter-spacing: -.01em;
+            margin: 0;
+            line-height: 1.1
+        }
+
+        .brand p {
+            margin: 2px 0 0;
+            font-size: 11.5px;
+            color: var(--ink-3);
+            font-family: var(--mono)
+        }
+
+        .clock {
+            text-align: right;
+            font-family: var(--mono)
+        }
+
+        .clock .t {
+            font-size: 18px;
+            font-weight: 600;
+            line-height: 1
+        }
+
+        .clock .d {
+            font-size: 11px;
+            color: var(--ink-3);
+            margin-top: 2px
+        }
+
+        nav.tabs {
+            max-width: 1240px;
+            margin: 0 auto;
+            padding: 0 12px 10px;
+            display: flex;
+            gap: 3px;
+            overflow-x: auto
+        }
+
+        nav.tabs button {
+            font-family: var(--sans);
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--ink-2);
+            background: none;
+            border: none;
+            padding: 9px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            white-space: nowrap
+        }
+
+        nav.tabs button[aria-pressed="true"] {
+            background: var(--panel-2);
+            color: var(--ink)
+        }
+
+        .kpis {
+            display: grid;
+            gap: 12px;
+            margin: 22px 0 18px;
+            grid-template-columns: repeat(4, 1fr)
+        }
+
+        .kpi {
+            background: var(--panel);
+            border: 1px solid var(--line-soft);
+            border-radius: 13px;
+            padding: 15px 16px;
+            position: relative;
+            overflow: hidden
+        }
+
+        .kpi .lab {
+            font-size: 11px;
+            letter-spacing: .05em;
+            color: var(--ink-3);
+            text-transform: uppercase;
+            font-weight: 600
+        }
+
+        .kpi .val {
+            font-size: 30px;
+            font-weight: 800;
+            line-height: 1;
+            margin-top: 11px;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -.02em
+        }
+
+        .kpi .val.mono {
+            font-family: var(--mono);
+            font-size: 26px
+        }
+
+        .kpi .sub {
+            font-size: 12px;
+            color: var(--ink-3);
+            margin-top: 6px;
+            font-family: var(--mono)
+        }
+
+        .kpi .edge {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px
+        }
+
+        h2.sec {
+            font-size: 12.5px;
+            font-weight: 700;
+            letter-spacing: .05em;
+            text-transform: uppercase;
+            color: var(--amber);
+            margin: 30px 0 4px
+        }
+
+        .sec-desc {
+            font-size: 13px;
+            color: var(--ink-2);
+            margin: 0 0 16px;
+            line-height: 1.55;
+            max-width: 820px
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 16px
+        }
+
+        .seg {
+            display: flex;
+            background: var(--panel);
+            border: 1px solid var(--line-soft);
+            border-radius: 10px;
+            padding: 3px
+        }
+
+        .seg button {
+            font-family: var(--sans);
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--ink-2);
+            background: none;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 7px;
+            cursor: pointer
+        }
+
+        .seg button .cnt {
+            font-family: var(--mono);
+            font-size: 12px;
+            opacity: .85;
+            margin-left: 5px
+        }
+
+        .seg button[aria-pressed="true"] {
+            background: var(--panel-2);
+            color: var(--ink)
+        }
+
+        .seg button.f-run[aria-pressed="true"] {
+            color: var(--green)
+        }
+
+        .seg button.f-stop[aria-pressed="true"] {
+            color: var(--red)
+        }
+
+        .search {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            min-width: 170px;
+            max-width: 300px;
+            background: var(--panel);
+            border: 1px solid var(--line-soft);
+            border-radius: 10px;
+            padding: 0 12px
+        }
+
+        .search input {
+            flex: 1;
+            background: none;
+            border: none;
+            outline: none;
+            color: var(--ink);
+            font-family: var(--mono);
+            font-size: 13px;
+            padding: 10px 0
+        }
+
+        .search input::placeholder {
+            color: var(--ink-3)
+        }
+
+        .search svg {
+            width: 16px;
+            height: 16px;
+            stroke: var(--ink-3);
+            flex: none
+        }
+
+        .ghost {
+            font-family: var(--sans);
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--ink-3);
+            background: none;
+            border: 1px solid var(--line);
+            border-radius: 9px;
+            padding: 9px 13px;
+            cursor: pointer
+        }
+
+        .ghost:hover {
+            color: var(--ink-2);
+            border-color: var(--ink-3)
+        }
+
+        .grid {
+            display: grid;
+            gap: 11px;
+            grid-template-columns: repeat(auto-fill, minmax(212px, 1fr))
+        }
+
+        .card {
+            background: var(--panel);
+            border: 1px solid var(--line-soft);
+            border-radius: 12px;
+            padding: 0;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            text-align: left;
+            font-family: var(--sans);
+            color: inherit;
+            width: 100%;
+            transition: border-color .12s, transform .08s
+        }
+
+        .card:hover {
+            border-color: var(--ink-3)
+        }
+
+        .card:active {
+            transform: scale(.99)
+        }
+
+        .card:focus-visible {
+            outline: 2px solid var(--amber);
+            outline-offset: 2px
+        }
+
+        .card .bar {
+            height: 5px
+        }
+
+        .card.run .bar {
+            background: var(--green)
+        }
+
+        .card .body {
+            padding: 12px 13px 13px
+        }
+
+        .card .row1 {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px
+        }
+
+        .card .wc {
+            font-family: var(--mono);
+            font-size: 11.5px;
+            color: var(--ink-3);
+            font-weight: 500
+        }
+
+        .dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            flex: none
+        }
+
+        .card.run .dot {
+            background: var(--green)
+        }
+
+        .card.stop .dot {
+            animation: pulse 1.15s infinite
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(240, 64, 63, .5)
+            }
+
+            70% {
+                box-shadow: 0 0 0 7px rgba(240, 64, 63, 0)
+            }
+        }
+
+        .card .name {
+            font-size: 14px;
+            font-weight: 700;
+            margin: 8px 0 3px;
+            letter-spacing: -.01em;
+            line-height: 1.2
+        }
+
+        .card .floc {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--ink-3)
+        }
+
+        .card .owner {
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--ink-3);
+            margin-top: 5px
+        }
+
+        .card .foot {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid var(--line-soft)
+        }
+
+        .card.run .foot .st {
+            font-size: 12.5px;
+            color: var(--green);
+            font-weight: 600
+        }
+
+        .card.stop .gtag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            font-family: var(--mono);
+            color: var(--ink-2)
+        }
+
+        .card.stop .rsn {
+            font-size: 12.5px;
+            font-weight: 600;
+            margin-top: 4px;
+            line-height: 1.25
+        }
+
+        .card.stop .op {
+            font-family: var(--mono);
+            font-size: 10.5px;
+            color: var(--ink-3);
+            margin-top: 3px
+        }
+
+        .card.stop .dur {
+            font-family: var(--mono);
+            font-size: 15px;
+            font-weight: 600;
+            margin-top: 8px;
+            font-variant-numeric: tabular-nums
+        }
+
+        .card.stop .dur span {
+            font-size: 10px;
+            color: var(--ink-3);
+            font-weight: 400;
+            margin-right: 6px
+        }
+
+        .empty {
+            grid-column: 1/-1;
+            text-align: center;
+            color: var(--ink-3);
+            padding: 56px 20px;
+            font-family: var(--mono);
+            font-size: 13px
+        }
+
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--line-soft);
+            border-radius: 13px;
+            padding: 18px;
+            margin-bottom: 16px
+        }
+
+        .panel h3 {
+            font-size: 14px;
+            font-weight: 700;
+            margin: 0 0 3px
+        }
+
+        .panel .desc {
+            font-size: 12px;
+            color: var(--ink-3);
+            margin: 0 0 16px;
+            font-family: var(--mono)
+        }
+
+        .barrow {
+            display: grid;
+            grid-template-columns: 160px 1fr 96px;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px
+        }
+
+        .barrow .bl {
+            font-size: 12.5px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis
+        }
+
+        .barrow .sw {
+            width: 10px;
+            height: 10px;
+            border-radius: 3px;
+            flex: none
+        }
+
+        .track {
+            background: var(--bg);
+            border-radius: 6px;
+            height: 22px;
+            overflow: hidden
+        }
+
+        .fill {
+            height: 100%;
+            border-radius: 6px;
+            transition: width .4s
+        }
+
+        .barrow .num {
+            font-family: var(--mono);
+            font-size: 12.5px;
+            text-align: right;
+            color: var(--ink-2)
+        }
+
+        .barrow .num b {
+            color: var(--ink)
+        }
+
+        .scroll {
+            overflow-x: auto;
+            border: 1px solid var(--line-soft);
+            border-radius: 13px
+        }
+
+        table.tb {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            min-width: 720px
+        }
+
+        table.tb th {
+            text-align: right;
+            background: var(--panel-2);
+            color: var(--ink-2);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            font-weight: 600;
+            padding: 12px 14px;
+            cursor: pointer;
+            user-select: none;
+            white-space: nowrap
+        }
+
+        table.tb th:first-child,
+        table.tb td:first-child {
+            text-align: left
+        }
+
+        table.tb th[data-active="1"] {
+            color: var(--amber)
+        }
+
+        table.tb td {
+            padding: 11px 14px;
+            border-top: 1px solid var(--line-soft);
+            text-align: right
+        }
+
+        table.tb .mono {
+            font-family: var(--mono);
+            font-variant-numeric: tabular-nums
+        }
+
+        table.tb .nm {
+            font-weight: 600
+        }
+
+        .table .cd,
+        table.tb .cd {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--ink-3)
+        }
+
+        .grade {
+            display: inline-block;
+            font-family: var(--mono);
+            font-weight: 700;
+            font-size: 12px;
+            width: 24px;
+            height: 24px;
+            line-height: 24px;
+            text-align: center;
+            border-radius: 6px
+        }
+
+        .gpill {
+            display: inline-block;
+            font-size: 10.5px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 6px;
+            white-space: nowrap
+        }
+
+        .lead2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            margin-bottom: 8px
+        }
+
+        .lbcard {
+            background: var(--panel);
+            border: 1px solid var(--line-soft);
+            border-radius: 13px;
+            padding: 16px
+        }
+
+        .lbcard.best {
+            border-top: 3px solid var(--green)
+        }
+
+        .lbcard.worst {
+            border-top: 3px solid var(--red)
+        }
+
+        .lbcard h3 {
+            font-size: 14px;
+            margin: 0 0 12px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px
+        }
+
+        .lbcard h3 .d {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%
+        }
+
+        .lb {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 9px 0;
+            border-top: 1px solid var(--line-soft)
+        }
+
+        .lb:first-of-type {
+            border-top: none
+        }
+
+        .lb .rk {
+            font-family: var(--mono);
+            font-size: 13px;
+            color: var(--ink-3);
+            width: 20px;
+            font-weight: 600
+        }
+
+        .lb .info {
+            flex: 1;
+            min-width: 0
+        }
+
+        .lb .nm {
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis
+        }
+
+        .lb .cd {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--ink-3)
+        }
+
+        .lb .stat {
+            font-family: var(--mono);
+            font-size: 13px;
+            font-weight: 600;
+            text-align: right;
+            white-space: nowrap
+        }
+
+        .lb .stat small {
+            display: block;
+            color: var(--ink-3);
+            font-size: 10.5px;
+            font-weight: 400;
+            margin-top: 2px
+        }
+
+        .groups {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 11px;
+            margin-bottom: 16px
+        }
+
+        .gcard {
+            background: var(--panel);
+            border: 1px solid var(--line-soft);
+            border-radius: 12px;
+            padding: 14px;
+            border-left: 3px solid
+        }
+
+        .gcard .gn {
+            font-size: 12px;
+            font-weight: 700
+        }
+
+        .gcard .gv {
+            font-size: 26px;
+            font-weight: 800;
+            margin-top: 8px
+        }
+
+        .gcard .gd {
+            font-size: 10.5px;
+            color: var(--ink-3);
+            margin-top: 4px;
+            line-height: 1.4
+        }
+
+        .quad {
+            background: var(--panel);
+            border: 1px solid var(--line-soft);
+            border-radius: 13px;
+            padding: 18px;
+            margin-bottom: 16px
+        }
+
+        .quad svg {
+            width: 100%;
+            height: auto;
+            display: block
+        }
+
+        .qpt:hover {
+            stroke: var(--ink);
+            stroke-width: 2
+        }
+
+        /* tech */
+        .ownbar {
+            background: var(--bg-2);
+            border: 1px dashed var(--line);
+            border-radius: 11px;
+            padding: 13px 15px;
+            font-size: 12.5px;
+            color: var(--ink-2);
+            line-height: 1.5;
+            margin-bottom: 16px
+        }
+
+        .ownbar b {
+            color: var(--ink)
+        }
+
+        .picker {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 16px
+        }
+
+        .picker button {
+            font-family: var(--sans);
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--ink-2);
+            background: var(--bg-2);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 9px 13px;
+            cursor: pointer;
+            text-align: left;
+            line-height: 1.3
+        }
+
+        .picker button .pw {
+            display: block;
+            font-family: var(--mono);
+            font-size: 10.5px;
+            color: var(--ink-3);
+            font-weight: 400;
+            margin-top: 2px
+        }
+
+        .picker button[aria-pressed="true"] {
+            border-color: var(--amber);
+            color: var(--ink);
+            background: var(--panel-2)
+        }
+
+        .scwrap {
+            background: var(--panel);
+            border: 1px solid var(--line-soft);
+            border-radius: 14px;
+            padding: 20px
+        }
+
+        .schead {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+            padding-bottom: 18px;
+            border-bottom: 1px solid var(--line-soft)
+        }
+
+        .schead .who {
+            font-size: 18px;
+            font-weight: 800
+        }
+
+        .schead .whwc {
+            font-family: var(--mono);
+            font-size: 12px;
+            color: var(--ink-3);
+            margin-top: 3px
+        }
+
+        .score {
+            text-align: right
+        }
+
+        .score .sv {
+            font-size: 38px;
+            font-weight: 800;
+            line-height: 1;
+            font-variant-numeric: tabular-nums
+        }
+
+        .score .rag {
+            font-family: var(--mono);
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 9px;
+            border-radius: 6px;
+            letter-spacing: .05em;
+            display: inline-block;
+            margin-top: 6px
+        }
+
+        .krow {
+            display: grid;
+            grid-template-columns: 180px 1fr 116px;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 11px
+        }
+
+        .krow .kn {
+            font-size: 13px;
+            font-weight: 600
+        }
+
+        .krow .kn small {
+            display: block;
+            color: var(--ink-3);
+            font-family: var(--mono);
+            font-size: 10.5px;
+            font-weight: 400;
+            margin-top: 2px
+        }
+
+        .krow .kn .liv {
+            color: var(--green)
+        }
+
+        .ktrack {
+            background: var(--bg);
+            border-radius: 6px;
+            height: 20px;
+            overflow: hidden
+        }
+
+        .kfill {
+            height: 100%;
+            border-radius: 6px;
+            transition: width .5s
+        }
+
+        .kval {
+            font-family: var(--mono);
+            font-size: 12.5px;
+            text-align: right
+        }
+
+        .kval b {
+            font-size: 14px
+        }
+
+        .kval small {
+            display: block;
+            color: var(--ink-3);
+            font-size: 10.5px;
+            margin-top: 1px
+        }
+
+        .cfg-head,
+        .cfg-row {
+            display: grid;
+            grid-template-columns: 1fr 88px 88px 88px;
+            gap: 10px;
+            align-items: center
+        }
+
+        .cfg-head {
+            font-size: 10.5px;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            color: var(--ink-3);
+            font-weight: 600;
+            padding: 0 2px 8px;
+            text-align: right
+        }
+
+        .cfg-head span:first-child {
+            text-align: left
+        }
+
+        .cfg-row {
+            padding: 8px 2px;
+            border-top: 1px solid var(--line-soft)
+        }
+
+        .cfg-nm {
+            font-size: 13px;
+            font-weight: 600
+        }
+
+        .cfg-nm em {
+            display: block;
+            font-style: normal;
+            font-family: var(--mono);
+            font-size: 10.5px;
+            color: var(--ink-3);
+            font-weight: 400;
+            margin-top: 2px
+        }
+
+        .cfg-in {
+            width: 100%;
+            font-family: var(--mono);
+            font-size: 13px;
+            color: var(--ink);
+            background: var(--bg);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 8px 9px;
+            text-align: right
+        }
+
+        .cfg-in:focus {
+            outline: none;
+            border-color: var(--amber)
+        }
+
+        .cfg-foot {
+            display: flex;
+            justify-content: space-between;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-top: 16px;
+            padding-top: 14px;
+            border-top: 1px solid var(--line-soft);
+            font-size: 12.5px;
+            color: var(--ink-2)
+        }
+
+        @media(max-width:560px) {
+
+            .cfg-head,
+            .cfg-row {
+                grid-template-columns: 1fr 60px 60px 60px;
+                gap: 6px
+            }
+        }
+
+        .logrow {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 12px;
+            align-items: center;
+            padding: 13px 4px;
+            border-top: 1px solid var(--line-soft)
+        }
+
+        .logrow:first-child {
+            border-top: none
+        }
+
+        .logrow .pill {
+            width: 8px;
+            height: 36px;
+            border-radius: 4px
+        }
+
+        .logrow .l-wc {
+            font-family: var(--mono);
+            font-size: 11.5px;
+            color: var(--ink-3)
+        }
+
+        .logrow .l-rsn {
+            font-size: 13.5px;
+            font-weight: 600;
+            margin-top: 2px
+        }
+
+        .logrow .l-meta {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--ink-3);
+            margin-top: 3px
+        }
+
+        .logrow .l-dur {
+            font-family: var(--mono);
+            font-size: 15px;
+            font-weight: 600;
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap
+        }
+
+        .logrow .l-open {
+            font-size: 10px;
+            color: var(--red);
+            font-weight: 700;
+            text-align: right;
+            margin-top: 2px;
+            letter-spacing: .04em
+        }
+
+        .backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(6, 8, 12, .66);
+            backdrop-filter: blur(3px);
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
+            z-index: 40
+        }
+
+        .backdrop.open {
+            display: flex
+        }
+
+        @media(min-width:640px) {
+            .backdrop {
+                align-items: center;
+                padding: 20px
+            }
+        }
+
+        .modal {
+            background: var(--bg-2);
+            border: 1px solid var(--line);
+            width: 100%;
+            max-width: 440px;
+            border-radius: 16px 16px 0 0;
+            padding: 20px;
+            max-height: 92vh;
+            overflow-y: auto
+        }
+
+        @media(min-width:640px) {
+            .modal {
+                border-radius: 16px
+            }
+        }
+
+        .mhead {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px
+        }
+
+        .badge {
+            font-family: var(--mono);
+            font-size: 11px;
+            font-weight: 600;
+            padding: 5px 10px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px
+        }
+
+        .badge.run {
+            background: var(--run-dim);
+            color: #a8f0c2
+        }
+
+        .badge.stop {
+            background: #7a1e20;
+            color: #ffc0bf
+        }
+
+        .modal h2 {
+            font-size: 20px;
+            font-weight: 800;
+            margin: 13px 0 3px
+        }
+
+        .modal .sub {
+            font-family: var(--mono);
+            font-size: 12px;
+            color: var(--ink-3);
+            margin: 0
+        }
+
+        .x {
+            background: none;
+            border: 1px solid var(--line);
+            color: var(--ink-2);
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            flex: none
+        }
+
+        .specs {
+            margin: 16px 0;
+            border: 1px solid var(--line-soft);
+            border-radius: 11px;
+            overflow: hidden
+        }
+
+        .specs .r {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 13px;
+            border-bottom: 1px solid var(--line-soft);
+            font-size: 13px;
+            gap: 12px
+        }
+
+        .specs .r:last-child {
+            border-bottom: none
+        }
+
+        .specs .k {
+            color: var(--ink-3)
+        }
+
+        .specs .v {
+            font-family: var(--mono);
+            color: var(--ink);
+            text-align: right;
+            font-weight: 500
+        }
+
+        label.fld {
+            display: block;
+            font-size: 11px;
+            color: var(--ink-3);
+            font-weight: 600;
+            margin: 14px 0 7px;
+            letter-spacing: .04em;
+            text-transform: uppercase
+        }
+
+        label.fld:first-child {
+            margin-top: 4px
+        }
+
+        select,
+        input.txt {
+            width: 100%;
+            font-family: var(--sans);
+            font-size: 14px;
+            color: var(--ink);
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 12px 13px
+        }
+
+        input.txt {
+            font-family: var(--mono)
+        }
+
+        .btn {
+            width: 100%;
+            font-family: var(--sans);
+            font-size: 15px;
+            font-weight: 700;
+            border: none;
+            border-radius: 11px;
+            padding: 14px;
+            cursor: pointer;
+            margin-top: 18px
+        }
+
+        .btn.report {
+            background: var(--red);
+            color: #fff
+        }
+
+        .btn.resume {
+            background: var(--green);
+            color: #08210f
+        }
+
+        .btn:active {
+            transform: scale(.99)
+        }
+
+        .hint {
+            font-size: 11.5px;
+            color: var(--ink-3);
+            text-align: center;
+            margin: 11px 0 0;
+            line-height: 1.4
+        }
+
+        footer.note {
+            margin-top: 30px;
+            padding-top: 18px;
+            border-top: 1px solid var(--line-soft);
+            font-size: 12px;
+            color: var(--ink-3);
+            line-height: 1.65
+        }
+
+        footer.note b {
+            color: var(--ink-2);
+            font-weight: 600
+        }
+
+        footer.note code {
+            font-family: var(--mono);
+            color: var(--amber);
+            font-size: 11.5px
+        }
+
+        @media(max-width:860px) {
+            .kpis {
+                grid-template-columns: 1fr 1fr
+            }
+
+            .lead2 {
+                grid-template-columns: 1fr
+            }
+
+            .groups {
+                grid-template-columns: 1fr 1fr
+            }
+
+            .barrow {
+                grid-template-columns: 120px 1fr 82px;
+                gap: 8px
+            }
+
+            .krow {
+                grid-template-columns: 130px 1fr 100px;
+                gap: 10px
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="top">
+        <div class="hazard"></div>
+        <div class="top-inner">
+            <div class="brand">
+                <div class="logo">▊</div>
+                <div>
+                    <h1>Wood Furniture CNC — Maintenance Suite</h1>
+                    <p>Section Machining · 48 WC · 6 Teknisi · PM 1809</p>
+                </div>
+            </div>
+            <div class="clock">
+                <div class="t" id="clk">--:--:--</div>
+                <div class="d" id="dte">—</div>
+            </div>
+        </div>
+        <nav class="tabs" id="tabs">
+            <button data-v="live" aria-pressed="true">Papan Live</button>
+            <button data-v="dt" aria-pressed="false">Downtime per WC</button>
+            <button data-v="perf" aria-pressed="false">Performa & Ranking</button>
+            <button data-v="tech" aria-pressed="false">Teknisi & KPI</button>
+            <button data-v="log" aria-pressed="false">Log</button>
+        </nav>
+    </header>
+
+    <div class="wrap">
+
+        <!-- LIVE -->
+        <section id="view-live">
+            <div class="kpis">
+                <div class="kpi">
+                    <div class="edge" style="background:var(--green)"></div>
+                    <div class="lab">Running</div>
+                    <div class="val" id="k-run" style="color:var(--green)">0</div>
+                    <div class="sub">WC jalan</div>
+                </div>
+                <div class="kpi">
+                    <div class="edge" style="background:var(--red)"></div>
+                    <div class="lab">Stop / down</div>
+                    <div class="val" id="k-stop" style="color:var(--red)">0</div>
+                    <div class="sub" id="k-stop-sub">berhenti</div>
+                </div>
+                <div class="kpi">
+                    <div class="edge" style="background:var(--amber)"></div>
+                    <div class="lab">Downtime shift</div>
+                    <div class="val mono" id="k-dt">00:00</div>
+                    <div class="sub">total h:mm</div>
+                </div>
+                <div class="kpi">
+                    <div class="lab">Sebab teratas</div>
+                    <div class="val" id="k-top" style="font-size:19px;margin-top:15px">—</div>
+                    <div class="sub" id="k-top-sub">&nbsp;</div>
+                </div>
+            </div>
+            <div class="controls">
+                <div class="seg" id="filters">
+                    <button data-f="all" aria-pressed="true">All <span class="cnt" id="c-all">0</span></button>
+                    <button class="f-run" data-f="run" aria-pressed="false">Running <span class="cnt"
+                            id="c-run">0</span></button>
+                    <button class="f-stop" data-f="stop" aria-pressed="false">Stop <span class="cnt"
+                            id="c-stop">0</span></button>
+                </div>
+                <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+                        <circle cx="11" cy="11" r="7" />
+                        <path d="m21 21-4-4" />
+                    </svg><input id="q" placeholder="cari WC…" autocomplete="off"></div>
+                <button class="ghost" id="reset">Reset demo</button>
+            </div>
+            <div class="grid" id="grid"></div>
+        </section>
+
+        <!-- DOWNTIME -->
+        <section id="view-dt" style="display:none">
+            <div class="kpis">
+                <div class="kpi">
+                    <div class="edge" style="background:var(--amber)"></div>
+                    <div class="lab">Total downtime</div>
+                    <div class="val mono" id="a-total">00:00</div>
+                    <div class="sub">shift ini</div>
+                </div>
+                <div class="kpi">
+                    <div class="edge" style="background:var(--red)"></div>
+                    <div class="lab">Breakdown share</div>
+                    <div class="val" id="a-bd">0%</div>
+                    <div class="sub">dari total</div>
+                </div>
+                <div class="kpi">
+                    <div class="lab">Jumlah stop</div>
+                    <div class="val" id="a-stops">0</div>
+                    <div class="sub">permintaan operator</div>
+                </div>
+                <div class="kpi">
+                    <div class="lab">WC terdampak</div>
+                    <div class="val" id="a-wc">0</div>
+                    <div class="sub">dari 48 WC</div>
+                </div>
+            </div>
+            <div class="panel">
+                <h3>Downtime per kategori sebab</h3>
+                <p class="desc">Pareto losses — semua kategori</p>
+                <div id="grpbars"></div>
+            </div>
+            <div class="panel">
+                <h3>Downtime per work center</h3>
+                <p class="desc">Klik header untuk urut · hanya WC yang punya downtime</p>
+                <div class="scroll">
+                    <table class="tb">
+                        <thead>
+                            <tr>
+                                <th data-s="total">Work center</th>
+                                <th data-s="total">Total</th>
+                                <th data-s="bd">Breakdown</th>
+                                <th data-s="other">Lain-lain</th>
+                                <th data-s="stops">Stop</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dtbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- PERFORMANCE -->
+        <section id="view-perf" style="display:none">
+            <div class="kpis">
+                <div class="kpi">
+                    <div class="edge" style="background:var(--red)"></div>
+                    <div class="lab">Total breakdown</div>
+                    <div class="val" id="p-bd">0</div>
+                    <div class="sub">periode berjalan</div>
+                </div>
+                <div class="kpi">
+                    <div class="edge" style="background:var(--green)"></div>
+                    <div class="lab">Avg availability</div>
+                    <div class="val" id="p-av">0%</div>
+                    <div class="sub">seluruh WC</div>
+                </div>
+                <div class="kpi">
+                    <div class="edge" style="background:var(--amber)"></div>
+                    <div class="lab">WC kronis</div>
+                    <div class="val" id="p-kr">0</div>
+                    <div class="sub">prioritas</div>
+                </div>
+                <div class="kpi">
+                    <div class="edge" style="background:var(--blue)"></div>
+                    <div class="lab">WC bebas breakdown</div>
+                    <div class="val" id="p-zero">0</div>
+                    <div class="sub">dari 48 WC</div>
+                </div>
+            </div>
+            <h2 class="sec">Terbaik vs terbanyak breakdown</h2>
+            <div class="lead2">
+                <div class="lbcard best">
+                    <h3><span class="d" style="background:var(--green)"></span>Performa terbaik</h3>
+                    <div id="lb-best"></div>
+                </div>
+                <div class="lbcard worst">
+                    <h3><span class="d" style="background:var(--red)"></span>Breakdown terbanyak</h3>
+                    <div id="lb-worst"></div>
+                </div>
+            </div>
+            <h2 class="sec">Group breakdown — perilaku mesin</h2>
+            <div class="groups" id="pgroups"></div>
+            <div class="quad"><svg id="scatter" viewBox="0 0 640 380" role="img"></svg></div>
+            <h2 class="sec">Group breakdown — penyebab (Pareto)</h2>
+            <div class="panel">
+                <div id="pareto"></div>
+            </div>
+            <h2 class="sec">Ranking lengkap 48 WC</h2>
+            <div class="scroll">
+                <table class="tb">
+                    <thead>
+                        <tr>
+                            <th data-s="name">Work center</th>
+                            <th data-s="av">Availability</th>
+                            <th data-s="bd">Breakdown</th>
+                            <th data-s="dt">Downtime</th>
+                            <th data-s="mttr">MTTR</th>
+                            <th data-s="mtbf">MTBF</th>
+                            <th data-s="grade">Grade / group</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rkbody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- TECH -->
+        <section id="view-tech" style="display:none">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px">
+                <div style="font-size:12.5px;color:var(--ink-3);font-family:var(--mono)">Framework KPI teknisi</div>
+                <button class="ghost" id="kpiToggle">⚙ Atur KPI</button>
+            </div>
+            <div id="kpiPanel" class="panel" style="display:none"></div>
+            <div class="ownbar" id="ownbar"></div>
+            <h2 class="sec">Ranking teknisi</h2>
+            <div class="scroll" style="margin-bottom:20px">
+                <table class="tb">
+                    <thead>
+                        <tr>
+                            <th data-s="name">Teknisi</th>
+                            <th data-s="score">Skor</th>
+                            <th data-s="av">Avail. (mtc)</th>
+                            <th data-s="bd">Breakdown WC-nya</th>
+                            <th data-s="down">Downtime BD</th>
+                            <th data-s="mttr">MTTR</th>
+                        </tr>
+                    </thead>
+                    <tbody id="techbody"></tbody>
+                </table>
+            </div>
+            <h2 class="sec">Scorecard teknisi</h2>
+            <p class="sec-desc">Skoring pakai skala <b>floor–target</b>: 100% capaian = target tercapai, 0% = batas
+                terburuk (floor). Metrik <span style="color:var(--green);font-weight:600">● live</span> dihitung dari
+                data breakdown WC yang dia pegang — Availability/MTTR/MTBF diatribusi ke downtime breakdown saja;
+                Response time = jeda lapor → mulai perbaikan. Butuh ≥3 sampel; kalau kurang → N/A dan bobotnya dibagi
+                ulang, bukan dihukum nol.</p>
+            <div class="scwrap">
+                <div class="picker" id="tpicker"></div>
+                <div class="schead">
+                    <div>
+                        <div class="who" id="t-who">—</div>
+                        <div class="whwc" id="t-wc">—</div>
+                    </div>
+                    <div class="score">
+                        <div class="sv" id="t-score">0</div>
+                        <div class="rag" id="t-rag">—</div>
+                    </div>
+                </div>
+                <div id="t-rows"></div>
+                <div id="t-note" class="hint"
+                    style="text-align:left;margin-top:16px;padding-top:14px;border-top:1px solid var(--line-soft)">
+                </div>
+            </div>
+        </section>
+
+        <!-- LOG -->
+        <section id="view-log" style="display:none">
+            <div class="panel">
+                <h3>Log permintaan downtime operator</h3>
+                <p class="desc">Terbaru di atas — sumber tunggal untuk semua analisa</p>
+                <div id="loglist"></div>
+            </div>
+        </section>
+
+        <footer class="note">
+            <b>Satu sumber data.</b> Setiap stop yang dicatat operator di Papan Live langsung mengalir ke Downtime per
+            WC, Performa & Ranking, dan Scorecard Teknisi (agregat WC yang dia pegang). <b>SAP PM 1809:</b> WC =
+            <code>CRHD</code>, breakdown = notifikasi <code>M2/QMEL</code>, konfirmasi <code>AFRU</code>, order
+            <code>AUFK</code>. Data demo tersimpan lokal di browser. Untuk data live & multi-user, hubungkan ke
+            OData/CDS atau naikkan ke papan bersama.
+        </footer>
+    </div>
+
+    <div class="backdrop" id="backdrop">
+        <div class="modal" id="modal" role="dialog" aria-modal="true"></div>
+    </div>
+
+    <script>
+        /* ===== config ===== */
+        const GROUPS = [
+            { id: "breakdown", label: "Breakdown mesin", v: "--g-breakdown", reasons: ["Spindle / motor", "Servo / axis alarm", "Controller CNC error", "Vacuum pump / meja", "Dust extraction", "Pneumatic / angin", "Electrical", "Tool changer (ATC)"] },
+            { id: "setup", label: "Setup & tooling", v: "--g-setup", reasons: ["Ganti tooling / bit", "Setup program", "Ganti jig / fixture", "Kalibrasi / setting"] },
+            { id: "material", label: "Menunggu material", v: "--g-material", reasons: ["Panel / MDF habis", "Menunggu supply", "Material NG"] },
+            { id: "quality", label: "Quality / rework", v: "--g-quality", reasons: ["Defect / reject", "Rework", "Inspeksi kualitas"] },
+            { id: "operator", label: "Operator / tenaga", v: "--g-operator", reasons: ["Operator tidak ada", "Istirahat / break", "Meeting / briefing", "Training"] },
+            { id: "utility", label: "Utilitas", v: "--g-utility", reasons: ["Listrik mati", "Angin (compressed air) drop", "Air / cooling"] },
+            { id: "planned", label: "Terjadwal", v: "--g-planned", reasons: ["PM terjadwal", "Cleaning / 5S", "Trial / sampling"] },
+            { id: "other", label: "Lain-lain (DLL)", v: "--g-other", reasons: ["Tunggu instruksi", "Lain-lain"] }
+        ];
+        const GMAP = {}; GROUPS.forEach(g => GMAP[g.id] = g);
+        const TYPES = ["CNC Nesting Router", "CNC P2P Boring", "CNC Router 3-Axis", "CNC Router 5-Axis", "CNC Beam Saw", "CNC Edge Bander", "CNC Drilling", "CNC Tenoner", "CNC Moulder", "CNC Sanding", "CNC Engraving", "CNC Wood Lathe"];
+        const OPS = ["Andi", "Budi", "Cahyo", "Dedi", "Eko", "Fajar", "Gilang", "Hadi", "Irfan", "Joko"];
+        const TECHS = [
+            { name: "Budi Santoso", pm: 98, resp: 11, data: 97, safety: 100 },
+            { name: "Cahyo Wijaya", pm: 92, resp: 16, data: 93, safety: 100 },
+            { name: "Dedi Kurnia", pm: 85, resp: 26, data: 88, safety: 100 },
+            { name: "Eko Prasetyo", pm: 95, resp: 14, data: 95, safety: 100 },
+            { name: "Fajar Nugroho", pm: 90, resp: 19, data: 91, safety: 100 },
+            { name: "Gilang Ramadhan", pm: 80, resp: 31, data: 82, safety: 95 }
+        ];
+        const DEF_KPIS = [
+            { k: "Availability", key: "av", w: 25, tgt: 97, floor: 92, hi: true, live: true, u: "%" },
+            { k: "PM Compliance", key: "pm", w: 20, tgt: 95, floor: 80, hi: true, live: false, u: "%" },
+            { k: "MTTR", key: "mttr", w: 15, tgt: 45, floor: 90, hi: false, live: true, u: "m", minBd: true },
+            { k: "Response time", key: "resp", w: 10, tgt: 10, floor: 30, hi: false, live: true, u: "m", needResp: true },
+            { k: "MTBF", key: "mtbf", w: 10, tgt: 250, floor: 120, hi: true, live: true, u: "j", minBd: true },
+            { k: "Repeat failure", key: "repeat", w: 10, tgt: 3, floor: 15, hi: false, live: true, u: "%", minBd: true },
+            { k: "Disiplin data", key: "data", w: 5, tgt: 95, floor: 80, hi: true, live: false, u: "%" },
+            { k: "Safety & 5S", key: "safety", w: 5, tgt: 100, floor: 90, hi: true, live: false, u: "%" }
+        ];
+        let KPIS = DEF_KPIS.map(k => ({ ...k }));
+        let MIN_BD = 3; // syarat minimal sampel agar MTTR/MTBF/Repeat/Response diskor
+        const LOADING = 26 * 16 * 60;   // menit per WC dalam periode
+        const FREQ_T = 4, DUR_T = 240; // ambang group perilaku (menit)
+        const KEY = "wood_cnc_suite_v2", now = () => Date.now();
+        function css(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim() }
+        function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296 } }
+        function loadKpiCfg() { try { const r = localStorage.getItem(KEY + "_kpi"); if (r) { const c = JSON.parse(r); (c.kpis || []).forEach(s => { const k = KPIS.find(x => x.key === s.key); if (k) { k.tgt = s.tgt; k.floor = s.floor; k.w = s.w } }); if (c.minBd) MIN_BD = c.minBd } } catch (e) { } }
+        function saveKpiCfg() { try { localStorage.setItem(KEY + "_kpi", JSON.stringify({ kpis: KPIS.map(k => ({ key: k.key, tgt: k.tgt, floor: k.floor, w: k.w })), minBd: MIN_BD })) } catch (e) { } }
+        function resetKpiCfg() { KPIS.forEach((k, i) => { k.tgt = DEF_KPIS[i].tgt; k.floor = DEF_KPIS[i].floor; k.w = DEF_KPIS[i].w }); MIN_BD = 3; saveKpiCfg() }
+
+        /* ===== state ===== */
+        let state = null, view = "live", filter = "all", query = "", dtSort = "total", rkSort = "bd", rkDir = -1, tbSort = "score", tbDir = -1, tsel = 0, lastOp = "";
+        try { lastOp = localStorage.getItem(KEY + "_op") || "" } catch (e) { }
+
+        function seed() {
+            const rnd = mulberry32(20260905), ri = (a, b) => Math.floor(rnd() * (b - a + 1)) + a, pick = a => a[ri(0, a.length - 1)];
+            const m = [];
+            for (let i = 0; i < 48; i++) { const n = String(i + 1).padStart(2, "0"); m.push({ id: i, code: "CNC-" + n, name: TYPES[i % TYPES.length] + " " + n, floc: "2100-CNC-" + n, owner: Math.floor(i / 8), status: "run", cur: null }) }
+            const stops = [], wpool = ["breakdown", "breakdown", "breakdown", "setup", "setup", "material", "material", "quality", "operator", "utility", "planned", "other"];
+            for (let n = 0; n < 78; n++) { const g = GMAP[pick(wpool)]; stops.push({ wc: ri(0, 47), grp: g.id, reason: pick(g.reasons), operator: pick(OPS), start: now() - ri(60, 43200) * 60000, dur: ri(6, 175) * 60000, resp: g.id === "breakdown" ? ri(4, 34) : null }) }
+            const open = []; while (open.length < 6) { const x = ri(0, 47); if (!open.includes(x)) open.push(x) }
+            open.forEach(idx => {
+                const g = GMAP[pick(wpool)]; const since = now() - ri(3, 95) * 60000; let rs = null;
+                if (g.id === "breakdown") { const el = (now() - since) / 60000; if (el > 4 && rnd() < 0.6) rs = since + ri(2, Math.min(20, Math.floor(el) - 1)) * 60000 }
+                m[idx].status = "stop"; m[idx].cur = { grp: g.id, reason: pick(g.reasons), operator: pick(OPS), since, repairStart: rs, notif: g.id === "breakdown" ? String(ri(10004500, 10004999)) : null }
+            });
+            return { machines: m, stops };
+        }
+        function load() { try { const r = localStorage.getItem(KEY); if (r) { const s = JSON.parse(r); if (s && s.machines && s.machines.length === 48) return s } } catch (e) { } return seed() }
+        function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); localStorage.setItem(KEY + "_op", lastOp) } catch (e) { } }
+
+        /* ===== fmt ===== */
+        function fmtDur(ms) { const s = Math.floor(ms / 1000), h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60; return h > 0 ? `${h}:${String(m).padStart(2, "0")}:${String(x).padStart(2, "0")}` : `${m}:${String(x).padStart(2, "0")}` }
+        function fmtHM(ms) { const t = Math.floor(ms / 60000), h = Math.floor(t / 60), m = t % 60; return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}` }
+        function fmtDT(ms) { const m = Math.round(ms / 60000); if (m < 60) return m + "m"; const h = Math.floor(m / 60), x = m % 60; return x ? `${h}j ${x}m` : `${h}j` }
+
+        /* ===== aggregate (single source) ===== */
+        function agg() {
+            const per = state.machines.map(m => ({ m, allDown: 0, bdDown: 0, bdCount: 0, allStops: 0, cause: {}, causeCnt: {} }));
+            const grpTot = {}; GROUPS.forEach(g => grpTot[g.id] = 0);
+            const causeTot = {};
+            function add(wc, grp, reason, dur) {
+                const w = per[wc]; w.allDown += dur; w.allStops++; grpTot[grp] += dur;
+                if (grp === "breakdown") { w.bdDown += dur; w.bdCount++; w.cause[reason] = (w.cause[reason] || 0) + dur; w.causeCnt[reason] = (w.causeCnt[reason] || 0) + 1; causeTot[reason] = (causeTot[reason] || 0) + dur }
+            }
+            state.stops.forEach(s => add(s.wc, s.grp, s.reason, s.dur));
+            state.machines.forEach(m => { if (m.cur) add(m.id, m.cur.grp, m.cur.reason, now() - m.cur.since) });
+            per.forEach(w => {
+                w.av = (LOADING - w.allDown / 60000) / LOADING * 100; w.mttr = w.bdCount ? w.bdDown / w.bdCount / 60000 : 0; w.mtbf = w.bdCount ? (LOADING - w.bdDown / 60000) / 60 / w.bdCount : LOADING / 60;
+                w.grp = w.bdCount === 0 ? "stabil" : (w.bdCount >= FREQ_T && w.bdDown / 60000 >= DUR_T ? "kronis" : (w.bdCount >= FREQ_T ? "sering" : (w.bdDown / 60000 >= DUR_T ? "lama" : "stabil")))
+            });
+            const totalDown = Object.values(grpTot).reduce((a, b) => a + b, 0);
+            const count = state.stops.length + state.machines.filter(m => m.cur).length;
+            return { per, grpTot, causeTot, totalDown, count };
+        }
+        const GRP = { kronis: { n: "Kronis (prioritas)", v: "--red", d: "Sering & lama — bad actor" }, sering: { n: "Sering, singkat", v: "--amber", d: "Bolak-balik tapi cepat pulih" }, lama: { n: "Jarang, lama", v: "--blue", d: "Sekali rusak besar" }, stabil: { n: "Stabil (baik)", v: "--green", d: "Sedikit/nihil breakdown" } };
+
+        /* ===== LIVE ===== */
+        function renderLive() {
+            const A = agg(), runN = state.machines.filter(x => x.status === "run").length, stopN = 48 - runN;
+            document.getElementById("k-run").textContent = runN; document.getElementById("k-stop").textContent = stopN;
+            document.getElementById("k-dt").textContent = fmtHM(A.totalDown);
+            document.getElementById("c-all").textContent = 48; document.getElementById("c-run").textContent = runN; document.getElementById("c-stop").textContent = stopN;
+            document.getElementById("k-stop-sub").textContent = stopN + " WC berhenti";
+            let top = null, tv = -1; GROUPS.forEach(g => { if (A.grpTot[g.id] > tv) { tv = A.grpTot[g.id]; top = g } });
+            const te = document.getElementById("k-top"); te.textContent = top && tv > 0 ? top.label : "—"; te.style.color = top && tv > 0 ? css(top.v) : "var(--ink)";
+            document.getElementById("k-top-sub").textContent = tv > 0 ? fmtHM(tv) + " downtime" : "tidak ada";
+            const q = query.trim().toLowerCase();
+            const list = state.machines.filter(x => { if (filter === "run" && x.status !== "run") return false; if (filter === "stop" && x.status !== "stop") return false; if (q && !(x.name.toLowerCase().includes(q) || x.code.toLowerCase().includes(q))) return false; return true; })
+                .sort((a, b) => (a.status === "stop" ? 0 : 1) - (b.status === "stop" ? 0 : 1) || a.id - b.id);
+            const g = document.getElementById("grid");
+            if (!list.length) { g.innerHTML = '<div class="empty">Tidak ada WC yang cocok.</div>'; return }
+            g.innerHTML = list.map(x => {
+                const own = "Teknisi " + (x.owner + 1);
+                if (x.status === "stop") {
+                    const gr = GMAP[x.cur.grp], c = css(gr.v);
+                    return `<button class="card stop" data-id="${x.id}" style="border-color:${c}33"><div class="bar" style="background:${c}"></div><div class="body">
+        <div class="row1"><span class="wc">${x.code}</span><span class="dot" style="background:${c}"></span></div>
+        <div class="name">${x.name}</div><div class="floc">${x.floc}</div><div class="owner">${own}</div>
+        <div class="foot"><div class="gtag"><span style="width:8px;height:8px;border-radius:2px;background:${c};display:inline-block"></span>${gr.label}</div>
+        <div class="rsn" style="color:${c}">${x.cur.reason}</div><div class="op">Op: ${x.cur.operator}${x.cur.notif ? " · M2 " + x.cur.notif : ""}</div>
+        ${x.cur.grp === "breakdown" ? `<div class="op" style="color:${x.cur.repairStart ? css('--green') : css('--amber')}">${x.cur.repairStart ? '🔧 diperbaiki' : '⏳ menunggu teknisi'}</div>` : ""}
+        <div class="dur" style="color:${c}" data-since="${x.cur.since}"><span>STOP</span>${fmtDur(now() - x.cur.since)}</div></div></div></button>`
+                }
+                return `<button class="card run" data-id="${x.id}"><div class="bar"></div><div class="body">
+      <div class="row1"><span class="wc">${x.code}</span><span class="dot"></span></div>
+      <div class="name">${x.name}</div><div class="floc">${x.floc}</div><div class="owner">${own}</div>
+      <div class="foot"><div class="st">● Running</div></div></div></button>`}).join("");
+        }
+
+        /* ===== DOWNTIME ===== */
+        function renderDT() {
+            const A = agg();
+            document.getElementById("a-total").textContent = fmtHM(A.totalDown);
+            document.getElementById("a-bd").textContent = A.totalDown ? Math.round(A.grpTot.breakdown / A.totalDown * 100) + "%" : "0%";
+            document.getElementById("a-stops").textContent = A.count;
+            document.getElementById("a-wc").textContent = A.per.filter(w => w.allDown > 0).length;
+            const gs = GROUPS.map(g => ({ g, ms: A.grpTot[g.id] })).filter(x => x.ms > 0).sort((a, b) => b.ms - a.ms), mx = gs.length ? gs[0].ms : 1;
+            document.getElementById("grpbars").innerHTML = gs.length ? gs.map(({ g, ms }) => { const c = css(g.v); return `<div class="barrow"><div class="bl"><span class="sw" style="background:${c}"></span>${g.label}</div><div class="track"><div class="fill" style="width:${ms / mx * 100}%;background:${c}"></div></div><div class="num"><b>${fmtHM(ms)}</b> · ${Math.round(ms / A.totalDown * 100)}%</div></div>` }).join("") : '<div style="color:var(--ink-3);font-family:var(--mono);font-size:13px">Belum ada downtime.</div>';
+            const rows = A.per.filter(w => w.allDown > 0).map(w => ({ ...w, total: w.allDown, bd: w.bdDown, other: w.allDown - w.bdDown, stops: w.allStops })).sort((a, b) => b[dtSort] - a[dtSort]);
+            const tmax = rows.length ? rows[0].total : 1;
+            document.getElementById("dtbody").innerHTML = rows.map(w => `<tr><td><div class="nm">${w.m.name}</div><div class="cd">${w.m.code} · Teknisi ${w.m.owner + 1}</div></td>
+    <td class="mono"><b>${fmtHM(w.total)}</b></td><td class="mono" style="color:${w.bd ? css('--g-breakdown') : 'var(--ink-3)'}">${w.bd ? fmtHM(w.bd) : "–"}</td>
+    <td class="mono" style="color:var(--ink-2)">${w.other ? fmtHM(w.other) : "–"}</td><td class="mono">${w.stops}</td></tr>`).join("") || '<tr><td colspan="5" style="color:var(--ink-3);font-family:var(--mono);padding:20px 14px">Belum ada downtime.</td></tr>';
+            document.querySelectorAll('#view-dt .tb th').forEach(th => th.setAttribute("data-active", th.dataset.s === dtSort ? "1" : "0"));
+        }
+
+        /* ===== PERFORMANCE ===== */
+        function grade(av) { return av >= 98 ? ["A", css('--green')] : av >= 96 ? ["B", "#8bd17c"] : av >= 93 ? ["C", css('--amber')] : ["D", css('--red')] }
+        function renderPerf() {
+            const A = agg(), per = A.per;
+            document.getElementById("p-bd").textContent = per.reduce((a, b) => a + b.bdCount, 0);
+            document.getElementById("p-av").textContent = (per.reduce((a, b) => a + b.av, 0) / 48).toFixed(1) + "%";
+            document.getElementById("p-kr").textContent = per.filter(w => w.grp === "kronis").length;
+            document.getElementById("p-zero").textContent = per.filter(w => w.bdCount === 0).length;
+            const best = [...per].sort((a, b) => b.av - a.av || a.bdCount - b.bdCount).slice(0, 5);
+            const worst = [...per].sort((a, b) => b.bdCount - a.bdCount || b.bdDown - a.bdDown).slice(0, 5);
+            document.getElementById("lb-best").innerHTML = best.map((w, i) => `<div class="lb"><div class="rk">${i + 1}</div><div class="info"><div class="nm">${w.m.name}</div><div class="cd">${w.m.code}</div></div><div class="stat" style="color:var(--green)">${w.av.toFixed(1)}%<small>${w.bdCount} breakdown</small></div></div>`).join("");
+            document.getElementById("lb-worst").innerHTML = worst.map((w, i) => `<div class="lb"><div class="rk">${i + 1}</div><div class="info"><div class="nm">${w.m.name}</div><div class="cd">${w.m.code}</div></div><div class="stat" style="color:var(--red)">${w.bdCount}×<small>${fmtDT(w.bdDown)} · av ${w.av.toFixed(1)}%</small></div></div>`).join("");
+            document.getElementById("pgroups").innerHTML = ["kronis", "sering", "lama", "stabil"].map(g => { const n = per.filter(w => w.grp === g).length, G = GRP[g], c = css(G.v); return `<div class="gcard" style="border-left-color:${c}"><div class="gn" style="color:${c}">${G.n}</div><div class="gv">${n}</div><div class="gd">${G.d}</div></div>` }).join("");
+            drawScatter(per);
+            // pareto
+            const rows = Object.entries(A.causeTot).map(([n, ms]) => ({ n, ms })).sort((a, b) => b.ms - a.ms);
+            const tot = rows.reduce((a, b) => a + b.ms, 0), mx = rows.length ? rows[0].ms : 1;
+            const palette = { "Spindle / motor": "#f0403f", "Servo / axis alarm": "#ff7a1a", "Controller CNC error": "#f2b21c", "Vacuum pump / meja": "#3f8cff", "Dust extraction": "#29c3c9", "Pneumatic / angin": "#a56cf0", "Electrical": "#e05be0", "Tool changer (ATC)": "#7a879b" };
+            document.getElementById("pareto").innerHTML = rows.length ? rows.map(r => { const c = palette[r.n] || "#7a879b"; return `<div class="barrow"><div class="bl"><span class="sw" style="background:${c}"></span>${r.n}</div><div class="track"><div class="fill" style="width:${r.ms / mx * 100}%;background:${c}"></div></div><div class="num"><b>${fmtDT(r.ms)}</b> · ${Math.round(r.ms / tot * 100)}%</div></div>` }).join("") : '<div style="color:var(--ink-3);font-family:var(--mono);font-size:13px">Belum ada breakdown.</div>';
+            // table
+            const tr = [...per].sort((a, b) => { let r; if (rkSort === "name") r = a.m.code.localeCompare(b.m.code); else if (rkSort === "av") r = a.av - b.av; else if (rkSort === "bd") r = a.bdCount - b.bdCount; else if (rkSort === "dt") r = a.allDown - b.allDown; else if (rkSort === "mttr") r = a.mttr - b.mttr; else if (rkSort === "mtbf") r = a.mtbf - b.mtbf; else r = a.av - b.av; return r * rkDir });
+            document.getElementById("rkbody").innerHTML = tr.map(w => {
+                const [g, gc] = grade(w.av), G = GRP[w.grp], c = css(G.v); return `<tr><td><div class="nm">${w.m.name}</div><div class="cd">${w.m.code} · Teknisi ${w.m.owner + 1}</div></td>
+    <td class="mono" style="color:${gc}">${w.av.toFixed(1)}%</td><td class="mono">${w.bdCount}</td><td class="mono">${w.allDown ? fmtDT(w.allDown) : "–"}</td>
+    <td class="mono">${w.bdCount ? Math.round(w.mttr) + "m" : "–"}</td><td class="mono">${w.bdCount ? Math.round(w.mtbf) + "j" : "–"}</td>
+    <td><span class="grade" style="background:${gc}22;color:${gc}">${g}</span> <span class="gpill" style="background:${c}22;color:${c}">${G.n.split(" ")[0]}</span></td></tr>`
+            }).join("");
+            document.querySelectorAll('#view-perf .tb th').forEach(th => th.setAttribute("data-active", th.dataset.s === rkSort ? "1" : "0"));
+        }
+        function drawScatter(per) {
+            const W = 640, H = 380, pL = 48, pR = 18, pT = 18, pB = 44, rnd = mulberry32(7);
+            const xMax = Math.max(9, ...per.map(d => d.bdCount)), yMax = Math.ceil(Math.max(300, ...per.map(d => d.bdDown / 60000)) / 60) * 60;
+            const X = v => pL + v / xMax * (W - pL - pR), Y = v => (H - pB) - v / yMax * (H - pB - pT), line = css('--line'), ink3 = css('--ink-3');
+            let s = `<rect x="${X(FREQ_T)}" y="${pT}" width="${W - pR - X(FREQ_T)}" height="${Y(DUR_T) - pT}" fill="${css('--red')}" opacity="0.06"/>`;
+            s += `<line x1="${pL}" y1="${pT}" x2="${pL}" y2="${H - pB}" stroke="${line}"/><line x1="${pL}" y1="${H - pB}" x2="${W - pR}" y2="${H - pB}" stroke="${line}"/>`;
+            s += `<line x1="${X(FREQ_T)}" y1="${pT}" x2="${X(FREQ_T)}" y2="${H - pB}" stroke="${css('--amber')}" stroke-dasharray="4 4" opacity="0.5"/><line x1="${pL}" y1="${Y(DUR_T)}" x2="${W - pR}" y2="${Y(DUR_T)}" stroke="${css('--amber')}" stroke-dasharray="4 4" opacity="0.5"/>`;
+            for (let v = 0; v <= xMax; v += 2)s += `<text x="${X(v)}" y="${H - pB + 18}" fill="${ink3}" font-size="11" font-family="monospace" text-anchor="middle">${v}</text>`;
+            for (let v = 0; v <= yMax; v += 120)s += `<text x="${pL - 8}" y="${Y(v) + 4}" fill="${ink3}" font-size="11" font-family="monospace" text-anchor="end">${v}</text>`;
+            s += `<text x="${(pL + W - pR) / 2}" y="${H - 6}" fill="${ink3}" font-size="12" text-anchor="middle">Jumlah breakdown →</text>`;
+            s += `<text x="14" y="${(pT + H - pB) / 2}" fill="${ink3}" font-size="12" text-anchor="middle" transform="rotate(-90 14 ${(pT + H - pB) / 2})">Downtime breakdown (menit) →</text>`;
+            per.forEach(d => { const jx = (rnd() - 0.5) * 10, c = css(GRP[d.grp].v); s += `<circle class="qpt" cx="${X(d.bdCount) + jx}" cy="${Y(d.bdDown / 60000)}" r="5.5" fill="${c}" stroke="${css('--bg')}" stroke-width="1"><title>${d.m.code} · ${d.m.name}\n${d.bdCount} breakdown · ${fmtDT(d.bdDown)} · av ${d.av.toFixed(1)}%</title></circle>` });
+            document.getElementById("scatter").innerHTML = s;
+        }
+
+        /* ===== TECH ===== */
+        // Normalisasi skala floor–target: 100% = target, 0% = batas terburuk (floor)
+        function normalize(kpi, val) { let c = kpi.hi ? (val - kpi.floor) / (kpi.tgt - kpi.floor) : (kpi.floor - val) / (kpi.floor - kpi.tgt); return Math.max(0, Math.min(c, 1)) }
+        function ragColor(p) { return p >= 0.9 ? css('--green') : p >= 0.75 ? css('--amber') : css('--red') }
+        function computeTech(ti) {
+            const A = agg(), owned = A.per.filter(w => w.m.owner === ti), ownedIds = new Set(owned.map(w => w.m.id));
+            const bd = owned.reduce((a, b) => a + b.bdCount, 0), bdDown = owned.reduce((a, b) => a + b.bdDown, 0), allDown = owned.reduce((a, b) => a + b.allDown, 0);
+            const load = LOADING * owned.length, bdMin = bdDown / 60000;
+            // ATRIBUSI: availability/MTTR/MTBF hanya dari downtime breakdown, bukan total
+            const avMaint = (load - bdMin) / load * 100, mttr = bd ? bdMin / bd : 0, mtbf = bd ? (load - bdMin) / 60 / bd : load / 60;
+            let rep = 0; owned.forEach(w => Object.values(w.causeCnt).forEach(c => { if (c >= 2) rep += c - 1 }));
+            const repeat = bd ? rep / bd * 100 : 0;
+            // RESPONSE TIME live: lapor (since) → mulai perbaikan (repairStart)
+            let respArr = [];
+            state.stops.forEach(s => { if (ownedIds.has(s.wc) && s.grp === "breakdown" && s.resp != null) respArr.push(s.resp) });
+            state.machines.forEach(m => { if (ownedIds.has(m.id) && m.cur && m.cur.grp === "breakdown" && m.cur.repairStart) respArr.push((m.cur.repairStart - m.cur.since) / 60000) });
+            const respCnt = respArr.length, respAvg = respCnt ? respArr.reduce((a, b) => a + b, 0) / respCnt : 0;
+            const t = TECHS[ti], vals = { av: avMaint, mttr, mtbf, repeat, resp: respAvg, pm: t.pm, data: t.data, safety: t.safety };
+            // Reweighting: KPI dgn sampel kurang jadi N/A; bobot dibagi ulang ke KPI yang terpakai
+            let acc = 0, wUsed = 0, na = [];
+            KPIS.forEach(k => {
+                if ((k.minBd && bd < MIN_BD) || (k.needResp && respCnt < MIN_BD)) { na.push(k.key); return }
+                acc += k.w * normalize(k, vals[k.key]); wUsed += k.w
+            });
+            const score = wUsed ? Math.round(acc / wUsed * 100) : 0;
+            return { owned, bd, allDown, bdDown, avMaint, mttr, mtbf, respCnt, vals, na, wUsed, score };
+        }
+        function renderTech() {
+            document.getElementById("ownbar").innerHTML = `<b>Model kepemilikan:</b> 6 teknisi, tiap teknisi owner 8 WC tetap. Availability, MTTR, dan MTBF dihitung dari <b>downtime breakdown</b> WC miliknya saja — stop material / operator / terjadwal tidak dibebankan ke teknisi.`;
+            const rows = TECHS.map((t, i) => ({ t, i, ...computeTech(i) }));
+            const sorted = [...rows].sort((a, b) => { let r; if (tbSort === "name") r = a.t.name.localeCompare(b.t.name); else if (tbSort === "score") r = a.score - b.score; else if (tbSort === "av") r = a.avMaint - b.avMaint; else if (tbSort === "bd") r = a.bd - b.bd; else if (tbSort === "down") r = a.bdDown - b.bdDown; else r = a.mttr - b.mttr; return r * tbDir });
+            document.getElementById("techbody").innerHTML = sorted.map(r => {
+                const c = ragColor(r.score / 100); return `<tr><td><div class="nm">${r.t.name}</div><div class="cd">CNC-${String(r.i * 8 + 1).padStart(2, "0")}…${String(r.i * 8 + 8).padStart(2, "0")}</div></td>
+    <td class="mono"><b style="color:${c}">${r.score}</b></td><td class="mono">${r.avMaint.toFixed(1)}%</td><td class="mono">${r.bd}</td><td class="mono">${r.bdDown ? fmtDT(r.bdDown) : "–"}</td><td class="mono">${r.bd >= MIN_BD ? Math.round(r.mttr) + "m" : "n/a"}</td></tr>`
+            }).join("");
+            document.querySelectorAll('#view-tech .tb th').forEach(th => th.setAttribute("data-active", th.dataset.s === tbSort ? "1" : "0"));
+            document.getElementById("tpicker").innerHTML = TECHS.map((t, i) => `<button data-i="${i}" aria-pressed="${i === tsel}">${t.name}<span class="pw">Teknisi ${i + 1}</span></button>`).join("");
+            renderScore();
+        }
+        function fmtVal(k, v) { return k.u === "%" ? v.toFixed(1) + "%" : (k.u === "m" ? Math.round(v) + "m" : (k.u === "j" ? Math.round(v) + "j" : v)) }
+        function renderScore() {
+            const r = computeTech(tsel), t = TECHS[tsel];
+            document.getElementById("t-who").textContent = t.name;
+            document.getElementById("t-wc").textContent = `Owner WC: CNC-${String(tsel * 8 + 1).padStart(2, "0")}…${String(tsel * 8 + 8).padStart(2, "0")} · ${r.bd} breakdown`;
+            document.getElementById("t-rows").innerHTML = KPIS.map(k => {
+                const na = r.na.includes(k.key), v = r.vals[k.key];
+                if (na) {
+                    const cnt = k.key === "resp" ? r.respCnt : r.bd, what = k.key === "resp" ? "data respons" : "breakdown";
+                    return `<div class="krow"><div class="kn">${k.k} ${k.live ? '<span class="liv">● live</span>' : ''}<small>bobot ${k.w}% · perlu ≥${MIN_BD} ${what} (ada ${cnt})</small></div>
+      <div class="ktrack"><div class="kfill" style="width:0%"></div></div>
+      <div class="kval"><b style="color:var(--ink-3)">N/A</b><small>tak diskor</small></div></div>`}
+                const cap = normalize(k, v), c = ragColor(cap);
+                return `<div class="krow"><div class="kn">${k.k} ${k.live ? '<span class="liv">● live</span>' : ''}<small>bobot ${k.w}% · ${k.hi ? '≥' : '≤'}${k.tgt}${k.u === '%' ? '%' : ''} · floor ${k.floor}${k.u === '%' ? '%' : ''}</small></div>
+      <div class="ktrack"><div class="kfill" style="width:${cap * 100}%;background:${c}"></div></div>
+      <div class="kval"><b style="color:${c}">${fmtVal(k, v)}</b><small>${Math.round(cap * 100)}% capaian</small></div></div>`
+            }).join("");
+            const c = ragColor(r.score / 100), se = document.getElementById("t-score"); se.textContent = r.score; se.style.color = c;
+            const rag = document.getElementById("t-rag"); rag.textContent = r.score >= 90 ? "● HIJAU" : r.score >= 75 ? "● KUNING" : "● MERAH"; rag.style.color = c; rag.style.background = r.score >= 90 ? "#12331f" : r.score >= 75 ? "#332a0a" : "#331213";
+            const note = document.getElementById("t-note");
+            if (note) note.innerHTML = r.na.length ? `⚠ ${r.na.length} KPI berstatus N/A (sampel &lt; ${MIN_BD} breakdown). Skor dibagi ulang atas bobot yang terpakai (${r.wUsed} dari 100), bukan dihukum nol.` : `Skor = Σ(bobot × capaian) ÷ ${r.wUsed} bobot terpakai. Semua KPI punya cukup data.`;
+        }
+
+        /* ===== LOG ===== */
+        function renderLog() {
+            const open = state.machines.filter(m => m.cur).map(m => ({ wc: m.id, grp: m.cur.grp, reason: m.cur.reason, operator: m.cur.operator, start: m.cur.since, open: true, name: m.name, code: m.code }));
+            const closed = state.stops.map(s => ({ ...s, open: false, name: state.machines[s.wc].name, code: state.machines[s.wc].code }));
+            const all = [...open, ...closed].sort((a, b) => b.start - a.start).slice(0, 120);
+            document.getElementById("loglist").innerHTML = all.length ? all.map(e => {
+                const g = GMAP[e.grp], c = css(g.v), t = new Date(e.start).toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+                return `<div class="logrow"><div class="pill" style="background:${c}"></div><div><div class="l-wc">${e.code} · ${e.name}</div><div class="l-rsn" style="color:${c}">${e.reason} <span style="color:var(--ink-3);font-weight:400;font-size:11px">· ${g.label}</span></div><div class="l-meta">Op: ${e.operator} · ${t}</div></div>
+    <div>${e.open ? `<div class="l-dur" style="color:${c}" data-since="${e.start}">${fmtDur(now() - e.start)}</div><div class="l-open">● BERLANGSUNG</div>` : `<div class="l-dur">${fmtHM(e.dur)}</div>`}</div></div>`
+            }).join("") : '<div style="color:var(--ink-3);font-family:var(--mono);font-size:13px">Belum ada permintaan.</div>';
+        }
+
+        function renderActive() { ({ live: renderLive, dt: renderDT, perf: renderPerf, tech: renderTech, log: renderLog })[view]() }
+
+        function renderKpiPanel() {
+            const wsum = KPIS.reduce((a, b) => a + b.w, 0);
+            let h = `<h3>Atur KPI teknisi</h3><p class="desc">Target, floor (batas terburuk), dan bobot — tersimpan otomatis di browser.</p>
+    <div class="cfg-head"><span>KPI</span><span>Target</span><span>Floor</span><span>Bobot</span></div>`;
+            KPIS.forEach(k => {
+                h += `<div class="cfg-row"><span class="cfg-nm">${k.k} <em>${k.hi ? 'makin tinggi baik' : 'makin rendah baik'}${k.live ? ' · live' : ''}</em></span>
+    <input class="cfg-in" type="number" value="${k.tgt}" data-k="${k.key}" data-f="tgt">
+    <input class="cfg-in" type="number" value="${k.floor}" data-k="${k.key}" data-f="floor">
+    <input class="cfg-in" type="number" value="${k.w}" data-k="${k.key}" data-f="w"></div>`
+            });
+            h += `<div class="cfg-foot"><div>Min. sampel utk skor MTTR/MTBF/Repeat/Response: <input class="cfg-in" type="number" value="${MIN_BD}" id="minbd" style="width:56px;display:inline-block"></div>
+    <div>Total bobot: <b id="wsum" style="color:${wsum === 100 ? 'var(--green)' : 'var(--amber)'}">${wsum}</b> <span style="color:var(--ink-3)">(dinormalisasi otomatis)</span></div></div>
+    <div style="margin-top:14px"><button class="ghost" id="kpiReset">Reset ke default</button></div>`;
+            document.getElementById("kpiPanel").innerHTML = h;
+        }
+
+        /* ===== modal ===== */
+        function openModal(id) {
+            const x = state.machines[id], m = document.getElementById("modal"), isStop = x.status === "stop";
+            let html = `<div class="mhead"><div><span class="badge ${isStop ? 'stop' : 'run'}">${isStop ? '● STOP / DOWN' : '● RUNNING'}</span><h2>${x.name}</h2><p class="sub">${x.code} · ${x.floc} · Teknisi ${x.owner + 1}</p></div><button class="x" id="mx">✕</button></div>`;
+            if (isStop) {
+                const gr = GMAP[x.cur.grp], isBd = x.cur.grp === "breakdown", started = isBd && x.cur.repairStart;
+                html += `<div class="specs"><div class="r"><span class="k">Kategori</span><span class="v" style="color:${css(gr.v)}">${gr.label}</span></div>
+      <div class="r"><span class="k">Sebab</span><span class="v">${x.cur.reason}</span></div><div class="r"><span class="k">Operator</span><span class="v">${x.cur.operator}</span></div>
+      ${x.cur.notif ? `<div class="r"><span class="k">Notif M2</span><span class="v">${x.cur.notif}</span></div>` : ""}
+      <div class="r"><span class="k">${isBd ? 'Dilaporkan' : 'Mulai'}</span><span class="v">${new Date(x.cur.since).toLocaleString('id-ID')}</span></div>
+      ${isBd ? `<div class="r"><span class="k">Response ${started ? 'time' : '(berjalan)'}</span><span class="v" style="color:${css('--amber')}"${started ? "" : ` data-since="${x.cur.since}"`}>${started ? Math.round((x.cur.repairStart - x.cur.since) / 60000) + " m" : fmtDur(now() - x.cur.since)}</span></div>` : ""}
+      <div class="r"><span class="k">Total downtime</span><span class="v" style="color:${css(gr.v)}" data-since="${x.cur.since}">${fmtDur(now() - x.cur.since)}</span></div></div>`;
+                if (isBd && !started) {
+                    html += `<button class="btn report" id="start" style="background:var(--amber);color:var(--amber-ink)">▶ Mulai perbaikan (catat response)</button>
+      <button class="btn resume" id="act" style="margin-top:10px">Selesai — lanjut produksi</button><p class="hint">"Mulai perbaikan" mencatat waktu teknisi tiba = response time.</p>`;
+                }
+                else { html += `<button class="btn resume" id="act">${isBd ? 'Selesai — lanjut produksi' : 'Lanjut produksi (resume)'}</button><p class="hint">Resume menutup permintaan & mencatat downtime${isBd ? ' + response' : ''} ke WC ini.</p>`; }
+            } else {
+                html += `<label class="fld">Kategori sebab</label><select id="grp">${GROUPS.map(g => `<option value="${g.id}">${g.label}</option>`).join("")}</select>
+      <label class="fld">Sebab detail</label><select id="rsn"></select><label class="fld">Nama operator</label><input class="txt" id="op" placeholder="mis. Andi" value="${lastOp}">
+      <button class="btn report" id="act">Catat downtime (stop WC)</button><p class="hint">Kategori breakdown otomatis buat notifikasi M2.</p>`;
+            }
+            m.innerHTML = html; document.getElementById("backdrop").classList.add("open"); document.getElementById("mx").onclick = closeModal;
+            if (!isStop) {
+                const gs = document.getElementById("grp"), rs = document.getElementById("rsn"), fill = () => { rs.innerHTML = GMAP[gs.value].reasons.map(r => `<option>${r}</option>`).join("") }; gs.onchange = fill; fill();
+                document.getElementById("act").onclick = () => { const op = document.getElementById("op").value.trim() || "–"; lastOp = op; x.status = "stop"; x.cur = { grp: gs.value, reason: rs.value, operator: op, since: now(), repairStart: null, notif: gs.value === "breakdown" ? String(Math.floor(Math.random() * 500) + 10004500) : null }; save(); closeModal(); renderActive() };
+            } else {
+                const sb = document.getElementById("start");
+                if (sb) sb.onclick = () => { x.cur.repairStart = now(); save(); openModal(id) };
+                document.getElementById("act").onclick = () => {
+                    const resp = (x.cur.grp === "breakdown" && x.cur.repairStart) ? (x.cur.repairStart - x.cur.since) / 60000 : null;
+                    state.stops.push({ wc: x.id, grp: x.cur.grp, reason: x.cur.reason, operator: x.cur.operator, start: x.cur.since, dur: now() - x.cur.since, resp });
+                    x.status = "run"; x.cur = null; save(); closeModal(); renderActive()
+                }
+            }
+        }
+        function closeModal() { document.getElementById("backdrop").classList.remove("open") }
+
+        /* ===== events ===== */
+        document.getElementById("tabs").addEventListener("click", e => {
+            const b = e.target.closest("button"); if (!b) return; view = b.dataset.v;[...document.querySelectorAll("#tabs button")].forEach(x => x.setAttribute("aria-pressed", x === b));
+            ["live", "dt", "perf", "tech", "log"].forEach(v => document.getElementById("view-" + v).style.display = v === view ? "" : "none"); renderActive()
+        });
+        document.getElementById("grid").addEventListener("click", e => { const c = e.target.closest(".card"); if (c) openModal(+c.dataset.id) });
+        document.getElementById("filters").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; filter = b.dataset.f;[...document.querySelectorAll("#filters button")].forEach(x => x.setAttribute("aria-pressed", x === b)); renderLive() });
+        document.getElementById("q").addEventListener("input", e => { query = e.target.value; renderLive() });
+        document.getElementById("tpicker").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; tsel = +b.dataset.i;[...document.querySelectorAll("#tpicker button")].forEach(x => x.setAttribute("aria-pressed", x === b)); renderScore() });
+        document.querySelectorAll('#view-dt .tb th').forEach(th => th.addEventListener("click", () => { dtSort = th.dataset.s; renderDT() }));
+        document.querySelectorAll('#view-perf .tb th').forEach(th => th.addEventListener("click", () => { const s = th.dataset.s; if (rkSort === s) rkDir *= -1; else { rkSort = s; rkDir = (s === "av" || s === "mtbf" || s === "name") ? 1 : -1 } renderPerf() }));
+        document.querySelectorAll('#view-tech .tb th').forEach(th => th.addEventListener("click", () => { const s = th.dataset.s; if (tbSort === s) tbDir *= -1; else { tbSort = s; tbDir = (s === "name") ? 1 : -1 } renderTech() }));
+        document.getElementById("backdrop").addEventListener("click", e => { if (e.target.id === "backdrop") closeModal() });
+        document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal() });
+        document.getElementById("reset").addEventListener("click", () => { if (confirm("Reset ke data demo awal?")) { state = seed(); save(); renderActive() } });
+        document.getElementById("kpiToggle").addEventListener("click", () => { const p = document.getElementById("kpiPanel"), open = p.style.display === "none"; if (open) renderKpiPanel(); p.style.display = open ? "" : "none" });
+        document.getElementById("kpiPanel").addEventListener("input", e => {
+            const t = e.target;
+            if (t.id === "minbd") { MIN_BD = Math.max(1, parseInt(t.value) || 1); saveKpiCfg(); renderTech(); return }
+            if (t.dataset.k) {
+                const k = KPIS.find(x => x.key === t.dataset.k); if (k) {
+                    k[t.dataset.f] = parseFloat(t.value) || 0; saveKpiCfg();
+                    const ws = KPIS.reduce((a, b) => a + b.w, 0), el = document.getElementById("wsum"); if (el) { el.textContent = ws; el.style.color = ws === 100 ? css('--green') : css('--amber') } renderTech()
+                }
+            }
+        });
+        document.getElementById("kpiPanel").addEventListener("click", e => { if (e.target.id === "kpiReset") { resetKpiCfg(); renderKpiPanel(); renderTech() } });
+
+        /* ===== tick ===== */
+        function tick() {
+            const t = new Date(); document.getElementById("clk").textContent = t.toLocaleTimeString('id-ID', { hour12: false });
+            document.getElementById("dte").textContent = t.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' });
+            document.querySelectorAll("[data-since]").forEach(el => { const txt = fmtDur(now() - (+el.dataset.since)); el.childNodes.length > 1 ? el.lastChild.textContent = txt : el.textContent = txt });
+            if (view === "live") document.getElementById("k-dt").textContent = fmtHM(agg().totalDown);
+            else if (view === "dt") renderDT(); else if (view === "perf") renderPerf(); else if (view === "tech") renderTech();
+        }
+        loadKpiCfg(); state = load(); renderActive(); tick(); setInterval(tick, 1000);
+    </script>
+</body>
+
+</html>
+Tautan Tersalin
