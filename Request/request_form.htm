@@ -2556,6 +2556,12 @@ title="Delete Row">X</button>`;
                     });
             }
 
+            function getCurrentLoginUser() {
+                var uEl = document.getElementById("userNameLabel");
+                var uVal = (uEl && uEl.innerText) ? uEl.innerText.trim() : "";
+                return (uVal || "").toUpperCase();
+            }
+
             function loadUploadHistory() {
                 fetch("?OnInputProcessing=GET_HISTORY")
                     .then(function (res) { return res.json(); })
@@ -2566,13 +2572,23 @@ title="Delete Row">X</button>`;
                         var checkedCnt = 0;
                         var approvedCnt = 0;
                         var rejectedCnt = 0;
+                        var curUser = getCurrentLoginUser();
 
                         globalHistoryData.forEach(function (item) {
                             var st = (item.status || '').toUpperCase();
-                            if (st === 'SUBMITTED' || st === 'DRAFT' || st === 'HOLD') pendingCnt++;
-                            else if (st === 'CHECKED') checkedCnt++;
-                            else if (st === 'APPROVED') approvedCnt++;
-                            else if (st === 'REJECTED' || st === 'FAILED') rejectedCnt++;
+                            var itemUser = (item.ernam || '').trim().toUpperCase();
+
+                            if (!curUser || !itemUser || itemUser === curUser) {
+                                if (st === 'SUBMITTED' || st === 'DRAFT' || st === 'HOLD') {
+                                    pendingCnt++;
+                                } else if (st === 'CHECKED') {
+                                    checkedCnt++;
+                                } else if (st === 'APPROVED') {
+                                    approvedCnt++;
+                                } else if (st === 'REJECTED' || st === 'FAILED') {
+                                    rejectedCnt++;
+                                }
+                            }
                         });
 
                         var pndCard = document.getElementById("pendingCountCard");
@@ -2664,8 +2680,16 @@ title="Delete Row">X</button>`;
 
                 tbody.innerHTML = "";
 
+                var curUser = getCurrentLoginUser();
+
                 var filtered = globalHistoryData.filter(function (item) {
                     var st = (item.status || '').toUpperCase();
+                    var itemUser = (item.ernam || '').trim().toUpperCase();
+
+                    if (curUser && itemUser && itemUser !== curUser) {
+                        return false;
+                    }
+
                     if (currentHistoryTab === 'PENDING') return st === 'SUBMITTED' || st === 'DRAFT' || st === 'HOLD';
                     if (currentHistoryTab === 'CHECKED') return st === 'CHECKED';
                     if (currentHistoryTab === 'APPROVED') return st === 'APPROVED';
@@ -2753,8 +2777,11 @@ title="Delete Row">X</button>`;
                     rowHtml += '<td class="p-3 text-center">' + statusBadge + '</td>';
                     rowHtml += '<td class="p-3 text-center">';
                     rowHtml += '  <div class="flex items-center justify-center gap-1.5">';
-                    rowHtml += `    <button type="button" class="btn-view-detail rounded-full bg-white/80 hover:bg-white text-slate-800 border border-slate-200 text-[11px] font-bold px-3 py-1 shadow-2xs transition inline-flex items-center gap-1 cursor-pointer">View Detail</button>`;
-                    rowHtml += `    <button type="button" class="btn-download-excel rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold px-2.5 py-1 shadow-2xs transition inline-flex items-center gap-1 cursor-pointer" title="Download Excel Material Detail"><svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg><span>Excel</span></button>`;
+                    rowHtml += `    <button type="button" class="btn-view-detail rounded-full bg-white/80 hover:bg-white text-slate-800 border border-slate-200 text-[11px] font-bold px-3 py-1 shadow-2xs transition inline-flex items-center gap-1
+cursor-pointer">View Detail</button>`;
+                    rowHtml += `    <button type="button" class="btn-download-excel rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold px-2.5 py-1 shadow-2xs transition inline-flex items-center gap-1 cursor-pointer"
+title="Download Excel Material Detail"><svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0
+0l-4-4m4 4V4"/></svg><span>Excel</span></button>`;
                     rowHtml += '  </div>';
                     rowHtml += '</td>';
 
@@ -4125,8 +4152,12 @@ shadow-2xs inline-flex items-center gap-1 cursor-pointer">`;
                             html += '  <td class="p-2.5 text-center text-[11px] font-medium text-slate-500">' + escapeHtml(c.source || 'SAP') + '</td>';
                             html += '  <td class="p-2.5 text-center"><span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-amber-100 text-amber-800 border border-amber-200">' + escapeHtml(c.match_level || 'Medium') + '</span></td>';
                             html += '  <td class="p-2.5 text-center">';
-                            html += `    <button type="button" onclick="useCandidateAsReference(\'' + escapeHtml(c.matnr || '') + '\', \'' + escapeHtml(c.maktx || '') + '\')" class="px-2.5 py-1 text-[10px] font-extrabold text-emerald-700
-hover:text-white bg-emerald-50 hover:bg-emerald-600 border border-emerald-300 rounded transition cursor-pointer">Gunakan Ref</button>`;
+                            html += '    <button type="button" onclick="useCandidateAsReference(\'' +
+                                escapeHtml(c.matnr || '') + '\', \'' +
+                                escapeHtml(c.maktx || '') +
+                                '\')" class="px-2.5 py-1 text-[10px] font-extrabold text-emerald-700 ' +
+                                'hover:text-white bg-emerald-50 hover:bg-emerald-600 border ' +
+                                'border-emerald-300 rounded transition cursor-pointer">Gunakan Ref</button>';
                             html += '  </td>';
                             html += '</tr>';
                         });

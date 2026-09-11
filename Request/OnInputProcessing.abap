@@ -520,12 +520,22 @@ CASE lv_action.
   WHEN 'GET_HISTORY'.
     CLEAR: lt_hdr_db, lt_history.
 
+    DATA: lv_curr_uname TYPE zmdg_req_hdr-requestor.
+    lv_curr_uname = sy-uname.
+
     SELECT req_no, remarks, req_date, req_time, requestor, status, rej_reason, sub_reason, approver, app_date, app_time
       FROM zmdg_req_hdr
-      INTO TABLE @lt_hdr_db
-      ORDER BY req_date DESCENDING, req_time DESCENDING.
+      WHERE requestor = @lv_curr_uname
+      INTO TABLE @lt_hdr_db.
+
+    SORT lt_hdr_db BY req_date DESCENDING req_time DESCENDING.
 
     LOOP AT lt_hdr_db INTO ls_hdr_db.
+      " Safeguard: Pastikan hanya data user login yang dikirim
+      IF ls_hdr_db-requestor <> sy-uname.
+        CONTINUE.
+      ENDIF.
+
       CLEAR ls_history.
       ls_history-upload_id  = ls_hdr_db-req_no.
       ls_history-filename   = ls_hdr_db-remarks.
