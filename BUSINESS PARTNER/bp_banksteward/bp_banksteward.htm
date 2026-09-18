@@ -1,1779 +1,1923 @@
 <%@page language="ABAP" %>
-<%
-  DATA: lv_auth_user     TYPE string,
-        lv_is_authorized TYPE c LENGTH 1 VALUE ' '.
+    <% DATA: lv_auth_user TYPE string, lv_is_authorized TYPE c LENGTH 1 VALUE ' ' . lv_auth_user=sy-uname. TRANSLATE
+        lv_auth_user TO UPPER CASE. CONDENSE lv_auth_user NO-GAPS. IF lv_auth_user='ABAPER04' OR lv_auth_user='KMI-BOD'
+        OR lv_auth_user='KMI-U163' . lv_is_authorized='X' . ENDIF. IF lv_is_authorized <> 'X'.
+        %>
+        <!DOCTYPE html>
+        <html lang="en">
 
-  lv_auth_user = sy-uname.
-  TRANSLATE lv_auth_user TO UPPER CASE.
-  CONDENSE lv_auth_user NO-GAPS.
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>403 Forbidden</title>
+            <link rel="preconnect" href="https://fonts.googleapis.com">
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+            <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans&display=swap">
+            <style>
+                * {
+                    margin: 0;
+                    padding: 0;
+                    box-sizing: border-box;
+                }
 
-  IF lv_auth_user = 'ABAPER04' OR lv_auth_user = 'KMI-BOD' OR lv_auth_user = 'KMI-U163'.
-    lv_is_authorized = 'X'.
-  ENDIF.
+                body {
+                    width: 100%;
+                    height: 100%;
+                    min-height: 100vh;
+                    background-color: #f8fafc;
+                    font-family: 'Plus Jakarta Sans', sans-serif;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    text-align: center;
+                    padding: 1.5rem;
+                }
 
-  IF lv_is_authorized <> 'X'.
-%>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>403 Forbidden</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans&display=swap">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            width: 100%; height: 100%; min-height: 100vh;
-            background-color: #f8fafc;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            text-align: center; padding: 1.5rem;
-        }
-        .forbidden-title {
-            font-size: clamp(2.5rem, 6vw, 4.5rem);
-            font-weight: 800; color: #0284c7;
-            margin-bottom: 0.875rem;
-        }
-        .forbidden-desc {
-            font-size: clamp(0.95rem, 1.5vw, 1.075rem);
-            color: #64748b; max-width: 540px;
-        }
-    </style>
-</head>
-<body>
-    <h1 class="forbidden-title">403 Forbidden</h1>
-    <p class="forbidden-desc">
-        You do not have permission to access this page. Please contact the Core Team.
-    </p>
-</body>
-</html>
-<%
-  RETURN.
-ENDIF.
-%>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Business Partner Governance - Bank Steward Center</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
-    <style>
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background: #f7faf9;
-            color: #0f172a;
-            margin: 0;
-            padding: 0;
-        }
-        .font-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
-        .hidden { display: none !important; }
+                .forbidden-title {
+                    font-size: clamp(2.5rem, 6vw, 4.5rem);
+                    font-weight: 800;
+                    color: #0284c7;
+                    margin-bottom: 0.875rem;
+                }
 
-        /* SCROLLBAR */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: rgba(241, 245, 249, 0.6); border-radius: 10px; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #0284c7; }
+                .forbidden-desc {
+                    font-size: clamp(0.95rem, 1.5vw, 1.075rem);
+                    color: #64748b;
+                    max-width: 540px;
+                }
+            </style>
+        </head>
 
-        /* 1. TOP NAVBAR (100% FULL-WIDTH STICKY) */
-        .top-navbar {
-            position: sticky;
-            top: 0;
-            left: 0;
-            width: 100%;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid #edf2f0;
-            z-index: 100;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
-        }
-        .navbar-container {
-            width: 100%;
-            padding: 14px 40px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 24px;
-        }
+        <body>
+            <h1 class="forbidden-title">403 Forbidden</h1>
+            <p class="forbidden-desc">
+                You do not have permission to access this page. Please contact the Core Team.
+            </p>
+        </body>
 
-        /* BRAND LOGO */
-        .brand-logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            text-decoration: none;
-            flex-shrink: 0;
-        }
-        .logo-icon-wrap {
-            width: 42px;
-            height: 42px;
-            border-radius: 12px;
-            background: linear-gradient(135deg, #0284c7 0%, #0369a1 50%, #0c4a6e 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #ffffff;
-            font-weight: 800;
-            font-size: 14px;
-            letter-spacing: 0.05em;
-            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
-        }
-        .brand-text-wrap {
-            display: flex;
-            flex-direction: column;
-        }
-        .logo-text {
-            font-size: 17px;
-            font-weight: 800;
-            color: #0f172a;
-            letter-spacing: -0.02em;
-            line-height: 1.2;
-        }
-        .logo-subtext {
-            font-size: 11px;
-            font-weight: 600;
-            color: #64748b;
-            letter-spacing: 0.02em;
-        }
+        </html>
+        <% RETURN. ENDIF. %>
+            <!DOCTYPE html>
+            <html lang="en">
 
-        /* NAVBAR MODE BADGE */
-        .nav-mode-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 6px 14px;
-            border-radius: 9999px;
-            background: #f0f9ff;
-            border: 1px solid #bae6fd;
-            color: #0284c7;
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: 0.01em;
-        }
-        .pulse-dot {
-            width: 7px;
-            height: 7px;
-            border-radius: 9999px;
-            background: #0284c7;
-            box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.25);
-            animation: devPulse 1.8s infinite;
-        }
-        @keyframes devPulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.35; transform: scale(0.8); }
-        }
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Business Partner Governance - Bank Steward Center</title>
+                <script src="https://cdn.tailwindcss.com"></script>
+                <link rel="preconnect" href="https://fonts.googleapis.com">
+                <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+                <link rel="stylesheet"
+                    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+                <style>
+                    body {
+                        font-family: 'Plus Jakarta Sans', sans-serif;
+                        background: #f7faf9;
+                        color: #0f172a;
+                        margin: 0;
+                        padding: 0;
+                    }
 
-        /* STAGE NAV LINK */
-        .nav-stage-link {
-            font-size: 12px;
-            font-weight: 700;
-            color: #64748b;
-            padding: 6px 14px;
-            border-radius: 9999px;
-            border: 1px solid #e2e8f0;
-            background: #ffffff;
-            text-decoration: none;
-            transition: all 0.2s ease;
-        }
-        .nav-stage-link:hover {
-            color: #0284c7;
-            background: #f8fafc;
-            border-color: #cbd5e1;
-        }
+                    .font-mono {
+                        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+                    }
 
-        /* USER PROFILE WIDGET */
-        .user-profile-widget {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: #ffffff;
-            padding: 5px 14px 5px 6px;
-            border-radius: 9999px;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
-            flex-shrink: 0;
-        }
-        .user-avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #38bdf8, #0284c7);
-            color: #ffffff;
-            font-weight: 700;
-            font-size: 13px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-transform: uppercase;
-        }
-        .user-name {
-            font-size: 13px;
-            font-weight: 700;
-            color: #1e293b;
-            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-        }
-        .btn-signout {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 11.5px;
-            font-weight: 700;
-            color: #64748b;
-            text-decoration: none;
-            padding: 4px 10px;
-            border-radius: 9999px;
-            border: 1px solid #e2e8f0;
-            background: #f8fafc;
-            transition: all 0.2s ease;
-        }
-        .btn-signout:hover {
-            color: #0284c7;
-            background: #ffffff;
-            border-color: #cbd5e1;
-        }
+                    .hidden {
+                        display: none !important;
+                    }
 
-        /* 2. TOP HERO BANNER (DEEP OCEAN BLUE #0c4a6e) */
-        .hero-banner {
-            width: 100%;
-            background: linear-gradient(135deg, #0c4a6e 0%, #075985 60%, #082f49 100%);
-            padding: 34px 40px;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 4px 20px rgba(8, 47, 73, 0.12);
-        }
-        .hero-section {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            text-align: center;
-            align-items: center;
-            justify-content: center;
-        }
-        .hero-section h1 {
-            font-size: 32px;
-            font-weight: 800;
-            letter-spacing: -0.02em;
-            color: #ffffff !important;
-            margin: 0;
-            line-height: 1.2;
-        }
-        .hero-section p {
-            font-size: 13px;
-            color: #38bdf8 !important;
-            font-weight: 700;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            margin: 0;
-        }
+                    /* SCROLLBAR */
+                    ::-webkit-scrollbar {
+                        width: 6px;
+                        height: 6px;
+                    }
 
-        /* ANALYTICS GRID (4 TILES MATCHING USER SCREENSHOT & DATASTEWARD.HTM) */
-        .analytics-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 22px;
-            width: 100%;
-        }
+                    ::-webkit-scrollbar-track {
+                        background: rgba(241, 245, 249, 0.6);
+                        border-radius: 10px;
+                    }
 
-        .analytics-tile {
-            background: #ffffff;
-            border: 1px solid rgba(255, 255, 255, 0.8);
-            border-radius: 20px;
-            padding: 20px 24px;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
-            transition: all 0.25s ease;
-            width: 100%;
-        }
+                    ::-webkit-scrollbar-thumb {
+                        background: #cbd5e1;
+                        border-radius: 10px;
+                    }
 
-        .analytics-tile-clickable {
-            cursor: pointer;
-            position: relative;
-        }
+                    ::-webkit-scrollbar-thumb:hover {
+                        background: #0284c7;
+                    }
 
-        .analytics-tile-clickable:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.15);
-            border-color: #ffffff;
-        }
+                    /* 1. TOP NAVBAR (100% FULL-WIDTH STICKY) */
+                    .top-navbar {
+                        position: sticky;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        background: rgba(255, 255, 255, 0.95);
+                        backdrop-filter: blur(12px);
+                        -webkit-backdrop-filter: blur(12px);
+                        border-bottom: 1px solid #edf2f0;
+                        z-index: 100;
+                        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+                    }
 
-        .analytics-icon-box {
-            width: 50px;
-            height: 50px;
-            border-radius: 14px;
-            background: #0284c7;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #ffffff;
-            flex-shrink: 0;
-            box-shadow: 0 3px 10px rgba(2, 132, 199, 0.25);
-        }
+                    .navbar-container {
+                        width: 100%;
+                        padding: 14px 40px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        gap: 24px;
+                    }
 
-        .analytics-data {
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-            min-width: 0;
-        }
+                    /* BRAND LOGO */
+                    .brand-logo {
+                        display: flex;
+                        align-items: center;
+                        gap: 12px;
+                        text-decoration: none;
+                        flex-shrink: 0;
+                    }
 
-        .analytics-label {
-            font-size: 13px;
-            font-weight: 600;
-            color: #64748b;
-            margin-bottom: 3px;
-        }
+                    .logo-icon-wrap {
+                        width: 42px;
+                        height: 42px;
+                        border-radius: 12px;
+                        background: linear-gradient(135deg, #0284c7 0%, #0369a1 50%, #0c4a6e 100%);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        color: #ffffff;
+                        font-weight: 800;
+                        font-size: 14px;
+                        letter-spacing: 0.05em;
+                        box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+                    }
 
-        .analytics-value {
-            font-size: 26px;
-            font-weight: 800;
-            color: #0f172a;
-            letter-spacing: -0.02em;
-            line-height: 1.15;
-            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-        }
+                    .brand-text-wrap {
+                        display: flex;
+                        flex-direction: column;
+                    }
 
-        /* 3. MAIN SECTION WRAPPER */
-        .main-wrapper {
-            width: 100%;
-            max-width: 1800px;
-            margin: 0 auto;
-            padding: 32px 36px 60px 36px;
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
-            flex: 1;
-        }
-        @media (max-width: 1024px) {
-            .navbar-container { padding: 12px 18px; }
-            .hero-banner { padding: 26px 18px; }
-            .main-wrapper { padding: 20px 16px 40px 16px; }
-            .analytics-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
-        }
-        @media (max-width: 640px) {
-            .analytics-grid { grid-template-columns: 1fr; }
-        }
+                    .logo-text {
+                        font-size: 17px;
+                        font-weight: 800;
+                        color: #0f172a;
+                        letter-spacing: -0.02em;
+                        line-height: 1.2;
+                    }
 
-        /* DS CARD & PANELS */
-        .ds-card {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 26px;
-            padding: 28px 30px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
-            transition: all 0.3s ease;
-            width: 100%;
-        }
-        .ds-card-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding-bottom: 18px;
-            margin-bottom: 22px;
-            border-bottom: 1px solid #edf2f0;
-            flex-wrap: wrap;
-            gap: 16px;
-        }
-        .ds-header-left {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-        .ds-header-icon {
-            width: 44px;
-            height: 44px;
-            border-radius: 13px;
-            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #ffffff;
-            font-weight: 800;
-            font-size: 13px;
-            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
-            flex-shrink: 0;
-        }
-        .ds-card-title {
-            font-size: 16px;
-            font-weight: 800;
-            color: #0f172a;
-            letter-spacing: -0.01em;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin: 0;
-        }
-        .ds-card-subtitle {
-            font-size: 12.5px;
-            color: #64748b;
-            font-weight: 500;
-            margin-top: 2px;
-            margin-bottom: 0;
-        }
-        .badge-live {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 3px 10px;
-            border-radius: 9999px;
-            font-size: 10px;
-            font-weight: 800;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-            background: #f0f9ff;
-            color: #0284c7;
-            border: 1px solid #bae6fd;
-        }
-        .ds-subpanel {
-            background: #f8faf9;
-            border: 1px solid #edf2f0;
-            border-radius: 20px;
-            padding: 22px;
-        }
-        .ds-subpanel-title {
-            font-size: 12.5px;
-            font-weight: 800;
-            color: #0f172a;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-            margin-bottom: 16px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #e2e8f0;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+                    .logo-subtext {
+                        font-size: 11px;
+                        font-weight: 600;
+                        color: #64748b;
+                        letter-spacing: 0.02em;
+                    }
 
-        /* FORM CONTROLS & INPUTS */
-        .ds-input {
-            width: 100%;
-            padding: 10px 14px;
-            background: #ffffff;
-            border: 1px solid #cbd5e1;
-            border-radius: 12px;
-            font-family: inherit;
-            font-size: 13px;
-            color: #1e293b;
-            outline: none;
-            transition: all 0.2s ease;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
-            box-sizing: border-box;
-        }
-        .ds-input:focus {
-            background: #ffffff;
-            border-color: #0284c7;
-            box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.12);
-        }
-        .ds-select {
-            width: 100%;
-            padding: 9px 36px 9px 12px;
-            background-color: #ffffff;
-            border: 1px solid #cbd5e1;
-            border-radius: 12px;
-            font-family: inherit;
-            font-size: 12.5px;
-            font-weight: 600;
-            color: #334155;
-            outline: none;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2364748b' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-            background-position: right 0.75rem center;
-            background-repeat: no-repeat;
-            background-size: 1.2em 1.2em;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
-            box-sizing: border-box;
-        }
-        .ds-select:focus {
-            border-color: #0284c7;
-            box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.12);
-        }
-        .ds-label {
-            display: block;
-            font-size: 11.5px;
-            font-weight: 700;
-            color: #475569;
-            margin-bottom: 6px;
-            letter-spacing: 0.01em;
-        }
+                    /* NAVBAR MODE BADGE */
+                    .nav-mode-badge {
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 8px;
+                        padding: 6px 14px;
+                        border-radius: 9999px;
+                        background: #f0f9ff;
+                        border: 1px solid #bae6fd;
+                        color: #0284c7;
+                        font-size: 12px;
+                        font-weight: 700;
+                        letter-spacing: 0.01em;
+                    }
 
-        /* BUTTONS */
-        .ds-btn-primary {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-            color: #ffffff !important;
-            font-size: 13px;
-            font-weight: 800;
-            padding: 11px 22px;
-            border-radius: 14px;
-            border: none;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3);
-            text-decoration: none;
-        }
-        .ds-btn-primary:hover {
-            background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(2, 132, 199, 0.4);
-        }
-        .ds-btn-secondary {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: #ffffff;
-            color: #475569;
-            font-size: 12px;
-            font-weight: 700;
-            padding: 8px 16px;
-            border-radius: 9999px;
-            border: 1px solid #cbd5e1;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-decoration: none;
-        }
-        .ds-btn-secondary:hover {
-            background: #f1f5f9;
-            color: #0f172a;
-            border-color: #94a3b8;
-        }
+                    .pulse-dot {
+                        width: 7px;
+                        height: 7px;
+                        border-radius: 9999px;
+                        background: #0284c7;
+                        box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.25);
+                        animation: devPulse 1.8s infinite;
+                    }
 
-        /* TABLES */
-        .ds-table-wrap {
-            border: 1px solid #e2e8f0;
-            border-radius: 16px;
-            overflow-x: auto;
-            background: #ffffff;
-        }
-        .ds-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-        }
-        .ds-table th {
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            background: #f8faf9;
-            padding: 12px 14px;
-            text-align: left;
-            font-weight: 700;
-            color: #475569;
-            border-bottom: 1px solid #e2e8f0;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-        }
-        .ds-table td {
-            padding: 11px 14px;
-            border-bottom: 1px solid #f1f5f9;
-            vertical-align: middle;
-        }
-        .ds-table tr:hover td {
-            background-color: #f8fafc;
-        }
-        .ds-table tr:last-child td {
-            border-bottom: none;
-        }
+                    @keyframes devPulse {
 
-        /* PAGINATION FOOTER */
-        .bp-pagination-wrap {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 12px 18px;
-            border-top: 1px solid #e2e8f0;
-            background: #f8fafc;
-            border-bottom-left-radius: 16px;
-            border-bottom-right-radius: 16px;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
+                        0%,
+                        100% {
+                            opacity: 1;
+                            transform: scale(1);
+                        }
 
-        /* MODALS */
-        .ds-modal-backdrop {
-            position: fixed; inset: 0;
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(4px); z-index: 9999;
-            display: flex; align-items: center;
-            justify-content: center; padding: 1rem;
-        }
-        .ds-modal-backdrop.hidden { display: none !important; }
-    </style>
-</head>
-<body class="min-h-screen text-slate-800 flex flex-col">
+                        50% {
+                            opacity: 0.35;
+                            transform: scale(0.8);
+                        }
+                    }
 
-    <!-- TOP NAVIGATION BAR (FULL WIDTH) -->
-    <header class="top-navbar">
-        <div class="navbar-container">
-            <!-- BRAND LOGO FOR PT KAYU MEBEL INDONESIA -->
-            <a href="http://kmiprd.kmi.com:8001/sap(bD1lbiZjPTMwMA==)/bc/bsp/sap/zmdg_request/landing_page.htm" class="brand-logo" title="Kembali ke Master Data Governance Hub">
-                <div class="logo-icon-wrap">KMI</div>
-                <div class="brand-text-wrap">
-                    <span class="logo-text">PT Kayu Mebel Indonesia</span>
-                    <span class="logo-subtext">Wood &amp; Furniture Manufacturing</span>
-                </div>
-            </a>
+                    /* STAGE NAV LINK */
+                    .nav-stage-link {
+                        font-size: 12px;
+                        font-weight: 700;
+                        color: #64748b;
+                        padding: 6px 14px;
+                        border-radius: 9999px;
+                        border: 1px solid #e2e8f0;
+                        background: #ffffff;
+                        text-decoration: none;
+                        transition: all 0.2s ease;
+                    }
 
-            <!-- USER PROFILE WIDGET -->
-            <div class="flex items-center gap-3">
+                    .nav-stage-link:hover {
+                        color: #0284c7;
+                        background: #f8fafc;
+                        border-color: #cbd5e1;
+                    }
 
-                <div class="user-profile-widget">
-                    <div class="user-avatar" id="userAvatar">
-                        <%= sy-uname(1) %>
+                    /* USER PROFILE WIDGET */
+                    .user-profile-widget {
+                        display: flex;
+                        align-items: center;
+                        gap: 12px;
+                        background: #ffffff;
+                        padding: 5px 14px 5px 6px;
+                        border-radius: 9999px;
+                        border: 1px solid #e2e8f0;
+                        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+                        flex-shrink: 0;
+                    }
+
+                    .user-avatar {
+                        width: 32px;
+                        height: 32px;
+                        border-radius: 50%;
+                        background: linear-gradient(135deg, #38bdf8, #0284c7);
+                        color: #ffffff;
+                        font-weight: 700;
+                        font-size: 13px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        text-transform: uppercase;
+                    }
+
+                    .user-name {
+                        font-size: 13px;
+                        font-weight: 700;
+                        color: #1e293b;
+                        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+                    }
+
+                    .btn-signout {
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 5px;
+                        font-size: 11.5px;
+                        font-weight: 700;
+                        color: #64748b;
+                        text-decoration: none;
+                        padding: 4px 10px;
+                        border-radius: 9999px;
+                        border: 1px solid #e2e8f0;
+                        background: #f8fafc;
+                        transition: all 0.2s ease;
+                    }
+
+                    .btn-signout:hover {
+                        color: #0284c7;
+                        background: #ffffff;
+                        border-color: #cbd5e1;
+                    }
+
+                    /* 2. TOP HERO BANNER (DEEP OCEAN BLUE #0c4a6e) */
+                    .hero-banner {
+                        width: 100%;
+                        background: linear-gradient(135deg, #0c4a6e 0%, #075985 60%, #082f49 100%);
+                        padding: 34px 40px;
+                        display: flex;
+                        flex-direction: column;
+                        box-shadow: 0 4px 20px rgba(8, 47, 73, 0.12);
+                    }
+
+                    .hero-section {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 6px;
+                        text-align: center;
+                        align-items: center;
+                        justify-content: center;
+                    }
+
+                    .hero-section h1 {
+                        font-size: 32px;
+                        font-weight: 800;
+                        letter-spacing: -0.02em;
+                        color: #ffffff !important;
+                        margin: 0;
+                        line-height: 1.2;
+                    }
+
+                    .hero-section p {
+                        font-size: 13px;
+                        color: #38bdf8 !important;
+                        font-weight: 700;
+                        letter-spacing: 0.08em;
+                        text-transform: uppercase;
+                        margin: 0;
+                    }
+
+                    /* ANALYTICS GRID (4 TILES MATCHING USER SCREENSHOT & DATASTEWARD.HTM) */
+                    .analytics-grid {
+                        display: grid;
+                        grid-template-columns: repeat(4, 1fr);
+                        gap: 22px;
+                        width: 100%;
+                    }
+
+                    .analytics-tile {
+                        background: #ffffff;
+                        border: 1px solid rgba(255, 255, 255, 0.8);
+                        border-radius: 20px;
+                        padding: 20px 24px;
+                        display: flex;
+                        align-items: center;
+                        gap: 16px;
+                        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+                        transition: all 0.25s ease;
+                        width: 100%;
+                    }
+
+                    .analytics-tile-clickable {
+                        cursor: pointer;
+                        position: relative;
+                    }
+
+                    .analytics-tile-clickable:hover {
+                        transform: translateY(-3px);
+                        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.15);
+                        border-color: #ffffff;
+                    }
+
+                    .analytics-icon-box {
+                        width: 50px;
+                        height: 50px;
+                        border-radius: 14px;
+                        background: #0284c7;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        color: #ffffff;
+                        flex-shrink: 0;
+                        box-shadow: 0 3px 10px rgba(2, 132, 199, 0.25);
+                    }
+
+                    .analytics-data {
+                        display: flex;
+                        flex-direction: column;
+                        width: 100%;
+                        min-width: 0;
+                    }
+
+                    .analytics-label {
+                        font-size: 13px;
+                        font-weight: 600;
+                        color: #64748b;
+                        margin-bottom: 3px;
+                    }
+
+                    .analytics-value {
+                        font-size: 26px;
+                        font-weight: 800;
+                        color: #0f172a;
+                        letter-spacing: -0.02em;
+                        line-height: 1.15;
+                        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+                    }
+
+                    /* 3. MAIN SECTION WRAPPER */
+                    .main-wrapper {
+                        width: 100%;
+                        max-width: 1800px;
+                        margin: 0 auto;
+                        padding: 32px 36px 60px 36px;
+                        display: flex;
+                        flex-direction: column;
+                        gap: 24px;
+                        flex: 1;
+                    }
+
+                    @media (max-width: 1024px) {
+                        .navbar-container {
+                            padding: 12px 18px;
+                        }
+
+                        .hero-banner {
+                            padding: 26px 18px;
+                        }
+
+                        .main-wrapper {
+                            padding: 20px 16px 40px 16px;
+                        }
+
+                        .analytics-grid {
+                            grid-template-columns: repeat(2, 1fr);
+                            gap: 14px;
+                        }
+                    }
+
+                    @media (max-width: 640px) {
+                        .analytics-grid {
+                            grid-template-columns: 1fr;
+                        }
+                    }
+
+                    /* DS CARD & PANELS */
+                    .ds-card {
+                        background: #ffffff;
+                        border: 1px solid #e2e8f0;
+                        border-radius: 26px;
+                        padding: 28px 30px;
+                        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+                        transition: all 0.3s ease;
+                        width: 100%;
+                    }
+
+                    .ds-card-header {
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        padding-bottom: 18px;
+                        margin-bottom: 22px;
+                        border-bottom: 1px solid #edf2f0;
+                        flex-wrap: wrap;
+                        gap: 16px;
+                    }
+
+                    .ds-header-left {
+                        display: flex;
+                        align-items: center;
+                        gap: 14px;
+                    }
+
+                    .ds-header-icon {
+                        width: 44px;
+                        height: 44px;
+                        border-radius: 13px;
+                        background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        color: #ffffff;
+                        font-weight: 800;
+                        font-size: 13px;
+                        box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+                        flex-shrink: 0;
+                    }
+
+                    .ds-card-title {
+                        font-size: 16px;
+                        font-weight: 800;
+                        color: #0f172a;
+                        letter-spacing: -0.01em;
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                        margin: 0;
+                    }
+
+                    .ds-card-subtitle {
+                        font-size: 12.5px;
+                        color: #64748b;
+                        font-weight: 500;
+                        margin-top: 2px;
+                        margin-bottom: 0;
+                    }
+
+                    .badge-live {
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 6px;
+                        padding: 3px 10px;
+                        border-radius: 9999px;
+                        font-size: 10px;
+                        font-weight: 800;
+                        letter-spacing: 0.04em;
+                        text-transform: uppercase;
+                        background: #f0f9ff;
+                        color: #0284c7;
+                        border: 1px solid #bae6fd;
+                    }
+
+                    .ds-subpanel {
+                        background: #f8faf9;
+                        border: 1px solid #edf2f0;
+                        border-radius: 20px;
+                        padding: 22px;
+                    }
+
+                    .ds-subpanel-title {
+                        font-size: 12.5px;
+                        font-weight: 800;
+                        color: #0f172a;
+                        text-transform: uppercase;
+                        letter-spacing: 0.04em;
+                        margin-bottom: 16px;
+                        padding-bottom: 10px;
+                        border-bottom: 1px solid #e2e8f0;
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                    }
+
+                    /* FORM CONTROLS & INPUTS */
+                    .ds-input {
+                        width: 100%;
+                        padding: 10px 14px;
+                        background: #ffffff;
+                        border: 1px solid #cbd5e1;
+                        border-radius: 12px;
+                        font-family: inherit;
+                        font-size: 13px;
+                        color: #1e293b;
+                        outline: none;
+                        transition: all 0.2s ease;
+                        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+                        box-sizing: border-box;
+                    }
+
+                    .ds-input:focus {
+                        background: #ffffff;
+                        border-color: #0284c7;
+                        box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.12);
+                    }
+
+                    .ds-select {
+                        width: 100%;
+                        padding: 9px 36px 9px 12px;
+                        background-color: #ffffff;
+                        border: 1px solid #cbd5e1;
+                        border-radius: 12px;
+                        font-family: inherit;
+                        font-size: 12.5px;
+                        font-weight: 600;
+                        color: #334155;
+                        outline: none;
+                        cursor: pointer;
+                        transition: all 0.2s ease;
+                        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2364748b' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+                        background-position: right 0.75rem center;
+                        background-repeat: no-repeat;
+                        background-size: 1.2em 1.2em;
+                        -webkit-appearance: none;
+                        -moz-appearance: none;
+                        appearance: none;
+                        box-sizing: border-box;
+                    }
+
+                    .ds-select:focus {
+                        border-color: #0284c7;
+                        box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.12);
+                    }
+
+                    .ds-label {
+                        display: block;
+                        font-size: 11.5px;
+                        font-weight: 700;
+                        color: #475569;
+                        margin-bottom: 6px;
+                        letter-spacing: 0.01em;
+                    }
+
+                    /* BUTTONS */
+                    .ds-btn-primary {
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 8px;
+                        background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+                        color: #ffffff !important;
+                        font-size: 13px;
+                        font-weight: 800;
+                        padding: 11px 22px;
+                        border-radius: 14px;
+                        border: none;
+                        cursor: pointer;
+                        transition: all 0.2s ease;
+                        box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3);
+                        text-decoration: none;
+                    }
+
+                    .ds-btn-primary:hover {
+                        background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
+                        transform: translateY(-2px);
+                        box-shadow: 0 8px 20px rgba(2, 132, 199, 0.4);
+                    }
+
+                    .ds-btn-secondary {
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 6px;
+                        background: #ffffff;
+                        color: #475569;
+                        font-size: 12px;
+                        font-weight: 700;
+                        padding: 8px 16px;
+                        border-radius: 9999px;
+                        border: 1px solid #cbd5e1;
+                        cursor: pointer;
+                        transition: all 0.2s ease;
+                        text-decoration: none;
+                    }
+
+                    .ds-btn-secondary:hover {
+                        background: #f1f5f9;
+                        color: #0f172a;
+                        border-color: #94a3b8;
+                    }
+
+                    /* TABLES */
+                    .ds-table-wrap {
+                        border: 1px solid #e2e8f0;
+                        border-radius: 16px;
+                        overflow-x: auto;
+                        background: #ffffff;
+                    }
+
+                    .ds-table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        font-size: 13px;
+                    }
+
+                    .ds-table th {
+                        position: sticky;
+                        top: 0;
+                        z-index: 10;
+                        background: #f8faf9;
+                        padding: 12px 14px;
+                        text-align: left;
+                        font-weight: 700;
+                        color: #475569;
+                        border-bottom: 1px solid #e2e8f0;
+                        font-size: 11px;
+                        text-transform: uppercase;
+                        letter-spacing: 0.04em;
+                    }
+
+                    .ds-table td {
+                        padding: 11px 14px;
+                        border-bottom: 1px solid #f1f5f9;
+                        vertical-align: middle;
+                    }
+
+                    .ds-table tr:hover td {
+                        background-color: #f8fafc;
+                    }
+
+                    .ds-table tr:last-child td {
+                        border-bottom: none;
+                    }
+
+                    /* PAGINATION FOOTER */
+                    .bp-pagination-wrap {
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        padding: 12px 18px;
+                        border-top: 1px solid #e2e8f0;
+                        background: #f8fafc;
+                        border-bottom-left-radius: 16px;
+                        border-bottom-right-radius: 16px;
+                        flex-wrap: wrap;
+                        gap: 12px;
+                    }
+
+                    /* MODALS */
+                    .ds-modal-backdrop {
+                        position: fixed;
+                        inset: 0;
+                        background: rgba(15, 23, 42, 0.6);
+                        backdrop-filter: blur(4px);
+                        z-index: 9999;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        padding: 1rem;
+                    }
+
+                    .ds-modal-backdrop.hidden {
+                        display: none !important;
+                    }
+                </style>
+            </head>
+
+            <body class="min-h-screen text-slate-800 flex flex-col">
+
+                <!-- TOP NAVIGATION BAR (FULL WIDTH) -->
+                <header class="top-navbar">
+                    <div class="navbar-container">
+                        <!-- BRAND LOGO FOR PT KAYU MEBEL INDONESIA -->
+                        <a href="http://kmiprd.kmi.com:8001/sap(bD1lbiZjPTMwMA==)/bc/bsp/sap/zmdg_request/landing_page.htm"
+                            class="brand-logo" title="Kembali ke Master Data Governance Hub">
+                            <div class="logo-icon-wrap">KMI</div>
+                            <div class="brand-text-wrap">
+                                <span class="logo-text">PT Kayu Mebel Indonesia</span>
+                                <span class="logo-subtext">Wood &amp; Furniture Manufacturing</span>
+                            </div>
+                        </a>
+
+                        <!-- USER PROFILE WIDGET -->
+                        <div class="flex items-center gap-3">
+
+                            <div class="user-profile-widget">
+                                <div class="user-avatar" id="userAvatar">
+                                    <%= sy-uname(1) %>
+                                </div>
+                                <span class="user-name">
+                                    <%= sy-uname %>
+                                </span>
+                                <a href="?OnInputProcessing=LOGOUT" class="btn-signout" title="Sign Out">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2.5">
+                                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                        <polyline points="16 17 21 12 16 7"></polyline>
+                                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                                    </svg>
+                                    <span>Sign Out</span>
+                                </a>
+                            </div>
+                        </div>
                     </div>
-                    <span class="user-name">
-                        <%= sy-uname %>
-                    </span>
-                    <a href="?OnInputProcessing=LOGOUT" class="btn-signout" title="Sign Out">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                            <polyline points="16 17 21 12 16 7"></polyline>
-                            <line x1="21" y1="12" x2="9" y2="12"></line>
-                        </svg>
-                        <span>Sign Out</span>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </header>
+                </header>
 
-    <!-- TOP HERO BANNER (CENTERED, DEEP OCEAN BLUE) -->
-    <div class="hero-banner">
-        <section class="hero-section">
-            <h1>Bank Steward Review &amp; Verification</h1>
-            <p>ENTERPRISE BUSINESS PARTNER GOVERNANCE &amp; BANK STEWARD QUEUE</p>
-        </section>
-    </div>
+                <!-- TOP HERO BANNER (CENTERED, DEEP OCEAN BLUE) -->
+                <div class="hero-banner">
+                    <section class="hero-section">
+                        <h1>Bank Steward Review &amp; Verification</h1>
+                        <p>ENTERPRISE BUSINESS PARTNER GOVERNANCE &amp; BANK STEWARD QUEUE</p>
+                    </section>
+                </div>
 
-    <!-- MAIN CONTENT CONTAINER -->
-    <main class="main-wrapper">
+                <!-- MAIN CONTENT CONTAINER -->
+                <main class="main-wrapper">
 
-        <!-- 4-TILE ANALYTICS DASHBOARD GRID MATCHING USER SCREENSHOT -->
-        <div class="analytics-grid">
-            <!-- TILE 1: TOTAL PERMOHONAN -->
-            <div class="analytics-tile analytics-tile-clickable" onclick="document.getElementById('statusFilter').value='ALL'; applyFilters();" title="Klik untuk menampilkan seluruh permohonan BP">
-                <div class="analytics-icon-box" style="background: linear-gradient(135deg, #059669 0%, #047857 100%); box-shadow: 0 3px 10px rgba(4, 120, 87, 0.25);">
-                    <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-                    </svg>
-                </div>
-                <div class="analytics-data">
-                    <span class="analytics-label">Total Permohonan BP</span>
-                    <span class="analytics-value" id="kpiTotal">0</span>
-                </div>
-            </div>
+                    <!-- 4-TILE ANALYTICS DASHBOARD GRID MATCHING USER SCREENSHOT -->
+                    <div class="analytics-grid">
+                        <!-- TILE 1: TOTAL PERMOHONAN -->
+                        <div class="analytics-tile analytics-tile-clickable"
+                            onclick="document.getElementById('statusFilter').value='ALL'; applyFilters();"
+                            title="Klik untuk menampilkan seluruh permohonan BP">
+                            <div class="analytics-icon-box"
+                                style="background: linear-gradient(135deg, #059669 0%, #047857 100%); box-shadow: 0 3px 10px rgba(4, 120, 87, 0.25);">
+                                <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                    stroke-width="2.2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10">
+                                    </path>
+                                </svg>
+                            </div>
+                            <div class="analytics-data">
+                                <span class="analytics-label">Total Permohonan BP</span>
+                                <span class="analytics-value" id="kpiTotal">0</span>
+                            </div>
+                        </div>
 
-            <!-- TILE 2: SIAP REVIEW BANK STEWARD -->
-            <div class="analytics-tile analytics-tile-clickable" onclick="document.getElementById('statusFilter').value='PENDING_BANK'; applyFilters();" title="Klik untuk menyaring status Siap Review Bank Steward">
-                <div class="analytics-icon-box" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); box-shadow: 0 3px 10px rgba(217, 119, 6, 0.25);">
-                    <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                </div>
-                <div class="analytics-data">
-                    <span class="analytics-label">Siap Review Bank Steward</span>
-                    <span class="analytics-value" id="kpiPending" style="color: #d97706;">0</span>
-                </div>
-            </div>
+                        <!-- TILE 2: SIAP REVIEW BANK STEWARD -->
+                        <div class="analytics-tile analytics-tile-clickable"
+                            onclick="document.getElementById('statusFilter').value='PENDING_BANK'; applyFilters();"
+                            title="Klik untuk menyaring status Siap Review Bank Steward">
+                            <div class="analytics-icon-box"
+                                style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); box-shadow: 0 3px 10px rgba(217, 119, 6, 0.25);">
+                                <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                    stroke-width="2.2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                            <div class="analytics-data">
+                                <span class="analytics-label">Siap Review Bank Steward</span>
+                                <span class="analytics-value" id="kpiPending" style="color: #d97706;">0</span>
+                            </div>
+                        </div>
 
-            <!-- TILE 3: LOLOS VERIFIKASI BANK -->
-            <div class="analytics-tile analytics-tile-clickable" onclick="document.getElementById('statusFilter').value='BANK_CHECKED'; applyFilters();" title="Klik untuk menyaring status Lolos Verifikasi Bank Steward">
-                <div class="analytics-icon-box" style="background: linear-gradient(135deg, #059669 0%, #047857 100%); box-shadow: 0 3px 10px rgba(4, 120, 87, 0.25);">
-                    <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                </div>
-                <div class="analytics-data">
-                    <span class="analytics-label">Lolos Verifikasi Bank</span>
-                    <span class="analytics-value" id="kpiChecked" style="color: #047857;">0</span>
-                </div>
-            </div>
+                        <!-- TILE 3: LOLOS VERIFIKASI BANK -->
+                        <div class="analytics-tile analytics-tile-clickable"
+                            onclick="document.getElementById('statusFilter').value='BANK_CHECKED'; applyFilters();"
+                            title="Klik untuk menyaring status Lolos Verifikasi Bank Steward">
+                            <div class="analytics-icon-box"
+                                style="background: linear-gradient(135deg, #059669 0%, #047857 100%); box-shadow: 0 3px 10px rgba(4, 120, 87, 0.25);">
+                                <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                    stroke-width="2.2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                            <div class="analytics-data">
+                                <span class="analytics-label">Lolos Verifikasi Bank</span>
+                                <span class="analytics-value" id="kpiChecked" style="color: #047857;">0</span>
+                            </div>
+                        </div>
 
-            <!-- TILE 4: PERMOHONAN DITOLAK -->
-            <div class="analytics-tile analytics-tile-clickable" onclick="document.getElementById('statusFilter').value='REJECTED'; applyFilters();" title="Klik untuk menyaring status Permohonan Ditolak">
-                <div class="analytics-icon-box" style="background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%); box-shadow: 0 3px 10px rgba(225, 29, 72, 0.25);">
-                    <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                </div>
-                <div class="analytics-data">
-                    <span class="analytics-label">Permohonan Ditolak</span>
-                    <span class="analytics-value" id="kpiRejected" style="color: #e11d48;">0</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- 1. CONTAINER: BUSINESS PARTNER QUEUE (2 COLUMNS LAYOUT) -->
-        <section class="ds-card">
-            <!-- TOP FILTER TOOLBAR (REPLACES OLD SIDE PANEL) -->
-            <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 mb-6 flex flex-wrap items-center justify-between gap-4">
-                <div class="flex items-center gap-3 flex-1 min-w-[280px]">
-                    <div class="relative flex-1">
-                        <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                        </svg>
-                        <input type="text" id="searchInput" oninput="applyFilters()"
-                               placeholder="Cari No. Req, Nama BP, Rekening, Bank..."
-                               class="ds-input pl-10 font-mono text-xs">
-                    </div>
-                </div>
-                <div class="flex items-center gap-3 flex-wrap">
-                    <div class="w-48">
-                        <select id="statusFilter" onchange="applyFilters()" class="ds-select text-xs">
-                            <option value="ALL" selected>Semua Status Staging</option>
-                            <option value="PENDING_BANK">Siap Review Bank Steward</option>
-                            <option value="BANK_CHECKED">Lolos Bank Steward</option>
-                            <option value="CHECKED">Lolos Kedua Steward (Siap Final)</option>
-                            <option value="APPROVED">Disetujui Final (SAP)</option>
-                            <option value="REJECTED">Ditolak / Dikembalikan</option>
-                        </select>
-                    </div>
-                    <div class="w-44">
-                        <select id="roleFilter" onchange="applyFilters()" class="ds-select text-xs">
-                            <option value="ALL">Semua Role BP</option>
-                            <option value="FLVN00">Supplier / Vendor (FLVN00)</option>
-                            <option value="FLCU00">Customer (FLCU00)</option>
-                            <option value="BUP000">General Partner (BUP000)</option>
-                        </select>
-                    </div>
-                    <button type="button" onclick="fetchBpRequests()" class="ds-btn-primary py-2 text-xs" title="Refresh data antrean">
-                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                        </svg>
-                        <span>Sinkronkan Antrean</span>
-                    </button>
-                    <button type="button" onclick="resetFilters()" class="ds-btn-secondary" title="Reset filter">
-                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                        </svg>
-                        <span>Reset</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- FULL-WIDTH STAGING DATA TABLE -->
-            <div class="ds-subpanel flex flex-col justify-between min-h-[340px] w-full">
-                <div>
-                    <div class="flex items-center justify-between pb-3.5 mb-3.5 border-b border-slate-200/70 flex-wrap gap-2">
-                        <h3 class="ds-subpanel-title" style="margin-bottom:0; padding-bottom:0; border-bottom:none;">
-                            <svg width="16" height="16" class="text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                            </svg>
-                            Tabel Data Staging Business Partner
-                        </h3>
-                        <span id="queueBadge"
-                              class="text-[11px] font-extrabold px-3 py-1 rounded-full bg-white text-slate-700 border border-slate-200 shadow-2xs">
-                            0 Data
-                        </span>
+                        <!-- TILE 4: PERMOHONAN DITOLAK -->
+                        <div class="analytics-tile analytics-tile-clickable"
+                            onclick="document.getElementById('statusFilter').value='REJECTED'; applyFilters();"
+                            title="Klik untuk menyaring status Permohonan Ditolak">
+                            <div class="analytics-icon-box"
+                                style="background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%); box-shadow: 0 3px 10px rgba(225, 29, 72, 0.25);">
+                                <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                    stroke-width="2.2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                            <div class="analytics-data">
+                                <span class="analytics-label">Permohonan Ditolak</span>
+                                <span class="analytics-value" id="kpiRejected" style="color: #e11d48;">0</span>
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- DATA TABLE WRAPPER -->
-                    <div class="ds-table-wrap max-h-[520px] overflow-y-auto">
-                        <table class="ds-table">
-                            <thead>
-                                <tr>
-                                    <th style="width:40px; text-align:center;">No</th>
-                                    <th>Request ID</th>
-                                    <th>BP &amp; Name</th>
-                                    <th>Bank &amp; Account</th>
-                                    <th>Financial &amp; Terms</th>
-                                    <th style="text-align:center;">Requestor</th>
-                                    <th style="text-align:center;">Status</th>
-                                    <th style="text-align:center;">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="bpTableBody">
-                                <tr>
-                                    <td colspan="8" class="p-8 text-center text-slate-400 font-medium">
-                                        Memuat seluruh data staging Business Partner...
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <!-- 1. CONTAINER: BUSINESS PARTNER QUEUE (2 COLUMNS LAYOUT) -->
+                    <section class="ds-card">
+                        <!-- TOP FILTER TOOLBAR (REPLACES OLD SIDE PANEL) -->
+                        <div
+                            class="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 mb-6 flex flex-wrap items-center justify-between gap-4">
+                            <div class="flex items-center gap-3 flex-1 min-w-[280px]">
+                                <div class="relative flex-1">
+                                    <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                                        width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                        stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                    <input type="text" id="searchInput" oninput="applyFilters()"
+                                        placeholder="Cari No. Req, Nama BP, Rekening, Bank..."
+                                        class="ds-input pl-10 font-mono text-xs">
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-3 flex-wrap">
+                                <div class="w-48">
+                                    <select id="statusFilter" onchange="applyFilters()" class="ds-select text-xs">
+                                        <option value="ALL" selected>Semua Status Staging</option>
+                                        <option value="SD_APPROVED">Siap Review FI Customer (SD Approved)</option>
+                                        <option value="APPROVED">Disetujui Final (SAP Complete)</option>
+                                        <option value="REJECTED">Ditolak / Dikembalikan</option>
+                                    </select>
+                                </div>
+                                <div class="w-44">
+                                    <select id="roleFilter" onchange="applyFilters()" class="ds-select text-xs">
+                                        <option value="ALL">Semua Role BP</option>
+                                        <option value="FLVN00">FI Supplier (FLVN00)</option>
+                                        <option value="FLCU00">FI Customer (FLCU00)</option>
+                                        <option value="BUP000">General Partner (BUP000)</option>
+                                    </select>
+                                </div>
+                                <button type="button" onclick="fetchBpRequests()" class="ds-btn-primary py-2 text-xs"
+                                    title="Refresh data antrean">
+                                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                        stroke-width="2.2">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                    </svg>
+                                    <span>Sinkronkan Antrean</span>
+                                </button>
+                                <button type="button" onclick="resetFilters()" class="ds-btn-secondary"
+                                    title="Reset filter">
+                                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                        stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                    </svg>
+                                    <span>Reset</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- FULL-WIDTH STAGING DATA TABLE -->
+                        <div class="ds-subpanel flex flex-col justify-between min-h-[340px] w-full">
+                            <div>
+                                <div
+                                    class="flex items-center justify-between pb-3.5 mb-3.5 border-b border-slate-200/70 flex-wrap gap-2">
+                                    <h3 class="ds-subpanel-title"
+                                        style="margin-bottom:0; padding-bottom:0; border-bottom:none;">
+                                        <svg width="16" height="16" class="text-sky-600" fill="none"
+                                            stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                        </svg>
+                                        Tabel Data Staging Business Partner
+                                    </h3>
+                                    <span id="queueBadge"
+                                        class="text-[11px] font-extrabold px-3 py-1 rounded-full bg-white text-slate-700 border border-slate-200 shadow-2xs">
+                                        0 Data
+                                    </span>
+                                </div>
+
+                                <!-- DATA TABLE WRAPPER -->
+                                <div class="ds-table-wrap max-h-[520px] overflow-y-auto">
+                                    <table class="ds-table">
+                                        <thead>
+                                            <tr>
+                                                <th style="width:40px; text-align:center;">No</th>
+                                                <th>Request ID</th>
+                                                <th>BP &amp; Name</th>
+                                                <th>Bank &amp; Account</th>
+                                                <th>Financial &amp; Terms</th>
+                                                <th style="text-align:center;">Requestor</th>
+                                                <th style="text-align:center;">Status</th>
+                                                <th style="text-align:center;">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="bpTableBody">
+                                            <tr>
+                                                <td colspan="8" class="p-8 text-center text-slate-400 font-medium">
+                                                    Memuat seluruh data staging Business Partner...
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <!-- TABLE FOOTER & PAGINATION -->
+                                <div class="bp-pagination-wrap mt-3">
+                                    <div id="tableSummary" class="text-[11px] font-bold text-slate-500">Menampilkan 0
+                                        data</div>
+                                    <div class="flex items-center gap-1" id="paginationControls"></div>
+                                    <div id="pageInfo" class="text-[11px] font-medium text-slate-600"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </main>
+
+                <!-- FOOTER -->
+                <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-400 mt-auto">
+                    <div class="max-w-7xl mx-auto px-4">
+                        &copy; 2026 PT Kayu Mebel Indonesia &mdash; Master Data Governance
                     </div>
+                </footer>
 
-                    <!-- TABLE FOOTER & PAGINATION -->
-                    <div class="bp-pagination-wrap mt-3">
-                        <div id="tableSummary" class="text-[11px] font-bold text-slate-500">Menampilkan 0 data</div>
-                        <div class="flex items-center gap-1" id="paginationControls"></div>
-                        <div id="pageInfo" class="text-[11px] font-medium text-slate-600"></div>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <!-- FOOTER -->
-    <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-400 mt-auto">
-        <div class="max-w-7xl mx-auto px-4">
-            &copy; 2026 PT Kayu Mebel Indonesia &mdash; Master Data Governance
-        </div>
-    </footer>
-
-    <!-- BP DETAIL MODAL (5 SECTIONS) -->
-    <div id="bpDetailModal" class="ds-modal-backdrop hidden" style="display: none;">
-        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200
+                <!-- BP DETAIL MODAL (5 SECTIONS) -->
+                <div id="bpDetailModal" class="ds-modal-backdrop hidden" style="display: none;">
+                    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200
                     max-w-3xl w-full max-h-[90vh] flex flex-col overflow-hidden">
-            <!-- MODAL HEADER -->
-            <div class="px-6 py-4 border-b border-slate-100 flex items-center
+                        <!-- MODAL HEADER -->
+                        <div class="px-6 py-4 border-b border-slate-100 flex items-center
                         justify-between bg-slate-50/50">
-                <div class="flex items-center gap-2.5">
-                    <span class="w-3 h-3 rounded-full bg-sky-600"></span>
-                    <h3 class="text-sm font-extrabold text-slate-900 tracking-tight">
-                        Detail Permohonan Business Partner &mdash;
-                        <span id="dtlReqNo" class="font-mono font-bold"></span>
-                    </h3>
-                </div>
-                <button type="button" onclick="closeBpDetailModal()"
-                        class="text-slate-400 hover:text-slate-600 font-bold
+                            <div class="flex items-center gap-2.5">
+                                <span class="w-3 h-3 rounded-full bg-sky-600"></span>
+                                <h3 class="text-sm font-extrabold text-slate-900 tracking-tight">
+                                    Detail Permohonan Business Partner &mdash;
+                                    <span id="dtlReqNo" class="font-mono font-bold"></span>
+                                </h3>
+                            </div>
+                            <button type="button" onclick="closeBpDetailModal()" class="text-slate-400 hover:text-slate-600 font-bold
 text-lg p-1 rounded-lg hover:bg-slate-100 transition">&times;</button>
-            </div>
+                        </div>
 
-            <!-- MODAL BODY WITH ACCORDION SECTIONS -->
-            <div class="p-6 overflow-y-auto space-y-3 flex-1 text-xs">
-                <!-- REJECTION ALERT (IF REJECTED) -->
-                <div id="modalRejectBanner"
-                     class="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 hidden mb-3">
-                    <div class="font-extrabold flex items-center gap-1.5 mb-1">
-                        <span>&#10007; Permohonan Pernah Dikembalikan/Ditolak:</span>
-                    </div>
-                    <div id="modalRejectReason" class="text-xs font-medium"></div>
-                </div>
+                        <!-- MODAL BODY WITH ACCORDION SECTIONS -->
+                        <div class="p-6 overflow-y-auto space-y-3 flex-1 text-xs">
+                            <!-- REJECTION ALERT (IF REJECTED) -->
+                            <div id="modalRejectBanner"
+                                class="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 hidden mb-3">
+                                <div class="font-extrabold flex items-center gap-1.5 mb-1">
+                                    <span>&#10007; Permohonan Pernah Dikembalikan/Ditolak:</span>
+                                </div>
+                                <div id="modalRejectReason" class="text-xs font-medium"></div>
+                            </div>
 
-                <!-- ACCORDION SECTION 1: GENERAL INFORMATION -->
-                <details class="group rounded-2xl border border-slate-200 overflow-hidden bg-white shadow-2xs" open>
-                    <summary class="flex items-center justify-between p-3.5 cursor-pointer bg-slate-50 hover:bg-slate-100 font-extrabold text-xs text-slate-800 transition uppercase tracking-wider select-none border-b border-slate-100">
-                        <div class="flex items-center gap-2">
-                            <span class="w-2 h-2 rounded-full bg-sky-600"></span>
-                            <span>General Information</span>
-                        </div>
-                        <svg class="w-4 h-4 text-slate-500 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
-                        </svg>
-                    </summary>
-                    <div class="p-4 grid grid-cols-2 sm:grid-cols-3 gap-3 bg-white">
-                        <div>
-                            <span class="text-[10px] font-bold text-slate-400 block uppercase">Nama Resmi BP 1</span>
-                            <span id="dtlName1" class="font-bold text-slate-900"></span>
-                        </div>
-                        <div>
-                            <span class="text-[10px] font-bold text-slate-400 block uppercase">Nama Resmi BP 2</span>
-                            <span id="dtlName2" class="font-bold text-slate-900"></span>
-                        </div>
-                        <div>
-                            <span class="text-[10px] font-bold text-slate-400 block uppercase">Search Term</span>
-                            <span id="dtlSearchTerm" class="font-mono font-bold text-slate-800"></span>
-                        </div>
-                        <div>
-                            <span class="text-[10px] font-bold text-slate-400 block uppercase">Kategori BP</span>
-                            <span id="dtlCategory" class="font-semibold text-slate-700"></span>
-                        </div>
-                        <div>
-                            <span class="text-[10px] font-bold text-slate-400 block uppercase">Role BP</span>
-                            <span id="dtlRole" class="font-mono font-bold text-slate-800"></span>
-                        </div>
-                        <div>
-                            <span class="text-[10px] font-bold text-slate-400 block uppercase">Company Code</span>
-                            <span id="dtlBukrs" class="font-mono font-bold text-slate-800"></span>
-                        </div>
-                    </div>
-                </details>
+                            <!-- ACCORDION SECTION 1: GENERAL INFORMATION -->
+                            <details
+                                class="group rounded-2xl border border-slate-200 overflow-hidden bg-white shadow-2xs"
+                                open>
+                                <summary
+                                    class="flex items-center justify-between p-3.5 cursor-pointer bg-slate-50 hover:bg-slate-100 font-extrabold text-xs text-slate-800 transition uppercase tracking-wider select-none border-b border-slate-100">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-2 h-2 rounded-full bg-sky-600"></span>
+                                        <span>General Information</span>
+                                    </div>
+                                    <svg class="w-4 h-4 text-slate-500 transition-transform group-open:rotate-180"
+                                        fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </summary>
+                                <div class="p-4 grid grid-cols-2 sm:grid-cols-3 gap-3 bg-white">
+                                    <div>
+                                        <span class="text-[10px] font-bold text-slate-400 block uppercase">Nama Resmi BP
+                                            1</span>
+                                        <span id="dtlName1" class="font-bold text-slate-900"></span>
+                                    </div>
+                                    <div>
+                                        <span class="text-[10px] font-bold text-slate-400 block uppercase">Nama Resmi BP
+                                            2</span>
+                                        <span id="dtlName2" class="font-bold text-slate-900"></span>
+                                    </div>
+                                    <div>
+                                        <span class="text-[10px] font-bold text-slate-400 block uppercase">Search
+                                            Term</span>
+                                        <span id="dtlSearchTerm" class="font-mono font-bold text-slate-800"></span>
+                                    </div>
+                                    <div>
+                                        <span class="text-[10px] font-bold text-slate-400 block uppercase">Kategori
+                                            BP</span>
+                                        <span id="dtlCategory" class="font-semibold text-slate-700"></span>
+                                    </div>
+                                    <div>
+                                        <span class="text-[10px] font-bold text-slate-400 block uppercase">Role
+                                            BP</span>
+                                        <span id="dtlRole" class="font-mono font-bold text-slate-800"></span>
+                                    </div>
+                                    <div>
+                                        <span class="text-[10px] font-bold text-slate-400 block uppercase">Company
+                                            Code</span>
+                                        <span id="dtlBukrs" class="font-mono font-bold text-slate-800"></span>
+                                    </div>
+                                </div>
+                            </details>
 
-                <!-- ACCORDION SECTION 2: ADDRESS & CONTACT -->
-                <details class="group rounded-2xl border border-slate-200 overflow-hidden bg-white shadow-2xs" open>
-                    <summary class="flex items-center justify-between p-3.5 cursor-pointer bg-slate-50 hover:bg-slate-100 font-extrabold text-xs text-slate-800 transition uppercase tracking-wider select-none border-b border-slate-100">
-                        <div class="flex items-center gap-2">
-                            <span class="w-2 h-2 rounded-full bg-sky-600"></span>
-                            <span>Address &amp; Contact</span>
-                        </div>
-                        <svg class="w-4 h-4 text-slate-500 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
-                        </svg>
-                    </summary>
-                    <div class="p-4 grid grid-cols-2 sm:grid-cols-3 gap-3 bg-white">
-                        <div class="sm:col-span-2">
-                            <span class="text-[10px] font-bold text-slate-400 block uppercase">Jalan / Gedung</span>
-                            <span id="dtlStreet" class="font-semibold text-slate-800"></span>
-                        </div>
-                        <div>
-                            <span class="text-[10px] font-bold text-slate-400 block uppercase">Kota</span>
-                            <span id="dtlCity" class="font-semibold text-slate-800"></span>
-                        </div>
-                        <div>
-                            <span class="text-[10px] font-bold text-slate-400 block uppercase">Pos / Negara</span>
-                            <span id="dtlPostalCountry" class="font-semibold text-slate-800"></span>
-                        </div>
-                        <div>
-                            <span class="text-[10px] font-bold text-slate-400 block uppercase">Telepon</span>
-                            <span id="dtlPhone" class="font-mono text-slate-800"></span>
-                        </div>
-                        <div>
-                            <span class="text-[10px] font-bold text-slate-400 block uppercase">Email</span>
-                            <span id="dtlEmail" class="font-mono text-slate-800"></span>
-                        </div>
-                    </div>
-                </details>
+                            <!-- ACCORDION SECTION 2: ADDRESS & CONTACT -->
+                            <details
+                                class="group rounded-2xl border border-slate-200 overflow-hidden bg-white shadow-2xs"
+                                open>
+                                <summary
+                                    class="flex items-center justify-between p-3.5 cursor-pointer bg-slate-50 hover:bg-slate-100 font-extrabold text-xs text-slate-800 transition uppercase tracking-wider select-none border-b border-slate-100">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-2 h-2 rounded-full bg-sky-600"></span>
+                                        <span>Address &amp; Contact</span>
+                                    </div>
+                                    <svg class="w-4 h-4 text-slate-500 transition-transform group-open:rotate-180"
+                                        fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </summary>
+                                <div class="p-4 grid grid-cols-2 sm:grid-cols-3 gap-3 bg-white">
+                                    <div class="sm:col-span-2">
+                                        <span class="text-[10px] font-bold text-slate-400 block uppercase">Jalan /
+                                            Gedung</span>
+                                        <span id="dtlStreet" class="font-semibold text-slate-800"></span>
+                                    </div>
+                                    <div>
+                                        <span class="text-[10px] font-bold text-slate-400 block uppercase">Kota</span>
+                                        <span id="dtlCity" class="font-semibold text-slate-800"></span>
+                                    </div>
+                                    <div>
+                                        <span class="text-[10px] font-bold text-slate-400 block uppercase">Pos /
+                                            Negara</span>
+                                        <span id="dtlPostalCountry" class="font-semibold text-slate-800"></span>
+                                    </div>
+                                    <div>
+                                        <span
+                                            class="text-[10px] font-bold text-slate-400 block uppercase">Telepon</span>
+                                        <span id="dtlPhone" class="font-mono text-slate-800"></span>
+                                    </div>
+                                    <div>
+                                        <span class="text-[10px] font-bold text-slate-400 block uppercase">Email</span>
+                                        <span id="dtlEmail" class="font-mono text-slate-800"></span>
+                                    </div>
+                                </div>
+                            </details>
 
-                <!-- ACCORDION SECTION 3: TAX & FINANCIAL -->
-                <details class="group rounded-2xl border border-slate-200 overflow-hidden bg-white shadow-2xs" open>
-                    <summary class="flex items-center justify-between p-3.5 cursor-pointer bg-slate-50 hover:bg-slate-100 font-extrabold text-xs text-slate-800 transition uppercase tracking-wider select-none border-b border-slate-100">
-                        <div class="flex items-center gap-2">
-                            <span class="w-2 h-2 rounded-full bg-sky-600"></span>
-                            <span>Tax &amp; Financial Data</span>
-                        </div>
-                        <svg class="w-4 h-4 text-slate-500 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
-                        </svg>
-                    </summary>
-                    <div class="p-4 grid grid-cols-2 sm:grid-cols-4 gap-3 bg-white">
-                        <div class="sm:col-span-2">
-                            <span class="text-[10px] font-bold text-slate-400 block uppercase">NPWP / Tax Number</span>
-                            <span id="dtlTaxNum" class="font-mono font-black text-slate-900 text-sm bg-slate-100 px-2.5 py-1 rounded inline-block border border-slate-200"></span>
-                        </div>
-                        <div>
-                            <span class="text-[10px] font-bold text-slate-400 block uppercase">Recon Account</span>
-                            <span id="dtlAkont" class="font-mono font-bold text-slate-800"></span>
-                        </div>
-                        <div>
-                            <span class="text-[10px] font-bold text-slate-400 block uppercase">Terms of Payment</span>
-                            <span id="dtlZterm" class="font-mono font-bold text-slate-800"></span>
-                        </div>
-                    </div>
-                </details>
+                            <!-- ACCORDION SECTION 3: TAX & FINANCIAL -->
+                            <details
+                                class="group rounded-2xl border border-slate-200 overflow-hidden bg-white shadow-2xs"
+                                open>
+                                <summary
+                                    class="flex items-center justify-between p-3.5 cursor-pointer bg-slate-50 hover:bg-slate-100 font-extrabold text-xs text-slate-800 transition uppercase tracking-wider select-none border-b border-slate-100">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-2 h-2 rounded-full bg-sky-600"></span>
+                                        <span>Tax &amp; Financial Data</span>
+                                    </div>
+                                    <svg class="w-4 h-4 text-slate-500 transition-transform group-open:rotate-180"
+                                        fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </summary>
+                                <div class="p-4 grid grid-cols-2 sm:grid-cols-4 gap-3 bg-white">
+                                    <div class="sm:col-span-2">
+                                        <span class="text-[10px] font-bold text-slate-400 block uppercase">NPWP / Tax
+                                            Number</span>
+                                        <span id="dtlTaxNum"
+                                            class="font-mono font-black text-slate-900 text-sm bg-slate-100 px-2.5 py-1 rounded inline-block border border-slate-200"></span>
+                                    </div>
+                                    <div>
+                                        <span class="text-[10px] font-bold text-slate-400 block uppercase">Recon
+                                            Account</span>
+                                        <span id="dtlAkont" class="font-mono font-bold text-slate-800"></span>
+                                    </div>
+                                    <div>
+                                        <span class="text-[10px] font-bold text-slate-400 block uppercase">Terms of
+                                            Payment</span>
+                                        <span id="dtlZterm" class="font-mono font-bold text-slate-800"></span>
+                                    </div>
+                                </div>
+                            </details>
 
-                <!-- ACCORDION SECTION 4: BANK INFORMATION -->
-                <details class="group rounded-2xl border border-slate-200 overflow-hidden bg-white shadow-2xs" open>
-                    <summary class="flex items-center justify-between p-3.5 cursor-pointer bg-slate-50 hover:bg-slate-100 font-extrabold text-xs text-slate-800 transition uppercase tracking-wider select-none border-b border-slate-100">
-                        <div class="flex items-center gap-2">
-                            <span class="w-2 h-2 rounded-full bg-sky-600"></span>
-                            <span>Bank Information</span>
-                        </div>
-                        <svg class="w-4 h-4 text-slate-500 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
-                        </svg>
-                    </summary>
-                    <div class="p-4 grid grid-cols-2 sm:grid-cols-4 gap-3 bg-white">
-                        <div>
-                            <span class="text-[10px] font-bold text-slate-400 block uppercase">Nama Bank</span>
-                            <span id="dtlBankName" class="font-bold text-slate-800"></span>
-                        </div>
-                        <div>
-                            <span class="text-[10px] font-bold text-slate-400 block uppercase">Bank Key (BANKL)</span>
-                            <span id="dtlBankl" class="font-mono font-bold text-slate-800"></span>
-                        </div>
-                        <div>
-                            <span class="text-[10px] font-bold text-slate-400 block uppercase">No Rekening (BANKN)</span>
-                            <span id="dtlBankn" class="font-mono font-bold text-slate-800"></span>
-                        </div>
-                        <div>
-                            <span class="text-[10px] font-bold text-slate-400 block uppercase">Pemilik (KOINH)</span>
-                            <span id="dtlKoinh" class="font-bold text-slate-800"></span>
-                        </div>
-                    </div>
-                </details>
+                            <!-- ACCORDION SECTION 4: BANK INFORMATION -->
+                            <details
+                                class="group rounded-2xl border border-slate-200 overflow-hidden bg-white shadow-2xs"
+                                open>
+                                <summary
+                                    class="flex items-center justify-between p-3.5 cursor-pointer bg-slate-50 hover:bg-slate-100 font-extrabold text-xs text-slate-800 transition uppercase tracking-wider select-none border-b border-slate-100">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-2 h-2 rounded-full bg-sky-600"></span>
+                                        <span>Bank Information</span>
+                                    </div>
+                                    <svg class="w-4 h-4 text-slate-500 transition-transform group-open:rotate-180"
+                                        fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </summary>
+                                <div class="p-4 grid grid-cols-2 sm:grid-cols-4 gap-3 bg-white">
+                                    <div>
+                                        <span class="text-[10px] font-bold text-slate-400 block uppercase">Nama
+                                            Bank</span>
+                                        <span id="dtlBankName" class="font-bold text-slate-800"></span>
+                                    </div>
+                                    <div>
+                                        <span class="text-[10px] font-bold text-slate-400 block uppercase">Bank Key
+                                            (BANKL)</span>
+                                        <span id="dtlBankl" class="font-mono font-bold text-slate-800"></span>
+                                    </div>
+                                    <div>
+                                        <span class="text-[10px] font-bold text-slate-400 block uppercase">No Rekening
+                                            (BANKN)</span>
+                                        <span id="dtlBankn" class="font-mono font-bold text-slate-800"></span>
+                                    </div>
+                                    <div>
+                                        <span class="text-[10px] font-bold text-slate-400 block uppercase">Pemilik
+                                            (KOINH)</span>
+                                        <span id="dtlKoinh" class="font-bold text-slate-800"></span>
+                                    </div>
+                                </div>
+                            </details>
 
-                <!-- ACCORDION SECTION 5: WORKFLOW AUDIT -->
-                <details class="group rounded-2xl border border-slate-200 overflow-hidden bg-white shadow-2xs" open>
-                    <summary class="flex items-center justify-between p-3.5 cursor-pointer bg-slate-50 hover:bg-slate-100 font-extrabold text-xs text-slate-800 transition uppercase tracking-wider select-none border-b border-slate-100">
-                        <div class="flex items-center gap-2">
-                            <span class="w-2 h-2 rounded-full bg-sky-600"></span>
-                            <span>Workflow &amp; Governance Audit</span>
+                            <!-- ACCORDION SECTION 5: WORKFLOW AUDIT -->
+                            <details
+                                class="group rounded-2xl border border-slate-200 overflow-hidden bg-white shadow-2xs"
+                                open>
+                                <summary
+                                    class="flex items-center justify-between p-3.5 cursor-pointer bg-slate-50 hover:bg-slate-100 font-extrabold text-xs text-slate-800 transition uppercase tracking-wider select-none border-b border-slate-100">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-2 h-2 rounded-full bg-sky-600"></span>
+                                        <span>Workflow &amp; Governance Audit</span>
+                                    </div>
+                                    <svg class="w-4 h-4 text-slate-500 transition-transform group-open:rotate-180"
+                                        fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </summary>
+                                <div
+                                    class="p-4 grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50/80 rounded-xl border border-slate-100">
+                                    <div>
+                                        <span class="text-[10px] text-slate-400 font-bold block uppercase">Requestor
+                                            &amp; Waktu</span>
+                                        <div id="dtlRequestor" class="font-mono font-bold text-slate-900"></div>
+                                        <div id="dtlReqTimestamp" class="text-[10px] text-slate-400"></div>
+                                    </div>
+                                    <div>
+                                        <span class="text-[10px] text-slate-400 font-bold block uppercase">Stage 1: BP
+                                            Data Steward</span>
+                                        <div id="dtlStwDataStatus" class="font-semibold text-emerald-800"></div>
+                                        <div id="dtlStwDataNote" class="text-[10px] text-slate-500 italic mt-0.5"></div>
+                                    </div>
+                                    <div>
+                                        <span class="text-[10px] text-slate-400 font-bold block uppercase">Stage 2: BP
+                                            Bank Steward</span>
+                                        <div id="dtlStwBankStatus" class="font-semibold text-sky-800"></div>
+                                        <div id="dtlStwBankNote" class="text-[10px] text-slate-500 italic mt-0.5"></div>
+                                    </div>
+                                </div>
+                            </details>
                         </div>
-                        <svg class="w-4 h-4 text-slate-500 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
-                        </svg>
-                    </summary>
-                    <div class="p-4 grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50/80 rounded-xl border border-slate-100">
-                        <div>
-                            <span class="text-[10px] text-slate-400 font-bold block uppercase">Requestor &amp; Waktu</span>
-                            <div id="dtlRequestor" class="font-mono font-bold text-slate-900"></div>
-                            <div id="dtlReqTimestamp" class="text-[10px] text-slate-400"></div>
-                        </div>
-                        <div>
-                            <span class="text-[10px] text-slate-400 font-bold block uppercase">Stage 1: BP Data Steward</span>
-                            <div id="dtlStwDataStatus" class="font-semibold text-emerald-800"></div>
-                            <div id="dtlStwDataNote" class="text-[10px] text-slate-500 italic mt-0.5"></div>
-                        </div>
-                        <div>
-                            <span class="text-[10px] text-slate-400 font-bold block uppercase">Stage 2: BP Bank Steward</span>
-                            <div id="dtlStwBankStatus" class="font-semibold text-sky-800"></div>
-                            <div id="dtlStwBankNote" class="text-[10px] text-slate-500 italic mt-0.5"></div>
-                        </div>
-                    </div>
-                </details>
-            </div>
 
-            <!-- MODAL FOOTER -->
-            <div class="px-6 py-4 border-t border-slate-100 flex items-center
+                        <!-- MODAL FOOTER -->
+                        <div class="px-6 py-4 border-t border-slate-100 flex items-center
                         justify-between bg-slate-50/50">
-                <button type="button" onclick="closeBpDetailModal()"
-                        class="px-5 py-2 rounded-full text-xs font-bold
+                            <button type="button" onclick="closeBpDetailModal()" class="px-5 py-2 rounded-full text-xs font-bold
                                border border-slate-300 text-slate-700 bg-white
                                hover:bg-slate-100 transition cursor-pointer">
-                    Tutup
-                </button>
-                <div id="modalActionContainer" class="flex items-center gap-2"></div>
-            </div>
-        </div>
-    </div>
+                                Tutup
+                            </button>
+                            <div id="modalActionContainer" class="flex items-center gap-2"></div>
+                        </div>
+                    </div>
+                </div>
 
-    <!-- CONFIRMATION CHECK MODAL -->
-    <div id="checkConfirmModal" class="ds-modal-backdrop hidden" style="display: none;">
-        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200
+                <!-- CONFIRMATION CHECK MODAL -->
+                <div id="checkConfirmModal" class="ds-modal-backdrop hidden" style="display: none;">
+                    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200
                     max-w-md w-full p-6 text-center">
-            <div class="w-12 h-12 rounded-full bg-sky-100
+                        <div class="w-12 h-12 rounded-full bg-sky-100
                         text-sky-700 mx-auto flex items-center
                         justify-center text-xl font-black mb-3">
-                &#10003;
-            </div>
-            <h3 class="text-sm font-extrabold text-slate-900">
-                Konfirmasi Persetujuan BP Bank Steward
-            </h3>
-            <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">
-Anda akan menyetujui detail rekening untuk record <strong id="confirmReqIdLabel"
-                    class="font-mono text-sky-900"></strong>. Status akan diubah menjadi <span
-                    class="font-bold text-sky-700">CHECKED</span> dan permohonan otomatis
-                    tersedia di halaman <strong class="text-slate-800">Final Approval</strong>
-                    untuk pembuatan BP di SAP.
-            </p>
-            <div class="mt-4 text-left">
-                <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">
-                    Catatan Validasi Bank Steward (Opsional)
-                </label>
-                <textarea id="checkNotesInput" rows="2"
-                          placeholder="Contoh: Rekening bank dan pemilik telah divalidasi..."
-                          class="w-full p-2.5 border border-slate-200 rounded-xl
+                            &#10003;
+                        </div>
+                        <h3 class="text-sm font-extrabold text-slate-900">
+                            Konfirmasi Aktivasi FI Customer (FLCU00) &amp; Approval Bank
+                        </h3>
+                        <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">
+                            Anda akan menyetujui detail data keuangan &amp; rekening untuk record <strong
+                                id="confirmReqIdLabel" class="font-mono text-sky-900"></strong>. Perintah ini akan
+                            mengaktifkan <span class="font-bold text-sky-700">BP Role FLCU00 – FI Customer</span> pada
+                            Nomor BP SAP yang dibuat di Tahap 1, dan menyelesaikan alur governance (<strong
+                                class="text-emerald-700">APPROVED Complete</strong>).
+                        </p>
+                        <div class="mt-4 text-left">
+                            <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">
+                                Catatan Validasi Bank Steward (Opsional)
+                            </label>
+                            <textarea id="checkNotesInput" rows="2"
+                                placeholder="Contoh: Rekening bank dan pemilik telah divalidasi..." class="w-full p-2.5 border border-slate-200 rounded-xl
                                  text-xs font-medium text-slate-800
                                  focus:outline-none"></textarea>
-            </div>
-            <div class="mt-5 flex items-center justify-end gap-2">
-                <button type="button" onclick="closeCheckConfirmModal()"
-                        class="px-4 py-2 rounded-full text-xs font-bold
+                        </div>
+                        <div class="mt-5 flex items-center justify-end gap-2">
+                            <button type="button" onclick="closeCheckConfirmModal()" class="px-4 py-2 rounded-full text-xs font-bold
                                border border-slate-200 bg-white hover:bg-slate-100
                                text-slate-700 transition cursor-pointer">
-                    Batal
-                </button>
-                <button type="button" onclick="executeCheckConfirm()"
-                        class="ds-btn-primary px-5 py-2 text-xs">
-                    Ya, Approve &amp; Teruskan
-                </button>
-            </div>
-        </div>
-    </div>
+                                Batal
+                            </button>
+                            <button type="button" onclick="executeCheckConfirm()"
+                                class="ds-btn-primary px-5 py-2 text-xs">
+                                Ya, Approve &amp; Teruskan
+                            </button>
+                        </div>
+                    </div>
+                </div>
 
-    <!-- REJECT MODAL -->
-    <div id="returnModal" class="ds-modal-backdrop hidden" style="display: none;">
-        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200
+                <!-- REJECT MODAL -->
+                <div id="returnModal" class="ds-modal-backdrop hidden" style="display: none;">
+                    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200
                     max-w-md w-full p-6">
-            <div class="flex items-center justify-between pb-3 border-b
+                        <div class="flex items-center justify-between pb-3 border-b
                         border-slate-100 mb-4">
-                <h3 class="text-xs font-extrabold text-rose-800 uppercase
+                            <h3 class="text-xs font-extrabold text-rose-800 uppercase
                            tracking-wider flex items-center gap-1.5">
-                    <span>&#10007; Tolak Permohonan Business Partner</span>
-                </h3>
-                <button type="button" onclick="closeReturnModal()"
-                        class="text-slate-400 hover:text-slate-600 font-bold">&times;</button>
-            </div>
-            <p class="text-xs text-slate-600 mb-3">
-Silakan tuliskan alasan penolakan rekening/keuangan untuk <strong id="returnReqIdLabel"
-                    class="font-mono text-slate-800"></strong>:
-            </p>
-            <textarea id="returnReasonInput" rows="3"
-                      placeholder="Tuliskan alasan penolakan..."
-                      class="w-full p-3 border border-slate-200 rounded-xl
+                                <span>&#10007; Tolak Permohonan Business Partner</span>
+                            </h3>
+                            <button type="button" onclick="closeReturnModal()"
+                                class="text-slate-400 hover:text-slate-600 font-bold">&times;</button>
+                        </div>
+                        <p class="text-xs text-slate-600 mb-3">
+                            Silakan tuliskan alasan penolakan rekening/keuangan untuk <strong id="returnReqIdLabel"
+                                class="font-mono text-slate-800"></strong>:
+                        </p>
+                        <textarea id="returnReasonInput" rows="3" placeholder="Tuliskan alasan penolakan..." class="w-full p-3 border border-slate-200 rounded-xl
                              text-xs font-medium text-slate-800
                              focus:outline-none focus:border-rose-500"></textarea>
-            <div class="mt-4 flex justify-end gap-2">
-                <button type="button" onclick="closeReturnModal()"
-                        class="px-4 py-2 rounded-full text-xs font-bold
+                        <div class="mt-4 flex justify-end gap-2">
+                            <button type="button" onclick="closeReturnModal()" class="px-4 py-2 rounded-full text-xs font-bold
                                border border-slate-200 bg-white hover:bg-slate-100
                                text-slate-700 transition cursor-pointer">
-                    Batal
-                </button>
-                <button type="button" onclick="executeReturnConfirm()"
-                        class="px-5 py-2 rounded-full text-xs font-extrabold
+                                Batal
+                            </button>
+                            <button type="button" onclick="executeReturnConfirm()" class="px-5 py-2 rounded-full text-xs font-extrabold
                                bg-rose-600 hover:bg-rose-700 text-white
                                shadow-2xs transition cursor-pointer">
-                    Konfirmasi Tolak
-                </button>
-            </div>
-        </div>
-    </div>
+                                Konfirmasi Tolak
+                            </button>
+                        </div>
+                    </div>
+                </div>
 
-    <!-- TOAST NOTIFICATION CONTAINER -->
-    <div class="fixed bottom-5 right-5 flex flex-col gap-2 z-[10000]"
-         id="toastContainer"></div>
+                <!-- TOAST NOTIFICATION CONTAINER -->
+                <div class="fixed bottom-5 right-5 flex flex-col gap-2 z-[10000]" id="toastContainer"></div>
 
-    <!-- JAVASCRIPT LOGIC -->
-    <script>
-        var rawBpList = [];
-        var filteredBpList = [];
-        var activeReqId = '';
-        var currentPage = 1;
-        var rowsPerPage = 10;
+                <!-- JAVASCRIPT LOGIC -->
+                <script>
+                    var rawBpList = [];
+                    var filteredBpList = [];
+                    var activeReqId = '';
+                    var currentPage = 1;
+                    var rowsPerPage = 10;
 
-        document.addEventListener('DOMContentLoaded', function () {
-            fetchBpRequests();
-        });
+                    document.addEventListener('DOMContentLoaded', function () {
+                        fetchBpRequests();
+                    });
 
-        function fetchBpRequests() {
-            var tbody = document.getElementById('bpTableBody');
-            if (tbody && rawBpList.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" ' +
-                    'class="p-8 text-center text-slate-400 italic">' +
-                    'Memuat antrean Business Partner...</td></tr>';
-            }
+                    function fetchBpRequests() {
+                        var tbody = document.getElementById('bpTableBody');
+                        if (tbody && rawBpList.length === 0) {
+                            tbody.innerHTML = '<tr><td colspan="8" ' +
+                                'class="p-8 text-center text-slate-400 italic">' +
+                                'Memuat antrean Business Partner...</td></tr>';
+                        }
 
-            var formData = new FormData();
-            formData.append('OnInputProcessing', 'GET_PENDING_LIST');
-            formData.append('action', 'GET_PENDING_LIST');
+                        var formData = new FormData();
+                        formData.append('OnInputProcessing', 'GET_PENDING_LIST');
+                        formData.append('action', 'GET_PENDING_LIST');
 
-            fetch('?OnInputProcessing=GET_PENDING_LIST&action=GET_PENDING_LIST', {
-                method: 'POST',
-                body: formData
-            })
-            .then(function (res) {
-                if (!res.ok) throw new Error('HTTP ' + res.status);
-                return res.json();
-            })
-            .then(function (data) {
-                rawBpList = Array.isArray(data) ? data : [];
-                updateKpis();
-                applyFilters();
-            })
-            .catch(function (err) {
-                console.error('Fetch error:', err);
-                showToast('Gagal memuat antrean dari server: ' + err.message, 'error');
-            });
-        }
-
-        function updateKpis() {
-            var total = rawBpList.length;
-            var pending = rawBpList.filter(function (i) {
-                return (!i.stw_bank_status || i.stw_bank_status.trim() === '') &&
-                       i.status !== 'DRAFT' &&
-                       i.status !== 'REJECTED' &&
-                       i.status !== 'FAILED' &&
-                       i.status !== 'APPROVED';
-            }).length;
-            var checked = rawBpList.filter(function (i) {
-                return i.stw_bank_status === 'X' ||
-                       i.status === 'BANK_CHECKED' ||
-                       i.status === 'CHECKED' ||
-                       i.status === 'APPROVED';
-            }).length;
-            var rejected = rawBpList.filter(function (i) {
-                return i.status === 'REJECTED' ||
-                       i.status === 'FAILED' ||
-                       i.stw_bank_status === 'R' ||
-                       i.stw_data_status === 'R';
-            }).length;
-
-            document.getElementById('kpiTotal').innerText = total;
-            document.getElementById('kpiPending').innerText = pending;
-            document.getElementById('kpiChecked').innerText = checked;
-            document.getElementById('kpiRejected').innerText = rejected;
-        }
-
-        function applyFilters() {
-            var q = (document.getElementById('searchInput').value || '').toLowerCase().trim();
-            var stat = document.getElementById('statusFilter').value;
-            var role = document.getElementById('roleFilter').value;
-
-            filteredBpList = rawBpList.filter(function (r) {
-                var matchesSearch = !q ||
-                    (r.req_no && r.req_no.toLowerCase().indexOf(q) !== -1) ||
-                    (r.name1 && r.name1.toLowerCase().indexOf(q) !== -1) ||
-                    (r.search_term && r.search_term.toLowerCase().indexOf(q) !== -1) ||
-                    (r.bank_name && r.bank_name.toLowerCase().indexOf(q) !== -1) ||
-                    (r.bankn && r.bankn.toLowerCase().indexOf(q) !== -1) ||
-                    (r.tax_num && r.tax_num.toLowerCase().indexOf(q) !== -1) ||
-                    (r.city && r.city.toLowerCase().indexOf(q) !== -1);
-
-                var matchesStatus = true;
-                if (stat !== 'ALL') {
-                    if (stat === 'PENDING_BANK' || stat === 'DATA_CHECKED' || stat === 'PENDING_REVIEW') {
-                        matchesStatus = (!r.stw_bank_status || r.stw_bank_status.trim() === '') &&
-                                        r.status !== 'DRAFT' &&
-                                        r.status !== 'REJECTED' &&
-                                        r.status !== 'FAILED' &&
-                                        r.status !== 'APPROVED';
-                    } else if (stat === 'BANK_CHECKED') {
-                        matchesStatus = (r.stw_bank_status === 'X' || r.status === 'BANK_CHECKED');
-                    } else if (stat === 'CHECKED') {
-                        matchesStatus = (r.status === 'CHECKED');
-                    } else if (stat === 'APPROVED') {
-                        matchesStatus = (r.status === 'APPROVED');
-                    } else if (stat === 'REJECTED') {
-                        matchesStatus = (r.status === 'REJECTED' ||
-                                         r.status === 'FAILED' ||
-                                         r.stw_bank_status === 'R' ||
-                                         r.stw_data_status === 'R');
+                        fetch('?OnInputProcessing=GET_PENDING_LIST&action=GET_PENDING_LIST', {
+                            method: 'POST',
+                            body: formData
+                        })
+                            .then(function (res) {
+                                if (!res.ok) throw new Error('HTTP ' + res.status);
+                                return res.json();
+                            })
+                            .then(function (data) {
+                                rawBpList = Array.isArray(data) ? data : [];
+                                updateKpis();
+                                applyFilters();
+                            })
+                            .catch(function (err) {
+                                console.error('Fetch error:', err);
+                                showToast('Gagal memuat antrean dari server: ' + err.message, 'error');
+                            });
                     }
-                }
 
-                var matchesRole = (role === 'ALL') || (r.bp_role === role);
-                return matchesSearch && matchesStatus && matchesRole;
-            });
+                    function updateKpis() {
+                        var total = rawBpList.length;
+                        var pending = rawBpList.filter(function (i) {
+                            return (!i.stw_bank_status || i.stw_bank_status.trim() === '') &&
+                                i.status !== 'DRAFT' &&
+                                i.status !== 'REJECTED' &&
+                                i.status !== 'FAILED' &&
+                                i.status !== 'APPROVED';
+                        }).length;
+                        var checked = rawBpList.filter(function (i) {
+                            return i.stw_bank_status === 'X' ||
+                                i.status === 'BANK_CHECKED' ||
+                                i.status === 'CHECKED' ||
+                                i.status === 'APPROVED';
+                        }).length;
+                        var rejected = rawBpList.filter(function (i) {
+                            return i.status === 'REJECTED' ||
+                                i.status === 'FAILED' ||
+                                i.stw_bank_status === 'R' ||
+                                i.stw_data_status === 'R';
+                        }).length;
 
-            currentPage = 1;
-            renderTable();
-        }
+                        document.getElementById('kpiTotal').innerText = total;
+                        document.getElementById('kpiPending').innerText = pending;
+                        document.getElementById('kpiChecked').innerText = checked;
+                        document.getElementById('kpiRejected').innerText = rejected;
+                    }
 
-        function resetFilters() {
-            document.getElementById('searchInput').value = '';
-            document.getElementById('statusFilter').value = 'ALL';
-            document.getElementById('roleFilter').value = 'ALL';
-            applyFilters();
-        }
+                    function applyFilters() {
+                        var q = (document.getElementById('searchInput').value || '').toLowerCase().trim();
+                        var stat = document.getElementById('statusFilter').value;
+                        var role = document.getElementById('roleFilter').value;
 
-        function renderTable() {
-            var tbody = document.getElementById('bpTableBody');
-            var queueBadge = document.getElementById('queueBadge');
-            var tableSummary = document.getElementById('tableSummary');
-            var pageInfo = document.getElementById('pageInfo');
+                        filteredBpList = rawBpList.filter(function (r) {
+                            var matchesSearch = !q ||
+                                (r.req_no && r.req_no.toLowerCase().indexOf(q) !== -1) ||
+                                (r.name1 && r.name1.toLowerCase().indexOf(q) !== -1) ||
+                                (r.search_term && r.search_term.toLowerCase().indexOf(q) !== -1) ||
+                                (r.bank_name && r.bank_name.toLowerCase().indexOf(q) !== -1) ||
+                                (r.bankn && r.bankn.toLowerCase().indexOf(q) !== -1) ||
+                                (r.tax_num && r.tax_num.toLowerCase().indexOf(q) !== -1) ||
+                                (r.city && r.city.toLowerCase().indexOf(q) !== -1);
 
-            if (queueBadge) queueBadge.innerText = filteredBpList.length + ' Data';
-            if (!tbody) return;
+                            var matchesStatus = true;
+                            if (stat !== 'ALL') {
+                                if (stat === 'SD_APPROVED' || stat === 'PENDING_BANK' || stat === 'PENDING_REVIEW') {
+                                    matchesStatus = (r.status === 'SD_APPROVED' || r.status === 'BANK_CHECKED');
+                                } else if (stat === 'APPROVED') {
+                                    matchesStatus = (r.status === 'APPROVED');
+                                } else if (stat === 'REJECTED') {
+                                    matchesStatus = (r.status === 'REJECTED' ||
+                                        r.status === 'FAILED' ||
+                                        r.stw_bank_status === 'R' ||
+                                        r.stw_data_status === 'R');
+                                }
+                            }
 
-            if (filteredBpList.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" ' +
-                    'class="p-8 text-center text-slate-400 italic">' +
-                    'Tidak ada permohonan yang sesuai filter saat ini.</td></tr>';
-                if (tableSummary) tableSummary.innerText = 'Menampilkan 0 data';
-                if (pageInfo) pageInfo.innerText = '';
-                return;
-            }
+                            var matchesRole = (role === 'ALL') || (r.bp_role === role);
+                            return matchesSearch && matchesStatus && matchesRole;
+                        });
 
-            var totalItems = filteredBpList.length;
-            var totalPages = Math.ceil(totalItems / rowsPerPage);
-            if (currentPage > totalPages) currentPage = totalPages;
-            var startIdx = (currentPage - 1) * rowsPerPage;
-            var endIdx = Math.min(startIdx + rowsPerPage, totalItems);
+                        currentPage = 1;
+                        renderTable();
+                    }
 
-            var pageRows = filteredBpList.slice(startIdx, endIdx);
-            var html = '';
+                    function resetFilters() {
+                        document.getElementById('searchInput').value = '';
+                        document.getElementById('statusFilter').value = 'ALL';
+                        document.getElementById('roleFilter').value = 'ALL';
+                        applyFilters();
+                    }
 
-            pageRows.forEach(function (r, idx) {
-                var rowNum = startIdx + idx + 1;
-                var reqNo = escapeHtml(r.req_no || '-');
-                var name1 = escapeHtml(r.name1 || '-');
-                var roleDesc = formatBpRoleText(r.bp_role, r.bp_role_text);
-                var requestor = escapeHtml(r.requestor || '-');
-                var status = r.status || 'PENDING_REVIEW';
-                var dateStr = formatDate(r.req_date, r.req_time);
+                    function renderTable() {
+                        var tbody = document.getElementById('bpTableBody');
+                        var queueBadge = document.getElementById('queueBadge');
+                        var tableSummary = document.getElementById('tableSummary');
+                        var pageInfo = document.getElementById('pageInfo');
 
-                var bankName = escapeHtml(r.bank_name || '-');
-                var bankl = escapeHtml(r.bankl || '-');
-                var banks = escapeHtml(r.banks || 'ID');
-                var bankn = escapeHtml(r.bankn || '-');
-                var koinh = escapeHtml(r.koinh || '-');
-                var waers = escapeHtml(r.waers || 'IDR');
-                var zterm = escapeHtml(r.zterm || '-');
-                var akont = escapeHtml(r.akont || '-');
-                var bukrs = escapeHtml(r.bukrs || '1000');
-                var isActionable = (!r.stw_bank_status || r.stw_bank_status.trim() === '') &&
-                    status !== 'REJECTED' && status !== 'FAILED' && status !== 'APPROVED';
+                        if (queueBadge) queueBadge.innerText = filteredBpList.length + ' Data';
+                        if (!tbody) return;
 
-                // Status Badge
-                var statusBadge = '';
-                if (status === 'CHECKED') {
-                    statusBadge = '<span class="px-2.5 py-1 rounded-full text-[10px] ' +
-                        'font-bold bg-blue-50 text-blue-700 border border-blue-200">' +
-                        '&#10003; SIAP FINAL APPROVAL</span>';
-                } else if (status === 'APPROVED') {
-                    statusBadge = '<span class="px-2.5 py-1 rounded-full text-[10px] ' +
-                        'font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">' +
-                        '&#10003; APPROVED</span>';
-                } else if (status === 'REJECTED' || status === 'FAILED') {
-                    statusBadge = '<span class="px-2.5 py-1 rounded-full text-[10px] ' +
-                        'font-bold bg-rose-50 text-rose-700 border border-rose-200">' +
-                        '&#10007; REJECTED</span>';
-                } else if (status === 'BANK_CHECKED') {
-                    statusBadge = '<span class="px-2.5 py-1 rounded-full text-[10px] ' +
-                        'font-bold bg-sky-50 text-sky-700 border border-sky-200">' +
-                        '&#10003; BANK CHECKED</span>';
-                } else if (status === 'DATA_CHECKED') {
-                    statusBadge = '<span class="px-2.5 py-1 rounded-full text-[10px] ' +
-                        'font-bold bg-teal-50 text-teal-700 border border-teal-200">' +
-                        '&#10003; DATA CHECKED</span>';
-                } else {
-                    statusBadge = '<span class="px-2.5 py-1 rounded-full text-[10px] ' +
-                        'font-bold bg-amber-50 text-amber-700 border border-amber-200 animate-pulse">' +
-                        '&#9679; REVIEW STEWARD</span>';
-                }
+                        if (filteredBpList.length === 0) {
+                            tbody.innerHTML = '<tr><td colspan="8" ' +
+                                'class="p-8 text-center text-slate-400 italic">' +
+                                'Tidak ada permohonan yang sesuai filter saat ini.</td></tr>';
+                            if (tableSummary) tableSummary.innerText = 'Menampilkan 0 data';
+                            if (pageInfo) pageInfo.innerText = '';
+                            return;
+                        }
 
-                // Action Buttons
-                var actionBtns = '';
-                if (isActionable) {
-                    actionBtns = '<button type="button" ' +
-                        'class="ds-btn-primary px-3 py-1 text-[11px] inline-flex items-center gap-1 shadow-2xs" ' +
-                        'onclick="markAsCheckedDirect(\'' + reqNo +
-                            '\')">&#10003; Approve Bank</button> ' +
-                        '<button type="button" class="ds-btn-secondary px-2.5 py-1 text-[11px]" ' +
-                        'onclick="openBpDetailModal(\'' + reqNo + '\')">Detail</button> ' +
-                        '<button type="button" ' +
-                        'class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 ' +
-                        'px-2.5 py-1 rounded-full font-bold text-[11px] transition shadow-2xs cursor-pointer" ' +
-                        'onclick="openReturnModal(\'' + reqNo +
-                            '\')">&#10007; Reject</button>';
-                } else if (r.stw_bank_status === 'X') {
-                    actionBtns = '<button type="button" disabled ' +
-                        'class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-sky-50 ' +
-                        'text-sky-600 border border-sky-200 cursor-not-allowed ' +
-                        'inline-flex items-center gap-1 opacity-80">&#10003; Disetujui Bank</button> ' +
-                        '<button type="button" class="ds-btn-secondary px-2.5 py-1 text-[11px]" ' +
-                        'onclick="openBpDetailModal(\'' + reqNo + '\')">Detail</button>';
-                } else if (status === 'REJECTED' || status === 'FAILED') {
-                    actionBtns = '<button type="button" disabled ' +
-                        'class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-50 ' +
-                        'text-rose-600 border border-rose-200 cursor-not-allowed ' +
-                        'inline-flex items-center gap-1 opacity-80">&#10007; Ditolak</button> ' +
-                        '<button type="button" class="ds-btn-secondary px-2.5 py-1 text-[11px]" ' +
-                        'onclick="openBpDetailModal(\'' + reqNo + '\')">Detail</button>';
-                } else {
-                    actionBtns = '<button type="button" class="ds-btn-secondary px-3 py-1 text-[11px]" ' +
-                        'onclick="openBpDetailModal(\'' + reqNo + '\')">Detail</button>';
-                }
+                        var totalItems = filteredBpList.length;
+                        var totalPages = Math.ceil(totalItems / rowsPerPage);
+                        if (currentPage > totalPages) currentPage = totalPages;
+                        var startIdx = (currentPage - 1) * rowsPerPage;
+                        var endIdx = Math.min(startIdx + rowsPerPage, totalItems);
 
-                html += '<tr class="hover:bg-slate-50 transition border-b border-slate-100">' +
-                    '<td class="p-3.5 text-center text-slate-400 font-medium">' + rowNum +
-                        '</td>' +
-                    '<td class="p-3.5">' +
-                        '<div class="font-mono font-bold text-slate-900">' + reqNo + '</div>' +
-                        '<div class="text-[11px] text-slate-400 mt-0.5">' + dateStr +
-                            '</div>' +
-                    '</td>' +
-                    '<td class="p-3.5">' +
-                        '<div class="font-bold text-slate-900 leading-snug">' + name1 + '</div>' +
-                        '<div class="flex items-center gap-1.5 mt-1">' +
-                            '<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold ' +
-                            'bg-slate-100 text-slate-700 border border-slate-200">' + roleDesc +
+                        var pageRows = filteredBpList.slice(startIdx, endIdx);
+                        var html = '';
+
+                        pageRows.forEach(function (r, idx) {
+                            var rowNum = startIdx + idx + 1;
+                            var reqNo = escapeHtml(r.req_no || '-');
+                            var name1 = escapeHtml(r.name1 || '-');
+                            var roleDesc = formatBpRoleText(r.bp_role, r.bp_role_text);
+                            var requestor = escapeHtml(r.requestor || '-');
+                            var status = r.status || 'PENDING_REVIEW';
+                            var dateStr = formatDate(r.req_date, r.req_time);
+
+                            var bankName = escapeHtml(r.bank_name || '-');
+                            var bankl = escapeHtml(r.bankl || '-');
+                            var banks = escapeHtml(r.banks || 'ID');
+                            var bankn = escapeHtml(r.bankn || '-');
+                            var koinh = escapeHtml(r.koinh || '-');
+                            var waers = escapeHtml(r.waers || 'IDR');
+                            var zterm = escapeHtml(r.zterm || '-');
+                            var akont = escapeHtml(r.akont || '-');
+                            var bukrs = escapeHtml(r.bukrs || '1000');
+                            var isActionable = (status === 'SD_APPROVED' || status === 'BANK_CHECKED' || (!r.stw_bank_status || r.stw_bank_status.trim() === '')) &&
+                                status !== 'REJECTED' && status !== 'FAILED' && status !== 'APPROVED';
+
+                            // Status Badge
+                            var statusBadge = '';
+                            if (status === 'APPROVED') {
+                                statusBadge = '<span class="px-2.5 py-1 rounded-full text-[10px] ' +
+                                    'font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">' +
+                                    '&#10003; APPROVED (COMPLETE)</span>';
+                            } else if (status === 'SD_APPROVED') {
+                                statusBadge = '<span class="px-2.5 py-1 rounded-full text-[10px] ' +
+                                    'font-bold bg-sky-50 text-sky-800 border border-sky-200 animate-pulse">' +
+                                    '&#10003; SD APPROVED &bull; SIAP FI CUSTOMER</span>';
+                            } else if (status === 'REJECTED' || status === 'FAILED') {
+                                statusBadge = '<span class="px-2.5 py-1 rounded-full text-[10px] ' +
+                                    'font-bold bg-rose-50 text-rose-700 border border-rose-200">' +
+                                    '&#10007; REJECTED</span>';
+                            } else {
+                                statusBadge = '<span class="px-2.5 py-1 rounded-full text-[10px] ' +
+                                    'font-bold bg-amber-50 text-amber-700 border border-amber-200 animate-pulse">' +
+                                    '&#9679; REVIEW STEWARD</span>';
+                            }
+
+                            // Action Buttons
+                            var actionBtns = '';
+                            if (isActionable) {
+                                actionBtns = '<button type="button" ' +
+                                    'class="ds-btn-primary px-3 py-1 text-[11px] inline-flex items-center gap-1 shadow-2xs" ' +
+                                    'onclick="markAsCheckedDirect(\'' + reqNo +
+                                    '\')">&#10003; Approve FI Customer (FLCU00)</button> ' +
+                                    '<button type="button" class="ds-btn-secondary px-2.5 py-1 text-[11px]" ' +
+                                    'onclick="openBpDetailModal(\'' + reqNo + '\')">Detail</button> ' +
+                                    '<button type="button" ' +
+                                    'class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 ' +
+                                    'px-2.5 py-1 rounded-full font-bold text-[11px] transition shadow-2xs cursor-pointer" ' +
+                                    'onclick="openReturnModal(\'' + reqNo +
+                                    '\')">&#10007; Reject</button>';
+                            } else if (r.stw_bank_status === 'X') {
+                                actionBtns = '<button type="button" disabled ' +
+                                    'class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-sky-50 ' +
+                                    'text-sky-600 border border-sky-200 cursor-not-allowed ' +
+                                    'inline-flex items-center gap-1 opacity-80">&#10003; Disetujui Bank</button> ' +
+                                    '<button type="button" class="ds-btn-secondary px-2.5 py-1 text-[11px]" ' +
+                                    'onclick="openBpDetailModal(\'' + reqNo + '\')">Detail</button>';
+                            } else if (status === 'REJECTED' || status === 'FAILED') {
+                                actionBtns = '<button type="button" disabled ' +
+                                    'class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-50 ' +
+                                    'text-rose-600 border border-rose-200 cursor-not-allowed ' +
+                                    'inline-flex items-center gap-1 opacity-80">&#10007; Ditolak</button> ' +
+                                    '<button type="button" class="ds-btn-secondary px-2.5 py-1 text-[11px]" ' +
+                                    'onclick="openBpDetailModal(\'' + reqNo + '\')">Detail</button>';
+                            } else {
+                                actionBtns = '<button type="button" class="ds-btn-secondary px-3 py-1 text-[11px]" ' +
+                                    'onclick="openBpDetailModal(\'' + reqNo + '\')">Detail</button>';
+                            }
+
+                            html += '<tr class="hover:bg-slate-50 transition border-b border-slate-100">' +
+                                '<td class="p-3.5 text-center text-slate-400 font-medium">' + rowNum +
+                                '</td>' +
+                                '<td class="p-3.5">' +
+                                '<div class="font-mono font-bold text-slate-900">' + reqNo + '</div>' +
+                                '<div class="text-[11px] text-slate-400 mt-0.5">' + dateStr +
+                                '</div>' +
+                                '</td>' +
+                                '<td class="p-3.5">' +
+                                '<div class="font-bold text-slate-900 leading-snug">' + name1 + '</div>' +
+                                '<div class="flex items-center gap-1.5 mt-1">' +
+                                '<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold ' +
+                                'bg-slate-100 text-slate-700 border border-slate-200">' + roleDesc +
                                 '</span>' +
-                        '</div>' +
-                    '</td>';
+                                '</div>' +
+                                '</td>';
 
-                html += '<td class="p-3.5">' +
-                    '<div class="font-bold text-slate-800 flex items-center gap-1">' +
-                        '<span>' + bankName + '</span>' +
-                        '<span class="text-[10px] font-mono text-slate-400">(' +
-                            banks + ' / ' + bankl + ')</span>' +
-                    '</div>' +
-                    '<div class="font-mono font-bold text-sky-900 mt-0.5">' + bankn +
-                        '</div>' +
-                    '<div class="text-[10px] text-slate-500">a.n. ' +
-                        '<span class="font-semibold">' + koinh + '</span></div>' +
-                '</td>' +
-                '<td class="p-3.5">' +
-                    '<div class="flex items-center gap-1.5">' +
-                        '<span class="text-[10px] font-mono font-bold ' +
-                        'bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded ' +
-                        'border border-slate-200">Recon: ' + akont + '</span>' +
-                        '<span class="text-[10px] font-mono font-bold ' +
-                        'bg-sky-50 text-sky-700 px-1.5 py-0.5 rounded ' +
-                        'border border-sky-200">' + waers + '</span>' +
-                    '</div>' +
-                    '<div class="text-[11px] text-slate-500 mt-0.5">' +
-                        'Terms: <span class="font-mono font-bold text-slate-700">' +
-                        zterm + '</span></div>' +
-                    '<div class="text-[10px] text-slate-400">CC: ' +
-                        '<span class="font-mono font-semibold">' + bukrs + '</span></div>' +
-                '</td>';
+                            html += '<td class="p-3.5">' +
+                                '<div class="font-bold text-slate-800 flex items-center gap-1">' +
+                                '<span>' + bankName + '</span>' +
+                                '<span class="text-[10px] font-mono text-slate-400">(' +
+                                banks + ' / ' + bankl + ')</span>' +
+                                '</div>' +
+                                '<div class="font-mono font-bold text-sky-900 mt-0.5">' + bankn +
+                                '</div>' +
+                                '<div class="text-[10px] text-slate-500">a.n. ' +
+                                '<span class="font-semibold">' + koinh + '</span></div>' +
+                                '</td>' +
+                                '<td class="p-3.5">' +
+                                '<div class="flex items-center gap-1.5">' +
+                                '<span class="text-[10px] font-mono font-bold ' +
+                                'bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded ' +
+                                'border border-slate-200">Recon: ' + akont + '</span>' +
+                                '<span class="text-[10px] font-mono font-bold ' +
+                                'bg-sky-50 text-sky-700 px-1.5 py-0.5 rounded ' +
+                                'border border-sky-200">' + waers + '</span>' +
+                                '</div>' +
+                                '<div class="text-[11px] text-slate-500 mt-0.5">' +
+                                'Terms: <span class="font-mono font-bold text-slate-700">' +
+                                zterm + '</span></div>' +
+                                '<div class="text-[10px] text-slate-400">CC: ' +
+                                '<span class="font-mono font-semibold">' + bukrs + '</span></div>' +
+                                '</td>';
 
-                html += '<td class="p-3.5 text-center font-mono font-bold">' + requestor +
-                    '</td>' +
-                    '<td class="p-3.5 text-center">' + statusBadge + '</td>' +
-                    '<td class="p-3.5 text-center flex items-center justify-center ' +
-                    'gap-1.5 flex-wrap">' + actionBtns + '</td>' +
-                '</tr>';
-            });
+                            html += '<td class="p-3.5 text-center font-mono font-bold">' + requestor +
+                                '</td>' +
+                                '<td class="p-3.5 text-center">' + statusBadge + '</td>' +
+                                '<td class="p-3.5 text-center flex items-center justify-center ' +
+                                'gap-1.5 flex-wrap">' + actionBtns + '</td>' +
+                                '</tr>';
+                        });
 
-            tbody.innerHTML = html;
-            if (tableSummary) {
-                tableSummary.innerText = 'Menampilkan ' + (startIdx + 1) + '-' + endIdx +
-                    ' dari ' + totalItems + ' data';
-            }
-            renderPagination(totalPages);
-        }
+                        tbody.innerHTML = html;
+                        if (tableSummary) {
+                            tableSummary.innerText = 'Menampilkan ' + (startIdx + 1) + '-' + endIdx +
+                                ' dari ' + totalItems + ' data';
+                        }
+                        renderPagination(totalPages);
+                    }
 
-        function renderPagination(totalPages) {
-            var container = document.getElementById('paginationControls');
-            var pageInfo = document.getElementById('pageInfo');
-            if (!container) return;
-            if (totalPages <= 1) {
-                container.innerHTML = '';
-                if (pageInfo) pageInfo.innerText = '';
-                return;
-            }
+                    function renderPagination(totalPages) {
+                        var container = document.getElementById('paginationControls');
+                        var pageInfo = document.getElementById('pageInfo');
+                        if (!container) return;
+                        if (totalPages <= 1) {
+                            container.innerHTML = '';
+                            if (pageInfo) pageInfo.innerText = '';
+                            return;
+                        }
 
-            var h = '';
-            var prevDis = (currentPage === 1) ?
-                'disabled class="px-2.5 py-1 text-xs text-slate-300 ' +
-                'border border-slate-200 rounded-lg cursor-not-allowed"' :
-                'class="px-2.5 py-1 text-xs text-slate-600 ' +
-                'border border-slate-200 rounded-lg hover:bg-slate-100 cursor-pointer"';
-            h += '<button type="button" ' +
-                (currentPage === 1 ? '' :
-                    'onclick="goToPage(' + (currentPage - 1) + ')" ') +
-                prevDis + '>&laquo; Prev</button>';
+                        var h = '';
+                        var prevDis = (currentPage === 1) ?
+                            'disabled class="px-2.5 py-1 text-xs text-slate-300 ' +
+                            'border border-slate-200 rounded-lg cursor-not-allowed"' :
+                            'class="px-2.5 py-1 text-xs text-slate-600 ' +
+                            'border border-slate-200 rounded-lg hover:bg-slate-100 cursor-pointer"';
+                        h += '<button type="button" ' +
+                            (currentPage === 1 ? '' :
+                                'onclick="goToPage(' + (currentPage - 1) + ')" ') +
+                            prevDis + '>&laquo; Prev</button>';
 
-            for (var p = 1; p <= totalPages; p++) {
-                if (p === currentPage) {
-                    h += '<span class="px-2.5 py-1 text-xs font-bold text-white ' +
-                        'rounded-lg bg-slate-800">' + p + '</span>';
-                } else if (p === 1 || p === totalPages ||
-                    (p >= currentPage - 1 && p <= currentPage + 1)) {
-                    h += '<button type="button" onclick="goToPage(' + p + ')" ' +
-                        'class="px-2.5 py-1 text-xs text-slate-600 border border-slate-200 ' +
-                        'rounded-lg hover:bg-slate-100 cursor-pointer">' + p + '</button>';
-                } else if (p === currentPage - 2 || p === currentPage + 2) {
-                    h += '<span class="px-1 text-slate-400">...</span>';
-                }
-            }
+                        for (var p = 1; p <= totalPages; p++) {
+                            if (p === currentPage) {
+                                h += '<span class="px-2.5 py-1 text-xs font-bold text-white ' +
+                                    'rounded-lg bg-slate-800">' + p + '</span>';
+                            } else if (p === 1 || p === totalPages ||
+                                (p >= currentPage - 1 && p <= currentPage + 1)) {
+                                h += '<button type="button" onclick="goToPage(' + p + ')" ' +
+                                    'class="px-2.5 py-1 text-xs text-slate-600 border border-slate-200 ' +
+                                    'rounded-lg hover:bg-slate-100 cursor-pointer">' + p + '</button>';
+                            } else if (p === currentPage - 2 || p === currentPage + 2) {
+                                h += '<span class="px-1 text-slate-400">...</span>';
+                            }
+                        }
 
-            var nextDis = (currentPage === totalPages) ?
-                'disabled class="px-2.5 py-1 text-xs text-slate-300 ' +
-                'border border-slate-200 rounded-lg cursor-not-allowed"' :
-                'class="px-2.5 py-1 text-xs text-slate-600 ' +
-                'border border-slate-200 rounded-lg hover:bg-slate-100 cursor-pointer"';
-            h += '<button type="button" ' +
-                (currentPage === totalPages ? '' :
-                    'onclick="goToPage(' + (currentPage + 1) + ')" ') +
-                nextDis + '>Next &raquo;</button>';
+                        var nextDis = (currentPage === totalPages) ?
+                            'disabled class="px-2.5 py-1 text-xs text-slate-300 ' +
+                            'border border-slate-200 rounded-lg cursor-not-allowed"' :
+                            'class="px-2.5 py-1 text-xs text-slate-600 ' +
+                            'border border-slate-200 rounded-lg hover:bg-slate-100 cursor-pointer"';
+                        h += '<button type="button" ' +
+                            (currentPage === totalPages ? '' :
+                                'onclick="goToPage(' + (currentPage + 1) + ')" ') +
+                            nextDis + '>Next &raquo;</button>';
 
-            container.innerHTML = h;
-            if (pageInfo) pageInfo.innerText = 'Halaman ' + currentPage + ' dari ' +
-                totalPages;
-        }
+                        container.innerHTML = h;
+                        if (pageInfo) pageInfo.innerText = 'Halaman ' + currentPage + ' dari ' +
+                            totalPages;
+                    }
 
-        function goToPage(p) {
-            currentPage = p;
-            renderTable();
-        }
+                    function goToPage(p) {
+                        currentPage = p;
+                        renderTable();
+                    }
 
-        function openCheckConfirmModal(reqNo) {
-            activeReqId = reqNo;
-            document.getElementById('confirmReqIdLabel').innerText = reqNo;
-            document.getElementById('checkNotesInput').value = '';
-            openModal('checkConfirmModal');
-        }
+                    function openCheckConfirmModal(reqNo) {
+                        activeReqId = reqNo;
+                        document.getElementById('confirmReqIdLabel').innerText = reqNo;
+                        document.getElementById('checkNotesInput').value = '';
+                        openModal('checkConfirmModal');
+                    }
 
-        function closeCheckConfirmModal() {
-            closeModal('checkConfirmModal');
-        }
+                    function closeCheckConfirmModal() {
+                        closeModal('checkConfirmModal');
+                    }
 
-        function markAsCheckedDirect(reqNo) {
-            openCheckConfirmModal(reqNo);
-        }
+                    function markAsCheckedDirect(reqNo) {
+                        openCheckConfirmModal(reqNo);
+                    }
 
-        function executeCheckConfirm() {
-            if (!activeReqId) return;
-            var notes = (document.getElementById('checkNotesInput').value || '').trim();
+                    function executeCheckConfirm() {
+                        if (!activeReqId) return;
+                        var notes = (document.getElementById('checkNotesInput').value || '').trim();
 
-            var formData = new FormData();
-            formData.append('OnInputProcessing', 'MARK_AS_CHECKED');
-            formData.append('action', 'MARK_AS_CHECKED');
-            formData.append('req_no', activeReqId);
-            formData.append('notes', notes);
+                        var formData = new FormData();
+                        formData.append('OnInputProcessing', 'MARK_AS_CHECKED');
+                        formData.append('action', 'MARK_AS_CHECKED');
+                        formData.append('req_no', activeReqId);
+                        formData.append('notes', notes);
 
-            fetch('?OnInputProcessing=MARK_AS_CHECKED&action=MARK_AS_CHECKED', {
-                method: 'POST',
-                body: formData
-            })
-            .then(function (res) {
-                if (!res.ok) throw new Error('HTTP ' + res.status);
-                return res.json();
-            })
-            .then(function (resp) {
-                if (resp && resp.status === 'SUCCESS') {
-                    showToast(resp.message || 'Berhasil divalidasi!', 'success');
-                    closeCheckConfirmModal();
-                    closeBpDetailModal();
-                    fetchBpRequests();
-                } else {
-var errMsg = (resp && resp.message) ? resp.message : 'Gagal memproses validasi.';
-                    showToast(errMsg, 'error');
-                }
-            })
-            .catch(function (err) {
-                console.error('Error:', err);
-                showToast('Error komunikasi server: ' + err.message, 'error');
-            });
-        }
+                        fetch('?OnInputProcessing=MARK_AS_CHECKED&action=MARK_AS_CHECKED', {
+                            method: 'POST',
+                            body: formData
+                        })
+                            .then(function (res) {
+                                if (!res.ok) throw new Error('HTTP ' + res.status);
+                                return res.json();
+                            })
+                            .then(function (resp) {
+                                if (resp && resp.status === 'SUCCESS') {
+                                    showToast(resp.message || 'Berhasil divalidasi!', 'success');
+                                    closeCheckConfirmModal();
+                                    closeBpDetailModal();
+                                    fetchBpRequests();
+                                } else {
+                                    var errMsg = (resp && resp.message) ? resp.message : 'Gagal memproses validasi.';
+                                    showToast(errMsg, 'error');
+                                }
+                            })
+                            .catch(function (err) {
+                                console.error('Error:', err);
+                                showToast('Error komunikasi server: ' + err.message, 'error');
+                            });
+                    }
 
-        function openReturnModal(reqNo) {
-            activeReqId = reqNo;
-            document.getElementById('returnReqIdLabel').innerText = reqNo;
-            document.getElementById('returnReasonInput').value = '';
-            openModal('returnModal');
-        }
+                    function openReturnModal(reqNo) {
+                        activeReqId = reqNo;
+                        document.getElementById('returnReqIdLabel').innerText = reqNo;
+                        document.getElementById('returnReasonInput').value = '';
+                        openModal('returnModal');
+                    }
 
-        function closeReturnModal() {
-            closeModal('returnModal');
-        }
+                    function closeReturnModal() {
+                        closeModal('returnModal');
+                    }
 
-        function openReturnModalFromDetail() {
-            if (!activeReqId) return;
-            closeBpDetailModal();
-            openReturnModal(activeReqId);
-        }
+                    function openReturnModalFromDetail() {
+                        if (!activeReqId) return;
+                        closeBpDetailModal();
+                        openReturnModal(activeReqId);
+                    }
 
-        function executeReturnConfirm() {
-            if (!activeReqId) return;
-            var reason = (document.getElementById('returnReasonInput').value || '').trim();
-            if (!reason) {
-                showToast('Silakan isi alasan penolakan permohonan BP.', 'error');
-                return;
-            }
+                    function executeReturnConfirm() {
+                        if (!activeReqId) return;
+                        var reason = (document.getElementById('returnReasonInput').value || '').trim();
+                        if (!reason) {
+                            showToast('Silakan isi alasan penolakan permohonan BP.', 'error');
+                            return;
+                        }
 
-            var formData = new FormData();
-            formData.append('OnInputProcessing', 'RETURN_TO_REQUESTOR');
-            formData.append('action', 'RETURN_TO_REQUESTOR');
-            formData.append('req_no', activeReqId);
-            formData.append('rejection_reason', reason);
+                        var formData = new FormData();
+                        formData.append('OnInputProcessing', 'RETURN_TO_REQUESTOR');
+                        formData.append('action', 'RETURN_TO_REQUESTOR');
+                        formData.append('req_no', activeReqId);
+                        formData.append('rejection_reason', reason);
 
-            fetch('?OnInputProcessing=RETURN_TO_REQUESTOR&action=RETURN_TO_REQUESTOR', {
-                method: 'POST',
-                body: formData
-            })
-            .then(function (res) {
-                if (!res.ok) throw new Error('HTTP ' + res.status);
-                return res.json();
-            })
-            .then(function (resp) {
-                if (resp && resp.status === 'SUCCESS') {
-showToast(resp.message || 'Permohonan berhasil ditolak & dikembalikan.', 'success');
-                    closeReturnModal();
-                    closeBpDetailModal();
-                    fetchBpRequests();
-                } else {
-var errMsg = (resp && resp.message) ? resp.message : 'Gagal menolak permohonan.';
-                    showToast(errMsg, 'error');
-                }
-            })
-            .catch(function (err) {
-                console.error('Error:', err);
-                showToast('Error komunikasi server: ' + err.message, 'error');
-            });
-        }
+                        fetch('?OnInputProcessing=RETURN_TO_REQUESTOR&action=RETURN_TO_REQUESTOR', {
+                            method: 'POST',
+                            body: formData
+                        })
+                            .then(function (res) {
+                                if (!res.ok) throw new Error('HTTP ' + res.status);
+                                return res.json();
+                            })
+                            .then(function (resp) {
+                                if (resp && resp.status === 'SUCCESS') {
+                                    showToast(resp.message || 'Permohonan berhasil ditolak & dikembalikan.', 'success');
+                                    closeReturnModal();
+                                    closeBpDetailModal();
+                                    fetchBpRequests();
+                                } else {
+                                    var errMsg = (resp && resp.message) ? resp.message : 'Gagal menolak permohonan.';
+                                    showToast(errMsg, 'error');
+                                }
+                            })
+                            .catch(function (err) {
+                                console.error('Error:', err);
+                                showToast('Error komunikasi server: ' + err.message, 'error');
+                            });
+                    }
 
-        function openBpDetailModal(reqNo) {
-            activeReqId = reqNo;
-            var r = rawBpList.find(function (item) {
-                return item.req_no === reqNo;
-            });
-            if (!r) {
-                showToast('Data detail permohonan tidak ditemukan.', 'error');
-                return;
-            }
+                    function openBpDetailModal(reqNo) {
+                        activeReqId = reqNo;
+                        var r = rawBpList.find(function (item) {
+                            return item.req_no === reqNo;
+                        });
+                        if (!r) {
+                            showToast('Data detail permohonan tidak ditemukan.', 'error');
+                            return;
+                        }
 
-            document.getElementById('dtlReqNo').innerText = r.req_no || '-';
-            document.getElementById('dtlName1').innerText = r.name1 || '-';
-            document.getElementById('dtlName2').innerText = r.name2 || '-';
-            document.getElementById('dtlSearchTerm').innerText = r.search_term || '-';
-            document.getElementById('dtlCategory').innerText =
-(r.bp_category === '1') ? '1 - Person (Individu)' : '2 - Organization (Perusahaan)';
-            document.getElementById('dtlRole').innerText = r.bp_role || '-';
-            document.getElementById('dtlBukrs').innerText = r.bukrs || '1000';
+                        document.getElementById('dtlReqNo').innerText = r.req_no || '-';
+                        document.getElementById('dtlName1').innerText = r.name1 || '-';
+                        document.getElementById('dtlName2').innerText = r.name2 || '-';
+                        document.getElementById('dtlSearchTerm').innerText = r.search_term || '-';
+                        document.getElementById('dtlCategory').innerText =
+                            (r.bp_category === '1') ? '1 - Person (Individu)' : '2 - Organization (Perusahaan)';
+                        document.getElementById('dtlRole').innerText = r.bp_role || '-';
+                        document.getElementById('dtlBukrs').innerText = r.bukrs || '1000';
 
-            document.getElementById('dtlStreet').innerText =
-                (r.street || '-') + (r.house_num ? ' No. ' + r.house_num : '');
-            document.getElementById('dtlCity').innerText = r.city || '-';
-            document.getElementById('dtlPostalCountry').innerText =
-                (r.postal_code || '-') + ' / ' + (r.country || 'ID');
-            document.getElementById('dtlPhone').innerText = r.telephone || '-';
-            document.getElementById('dtlEmail').innerText = r.email || '-';
+                        document.getElementById('dtlStreet').innerText =
+                            (r.street || '-') + (r.house_num ? ' No. ' + r.house_num : '');
+                        document.getElementById('dtlCity').innerText = r.city || '-';
+                        document.getElementById('dtlPostalCountry').innerText =
+                            (r.postal_code || '-') + ' / ' + (r.country || 'ID');
+                        document.getElementById('dtlPhone').innerText = r.telephone || '-';
+                        document.getElementById('dtlEmail').innerText = r.email || '-';
 
-            document.getElementById('dtlTaxNum').innerText = r.tax_num || '-';
-            document.getElementById('dtlAkont').innerText = r.akont || '-';
-            document.getElementById('dtlZterm').innerText = r.zterm || '-';
+                        document.getElementById('dtlTaxNum').innerText = r.tax_num || '-';
+                        document.getElementById('dtlAkont').innerText = r.akont || '-';
+                        document.getElementById('dtlZterm').innerText = r.zterm || '-';
 
-            document.getElementById('dtlBankName').innerText = r.bank_name || '-';
-            document.getElementById('dtlBankl').innerText = r.bankl || '-';
-            document.getElementById('dtlBankn').innerText = r.bankn || '-';
-            document.getElementById('dtlKoinh').innerText = r.koinh || '-';
+                        document.getElementById('dtlBankName').innerText = r.bank_name || '-';
+                        document.getElementById('dtlBankl').innerText = r.bankl || '-';
+                        document.getElementById('dtlBankn').innerText = r.bankn || '-';
+                        document.getElementById('dtlKoinh').innerText = r.koinh || '-';
 
-            document.getElementById('dtlRequestor').innerText = r.requestor || '-';
-document.getElementById('dtlReqTimestamp').innerText = formatDate(r.req_date, r.req_time);
+                        document.getElementById('dtlRequestor').innerText = r.requestor || '-';
+                        document.getElementById('dtlReqTimestamp').innerText = formatDate(r.req_date, r.req_time);
 
-            var stwDataStatusText = 'Belum Diproses';
-            if (r.stw_data_status === 'X' ||
-                r.status === 'DATA_CHECKED' ||
-                r.status === 'CHECKED' ||
-                r.status === 'APPROVED') {
-                stwDataStatusText = '&#10003; Lolos Verifikasi (' +
-                    (r.stw_data_by || 'Data Steward') + ')';
-            } else if (r.stw_data_status === 'R') {
-                stwDataStatusText = '&#10007; Ditolak (' + (r.stw_data_by || 'Data Steward') +
-                    ')';
-            }
-            document.getElementById('dtlStwDataStatus').innerHTML = stwDataStatusText;
-            document.getElementById('dtlStwDataNote').innerText =
-                r.stw_data_note ? 'Catatan: ' + r.stw_data_note : '-';
+                        var stwDataStatusText = 'Belum Diproses';
+                        if (r.stw_data_status === 'X' ||
+                            r.status === 'DATA_CHECKED' ||
+                            r.status === 'CHECKED' ||
+                            r.status === 'APPROVED') {
+                            stwDataStatusText = '&#10003; Lolos Verifikasi (' +
+                                (r.stw_data_by || 'Data Steward') + ')';
+                        } else if (r.stw_data_status === 'R') {
+                            stwDataStatusText = '&#10007; Ditolak (' + (r.stw_data_by || 'Data Steward') +
+                                ')';
+                        }
+                        document.getElementById('dtlStwDataStatus').innerHTML = stwDataStatusText;
+                        document.getElementById('dtlStwDataNote').innerText =
+                            r.stw_data_note ? 'Catatan: ' + r.stw_data_note : '-';
 
-            var stwBankStatusText = 'Belum Diproses';
-if (r.stw_bank_status === 'X' || r.status === 'CHECKED' || r.status === 'APPROVED') {
-                stwBankStatusText = '&#10003; Lolos Verifikasi (' +
-                    (r.stw_bank_by || 'Bank Steward') + ')';
-            } else if (r.stw_bank_status === 'R') {
-                stwBankStatusText = '&#10007; Ditolak (' + (r.stw_bank_by || 'Bank Steward') +
-                    ')';
-            }
-            document.getElementById('dtlStwBankStatus').innerHTML = stwBankStatusText;
-            document.getElementById('dtlStwBankNote').innerText =
-                r.stw_bank_note ? 'Catatan: ' + r.stw_bank_note : '-';
+                        var stwBankStatusText = 'Belum Diproses';
+                        if (r.stw_bank_status === 'X' || r.status === 'CHECKED' || r.status === 'APPROVED') {
+                            stwBankStatusText = '&#10003; Lolos Verifikasi (' +
+                                (r.stw_bank_by || 'Bank Steward') + ')';
+                        } else if (r.stw_bank_status === 'R') {
+                            stwBankStatusText = '&#10007; Ditolak (' + (r.stw_bank_by || 'Bank Steward') +
+                                ')';
+                        }
+                        document.getElementById('dtlStwBankStatus').innerHTML = stwBankStatusText;
+                        document.getElementById('dtlStwBankNote').innerText =
+                            r.stw_bank_note ? 'Catatan: ' + r.stw_bank_note : '-';
 
-            var rejectBanner = document.getElementById('modalRejectBanner');
-            if (r.status === 'REJECTED' || r.status === 'FAILED') {
-                rejectBanner.classList.remove('hidden');
-                document.getElementById('modalRejectReason').innerText =
-                    r.rejection_reason || 'Tidak ada catatan alasan penolakan.';
-            } else {
-                rejectBanner.classList.add('hidden');
-            }
+                        var rejectBanner = document.getElementById('modalRejectBanner');
+                        if (r.status === 'REJECTED' || r.status === 'FAILED') {
+                            rejectBanner.classList.remove('hidden');
+                            document.getElementById('modalRejectReason').innerText =
+                                r.rejection_reason || 'Tidak ada catatan alasan penolakan.';
+                        } else {
+                            rejectBanner.classList.add('hidden');
+                        }
 
-            var actionContainer = document.getElementById('modalActionContainer');
-            var isBankActionable = (!r.stw_bank_status || r.stw_bank_status.trim() === '') &&
-                r.status !== 'REJECTED' && r.status !== 'FAILED' && r.status !== 'APPROVED';
+                        var actionContainer = document.getElementById('modalActionContainer');
+                        var isBankActionable = (!r.stw_bank_status || r.stw_bank_status.trim() === '') &&
+                            r.status !== 'REJECTED' && r.status !== 'FAILED' && r.status !== 'APPROVED';
 
-            if (isBankActionable) {
-                actionContainer.innerHTML =
-                    '<button type="button" onclick="openReturnModalFromDetail()" ' +
-                    'class="px-4 py-2 rounded-full text-xs font-extrabold bg-rose-50 ' +
-                    'text-rose-700 border border-rose-200 hover:bg-rose-100 transition ' +
-                    'cursor-pointer">&#10007; Reject</button>' +
-                    '<button type="button" onclick="markAsCheckedFromDetail()" ' +
-                    'class="ds-btn-primary px-6 py-2 text-xs">&#10003; Approve Bank ' +
-                    '(Validasi Data Keuangan &amp; Rekening)</button>';
-            } else if (r.stw_bank_status === 'X') {
-                actionContainer.innerHTML =
-                    '<span class="text-xs text-sky-700 bg-sky-50 px-3 py-1.5 rounded-lg ' +
-                    'border border-sky-200 font-semibold">&#10003; Sudah disetujui ' +
-                    'Bank Steward' + (r.status === 'CHECKED' ? ' &amp; siap di Approval Final' : ' (menunggu Data Steward)') + '</span>';
-            } else if (r.status === 'APPROVED') {
-                actionContainer.innerHTML =
-                    '<span class="text-xs text-emerald-700 bg-emerald-50 px-3 py-1.5 ' +
-                    'rounded-lg border border-emerald-200 font-semibold">&#10003; ' +
-                    'Telah disetujui Final dan terdaftar di SAP' +
-                    (r.bp_number ? ' (No: ' + r.bp_number + ')' : '') + '</span>';
-            } else {
-                actionContainer.innerHTML = '';
-            }
+                        if (isBankActionable) {
+                            actionContainer.innerHTML =
+                                '<button type="button" onclick="openReturnModalFromDetail()" ' +
+                                'class="px-4 py-2 rounded-full text-xs font-extrabold bg-rose-50 ' +
+                                'text-rose-700 border border-rose-200 hover:bg-rose-100 transition ' +
+                                'cursor-pointer">&#10007; Reject</button>' +
+                                '<button type="button" onclick="markAsCheckedFromDetail()" ' +
+                                'class="ds-btn-primary px-6 py-2 text-xs">&#10003; Approve Bank ' +
+                                '(Validasi Data Keuangan &amp; Rekening)</button>';
+                        } else if (r.stw_bank_status === 'X') {
+                            actionContainer.innerHTML =
+                                '<span class="text-xs text-sky-700 bg-sky-50 px-3 py-1.5 rounded-lg ' +
+                                'border border-sky-200 font-semibold">&#10003; Sudah disetujui ' +
+                                'Bank Steward' + (r.status === 'CHECKED' ? ' &amp; siap di Approval Final' : ' (menunggu Data Steward)') + '</span>';
+                        } else if (r.status === 'APPROVED') {
+                            actionContainer.innerHTML =
+                                '<span class="text-xs text-emerald-700 bg-emerald-50 px-3 py-1.5 ' +
+                                'rounded-lg border border-emerald-200 font-semibold">&#10003; ' +
+                                'Telah disetujui Final dan terdaftar di SAP' +
+                                (r.bp_number ? ' (No: ' + r.bp_number + ')' : '') + '</span>';
+                        } else {
+                            actionContainer.innerHTML = '';
+                        }
 
-            openModal('bpDetailModal');
-        }
+                        openModal('bpDetailModal');
+                    }
 
-        function closeBpDetailModal() {
-            closeModal('bpDetailModal');
-        }
+                    function closeBpDetailModal() {
+                        closeModal('bpDetailModal');
+                    }
 
-        function markAsCheckedFromDetail() {
-            if (!activeReqId) return;
-            closeBpDetailModal();
-            openCheckConfirmModal(activeReqId);
-        }
+                    function markAsCheckedFromDetail() {
+                        if (!activeReqId) return;
+                        closeBpDetailModal();
+                        openCheckConfirmModal(activeReqId);
+                    }
 
-        function openModal(id) {
-            var m = document.getElementById(id);
-            if (m) {
-                m.classList.remove('hidden');
-                m.style.display = 'flex';
-            }
-        }
+                    function openModal(id) {
+                        var m = document.getElementById(id);
+                        if (m) {
+                            m.classList.remove('hidden');
+                            m.style.display = 'flex';
+                        }
+                    }
 
-        function closeModal(id) {
-            var m = document.getElementById(id);
-            if (m) {
-                m.classList.add('hidden');
-                m.style.display = 'none';
-            }
-        }
+                    function closeModal(id) {
+                        var m = document.getElementById(id);
+                        if (m) {
+                            m.classList.add('hidden');
+                            m.style.display = 'none';
+                        }
+                    }
 
-        function showToast(message, type) {
-            var container = document.getElementById('toastContainer');
-            if (!container) return;
-            var toast = document.createElement('div');
-            toast.className = 'px-4 py-3 rounded-xl shadow-xl text-xs font-bold ' +
-                'border flex items-center gap-2 transition-all duration-300';
-            if (type === 'success') {
-                toast.className += ' bg-emerald-50 text-emerald-900 border-emerald-200';
-                toast.innerHTML = '<span>&#10003;</span> <span>' + escapeHtml(message) +
-                    '</span>';
-            } else if (type === 'error') {
-                toast.className += ' bg-rose-50 text-rose-900 border-rose-200';
-                toast.innerHTML = '<span>&#10007;</span> <span>' + escapeHtml(message) +
-                    '</span>';
-            } else {
-                toast.className += ' bg-slate-900 text-white border-slate-700';
-                toast.innerHTML = '<span>&#9679;</span> <span>' + escapeHtml(message) +
-                    '</span>';
-            }
-            container.appendChild(toast);
-            setTimeout(function () {
-                toast.style.opacity = '0';
-                setTimeout(function () {
-                    if (toast.parentNode) toast.parentNode.removeChild(toast);
-                }, 300);
-            }, 4000);
-        }
+                    function showToast(message, type) {
+                        var container = document.getElementById('toastContainer');
+                        if (!container) return;
+                        var toast = document.createElement('div');
+                        toast.className = 'px-4 py-3 rounded-xl shadow-xl text-xs font-bold ' +
+                            'border flex items-center gap-2 transition-all duration-300';
+                        if (type === 'success') {
+                            toast.className += ' bg-emerald-50 text-emerald-900 border-emerald-200';
+                            toast.innerHTML = '<span>&#10003;</span> <span>' + escapeHtml(message) +
+                                '</span>';
+                        } else if (type === 'error') {
+                            toast.className += ' bg-rose-50 text-rose-900 border-rose-200';
+                            toast.innerHTML = '<span>&#10007;</span> <span>' + escapeHtml(message) +
+                                '</span>';
+                        } else {
+                            toast.className += ' bg-slate-900 text-white border-slate-700';
+                            toast.innerHTML = '<span>&#9679;</span> <span>' + escapeHtml(message) +
+                                '</span>';
+                        }
+                        container.appendChild(toast);
+                        setTimeout(function () {
+                            toast.style.opacity = '0';
+                            setTimeout(function () {
+                                if (toast.parentNode) toast.parentNode.removeChild(toast);
+                            }, 300);
+                        }, 4000);
+                    }
 
-        function formatBpRoleText(roleCode, roleText) {
-            var code = escapeHtml(roleCode || 'FLVN01');
-            if (roleText && roleText.trim() !== '') {
-                var text = escapeHtml(roleText.trim());
-                if (text.indexOf(code) !== -1) {
-                    return text;
-                }
-                return text + ' (' + code + ')';
-            }
-            var upperCode = code.toUpperCase();
-            if (upperCode === 'FLVN01') return 'MM Supplier (FLVN01)';
-            if (upperCode === 'FLVN00') return 'FI Supplier (FLVN00)';
-            if (upperCode === 'FLCU01') return 'SD Customer (FLCU01)';
-            if (upperCode === 'FLCU00') return 'FI Customer (FLCU00)';
-            if (upperCode === 'BUP000') return 'General Partner (BUP000)';
-            if (upperCode === '000000') return 'Business Partner General (000000)';
-            return code;
-        }
+                    function formatBpRoleText(roleCode, roleText) {
+                        var code = escapeHtml(roleCode || 'FLCU00');
+                        if (roleText && roleText.trim() !== '') {
+                            var text = escapeHtml(roleText.trim());
+                            if (text.indexOf(code) !== -1) {
+                                return text;
+                            }
+                            return text + ' (' + code + ')';
+                        }
+                        var upperCode = code.toUpperCase();
+                        if (upperCode === 'FLVN01') return 'MM Supplier (FLVN01)';
+                        if (upperCode === 'FLVN00') return 'FI Supplier (FLVN00)';
+                        if (upperCode === 'FLCU01') return 'SD Customer (FLCU01)';
+                        if (upperCode === 'FLCU00') return 'FI Customer (FLCU00)';
+                        if (upperCode === 'BUP000') return 'General Partner (BUP000)';
+                        if (upperCode === '000000') return 'Business Partner General (000000)';
+                        return code;
+                    }
 
-        function escapeHtml(text) {
-            if (!text) return '';
-            return String(text)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#039;');
-        }
+                    function escapeHtml(text) {
+                        if (!text) return '';
+                        return String(text)
+                            .replace(/&/g, '&amp;')
+                            .replace(/</g, '&lt;')
+                            .replace(/>/g, '&gt;')
+                            .replace(/"/g, '&quot;')
+                            .replace(/'/g, '&#039;');
+                    }
 
-        function formatDate(d, t) {
-            if (!d || d === '00000000') return '-';
-            var y = d.substring(0, 4);
-            var m = d.substring(4, 6);
-            var day = d.substring(6, 8);
-            var res = day + '/' + m + '/' + y;
-            if (t && t !== '000000') {
-                res += ' ' + t.substring(0, 2) + ':' + t.substring(2, 4);
-            }
-            return res;
-        }
-    </script>
-</body>
-</html>
+                    function formatDate(d, t) {
+                        if (!d || d === '00000000') return '-';
+                        var y = d.substring(0, 4);
+                        var m = d.substring(4, 6);
+                        var day = d.substring(6, 8);
+                        var res = day + '/' + m + '/' + y;
+                        if (t && t !== '000000') {
+                            res += ' ' + t.substring(0, 2) + ':' + t.substring(2, 4);
+                        }
+                        return res;
+                    }
+                </script>
+            </body>
+
+            </html>

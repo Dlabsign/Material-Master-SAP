@@ -41,6 +41,21 @@ TYPES:
     ekorg             TYPE ekorg,          " Purchasing Organization (e.g. '1000')
     webre             TYPE webre,          " GR-Based Inv. Verif. ('X')
     lebre             TYPE lebre,          " Srv.-Based Inv. Ver. ('X')
+    natural_person    TYPE char1,          " Natural Person Flag ('X' / '')
+    external_bp_num   TYPE char20,         " External BP Reference Number
+    legal_form        TYPE char2,          " Legal Form (PT, CV, etc.)
+    legal_entity      TYPE char2,          " Legal Entity Type (BUMN, Swasta, etc.)
+    date_founded      TYPE dats,           " Date Founded (YYYYMMDD)
+    liquidation_date  TYPE dats,           " Liquidation Date (YYYYMMDD)
+    loc_no_1          TYPE char7,          " Location Number 1
+    loc_no_2          TYPE char5,          " Location Number 2
+    check_digit       TYPE char1,          " Location Check Digit
+    vbund             TYPE vbund,          " Trading Partner Company ID
+    begru             TYPE begru,          " Authorization Group
+    bp_type           TYPE char4,          " BP Type / Kind (CHAR 4)
+    origin_source     TYPE char10,         " Origin Source System
+    origin_ref_key    TYPE char30,         " Origin Reference Key
+    internal_notes    TYPE text255,        " Internal Governance Notes
     status            TYPE char20,         " DRAFT, PENDING_REVIEW, POSTED, REJECTED
     rejection_reason  TYPE text255,        " Reason for Rejection
     stw_bank_status   TYPE char1,          " Steward Bank Status

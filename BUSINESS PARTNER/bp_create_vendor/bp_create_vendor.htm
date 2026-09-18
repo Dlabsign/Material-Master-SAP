@@ -277,7 +277,7 @@
   <% ENDIF. %>
 
   <!-- FORM CONTENT CONTAINER -->
-  <form id="mdgBpForm" name="bpForm" method="post" action="test_bp_create_request.htm"
+  <form id="mdgBpForm" name="bpForm" method="post" action="test_bp_create_vendor.htm"
         class="glass-panel rounded-3xl p-6 lg:p-8 space-y-6">
     <input type="hidden" id="actionField" name="action" value="">
     <input type="hidden" id="onInputProcessingField" name="onInputProcessing" value="">
@@ -307,31 +307,29 @@
       <div class="flex items-center gap-3 pb-3 border-b border-slate-200/60">
         <span class="w-8 h-8 rounded-xl bg-emerald-600 text-white font-extrabold text-xs flex items-center justify-center shadow-xs">01</span>
         <div>
-          <h2 class="text-xs font-black text-slate-900 uppercase tracking-wider">Pemilihan Role &amp; Klasifikasi BP</h2>
-          <p class="text-[11px] text-slate-500 font-medium">Role BP dan Grouping Penomoran Internal SAP</p>
+          <h2 class="text-xs font-black text-slate-900 uppercase tracking-wider">BP ROLE</h2>
         </div>
       </div>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-space-md">
-        <!-- Create in BP Role (RLTYP) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-space-md">
+        <!-- BP Role Selection -->
         <div class="space-y-1.5">
           <label class="block text-label-lg font-label-lg text-on-surface font-medium">
-            Create in BP Role (RLTYP) <span class="text-error">*</span>
+            Peran Business Partner (BP Role) <span class="text-error">*</span>
           </label>
           <div class="relative">
-            <select name="bp_role" id="bpRoleTypeSelect" onchange="onBpRequestTypeChange(this.value);"
+            <select name="bp_role" id="bpRoleTypeSelect" onchange="document.getElementById('hidden_rltyp').value = this.value; if(typeof onBpRequestTypeChange === 'function') onBpRequestTypeChange(this.value, '');"
                     class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 appearance-none transition-colors">
-              <option value="FLVN01" <%= COND string( WHEN wa_req-bp_role = 'FLVN01' OR wa_req-bp_role IS INITIAL THEN 'selected' ELSE '' ) %>>FLVN01 - Business Partner MM Supplier</option>
-              <option value="FLVN00" <%= COND string( WHEN wa_req-bp_role = 'FLVN00' THEN 'selected' ELSE '' ) %>>FLVN00 - Business Partner FI Supplier</option>
+              <option value="FLVN01" <%= COND string( WHEN wa_req-bp_role = 'FLVN01' OR wa_req-bp_role IS INITIAL THEN 'selected' ) %>>FLVN01 - MM Supplier (Lengkap: Pembelian &amp; Keuangan)</option>
+              <option value="FLVN00" <%= COND string( WHEN wa_req-bp_role = 'FLVN00' THEN 'selected' ) %>>FLVN00 - FI Supplier (Keuangan Saja)</option>
             </select>
             <span class="material-symbols-outlined absolute right-3 top-3 pointer-events-none text-outline text-[20px]">expand_more</span>
           </div>
-          <span class="text-[11px] text-outline font-body-sm block" id="bpRoleHelpText">Role FLVN01: MM Supplier untuk transaksi pengadaan logistik.</span>
         </div>
 
         <!-- Grouping (Account Group) -->
         <div class="space-y-1.5">
           <label class="block text-label-lg font-label-lg text-on-surface font-medium">
-            Grouping (Account Group) (BU_GROUP) <span class="text-error">*</span>
+            Grup Penomoran Business Partner <span class="text-error">*</span>
           </label>
           <div class="relative">
             <select name="bp_grouping" id="bpGroupingSelect" onchange="document.getElementById('hidden_bu_group').value = this.value;"
@@ -340,28 +338,18 @@
             </select>
             <span class="material-symbols-outlined absolute right-3 top-3 pointer-events-none text-outline text-[20px]">expand_more</span>
           </div>
-          <span class="text-[11px] text-outline font-body-sm block" id="groupingHelpText">Klasifikasi penomoran &amp; account group SAP BP.</span>
-        </div>
-
-        <!-- Business Partner Category -->
-        <div class="space-y-1.5">
-          <label class="block text-label-lg font-label-lg text-on-surface font-medium">
-            Business Partner Category
-          </label>
-          <input class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-low border border-outline-variant rounded-lg text-on-surface cursor-not-allowed" readonly="" type="text" value="2 - Organization">
         </div>
       </div>
     </div>
 
     <!-- =================================================================== -->
-    <!-- SECTION 2: FORMULIR DATA MASTER BUSINESS PARTNER                   -->
+    <!-- SECTION 2: DATA BUSINESS PARTNER                                    -->
     <!-- =================================================================== -->
     <div class="space-y-4">
       <div class="flex items-center gap-3 pb-3 border-b border-slate-200/60">
         <span class="w-8 h-8 rounded-xl bg-emerald-600 text-white font-extrabold text-xs flex items-center justify-center shadow-xs">02</span>
         <div>
-          <h2 class="text-xs font-black text-slate-900 uppercase tracking-wider">Formulir Data Master Business Partner</h2>
-          <p class="text-[11px] text-slate-500 font-medium">Input Detail Data Master Business Partner</p>
+          <h2 class="text-xs font-black text-slate-900 uppercase tracking-wider">Data Business Partner</h2>
         </div>
       </div>
     </div>
@@ -444,34 +432,34 @@
 
       <!-- Nama Badan Usaha -->
       <div class="space-y-space-sm">
-        <div class="text-label-lg font-label-lg text-emerald-700 font-bold tracking-wide">Nama Badan Usaha (Legal Entity)</div>
+        <div class="text-label-lg font-label-lg text-emerald-700 font-bold tracking-wide">Nama Badan Usaha</div>
         <div class="grid grid-cols-1 md:grid-cols-12 gap-space-md">
-          <!-- Title (Anrede) Dropdown Standard SAP BP -->
+          <!-- Title Dropdown -->
           <div class="md:col-span-3 space-y-1.5">
             <label class="block text-label-md font-label-md text-on-surface-variant font-medium">
-              Title (Anrede) <span class="text-error">*</span>
+              Gelar / Title <span class="text-error">*</span>
             </label>
             <div class="relative">
               <select name="title_key" id="titleKeySelect"
                       class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 appearance-none">
-                <option value="0003" selected>0003 - Company</option>
-                <option value="3000">3000 - Organization</option>
-                <option value="0001">0001 - Ms.</option>
-                <option value="0002">0002 - Mr.</option>
+                <option value="0003" selected>0003 - Perusahaan (Company)</option>
+                <option value="3000">3000 - Organisasi</option>
+                <option value="0001">0001 - Ibu (Ms.)</option>
+                <option value="0002">0002 - Bapak (Mr.)</option>
               </select>
               <span class="material-symbols-outlined absolute right-3 top-3 pointer-events-none text-outline text-[20px]">expand_more</span>
             </div>
           </div>
           <div class="md:col-span-5 space-y-1.5">
             <label class="block text-label-md font-label-md text-on-surface-variant font-medium">
-              Name 1 <span class="text-error">*</span>
+              Nama Utama <span class="text-error">*</span>
             </label>
             <input type="text" name="name1" maxlength="40" value="<%= wa_req-name1 %>" placeholder="Contoh: PT KAYU MEBEL INDONESIA"
                    class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
           </div>
           <div class="md:col-span-4 space-y-1.5">
             <label class="block text-label-md font-label-md text-on-surface-variant font-medium">
-              Name 2 (NAME_ORG2)
+              Nama Tambahan
             </label>
             <input type="text" name="name2" maxlength="40" value="<%= wa_req-name2 %>" placeholder="Contoh: Divisi Logistik Kayu"
                    class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
@@ -481,7 +469,7 @@
 
       <!-- Search Term -->
       <div class="space-y-space-sm">
-        <div class="text-label-lg font-label-lg text-emerald-700 font-bold tracking-wide">Search Term</div>
+        <div class="text-label-lg font-label-lg text-emerald-700 font-bold tracking-wide">Kata Kunci Pencarian</div>
         <div class="max-w-md space-y-1.5">
           <label class="block text-label-md font-label-md text-on-surface-variant font-medium">
             Search Term <span class="text-error">*</span>
@@ -491,41 +479,41 @@
         </div>
       </div>
 
-      <!-- Alamat Standar Perusahaan -->
+      <!-- Alamat Perusahaan -->
       <div class="space-y-space-sm">
-        <div class="text-label-lg font-label-lg text-emerald-700 font-bold tracking-wide">Alamat Standar Perusahaan (Standard Address)</div>
+        <div class="text-label-lg font-label-lg text-emerald-700 font-bold tracking-wide">Alamat Perusahaan</div>
         <div class="grid grid-cols-1 md:grid-cols-12 gap-space-md">
           <div class="md:col-span-9 space-y-1.5">
             <label class="block text-label-md font-label-md text-on-surface-variant font-medium">
-              Street (Nama Jalan Kantor / Pabrik) <span class="text-error">*</span>
+              Alamat <span class="text-error">*</span>
             </label>
             <input type="text" name="street" maxlength="60" value="<%= wa_req-street %>" placeholder="Contoh: Jl. Industri Kayu No. 88"
                    class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
           </div>
           <div class="md:col-span-3 space-y-1.5">
             <label class="block text-label-md font-label-md text-on-surface-variant font-medium">
-              House Number
+              Nomor Bangunan
             </label>
             <input type="text" name="house_num" maxlength="10" value="<%= wa_req-house_num %>" placeholder="Contoh: Blok B-2"
                    class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
           </div>
           <div class="md:col-span-3 space-y-1.5">
             <label class="block text-label-md font-label-md text-on-surface-variant font-medium">
-              Postal Code (POST_CODE1) <span class="text-error">*</span>
+              Kode Pos <span class="text-error">*</span>
             </label>
             <input type="text" name="postal_code" maxlength="10" value="<%= COND string( WHEN wa_req-postal_code IS NOT INITIAL THEN wa_req-postal_code ELSE '61292' ) %>" placeholder="Contoh: 61292"
                    class="w-full h-11 px-space-md text-body-md font-code-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
           </div>
           <div class="md:col-span-3 space-y-1.5">
             <label class="block text-label-md font-label-md text-on-surface-variant font-medium">
-              City (CITY1) <span class="text-error">*</span>
+              Kota <span class="text-error">*</span>
             </label>
             <input type="text" name="city" maxlength="40" value="<%= COND string( WHEN wa_req-city IS NOT INITIAL THEN wa_req-city ELSE 'JAKARTA' ) %>" placeholder="Contoh: JAKARTA"
                    class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
           </div>
           <div class="md:col-span-3 space-y-1.5">
             <label class="block text-label-md font-label-md text-on-surface-variant font-medium">
-              Country (COUNTRY) <span class="text-error">*</span>
+              Negara <span class="text-error">*</span>
             </label>
             <div class="relative">
               <select id="countrySelect" name="country" onchange="onCountryChange()"
@@ -546,7 +534,7 @@
           </div>
           <div class="md:col-span-3 space-y-1.5">
             <label class="block text-label-md font-label-md text-on-surface-variant font-medium">
-              Region / Province
+              Provinsi / Wilayah
             </label>
             <div class="relative">
               <select id="regionSelect" name="region"
@@ -559,14 +547,14 @@
         </div>
       </div>
 
-      <!-- Kontak & Komunikasi (LANGU, E_MAIL, Telephone) -->
+      <!-- Kontak & Komunikasi -->
       <div class="space-y-space-sm">
-        <div class="text-label-lg font-label-lg text-emerald-700 font-bold tracking-wide">Kontak &amp; Komunikasi (Standar SAP BP)</div>
+        <div class="text-label-lg font-label-lg text-emerald-700 font-bold tracking-wide">Kontak &amp; Komunikasi</div>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-space-md">
-          <!-- Language Key (LANGU - Mandatory) -->
+          <!-- Language Key -->
           <div class="space-y-1.5">
             <label class="block text-label-md font-label-md text-on-surface-variant font-medium">
-              Language Key (LANGU) <span class="text-error">*</span>
+              Bahasa Komunikasi <span class="text-error">*</span>
             </label>
             <div class="relative">
               <select name="langu" id="languSelect"
@@ -590,13 +578,12 @@
               </select>
               <span class="material-symbols-outlined absolute right-3 top-3 pointer-events-none text-outline text-[20px]">expand_more</span>
             </div>
-            <span class="text-[11px] text-emerald-700 font-medium block">Validasi mandatori guna mencegah error sistem SAP BAPI / BUT000.</span>
           </div>
 
           <!-- Telephone -->
           <div class="space-y-1.5">
             <label class="block text-label-md font-label-md text-on-surface-variant font-medium">
-              Telephone (Telepon Kantor / PIC)
+              Nomor Telepon
             </label>
             <div class="relative">
               <span class="material-symbols-outlined absolute left-3 top-3 text-outline text-[18px]">call</span>
@@ -819,8 +806,8 @@
           </div>
 
           <!-- Legal Entity -->
-          <div class="space-y-1.5">
-            <label class="block text-label-md font-label-md text-on-surface-variant font-medium">Legal Entity</label>
+          <div>
+            <label class="block text-label-md font-label-md text-on-surface-variant font-medium">Entitas Hukum</label>
             <input type="text" name="legal_entity" maxlength="10" placeholder="Contoh: ENT-01"
                    class="w-full h-11 px-space-md text-body-md font-code-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
           </div>
@@ -1380,7 +1367,7 @@
             <!-- Bank Country -->
             <div class="sm:col-span-3">
               <label for="fb_banks" class="block text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mb-1">
-                Bank Country
+                Negara Bank
               </label>
               <input type="text" id="fb_banks" maxlength="3" value="ID"
                      placeholder="ID"
@@ -1509,7 +1496,7 @@
         
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block font-semibold text-on-surface-variant mb-1">Bank Country (Ctry)</label>
+            <label class="block font-semibold text-on-surface-variant mb-1">Negara Bank</label>
             <input type="text" id="modalBankCtry" maxlength="3" class="w-full h-9 px-2.5 bg-surface-container-low border border-outline-variant rounded uppercase font-code-sm">
           </div>
           <div>
@@ -1553,6 +1540,72 @@
           Simpan Data Bank
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- =================================================================== -->
+  <!-- MODAL POPUP: ANIMASI LOADING PROSES SUBMIT                          -->
+  <!-- =================================================================== -->
+  <div id="loadingModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-md z-[100] flex flex-col items-center justify-center p-4 hidden animate-in fade-in duration-200">
+    <div class="bg-surface-container-lowest rounded-3xl border border-outline-variant/80 shadow-2xl p-8 max-w-sm w-full text-center space-y-5 animate-in zoom-in-95 duration-200">
+      <!-- Animated Spinner Ring -->
+      <div class="relative w-20 h-20 mx-auto flex items-center justify-center">
+        <div class="absolute inset-0 rounded-full border-4 border-emerald-100 animate-ping opacity-30"></div>
+        <div class="w-20 h-20 rounded-full border-4 border-emerald-200 border-t-emerald-600 animate-spin"></div>
+        <div class="absolute inset-0 flex items-center justify-center text-emerald-700">
+          <span class="material-symbols-outlined text-[36px] animate-pulse">cloud_upload</span>
+        </div>
+      </div>
+      <div class="space-y-1.5">
+        <h3 class="text-base font-bold text-on-surface">Mengirim Data Permohonan...</h3>
+        <p class="text-xs text-on-surface-variant leading-relaxed">Mohon tunggu sejenak, sistem sedang memproses dan menyimpan data permohonan Business Partner ke tabel staging SAP.</p>
+      </div>
+      <div class="flex items-center justify-center gap-2 pt-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 py-2 px-3 rounded-xl border border-emerald-200">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+        <span>Menghubungkan ke SAP Staging (ZMDG_BP_REQ)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================================================================== -->
+  <!-- MODAL POPUP: HASIL SUKSES SUBMIT DATA                                -->
+  <!-- =================================================================== -->
+  <div id="successResultModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[90] flex items-center justify-center p-4 hidden animate-in fade-in duration-200">
+    <div class="bg-surface-container-lowest rounded-3xl border border-outline-variant/80 shadow-2xl max-w-md w-full p-6 text-center space-y-5 animate-in zoom-in-95 duration-200">
+      <!-- Big Success Checkmark Badge -->
+      <div class="w-16 h-16 rounded-2xl bg-emerald-100 text-emerald-600 border border-emerald-300 flex items-center justify-center mx-auto shadow-md">
+        <span class="material-symbols-outlined text-[40px]">check_circle</span>
+      </div>
+
+      <div class="space-y-2">
+        <h3 class="text-lg font-bold text-slate-900 leading-tight">Data Berhasil Di-upload!</h3>
+        <p class="text-xs text-slate-600 leading-relaxed">
+          Permohonan Business Partner Vendor telah berhasil disimpan ke tabel staging <span class="font-mono font-bold text-emerald-700">ZMDG_BP_REQ</span> dengan status <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[11px]">SUBMITTED</span>.
+        </p>
+      </div>
+
+      <!-- Detail Box -->
+      <div id="successResultDetails" class="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-left space-y-2 text-xs">
+        <div class="flex justify-between items-center pb-2 border-b border-slate-200">
+          <span class="text-slate-500 font-medium">Request ID:</span>
+          <span id="successReqIdText" class="font-bold text-slate-900 font-mono text-xs"><%= wa_req-req_id %></span>
+        </div>
+        <div class="flex justify-between items-center pb-2 border-b border-slate-200">
+          <span class="text-slate-500 font-medium">Nama Organisasi:</span>
+          <span id="successNameText" class="font-bold text-slate-900"><%= wa_req-name1 %></span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-slate-500 font-medium">Status Sistem:</span>
+          <span id="successMsgText" class="font-semibold text-emerald-700">Data Berhasil Disimpan</span>
+        </div>
+      </div>
+
+      <!-- Action Button -->
+      <button type="button" onclick="closeSuccessResultModal();"
+              class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all cursor-pointer">
+        <span class="material-symbols-outlined text-[18px]">done_all</span>
+        <span>Selesai / Tutup</span>
+      </button>
     </div>
   </div>
 
@@ -3251,41 +3304,41 @@
         });
       } else if (searchVal.length > 20) {
         validationFailures.push({
-          Field: 'Search Term 1 (BU_SORT1)',
+          Field: 'Kata Kunci Pencarian',
           Tab: 'address',
           Element: searchEl,
           Status: 'GAGAL',
-          Keterangan: 'Search Term melebihi 20 karakter'
+          Keterangan: 'Kata Kunci melebihi 20 karakter'
         });
       }
 
       if (!countryVal) {
         validationFailures.push({
-          Field: 'Country (COUNTRY)',
+          Field: 'Negara',
           Tab: 'address',
           Element: countryEl,
           Status: 'GAGAL',
-          Keterangan: 'Kode Negara wajib dipilih (contoh: ID)'
+          Keterangan: 'Kode Negara wajib dipilih'
         });
       }
 
       if (!cityVal) {
         validationFailures.push({
-          Field: 'City (CITY1)',
+          Field: 'Kota',
           Tab: 'address',
           Element: cityEl,
           Status: 'GAGAL',
-          Keterangan: 'Kota Domisili wajib diisi (contoh: JAKARTA)'
+          Keterangan: 'Kota Domisili wajib diisi'
         });
       }
 
       if (!postalVal) {
         validationFailures.push({
-          Field: 'Postal Code (POST_CODE1)',
+          Field: 'Kode Pos',
           Tab: 'address',
           Element: postalEl,
           Status: 'GAGAL',
-          Keterangan: 'Kode Pos wajib diisi (contoh: 61292)'
+          Keterangan: 'Kode Pos wajib diisi'
         });
       }
 
@@ -3361,7 +3414,7 @@
 
     // VALIDASI LOLOS: LOG DATA YANG AKAN DIKIRIM
     console.group('%c[KIRIM] Mengirim Data Valid ke SAP Staging ZMDG_BP_REQ', C_STYLE_OK);
-    console.log('[MDG BP] Target Action URL: ' + (form.getAttribute('action') || 'test_bp_create_request.htm'));
+    console.log('[MDG BP] Target Action URL: ' + (form.getAttribute('action') || 'test_bp_create_vendor.htm'));
     console.log('[MDG BP] Aksi             : ' + actionName);
     console.table([{
       'Aksi': actionName,
@@ -3380,9 +3433,53 @@
     // Simpan payload ke sessionStorage agar bisa dibaca setelah reload
     try {
       sessionStorage.setItem('_MDG_BP_LAST_SUBMIT', JSON.stringify(payload));
+      if (actionName === 'SUBMIT') {
+        sessionStorage.setItem('_MDG_BP_SUBMITTED_FLAG', 'TRUE');
+      }
     } catch(e) {}
 
+    // TAMPILKAN ANIMASI LOADING OVERLAY
+    var loadingModal = document.getElementById('loadingModal');
+    if (loadingModal) {
+      loadingModal.classList.remove('hidden');
+    }
+
     form.submit();
+  }
+
+  function closeSuccessResultModal() {
+    var modal = document.getElementById('successResultModal');
+    if (modal) modal.classList.add('hidden');
+  }
+
+  function checkAndShowSuccessModal() {
+    var msgs = getServerMessages();
+    var successMsg = null;
+    for (var i = 0; i < msgs.length; i++) {
+      if (msgs[i].type === 'S') {
+        successMsg = msgs[i];
+        break;
+      }
+    }
+
+    var wasSubmitted = false;
+    try {
+      wasSubmitted = sessionStorage.getItem('_MDG_BP_SUBMITTED_FLAG') === 'TRUE';
+      if (wasSubmitted) {
+        sessionStorage.removeItem('_MDG_BP_SUBMITTED_FLAG');
+      }
+    } catch(e) {}
+
+    if (successMsg || wasSubmitted) {
+      var modal = document.getElementById('successResultModal');
+      if (modal) {
+        if (successMsg) {
+          var msgTextEl = document.getElementById('successMsgText');
+          if (msgTextEl) msgTextEl.textContent = successMsg.text;
+        }
+        modal.classList.remove('hidden');
+      }
+    }
   }
 
   function loadRequest(reqId) {
@@ -3395,7 +3492,7 @@
   function resetForm() {
     if (confirm('Apakah Anda yakin ingin mengosongkan formulir?')) {
       console.log('[MDG BP] Mengosongkan formulir...');
-      window.location.href = 'test_bp_create_request.htm';
+      window.location.href = 'test_bp_create_vendor.htm';
     }
   }
 
@@ -3544,6 +3641,9 @@
 
     // Tampilkan log server komprehensif ke console browser
     logServerResponse();
+
+    // Tampilkan modal popup sukses jika permohonan berhasil di-submit
+    checkAndShowSuccessModal();
   });
 </script>
 

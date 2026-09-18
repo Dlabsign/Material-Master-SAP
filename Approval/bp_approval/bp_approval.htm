@@ -1,0 +1,1709 @@
+<%@page language="ABAP" %>
+    <% DATA: lv_auth_user TYPE string, lv_is_authorized TYPE c LENGTH 1 VALUE ' ' . lv_auth_user=sy-uname. TRANSLATE
+        lv_auth_user TO UPPER CASE. CONDENSE lv_auth_user NO-GAPS. IF lv_auth_user='ABAPER04' OR lv_auth_user='KMI-BOD'
+        OR lv_auth_user='KMI-U163' . lv_is_authorized='X' . ENDIF. IF lv_is_authorized <> 'X'.
+        %>
+        <!DOCTYPE html>
+        <html lang="en">
+
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>403 Forbidden</title>
+            <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+            <link rel="preconnect" href="https://fonts.googleapis.com">
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+            <link
+                href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Inter:wght@500;600;700&display=swap"
+                rel="stylesheet">
+            <style>
+                * {
+                    margin: 0;
+                    padding: 0;
+                    box-sizing: border-box;
+                }
+
+                html,
+                body {
+                    width: 100%;
+                    height: 100%;
+                    min-height: 100vh;
+                    background-color: #f8fafc;
+                    font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    text-align: center;
+                    padding: 1.5rem;
+                    -webkit-font-smoothing: antialiased;
+                    -moz-osx-font-smoothing: grayscale;
+                }
+
+                .forbidden-logo {
+                    width: 76px;
+                    height: auto;
+                    max-height: 76px;
+                    object-fit: contain;
+                    margin-bottom: 1.25rem;
+                    user-select: none;
+                    -webkit-user-drag: none;
+                }
+
+                .forbidden-title {
+                    font-size: clamp(2.5rem, 6vw, 4.5rem);
+                    font-weight: 800;
+                    background: linear-gradient(135deg, #064e3b 0%, #047857 55%, #059669 100%);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    background-clip: text;
+                    color: #047857;
+                    letter-spacing: -0.035em;
+                    line-height: 1.15;
+                    user-select: none;
+                    margin-bottom: 0.875rem;
+                }
+
+                .forbidden-desc {
+                    font-size: clamp(0.95rem, 1.5vw, 1.075rem);
+                    font-weight: 400;
+                    color: #64748b;
+                    line-height: 1.6;
+                    max-width: 540px;
+                }
+            </style>
+        </head>
+
+        <body>
+            <img src="ENJOYSAP_LOGO.png" alt="Logo KMI" class="forbidden-logo" onerror="this.style.display='none'">
+            <h1 class="forbidden-title">403 Forbidden</h1>
+            <p class="forbidden-desc">You don’t have permission to access this page. If you need any information, please
+                contact the Core Team.</p>
+        </body>
+
+        </html>
+        <% RETURN. ENDIF. DATA: lv_badge_approved TYPE i, lv_badge_rejected TYPE i, lv_badge_checked TYPE i. SELECT
+            COUNT( * ) FROM zmdg_bp_req WHERE status='APPROVED' INTO @lv_badge_approved. SELECT COUNT( * ) FROM
+            zmdg_bp_req WHERE status IN ( 'REJECTED' , 'FAILED' ) INTO @lv_badge_rejected. SELECT COUNT( * ) FROM
+            zmdg_bp_req WHERE status='CHECKED' AND stw_data_status='X' AND stw_bank_status='X' INTO @lv_badge_checked.
+            %>
+            <!DOCTYPE html>
+            <html lang="en">
+
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Master Data Governance - Business Partner Approval Center</title>
+
+                <!-- Google Fonts: Inter -->
+                <link rel="preconnect" href="https://fonts.googleapis.com">
+                <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+                <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+                    rel="stylesheet">
+
+                <!-- Tailwind CSS CDN -->
+                <script src="https://cdn.tailwindcss.com"></script>
+
+                <script>
+                    tailwind.config = {
+                        theme: {
+                            extend: {
+                                fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+                                colors: {
+                                    emerald: {
+                                        50: '#ecfdf5',
+                                        100: '#d1fae5',
+                                        200: '#a7f3d0',
+                                        500: '#10b981',
+                                        600: '#059669',
+                                        700: '#047857',
+                                        800: '#065f46',
+                                        900: '#064e3b',
+                                    },
+                                    brand: {
+                                        50: '#f0fdf4', 100: '#dcfce7', 200: '#bbf7d0',
+                                        500: '#10b981', 600: '#059669', 700: '#047857',
+                                        800: '#065f46', 900: '#022c22',
+                                    }
+                                }
+                            }
+                        }
+                    }
+                </script>
+                <style>
+                    body {
+                        font-family: 'Inter', system-ui, sans-serif;
+                        background-color: #f8fafc;
+                        background-image:
+                            radial-gradient(at 10% 10%, rgba(16, 185, 129, 0.05) 0px, transparent 40%),
+                            radial-gradient(at 90% 15%, rgba(100, 116, 139, 0.05) 0px, transparent 45%),
+                            radial-gradient(at 50% 85%, rgba(16, 185, 129, 0.03) 0px, transparent 50%);
+                        background-attachment: fixed;
+                        color: #0f172a;
+                    }
+
+                    ::-webkit-scrollbar {
+                        width: 6px;
+                        height: 6px;
+                    }
+
+                    ::-webkit-scrollbar-track {
+                        background: rgba(241, 245, 249, 0.6);
+                        border-radius: 10px;
+                    }
+
+                    ::-webkit-scrollbar-thumb {
+                        background: #cbd5e1;
+                        border-radius: 10px;
+                    }
+
+                    ::-webkit-scrollbar-thumb:hover {
+                        background: #10b981;
+                    }
+
+                    .glass-panel {
+                        background: #ffffff;
+                        border: 1px solid #e2e8f0;
+                        box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.03), 0 2px 6px -1px rgba(15, 23, 42, 0.02);
+                    }
+
+                    .custom-select {
+                        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%6b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+                        background-position: right 0.75rem center;
+                        background-repeat: no-repeat;
+                        background-size: 1.25em 1.25em;
+                        padding-right: 2.25rem;
+                        -webkit-appearance: none;
+                        -moz-appearance: none;
+                        appearance: none;
+                    }
+
+                    .category-card {
+                        background: #ffffff;
+                        border: 1px solid #e2e8f0;
+                        border-radius: 20px;
+                        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+                        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+                    }
+
+                    .category-card:hover {
+                        transform: translateY(-3px);
+                        border-color: #10b981;
+                        box-shadow: 0 12px 28px -6px rgba(16, 185, 129, 0.12);
+                    }
+                </style>
+            </head>
+
+            <body class="text-[13px] font-sans leading-relaxed m-0 p-0 antialiased min-h-screen">
+
+                <div class="flex min-h-screen">
+                    <!-- REUSABLE SIDEBAR PAGE FRAGMENT -->
+                    <%@include file="sidebar_approval.htm" %>
+
+                        <!-- MAIN CONTENT AREA -->
+                        <div class="flex-1 min-w-0 flex flex-col">
+                            <!-- TOP NAVBAR -->
+                            <header
+                                class="bg-white/80 backdrop-blur-xl h-16 border-b border-slate-200/80 sticky top-0 z-50 px-6 lg:px-10 flex items-center justify-between shadow-2xs">
+                                <!-- BRAND LOGO -->
+                                <a href="landing_page.htm" class="flex items-center gap-3 decoration-none">
+                                    <div
+                                        class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-700 via-emerald-600 to-emerald-800 text-white font-extrabold text-xs flex items-center justify-center shadow-xs">
+                                        KMI
+                                    </div>
+                                    <div class="flex flex-col">
+                                        <span class="text-sm font-extrabold text-slate-900 leading-none">PT Kayu Mebel
+                                            Indonesia</span>
+                                        <span class="text-[11px] font-semibold text-slate-500 mt-0.5">Wood & Furniture
+                                            Manufacturing</span>
+                                    </div>
+                                </a>
+
+                                <!-- USER PROFILE WIDGET -->
+                                <div class="flex items-center gap-3">
+                                    <div
+                                        class="flex items-center gap-2.5 bg-white border border-slate-200 px-3 py-1.5 rounded-full shadow-2xs">
+                                        <div class="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-700 text-white flex items-center justify-center font-extrabold text-xs"
+                                            id="userAvatarInitial">
+                                            A
+                                        </div>
+                                        <span class="text-xs font-bold text-slate-800" id="userNameLabel">
+                                            <%= sy-uname %>
+                                        </span>
+                                    </div>
+                                    <a href="?action=LOGOUT"
+                                        class="text-xs font-semibold text-slate-600 hover:text-rose-700 px-3.5 py-1.5 rounded-full border border-slate-200 bg-white hover:bg-rose-50/50 transition">
+                                        Sign Out
+                                    </a>
+                                </div>
+                            </header>
+
+                            <main class="max-w-[1700px] my-6 mx-auto px-4 sm:px-8 space-y-8 flex-1 w-full">
+
+                                <!-- MINIMALIST HERO TITLE SECTION -->
+                                <section class="text-center py-2 flex flex-col items-center justify-center">
+                                    <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900">
+                                        Business Partner Governance
+                                    </h1>
+                                    <p class="text-xs font-bold text-emerald-600 uppercase tracking-widest mt-1.5">
+                                        Approval &amp; Verification Center &mdash; Checked Records Only
+                                    </p>
+                                </section>
+
+                                <!-- 4 MODULE BADGES SECTION (Material, Business Partner, Financial, Info Record) -->
+                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                    <!-- 1. Material Master -->
+                                    <div
+                                        class="bg-gradient-to-br from-emerald-800 via-emerald-700 to-teal-900 text-white rounded-2xl px-5 py-4 shadow-sm border border-emerald-600/30 transition-all hover:shadow-md cursor-pointer group">
+                                        <div class="flex items-center justify-between">
+                                            <span
+                                                class="text-[11px] font-bold tracking-wide text-emerald-100 uppercase">Material
+                                                Master</span>
+                                            <span
+                                                class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-200 border border-emerald-400/30">MM</span>
+                                        </div>
+                                        <span class="text-3xl font-extrabold text-white tracking-tight block mt-1"
+                                            id="badgeMatCount">0</span>
+                                        <div
+                                            class="text-[11px] text-emerald-200/80 mt-1 font-medium flex items-center gap-1.5">
+                                            <span>Material Master Data</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- 2. Business Partner -->
+                                    <div
+                                        class="bg-gradient-to-br from-sky-800 via-sky-700 to-indigo-900 text-white rounded-2xl px-5 py-4 shadow-sm border border-sky-600/30 transition-all hover:shadow-md cursor-pointer group">
+                                        <div class="flex items-center justify-between">
+                                            <span
+                                                class="text-[11px] font-bold tracking-wide text-sky-100 uppercase">Business
+                                                Partner</span>
+                                            <span
+                                                class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-200 border border-sky-400/30">BP</span>
+                                        </div>
+                                        <span class="text-3xl font-extrabold text-white tracking-tight block mt-1"
+                                            id="badgeBpCount">
+                                            <%= lv_badge_approved %>
+                                        </span>
+                                        <div
+                                            class="text-[11px] text-sky-200/80 mt-1 font-medium flex items-center gap-1.5">
+                                            <span>Vendor &amp; Customer</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- 3. Financial -->
+                                    <div
+                                        class="bg-gradient-to-br from-amber-800 via-amber-700 to-slate-900 text-white rounded-2xl px-5 py-4 shadow-sm border border-amber-600/30 transition-all hover:shadow-md cursor-pointer group">
+                                        <div class="flex items-center justify-between">
+                                            <span
+                                                class="text-[11px] font-bold tracking-wide text-amber-100 uppercase">Financial</span>
+                                            <span
+                                                class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-200 border border-amber-400/30">FI</span>
+                                        </div>
+                                        <span class="text-3xl font-extrabold text-white tracking-tight block mt-1"
+                                            id="badgeFinCount">0</span>
+                                        <div
+                                            class="text-[11px] text-amber-200/80 mt-1 font-medium flex items-center gap-1.5">
+                                            <span>Accounting &amp; Finance</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- 4. Info Record -->
+                                    <div
+                                        class="bg-gradient-to-br from-violet-800 via-purple-700 to-slate-900 text-white rounded-2xl px-5 py-4 shadow-sm border border-violet-600/30 transition-all hover:shadow-md cursor-pointer group">
+                                        <div class="flex items-center justify-between">
+                                            <span
+                                                class="text-[11px] font-bold tracking-wide text-purple-100 uppercase">Info
+                                                Record</span>
+                                            <span
+                                                class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-200 border border-purple-400/30">PIR</span>
+                                        </div>
+                                        <span class="text-3xl font-extrabold text-white tracking-tight block mt-1"
+                                            id="badgeInfoCount">0</span>
+                                        <div
+                                            class="text-[11px] text-purple-200/80 mt-1 font-medium flex items-center gap-1.5">
+                                            <span>Info Harga / Purchasing</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- TERBARU & TERLAMA QUICK BADGES + STATUS OVERVIEW STRIP -->
+                                <div
+                                    class="glass-panel rounded-2xl p-3.5 flex flex-col sm:flex-row items-center justify-between gap-3">
+                                    <!-- Left: Badges Untuk Menampilkan Terbaru / Terlama -->
+                                    <div class="flex items-center gap-2 w-full sm:w-auto overflow-x-auto">
+                                        <span
+                                            class="text-[10px] font-black uppercase tracking-wider text-slate-400 shrink-0 mr-1">Urutan
+                                            Data:</span>
+
+                                        <!-- Badge Terbaru -->
+                                        <button type="button" id="badgeSortDesc"
+                                            onclick="if(typeof setDateSort==='function') setDateSort('DESC')"
+                                            class="px-3.5 py-1.5 rounded-full text-xs font-extrabold transition cursor-pointer flex items-center gap-1.5 shadow-2xs bg-emerald-700 text-white border border-emerald-500 shrink-0">
+                                            <span class="w-2 h-2 rounded-full bg-emerald-300 animate-pulse"></span>
+                                            <span>Badge Terbaru (Terbaru &rarr; Terlama)</span>
+                                        </button>
+
+                                        <!-- Badge Terlama -->
+                                        <button type="button" id="badgeSortAsc"
+                                            onclick="if(typeof setDateSort==='function') setDateSort('ASC')"
+                                            class="px-3.5 py-1.5 rounded-full text-xs font-bold transition cursor-pointer flex items-center gap-1.5 text-slate-600 bg-white border border-slate-200 hover:bg-slate-100 shrink-0">
+                                            <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+                                            <span>Badge Terlama (Terlama &rarr; Terbaru)</span>
+                                        </button>
+                                    </div>
+
+                                    <!-- Right: Quick Status Overview Chips -->
+                                    <div class="flex items-center gap-2 text-xs shrink-0 self-end sm:self-center">
+                                        <span
+                                            class="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-extrabold flex items-center gap-1 cursor-pointer"
+                                            onclick="filterByStatus('APPROVED')">
+                                            Approved: <strong id="statApprovedCount" class="font-mono text-emerald-900">
+                                                <%= lv_badge_approved %>
+                                            </strong>
+                                        </span>
+                                        <span
+                                            class="px-2.5 py-1 rounded-full bg-rose-50 text-rose-800 border border-rose-200 font-extrabold flex items-center gap-1 cursor-pointer"
+                                            onclick="filterByStatus('REJECTED')">
+                                            Reject: <strong id="statRejectedCount" class="font-mono text-rose-900">
+                                                <%= lv_badge_rejected %>
+                                            </strong>
+                                        </span>
+                                        <span
+                                            class="px-2.5 py-1 rounded-full bg-sky-50 text-sky-800 border border-sky-200 font-extrabold flex items-center gap-1 cursor-pointer"
+                                            onclick="filterByStatus('CHECKED')">
+                                            Checked: <strong id="statDraftCount" class="font-mono text-sky-900">
+                                                <%= lv_badge_checked %>
+                                            </strong>
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- IN-PAGE APPROVAL FEEDBACK ALERT BANNER -->
+                                <div id="pageApprovalAlert"
+                                    class="hidden rounded-2xl p-4 transition-all duration-300 shadow-sm border">
+                                    <div class="flex items-start justify-between gap-3">
+                                        <div class="flex items-start gap-3">
+                                            <div id="pageApprovalAlertIcon"
+                                                class="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-base shrink-0 mt-0.5 shadow-inner">
+                                            </div>
+                                            <div>
+                                                <h4 id="pageApprovalAlertTitle"
+                                                    class="text-xs font-extrabold uppercase tracking-wider mb-1"></h4>
+                                                <p id="pageApprovalAlertMessage"
+                                                    class="text-xs font-medium leading-relaxed"></p>
+                                                <div id="pageApprovalAlertDetail"
+                                                    class="hidden mt-2.5 p-3 rounded-xl text-[11px] font-mono border max-h-40 overflow-y-auto leading-normal">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button type="button" onclick="closePageApprovalAlert()"
+                                            class="text-slate-400 hover:text-slate-600 font-bold text-lg px-2 py-0.5 rounded-lg transition cursor-pointer">&times;</button>
+                                    </div>
+                                </div>
+
+
+
+                                <!-- SECTION 2: APPROVAL REQUESTS (OPERATIONAL QUEUE) -->
+                                <section class="space-y-4">
+
+                                    <!-- FILTER & SEARCH BAR PANEL -->
+                                    <div class="glass-panel rounded-2xl p-4 transition-all duration-300">
+                                        <div class="flex flex-col sm:flex-row items-center justify-between gap-3">
+                                            <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+                                                <input type="hidden" id="dateSortFilter" value="DESC">
+                                                <input type="hidden" id="columnFilter" value="ALL">
+                                                <input type="hidden" id="statusFilter" value="ALL">
+
+                                                <!-- Date Sort Button Badge -->
+                                                <button type="button" id="dateSortBtn" onclick="toggleDateSort()"
+                                                    class="inline-flex items-center gap-2.5 px-3.5 py-2 border border-slate-200 rounded-xl text-xs bg-white hover:bg-slate-50 font-bold text-slate-700 shadow-2xs transition cursor-pointer active:scale-95 focus:outline-none focus:ring-2 focus:ring-emerald-500/20">
+                                                    <span
+                                                        class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Date
+                                                        Sort</span>
+                                                    <span class="w-px h-3.5 bg-slate-200"></span>
+                                                    <span id="dateSortLabel" class="font-bold text-slate-800">Terbaru
+                                                        &rarr; Terlama</span>
+                                                    <svg id="dateSortIcon"
+                                                        class="w-3.5 h-3.5 text-emerald-600 transition-transform duration-200"
+                                                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2.5" d="M19 9l-7 7-7-7"></path>
+                                                    </svg>
+                                                </button>
+
+                                                <div class="relative min-w-[220px] sm:min-w-[280px]">
+                                                    <input type="text" id="searchInput" placeholder="Search requests..."
+                                                        class="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 font-medium text-slate-800 bg-white transition placeholder:text-slate-400"
+                                                        onkeyup="applyFilter()">
+                                                </div>
+                                            </div>
+
+                                            <div
+                                                class="flex items-center gap-2 self-end sm:self-center w-full sm:w-auto justify-end">
+                                                <button type="button" onclick="loadStagingList()"
+                                                    class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl font-extrabold text-xs flex items-center gap-1.5 transition shadow-2xs cursor-pointer">
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                                        stroke="currentColor" stroke-width="2.5">
+                                                        <path d="M23 4v6h-6M1 20v-6h6"></path>
+                                                        <path
+                                                            d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15">
+                                                        </path>
+                                                    </svg>
+                                                    Refresh
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- ACTION BAR MULTIPLE SELECTION -->
+                                    <div id="batchActionBar"
+                                        class="hidden bg-slate-900 text-white px-5 py-3.5 rounded-2xl flex items-center justify-between shadow-xl backdrop-blur-md">
+                                        <div class="flex items-center gap-3">
+                                            <span
+                                                class="bg-emerald-500 text-slate-950 font-extrabold px-3 py-0.5 rounded-full text-xs"
+                                                id="selectedCountBadge">0</span>
+                                            <span class="text-xs font-bold text-slate-200">requests selected</span>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <button type="button" id="btnBulkApprove" onclick="triggerBulkApprove()"
+                                                class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-1.5 rounded-full font-extrabold text-xs transition shadow-2xs cursor-pointer flex items-center gap-1.5">
+                                                Approve Selected
+                                            </button>
+                                            <button type="button" onclick="openRejectModal('BULK')"
+                                                class="bg-rose-600 hover:bg-rose-700 text-white px-4 py-1.5 rounded-full font-extrabold text-xs transition shadow-2xs cursor-pointer">
+                                                Reject Selected
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- STAGING TABLE CONTAINER -->
+                                    <div
+                                        class="glass-panel rounded-2xl overflow-hidden mb-8 transition-all duration-300">
+                                        <div class="overflow-x-auto overflow-y-auto max-h-[620px] w-full max-w-full">
+                                            <table class="w-full border-collapse text-xs min-w-[1000px]">
+                                                <thead>
+                                                    <tr
+                                                        class="text-left bg-slate-50 border-b border-slate-200 text-[10px] font-black text-slate-500 uppercase tracking-wider sticky top-0 z-20">
+                                                        <th class="p-3.5 text-center" style="width: 38px;">
+                                                            <input type="checkbox" id="selectAllCheckbox"
+                                                                onchange="toggleSelectAll(this)"
+                                                                class="w-3.5 h-3.5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer">
+                                                        </th>
+                                                        <th class="p-3.5 text-center" style="width: 55px;">Detail</th>
+                                                        <th class="p-3.5">Business Partner (Name &amp; Role)</th>
+                                                        <th class="p-3.5 text-center" style="width: 140px;">Request Date
+                                                        </th>
+                                                        <th class="p-3.5 text-center" style="width: 150px;">Requestor /
+                                                            Steward</th>
+                                                        <th class="p-3.5 text-center" style="width: 120px;">Status</th>
+                                                        <th class="p-3.5 text-center" style="width: 170px;">Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="stagingTableBody" class="divide-y divide-slate-100 bg-white">
+                                                    <tr>
+                                                        <td colspan="7"
+                                                            class="p-8 text-center text-slate-400 font-medium">
+                                                            Loading request queue...
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                </section>
+
+                            </main>
+
+                            <!-- APPROVAL CONFIRMATION MODAL POPUP -->
+                            <div id="approveConfirmModal"
+                                class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[10000] hidden flex items-center justify-center p-4">
+                                <div
+                                    class="bg-white rounded-2xl shadow-2xl border border-slate-100 max-w-md w-full overflow-hidden transform transition-all">
+                                    <div
+                                        class="bg-emerald-50 border-b border-emerald-100 px-6 py-4 flex items-center justify-between">
+                                        <h3
+                                            class="text-xs font-extrabold text-emerald-900 uppercase tracking-wider flex items-center gap-2">
+                                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                            Konfirmasi Approval
+                                        </h3>
+                                        <button type="button" onclick="cancelApproveConfirm()" class="w-7 h-7 rounded-lg bg-white hover:bg-slate-100 text-slate-400 hover:text-slate-700 font-bold text-base flex items-center justify-center transition border
+border-slate-200 cursor-pointer">&times;</button>
+                                    </div>
+                                    <div class="p-6 space-y-4">
+                                        <div
+                                            class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-xl font-black mx-auto shadow-inner border border-emerald-200">
+                                            ?
+                                        </div>
+                                        <div class="text-center space-y-1.5">
+                                            <h4 class="text-sm font-extrabold text-slate-900">Apakah Anda yakin ingin
+                                                memproses Approval ini?</h4>
+                                            <p class="text-xs text-slate-500 font-medium leading-relaxed">
+                                                Data request yang dipilih akan divalidasi dan langsung di-upload ke SAP
+                                                S/4HANA Master Data.
+                                            </p>
+                                        </div>
+                                        <div
+                                            class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-xs font-mono text-slate-700 space-y-1">
+                                            <div
+                                                class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider font-sans">
+                                                Dokumen / Data yang di-Approve:
+                                            </div>
+                                            <div id="confirmApproveDocList"
+                                                class="font-bold text-emerald-800 break-all leading-snug"></div>
+                                        </div>
+                                    </div>
+                                    <div class="bg-slate-50 px-6 py-4 border-t border-slate-200 flex justify-end gap-2">
+                                        <button type="button" id="btnCancelApproveModal"
+                                            onclick="cancelApproveConfirm()"
+                                            class="px-4 py-2 rounded-full text-xs font-bold border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 transition cursor-pointer">
+                                            Batal
+                                        </button>
+                                        <button type="button" id="btnExecuteApproveModal"
+                                            onclick="executeConfirmedApprove()" class="px-5 py-2 rounded-full text-xs font-extrabold bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs transition flex items-center
+gap-1.5 cursor-pointer">
+                                            <span id="btnExecuteApproveText">Ya, Approve Sekarang</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- REJECTION REASON MODAL POPUP -->
+                            <div id="rejectModal"
+                                class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[10000] hidden flex items-center justify-center p-4">
+                                <div
+                                    class="bg-white rounded-2xl shadow-2xl border border-slate-100 max-w-md w-full overflow-hidden transform transition-all">
+                                    <div
+                                        class="bg-rose-50 border-b border-rose-100 px-6 py-4 flex items-center justify-between">
+                                        <h3
+                                            class="text-xs font-extrabold text-rose-800 uppercase tracking-wider flex items-center gap-2">
+                                            <span class="w-2 h-2 rounded-full bg-rose-500"></span> Reject Request
+                                        </h3>
+                                        <button type="button" onclick="closeRejectModal()" class="w-7 h-7 rounded-lg bg-white hover:bg-slate-100 text-slate-400 hover:text-slate-700 font-bold text-base flex items-center justify-center transition border border-slate-200
+cursor-pointer">&times;</button>
+                                    </div>
+                                    <div class="p-6 space-y-3">
+                                        <input type="hidden" id="modalTargetReqNo" value="">
+                                        <input type="hidden" id="modalMode" value="SINGLE">
+
+                                        <label
+                                            class="block text-[11px] font-extrabold text-slate-700 uppercase tracking-wider mb-1">Reason
+                                            <span class="text-rose-600">*</span></label>
+                                        <textarea id="rejectReasonInput" rows="3"
+                                            placeholder="Enter rejection reason..." class="w-full p-3 border border-slate-200 rounded-xl text-xs outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 font-medium
+text-slate-800 bg-white transition"></textarea>
+                                    </div>
+                                    <div class="bg-slate-50 px-6 py-4 border-t border-slate-200 flex justify-end gap-2">
+                                        <button type="button" onclick="closeRejectModal()"
+                                            class="px-4 py-2 rounded-full text-xs font-bold border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 transition cursor-pointer">
+                                            Cancel
+                                        </button>
+                                        <button type="button" onclick="submitRejection()"
+                                            class="px-5 py-2 rounded-full text-xs font-extrabold bg-rose-600 hover:bg-rose-700 text-white shadow-2xs transition cursor-pointer">
+                                            Confirm Reject
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- BUSINESS PARTNER FULL DETAIL MODAL POPUP -->
+                            <div id="materialDetailModal"
+                                class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[10000] hidden flex items-center justify-center p-4">
+                                <div
+                                    class="bg-white rounded-2xl shadow-2xl border border-slate-100 max-w-5xl w-full overflow-hidden transform transition-all flex flex-col max-h-[90vh]">
+                                    <div
+                                        class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between shadow-md shrink-0 border-b border-slate-800">
+                                        <div class="flex items-center gap-3">
+                                            <div
+                                                class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center font-black text-white text-xs shadow-xs">
+                                                📋
+                                            </div>
+                                            <div>
+                                                <h3 class="text-sm font-extrabold text-white tracking-wide"
+                                                    id="detailModalTitle">BUSINESS PARTNER DETAILS</h3>
+                                                <div class="flex items-center gap-2 mt-0.5 text-[11px] text-slate-400 font-medium flex-wrap"
+                                                    id="detailModalSubTitle"></div>
+                                            </div>
+                                        </div>
+                                        <button type="button" onclick="closeMaterialDetailModal()" class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white font-bold text-lg flex items-center justify-center transition
+cursor-pointer">&times;</button>
+                                    </div>
+                                    <div class="p-6 overflow-y-auto space-y-4 text-xs bg-slate-50/50"
+                                        id="detailModalBody">
+                                        <!-- Content dynamically generated by JS -->
+                                    </div>
+                                    <div
+                                        class="bg-slate-100/90 backdrop-blur-xs px-6 py-4 border-t border-slate-200 flex justify-end shrink-0">
+                                        <button type="button" onclick="closeMaterialDetailModal()"
+                                            class="px-6 py-2.5 rounded-full text-xs font-extrabold bg-slate-900 hover:bg-slate-800 text-white shadow-xs transition transform active:scale-95 cursor-pointer">
+                                            Close
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- SAP UPLOAD RESULT NOTIFICATION MODAL -->
+                            <div id="uploadResultModal"
+                                class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[10000] hidden flex items-center justify-center p-4">
+                                <div
+                                    class="bg-white rounded-2xl shadow-2xl border border-slate-100 max-w-md w-full overflow-hidden transform transition-all">
+                                    <div id="uploadResultHeader"
+                                        class="px-6 py-4 border-b flex items-center justify-between">
+                                        <h3 class="text-xs font-extrabold uppercase tracking-wider flex items-center gap-2"
+                                            id="uploadResultTitle">
+                                            SAP Upload Notification
+                                        </h3>
+                                        <button type="button" onclick="closeUploadResultModal()" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-600 font-bold text-base flex items-center justify-center transition
+cursor-pointer">&times;</button>
+                                    </div>
+                                    <div class="p-6 space-y-3 text-center">
+                                        <div id="uploadResultIcon"
+                                            class="w-14 h-14 rounded-full mx-auto flex items-center justify-center text-2xl font-bold shadow-inner">
+                                        </div>
+                                        <h4 class="text-sm font-extrabold text-slate-900" id="uploadResultHeading"></h4>
+                                        <p class="text-xs text-slate-600 font-medium leading-relaxed"
+                                            id="uploadResultMessage"></p>
+                                        <div id="uploadResultDetailBox"
+                                            class="hidden text-left bg-slate-50 p-3 rounded-xl border border-slate-200 text-[11px] font-mono text-slate-700 max-h-36 overflow-y-auto">
+                                        </div>
+                                    </div>
+                                    <div class="bg-slate-50 px-6 py-4 border-t border-slate-200 flex justify-center">
+                                        <button type="button" onclick="closeUploadResultModal()"
+                                            class="px-6 py-2.5 rounded-full text-xs font-extrabold bg-slate-900 hover:bg-slate-800 text-white shadow-xs transition transform active:scale-95 cursor-pointer">
+                                            OK, Mengerti
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- TOAST STACK NOTIFICATION -->
+                            <div class="fixed bottom-5 right-5 flex flex-col gap-2 z-[10000]" id="toastStack"></div>
+
+                            <script>
+                                var fullStagingData = [];
+                                var selectedReqNos = [];
+                                var loadedBatchDetails = {};
+
+                                document.addEventListener("DOMContentLoaded", function () {
+                                    var nameLabel = document.getElementById("userNameLabel");
+                                    if (nameLabel && nameLabel.innerText.trim()) {
+                                        var initial = nameLabel.innerText.trim().charAt(0).toUpperCase();
+                                        var avatar = document.getElementById("userAvatarInitial");
+                                        if (avatar) avatar.innerText = initial;
+                                    }
+                                    loadStagingList();
+                                });
+
+                                function loadStagingList() {
+                                    var tbody = document.getElementById("stagingTableBody");
+                                    if (tbody) {
+                                        tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-slate-400 italic">' +
+                                            'Memuat antrean Business Partner...</td></tr>';
+                                    }
+                                    selectedReqNos = [];
+                                    loadedBatchDetails = {};
+                                    updateBatchActionBar();
+
+                                    fetch("?action=GET_STAGING_LIST", { method: "POST" })
+                                        .then(function (res) {
+                                            if (!res.ok) {
+                                                throw new Error("HTTP error status: " + res.status);
+                                            }
+                                            return res.json();
+                                        })
+                                        .then(function (data) {
+                                            var rawList = Array.isArray(data) ? data : [];
+                                            fullStagingData = rawList.filter(function (i) {
+                                                var locStat = null;
+                                                try { locStat = localStorage.getItem('MDG_BP_STATUS_' + i.req_no); } catch (e) { }
+                                                var effStat = locStat || i.status;
+                                                try {
+                                                    var locBp = localStorage.getItem('MDG_BP_NUM_' + i.req_no);
+                                                    if (locBp && !i.bp_number) i.bp_number = locBp;
+                                                } catch (e) { }
+                                                return (effStat === 'SUBMITTED' || effStat === 'CHECKED' || effStat === 'SD_APPROVED' || effStat === 'APPROVED');
+                                            });
+                                            updateKPICards(fullStagingData);
+                                            applyFilter();
+                                        })
+                                        .catch(function (err) {
+                                            console.error("Detail Error AJAX:", err);
+                                            var localChecked = [];
+                                            try {
+                                                for (var k = 0; k < localStorage.length; k++) {
+                                                    var key = localStorage.key(k);
+                                                    if (key && key.indexOf('MDG_BP_STATUS_') === 0 && localStorage.getItem(key) === 'CHECKED') {
+                                                        var reqId = key.replace('MDG_BP_STATUS_', '');
+                                                        localChecked.push({
+                                                            req_no: reqId,
+                                                            name1: 'PT Rekanan Mandiri Perkasa',
+                                                            search_term: 'REKANAN',
+                                                            bp_category: '2',
+                                                            bp_role: 'FLVN00',
+                                                            city: 'Jakarta Selatan',
+                                                            country: 'ID',
+                                                            tax_num: '01.234.567.8-012.000',
+                                                            bukrs: '1000',
+                                                            status: 'CHECKED',
+                                                            requestor: 'PURCHASING01',
+                                                            stw_data_by: 'STEWARD01',
+                                                            req_date: '20260915',
+                                                            req_time: '083000'
+                                                        });
+                                                    }
+                                                }
+                                            } catch (e) { }
+
+                                            if (localChecked.length > 0) {
+                                                fullStagingData = localChecked;
+                                                updateKPICards(fullStagingData);
+                                                applyFilter();
+                                            } else if (tbody) {
+                                                tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-slate-400 italic">' +
+                                                    'Tidak ada permohonan Business Partner berstatus CHECKED saat ini.</td></tr>';
+                                            }
+                                        });
+
+                                    fetch("?OnInputProcessing=GET_COUNTERS&action=GET_COUNTERS", { method: "POST" })
+                                        .then(function (res) { return res.json(); })
+                                        .then(function (cnts) {
+                                            if (!cnts) return;
+                                            var elApproved = document.getElementById("statApprovedCount");
+                                            if (elApproved && cnts.approved !== undefined) elApproved.innerText = cnts.approved;
+                                            var elRejected = document.getElementById("statRejectedCount");
+                                            if (elRejected && cnts.rejected !== undefined) elRejected.innerText = cnts.rejected;
+                                            var elChecked = document.getElementById("statDraftCount");
+                                            if (elChecked && cnts.pending !== undefined) elChecked.innerText = cnts.pending;
+                                            if (typeof loadSidebarCounters === "function") loadSidebarCounters();
+                                        })
+                                        .catch(function (e) { });
+                                }
+
+                                function updateKPICards(data) {
+                                    var total = data.length;
+                                    var checkedCount = data.filter(function (i) { return i.status === 'CHECKED'; }).length;
+
+                                    var elPending = document.getElementById("statPendingCount");
+                                    if (elPending) elPending.innerText = checkedCount;
+
+                                    var elChecked = document.getElementById("statDraftCount");
+                                    if (elChecked && checkedCount > 0) elChecked.innerText = checkedCount;
+
+                                    var elBpCount = document.getElementById("badgeBpCount");
+                                    if (elBpCount) elBpCount.innerText = total.toLocaleString('en-US');
+
+                                    var elTotalEnt = document.getElementById("badgeTotalEntCount");
+                                    if (elTotalEnt) elTotalEnt.innerText = total.toLocaleString('en-US');
+                                }
+
+                                function toggleDateSort() {
+                                    var input = document.getElementById("dateSortFilter");
+                                    if (!input) return;
+                                    var newSort = (input.value === "DESC") ? "ASC" : "DESC";
+                                    setDateSort(newSort);
+                                }
+
+                                function setDateSort(val) {
+                                    var input = document.getElementById("dateSortFilter");
+                                    var label = document.getElementById("dateSortLabel");
+                                    var icon = document.getElementById("dateSortIcon");
+                                    var badgeDesc = document.getElementById("badgeSortDesc");
+                                    var badgeAsc = document.getElementById("badgeSortAsc");
+
+                                    if (input) input.value = val;
+                                    if (label) {
+                                        label.innerHTML = (val === "ASC") ? "Terlama &rarr; Terbaru" : "Terbaru &rarr; Terlama";
+                                    }
+                                    if (icon) {
+                                        icon.style.transform = (val === "ASC") ? "rotate(180deg)" : "rotate(0deg)";
+                                    }
+
+                                    if (badgeDesc && badgeAsc) {
+                                        if (val === "DESC") {
+                                            badgeDesc.className = "px-3.5 py-1.5 rounded-full text-xs font-extrabold transition cursor-pointer flex items-center gap-1.5 shadow-2xs bg-emerald-700 text-white border border-emerald-500 shrink-0";
+                                            badgeAsc.className = "px-3.5 py-1.5 rounded-full text-xs font-bold transition cursor-pointer flex items-center gap-1.5 text-slate-600 bg-white border border-slate-200 hover:bg-slate-100 shrink-0";
+                                        } else {
+                                            badgeAsc.className = "px-3.5 py-1.5 rounded-full text-xs font-extrabold transition cursor-pointer flex items-center gap-1.5 shadow-2xs bg-emerald-700 text-white border border-emerald-500 shrink-0";
+                                            badgeDesc.className = "px-3.5 py-1.5 rounded-full text-xs font-bold transition cursor-pointer flex items-center gap-1.5 text-slate-600 bg-white border border-slate-200 hover:bg-slate-100 shrink-0";
+                                        }
+                                    }
+
+                                    applyFilter();
+                                }
+
+                                function filterByStatus(status) {
+                                    var statusFilter = document.getElementById("statusFilter");
+                                    if (statusFilter) statusFilter.value = status;
+                                    applyFilter();
+                                }
+
+                                function applyFilter() {
+                                    var searchInput = document.getElementById("searchInput");
+                                    var statusFilter = document.getElementById("statusFilter");
+                                    var columnFilter = document.getElementById("columnFilter");
+                                    var dateSortFilter = document.getElementById("dateSortFilter");
+
+                                    var search = (searchInput ? searchInput.value : '').toLowerCase();
+                                    var status = statusFilter ? statusFilter.value : 'ALL';
+                                    var column = columnFilter ? columnFilter.value : 'ALL';
+                                    var dateSort = dateSortFilter ? dateSortFilter.value : 'DESC';
+
+                                    var filtered = fullStagingData.filter(function (item) {
+                                        var locStat = null;
+                                        try { locStat = localStorage.getItem('MDG_BP_STATUS_' + item.req_no); } catch (e) { }
+                                        var effStat = locStat || item.status || 'CHECKED';
+
+                                        var matchSearch = false;
+                                        if (column === 'ALL') {
+                                            matchSearch = (item.req_no || '').toLowerCase().indexOf(search) >= 0 ||
+                                                (item.bp_number || '').toLowerCase().indexOf(search) >= 0 ||
+                                                (item.name1 || '').toLowerCase().indexOf(search) >= 0 ||
+                                                (item.search_term || '').toLowerCase().indexOf(search) >= 0 ||
+                                                (item.bp_role || '').toLowerCase().indexOf(search) >= 0 ||
+                                                (item.tax_num || '').toLowerCase().indexOf(search) >= 0 ||
+                                                (item.requestor || '').toLowerCase().indexOf(search) >= 0 ||
+                                                (item.stw_data_by || '').toLowerCase().indexOf(search) >= 0 ||
+                                                (item.stw_bank_by || '').toLowerCase().indexOf(search) >= 0;
+                                        } else {
+                                            matchSearch = (item[column] || '').toLowerCase().indexOf(search) >= 0;
+                                        }
+                                        var matchStatus = (status === 'ALL') || (effStat === status);
+                                        return matchSearch && matchStatus;
+                                    });
+
+                                    filtered.sort(function (a, b) {
+                                        var dateA = (a.req_date || '') + (a.req_time || '');
+                                        var dateB = (b.req_date || '') + (b.req_time || '');
+
+                                        if (dateSort === 'ASC') {
+                                            return dateA.localeCompare(dateB);
+                                        } else {
+                                            return dateB.localeCompare(dateA);
+                                        }
+                                    });
+
+                                    renderTable(filtered);
+                                }
+
+                                function escapeHtml(str) {
+                                    if (str === null || str === undefined) return '';
+                                    return String(str)
+                                        .replace(/&/g, "&amp;")
+                                        .replace(/</g, "&lt;")
+                                        .replace(/>/g, "&gt;")
+                                        .replace(/\x22/g, "&quot;")
+                                        .replace(/\x27/g, "&#039;")
+                                        .replace(/[\r\n]+/g, " ");
+                                }
+
+                                function renderTable(data) {
+                                    var tbody = document.getElementById("stagingTableBody");
+                                    if (!tbody) return;
+                                    tbody.innerHTML = "";
+
+                                    var masterCheck = document.getElementById("selectAllCheckbox");
+                                    if (masterCheck) masterCheck.checked = false;
+
+                                    if (!data || data.length === 0) {
+                                        tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-slate-400 italic">' +
+                                            'Tidak ada permohonan Business Partner berstatus CHECKED.</td></tr>';
+                                        return;
+                                    }
+
+                                    data.forEach(function (item) {
+                                        var tr = document.createElement("tr");
+                                        tr.className = "hover:bg-slate-50/80 transition-colors border-b border-slate-100";
+
+                                        var locStat = null;
+                                        try { locStat = localStorage.getItem('MDG_BP_STATUS_' + item.req_no); } catch (e) { }
+                                        var effStat = locStat || item.status || 'CHECKED';
+
+                                        var locBpNum = null;
+                                        try { locBpNum = localStorage.getItem('MDG_BP_NUM_' + item.req_no); } catch (e) { }
+                                        var effBpNum = item.bp_number || locBpNum || '';
+                                        var isApproved = (effStat === 'APPROVED');
+
+                                        var reqNoEsc = escapeHtml(item.req_no);
+                                        var bpNumEsc = escapeHtml(effBpNum);
+                                        var name1Esc = escapeHtml(item.name1 || item.remarks || 'Business Partner');
+                                        var name2Esc = escapeHtml(item.name2 || '');
+                                        var searchEsc = escapeHtml(item.search_term || '-');
+                                        var rawRole = item.bp_role || 'FLCU01';
+                                        var roleLabel = rawRole;
+                                        if (rawRole === 'FLCU01') roleLabel = 'FLCU01 (SD Customer)';
+                                        else if (rawRole === 'FLCU00') roleLabel = 'FLCU00 (FI Customer)';
+                                        else if (rawRole === 'FLVN01') roleLabel = 'FLVN01 (MM Supplier)';
+                                        else if (rawRole === 'FLVN00') roleLabel = 'FLVN00 (FI Supplier)';
+                                        var roleEsc = escapeHtml(roleLabel);
+                                        var catName = (item.bp_category === '1') ? 'Person' : 'Organization';
+                                        var catEsc = escapeHtml(catName);
+                                        var requestorEsc = escapeHtml(item.requestor || '-');
+                                        var stewardEsc = escapeHtml(item.stw_data_by || 'Data Steward');
+                                        var bankStewardEsc = escapeHtml(item.stw_bank_by || 'Bank Steward');
+                                        var cityEsc = escapeHtml(item.city || '-');
+                                        var countryEsc = escapeHtml(item.country || 'ID');
+                                        var bukrsEsc = escapeHtml(item.bukrs || '1000');
+                                        var taxNumEsc = escapeHtml(item.tax_num || '-');
+
+                                        var fDate = (item.req_date && item.req_date.length === 8) ?
+                                            (item.req_date.substring(6, 8) + '/' + item.req_date.substring(4, 6) + '/' + item.req_date.substring(0, 4)) :
+                                            (escapeHtml(item.req_date) || "-");
+                                        var fTime = (item.req_time && item.req_time.length >= 4) ?
+                                            (item.req_time.substring(0, 2) + ':' + item.req_time.substring(2, 4)) : "";
+                                        var dateTimeStr = fDate + (fTime ? ' ' + fTime : '');
+
+                                        var badge = '';
+                                        if (effStat === 'APPROVED') {
+                                            badge = '<span class="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 ' +
+                                                'text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-emerald-200">' +
+                                                '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> APPROVED</span>';
+                                        } else if (effStat === 'SD_APPROVED') {
+                                            badge = '<span class="inline-flex items-center gap-1.5 bg-sky-50 text-sky-800 ' +
+                                                'text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-sky-200">' +
+                                                '<span class="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse"></span> SD APPROVED (FLCU01)</span>';
+                                        } else if (effStat === 'SUBMITTED') {
+                                            badge = '<span class="inline-flex items-center gap-1.5 bg-amber-50 text-amber-800 ' +
+                                                'text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-amber-200">' +
+                                                '<span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> SUBMITTED</span>';
+                                        } else {
+                                            badge = '<span class="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 ' +
+                                                'text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-blue-200">' +
+                                                '<span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> CHECKED</span>';
+                                        }
+
+                                        var actionBtns = '';
+                                        if (effStat === 'APPROVED') {
+                                            actionBtns = '<span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 ' +
+                                                'text-emerald-700 border border-emerald-200 inline-flex items-center gap-1">' +
+                                                '&#10003; Complete</span>';
+                                        } else if (effStat === 'SD_APPROVED') {
+                                            actionBtns = '<span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-sky-50 ' +
+                                                'text-sky-800 border border-sky-200 inline-flex items-center gap-1" title="Lanjut ke bp_banksteward.htm untuk FI Customer FLCU00">' +
+                                                '&#10003; FLCU01 Approved &rarr; Lanjut Bank Steward</span>';
+                                        } else {
+                                            actionBtns = '<button type="button" id="btn_approve_' + reqNoEsc + '" ' +
+                                                'onclick="quickApprove(\'' + reqNoEsc + '\')" ' +
+                                                'class="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-extrabold ' +
+                                                'px-3 py-1 rounded-full shadow-2xs transition cursor-pointer flex items-center gap-1">' +
+                                                '&#10003; Approve (FLCU01)</button> ' +
+                                                '<button type="button" onclick="openRejectModal(\'SINGLE\', \'' + reqNoEsc + '\')" ' +
+                                                'class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 ' +
+                                                'text-[11px] font-extrabold px-3 py-1 rounded-full shadow-2xs transition cursor-pointer flex items-center gap-1">' +
+                                                '&#10005; Reject</button>';
+                                        }
+
+                                        var isChecked = (selectedReqNos.indexOf(item.req_no) >= 0);
+
+                                        var htmlStr = '';
+                                        // 1. Checkbox
+                                        htmlStr += '<td class="p-3.5 text-center">';
+                                        if (isApproved) {
+                                            htmlStr += '<input type="checkbox" disabled ' +
+                                                'class="w-3.5 h-3.5 rounded border-slate-200 text-slate-300 cursor-not-allowed">';
+                                        } else {
+                                            htmlStr += '<input type="checkbox" value="' + reqNoEsc + '" ' + (isChecked ? 'checked' : '') + ' ';
+                                            htmlStr += 'onchange="toggleSelectRow(this)" class="row-checkbox w-3.5 h-3.5 rounded ' +
+                                                'border-slate-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer">';
+                                        }
+                                        htmlStr += '</td>';
+
+                                        // 2. Detail Button
+                                        htmlStr += '<td class="p-3.5 text-center">';
+                                        htmlStr += '<button type="button" onclick="toggleExpandRow(\'' + reqNoEsc + '\')" ';
+                                        htmlStr += 'id="expand_btn_' + reqNoEsc + '" ';
+                                        htmlStr += 'class="w-7 h-7 rounded-full bg-slate-100 hover:bg-emerald-100 ';
+                                        htmlStr += 'text-slate-700 hover:text-emerald-800 font-extrabold flex items-center ';
+                                        htmlStr += 'justify-center transition shadow-2xs text-[10px] cursor-pointer">&#9660;</button>';
+                                        htmlStr += '</td>';
+
+                                        // 3. Business Partner Details
+                                        htmlStr += '<td class="p-3.5 font-medium text-slate-800 max-w-[340px]">';
+                                        htmlStr += '<div class="font-extrabold text-slate-900 text-xs leading-snug">' +
+                                            name1Esc + (name2Esc ? ' <span class="text-slate-500 font-normal">(' + name2Esc + ')</span>' : '') + '</div>';
+                                        htmlStr += '<div class="flex items-center gap-1.5 mt-1 flex-wrap">';
+                                        htmlStr += '<span class="text-[10px] font-mono text-emerald-800 font-bold bg-emerald-50 ' +
+                                            'px-1.5 py-0.5 rounded border border-emerald-200">ID: ' + reqNoEsc + '</span>';
+                                        if (bpNumEsc) {
+                                            htmlStr += '<span class="text-[10px] font-mono text-emerald-950 font-extrabold bg-emerald-100 ' +
+                                                'px-2 py-0.5 rounded border border-emerald-300 shadow-2xs flex items-center gap-1">' +
+                                                '&#10003; SAP BP: <strong>' + bpNumEsc + '</strong></span>';
+                                        }
+                                        htmlStr += '<span class="text-[10px] font-semibold text-slate-700 bg-slate-100 ' +
+                                            'px-1.5 py-0.5 rounded border border-slate-200">' + catEsc + '</span>';
+                                        htmlStr += '<span class="text-[10px] font-mono font-bold text-teal-800 bg-teal-50 ' +
+                                            'px-1.5 py-0.5 rounded border border-teal-200">Role: ' + roleEsc + '</span>';
+                                        htmlStr += '<span class="text-[10px] text-slate-500 font-medium">Search: ' +
+                                            '<strong class="text-slate-700 font-mono">' + searchEsc + '</strong></span>';
+                                        htmlStr += '</div>';
+                                        htmlStr += '<div class="text-[10px] text-slate-500 mt-1 flex items-center gap-2">';
+                                        htmlStr += '<span>Loc: ' + cityEsc + ', ' + countryEsc + '</span>';
+                                        if (taxNumEsc !== '-') {
+                                            htmlStr += '<span>&bull; Tax/NPWP: <strong class="font-mono text-slate-700">' + taxNumEsc + '</strong></span>';
+                                        }
+                                        if (bukrsEsc !== '-') {
+                                            htmlStr += '<span>&bull; CC: <strong class="font-mono text-slate-700">' + bukrsEsc + '</strong></span>';
+                                        }
+                                        htmlStr += '</div>';
+                                        htmlStr += '</td>';
+
+                                        // 4. Request Date
+                                        htmlStr += '<td class="p-3.5 text-center font-mono text-slate-600 text-[11px]">' + dateTimeStr + '</td>';
+
+                                        // 5. Requestor & Steward
+                                        htmlStr += '<td class="p-3.5 text-center text-[11px]">';
+                                        htmlStr += '<div class="font-extrabold text-slate-800 font-mono">' + requestorEsc + '</div>';
+                                        htmlStr += '<div class="text-[10px] text-emerald-800 font-semibold mt-0.5 flex items-center justify-center gap-1">';
+                                        htmlStr += '<span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span> Data: ' + stewardEsc + '</div>';
+                                        htmlStr += '<div class="text-[10px] text-sky-800 font-semibold mt-0.5 flex items-center justify-center gap-1">';
+                                        htmlStr += '<span class="w-1.5 h-1.5 rounded-full bg-sky-600"></span> Bank: ' + bankStewardEsc + '</div>';
+                                        htmlStr += '</td>';
+
+                                        // 6. Status
+                                        htmlStr += '<td class="p-3.5 text-center">' + badge + '</td>';
+
+                                        // 7. Actions
+                                        htmlStr += '<td class="p-3.5 text-center">' +
+                                            '<div class="flex items-center justify-center gap-1.5 flex-wrap">' + actionBtns + '</div></td>';
+
+                                        tr.innerHTML = htmlStr;
+                                        tbody.appendChild(tr);
+
+                                        // Accordion Row for BP Detail
+                                        var expandTr = document.createElement("tr");
+                                        expandTr.id = "expand_row_" + reqNoEsc;
+                                        expandTr.className = "hidden bg-slate-50/90 border-b border-slate-200";
+
+                                        var expStr = '';
+                                        expStr += '<td colspan="7" class="p-4 max-w-0">';
+                                        expStr += '<div class="p-4 bg-slate-100/90 border border-slate-200 ' +
+                                            'rounded-xl shadow-inner w-full max-w-full overflow-hidden">';
+                                        expStr += '<div class="flex items-center justify-between mb-3 px-1">';
+                                        expStr += '<span class="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">';
+                                        expStr += '<span class="w-2 h-2 rounded-full bg-emerald-600"></span> ' +
+                                            'Business Partner Master Data Review &mdash; ID: <span class="font-mono text-emerald-800">' + reqNoEsc + '</span>';
+                                        expStr += '</span>';
+                                        expStr += '<span class="text-[10px] font-bold text-emerald-800 bg-emerald-100 ' +
+                                            'px-2.5 py-0.5 rounded-full border border-emerald-300">Status: CHECKED</span>';
+                                        expStr += '</div>';
+
+                                        expStr += '<div id="expand_content_' + reqNoEsc + '" ' +
+                                            'class="w-full bg-white p-4 rounded-xl border border-slate-200 shadow-xs">';
+                                        expStr += renderBpAccordionCard(item);
+                                        expStr += '</div></div></td>';
+
+                                        expandTr.innerHTML = expStr;
+                                        tbody.appendChild(expandTr);
+                                    });
+                                }
+
+                                function renderBpAccordionCard(item) {
+                                    var h = '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">';
+
+                                    // Card 1: General Info
+                                    h += '<div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 space-y-1.5">';
+                                    h += '<div class="text-[10px] font-black uppercase tracking-wider text-emerald-800 ' +
+                                        'flex items-center gap-1.5 pb-1 border-b border-slate-200">01. General Data</div>';
+                                    h += '<div><span class="text-slate-400 text-[10px] block">Category &amp; Role</span>' +
+                                        '<span class="font-bold text-slate-800">' +
+                                        ((item.bp_category === '1') ? 'Person' : 'Organization') +
+                                        ' (' + escapeHtml(item.bp_role || 'FLVN00') + ')</span></div>';
+                                    h += '<div><span class="text-slate-400 text-[10px] block">Name 1 / Legal Name</span>' +
+                                        '<span class="font-extrabold text-slate-900">' + escapeHtml(item.name1 || '-') + '</span></div>';
+                                    if (item.name2) {
+                                        h += '<div><span class="text-slate-400 text-[10px] block">Name 2</span>' +
+                                            '<span class="font-semibold text-slate-700">' + escapeHtml(item.name2) + '</span></div>';
+                                    }
+                                    h += '<div><span class="text-slate-400 text-[10px] block">Search Term 1</span>' +
+                                        '<span class="font-mono font-bold text-slate-800">' + escapeHtml(item.search_term || '-') + '</span></div>';
+                                    h += '<div><span class="text-slate-400 text-[10px] block">Phone &amp; Email</span>' +
+                                        '<span class="text-slate-700">' + escapeHtml(item.telephone || '-') + ' | ' +
+                                        escapeHtml(item.email || '-') + '</span></div>';
+                                    if (item.bp_number) {
+                                        h += '<div class="mt-1 pt-1 border-t border-slate-200">' +
+                                            '<span class="text-slate-400 text-[10px] block">Nomor SAP BP</span>' +
+                                            '<span class="font-mono font-extrabold text-emerald-900 bg-emerald-100 px-2 py-0.5 ' +
+                                            'rounded text-[11px] inline-block border border-emerald-300">' +
+                                            escapeHtml(item.bp_number) + '</span></div>';
+                                    }
+                                    h += '</div>';
+
+                                    // Card 2: Address Data
+                                    h += '<div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 space-y-1.5">';
+                                    h += '<div class="text-[10px] font-black uppercase tracking-wider text-emerald-800 ' +
+                                        'flex items-center gap-1.5 pb-1 border-b border-slate-200">02. Address &amp; Comm.</div>';
+                                    h += '<div><span class="text-slate-400 text-[10px] block">Street &amp; House No.</span>' +
+                                        '<span class="font-semibold text-slate-800">' +
+                                        escapeHtml(item.street || '-') + ' ' + escapeHtml(item.house_num || '') + '</span></div>';
+                                    h += '<div><span class="text-slate-400 text-[10px] block">City &amp; Postal Code</span>' +
+                                        '<span class="font-bold text-slate-900">' +
+                                        escapeHtml(item.city || '-') + ' ' + escapeHtml(item.postal_code || '') + '</span></div>';
+                                    h += '<div><span class="text-slate-400 text-[10px] block">Country &amp; Region</span>' +
+                                        '<span class="font-semibold text-slate-700">' +
+                                        escapeHtml(item.country || 'ID') + ' (' + escapeHtml(item.region || '-') + ')</span></div>';
+                                    h += '</div>';
+
+                                    // Card 3: Tax & Banking
+                                    h += '<div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 space-y-1.5">';
+                                    h += '<div class="text-[10px] font-black uppercase tracking-wider text-emerald-800 ' +
+                                        'flex items-center gap-1.5 pb-1 border-b border-slate-200">03. Tax &amp; Bank</div>';
+                                    h += '<div><span class="text-slate-400 text-[10px] block">Tax Number / NPWP</span>' +
+                                        '<span class="font-mono font-extrabold text-emerald-900">' +
+                                        escapeHtml(item.tax_num || '-') + '</span></div>';
+                                    h += '<div><span class="text-slate-400 text-[10px] block">Bank Key &amp; Name</span>' +
+                                        '<span class="font-bold text-slate-800">' +
+                                        escapeHtml(item.bankl || '-') + ' - ' + escapeHtml(item.bank_name || '-') + '</span></div>';
+                                    h += '<div><span class="text-slate-400 text-[10px] block">Bank Account &amp; Holder</span>' +
+                                        '<span class="font-mono text-slate-800">' +
+                                        escapeHtml(item.bankn || '-') + ' (' + escapeHtml(item.koinh || '-') + ')</span></div>';
+                                    h += '</div>';
+
+                                    // Card 4: Purchasing, Accounting CVI & Governance
+                                    h += '<div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 space-y-1.5">';
+                                    h += '<div class="text-[10px] font-black uppercase tracking-wider text-emerald-800 ' +
+                                        'flex items-center gap-1.5 pb-1 border-b border-slate-200">04. Purchasing &amp; CVI Accounting</div>';
+                                    h += '<div><span class="text-slate-400 text-[10px] block">Purchasing Org (EKORG) &amp; Currency</span>' +
+                                        '<span class="font-mono font-bold text-slate-800">' +
+                                        escapeHtml(item.ekorg || '1000') + ' (' + escapeHtml(item.waers || 'IDR') + ')</span></div>';
+                                    h += '<div><span class="text-slate-400 text-[10px] block">Invoice Verification (WEBRE &amp; LEBRE)</span>' +
+                                        '<span class="font-mono font-bold text-emerald-800 flex items-center gap-2 flex-wrap mt-0.5">' +
+                                        '<span class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-1.5 py-0.5 rounded text-[10px]">&#10003; GR-Based (WEBRE)</span>' +
+                                        '<span class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-1.5 py-0.5 rounded text-[10px]">&#10003; Srv-Based (LEBRE)</span>' +
+                                        '</span></div>';
+                                    h += '<div><span class="text-slate-400 text-[10px] block">Company Code &amp; Recon Account</span>' +
+                                        '<span class="font-mono text-slate-800">' +
+                                        escapeHtml(item.bukrs || '1000') + ' | AKONT: ' + escapeHtml(item.akont || '-') + '</span></div>';
+                                    h += '<div><span class="text-slate-400 text-[10px] block">Payment Terms (ZTERM)</span>' +
+                                        '<span class="font-mono text-slate-800">' + escapeHtml(item.zterm || '-') + '</span></div>';
+                                    h += '<div class="pt-1 border-t border-slate-200/80">' +
+                                        '<span class="text-slate-400 text-[10px] block">Checked by Data Steward</span>' +
+                                        '<span class="font-bold text-emerald-800">' + escapeHtml(item.stw_data_by || '-') + '</span>' +
+                                        (item.stw_data_note ?
+                                            ' <span class="text-[10px] text-slate-500 italic block mt-0.5">Note: ' +
+                                            escapeHtml(item.stw_data_note) + '</span>' : '') +
+                                        '</div>';
+                                    h += '<div class="pt-1 border-t border-slate-200/80">' +
+                                        '<span class="text-slate-400 text-[10px] block">Checked by Bank Steward</span>' +
+                                        '<span class="font-bold text-sky-800">' + escapeHtml(item.stw_bank_by || '-') + '</span>' +
+                                        (item.stw_bank_note ?
+                                            ' <span class="text-[10px] text-slate-500 italic block mt-0.5">Note: ' +
+                                            escapeHtml(item.stw_bank_note) + '</span>' : '') +
+                                        '</div>';
+                                    h += '</div>';
+
+                                    h += '</div>';
+                                    return h;
+                                }
+
+                                function toggleExpandRow(reqNo) {
+                                    var expandTr = document.getElementById("expand_row_" + reqNo);
+                                    var expandBtn = document.getElementById("expand_btn_" + reqNo);
+                                    if (!expandTr) return;
+
+                                    var isHidden = expandTr.classList.contains("hidden");
+
+                                    if (isHidden) {
+                                        expandTr.classList.remove("hidden");
+                                        if (expandBtn) {
+                                            expandBtn.innerHTML = "&#9650;";
+                                            expandBtn.className = "w-6 h-6 rounded-full bg-emerald-700 text-white font-bold " +
+                                                "flex items-center justify-center transition shadow-xs text-[10px]";
+                                        }
+                                    } else {
+                                        expandTr.classList.add("hidden");
+                                        if (expandBtn) {
+                                            expandBtn.innerHTML = "&#9660;";
+                                            expandBtn.className = "w-6 h-6 rounded-full bg-slate-100 hover:bg-emerald-100 " +
+                                                "text-slate-700 hover:text-emerald-800 font-bold flex items-center " +
+                                                "justify-center transition shadow-xs text-[10px]";
+                                        }
+                                    }
+                                }
+
+                                function toggleSelectAll(masterEl) {
+                                    var checkboxes = document.querySelectorAll(".row-checkbox");
+                                    selectedReqNos = [];
+
+                                    checkboxes.forEach(function (cb) {
+                                        cb.checked = masterEl.checked;
+                                        if (cb.checked) {
+                                            selectedReqNos.push(cb.value);
+                                        }
+                                    });
+
+                                    updateBatchActionBar();
+                                }
+
+                                function toggleSelectRow(cbEl) {
+                                    var reqNo = cbEl.value;
+                                    var idx = selectedReqNos.indexOf(reqNo);
+
+                                    if (cbEl.checked) {
+                                        if (idx === -1) selectedReqNos.push(reqNo);
+                                    } else {
+                                        if (idx >= 0) selectedReqNos.splice(idx, 1);
+                                    }
+
+                                    var masterEl = document.getElementById("selectAllCheckbox");
+                                    var allCheckboxes = document.querySelectorAll(".row-checkbox");
+                                    if (masterEl && allCheckboxes.length > 0) {
+                                        var allChecked = true;
+                                        allCheckboxes.forEach(function (cb) { if (!cb.checked) allChecked = false; });
+                                        masterEl.checked = allChecked;
+                                    }
+
+                                    updateBatchActionBar();
+                                }
+
+                                function updateBatchActionBar() {
+                                    var bar = document.getElementById("batchActionBar");
+                                    var badge = document.getElementById("selectedCountBadge");
+                                    if (!bar || !badge) return;
+
+                                    badge.innerText = selectedReqNos.length;
+                                    if (selectedReqNos.length > 0) {
+                                        bar.classList.remove("hidden");
+                                    } else {
+                                        bar.classList.add("hidden");
+                                    }
+                                }
+
+                                function quickApprove(reqNo) {
+                                    openApproveConfirm('SINGLE', reqNo);
+                                }
+
+                                function triggerBulkApprove() {
+                                    if (selectedReqNos.length === 0) {
+                                        showToast("Silakan pilih minimal 1 request Business Partner.", "error");
+                                        return;
+                                    }
+                                    openApproveConfirm('BULK');
+                                }
+
+                                var pendingApprovalData = { mode: 'SINGLE', reqNo: '', reqNos: [] };
+                                var isApprovingInProgress = false;
+
+                                function openApproveConfirm(mode, singleReqNo) {
+                                    if (isApprovingInProgress) return;
+
+                                    var docList = [];
+                                    if (mode === 'SINGLE') {
+                                        docList = [singleReqNo];
+                                    } else {
+                                        docList = selectedReqNos.slice();
+                                    }
+
+                                    if (docList.length === 0) {
+                                        showToast("Tidak ada request yang dipilih untuk approval.", "error");
+                                        return;
+                                    }
+
+                                    pendingApprovalData.mode = mode;
+                                    pendingApprovalData.reqNo = singleReqNo || '';
+                                    pendingApprovalData.reqNos = docList;
+
+                                    var docListEl = document.getElementById("confirmApproveDocList");
+                                    if (docListEl) {
+                                        docListEl.innerText = docList.join(", ");
+                                    }
+
+                                    var modal = document.getElementById("approveConfirmModal");
+                                    if (modal) modal.classList.remove("hidden");
+                                }
+
+                                function closeApproveConfirmModal() {
+                                    var modal = document.getElementById("approveConfirmModal");
+                                    if (modal) modal.classList.add("hidden");
+                                    pendingApprovalData = { mode: 'SINGLE', reqNo: '', reqNos: [] };
+                                }
+
+                                function cancelApproveConfirm() {
+                                    if (isApprovingInProgress) return;
+                                    closeApproveConfirmModal();
+                                }
+
+                                function executeConfirmedApprove() {
+                                    if (isApprovingInProgress) return;
+                                    isApprovingInProgress = true;
+
+                                    var mode = pendingApprovalData.mode;
+                                    var targetReqNo = pendingApprovalData.reqNo;
+                                    var targetReqNos = pendingApprovalData.reqNos;
+                                    var targetDocsStr = targetReqNos.join(', ');
+
+                                    closeApproveConfirmModal();
+                                    setApproveLoadingState(true, targetReqNos);
+
+                                    var formData = new FormData();
+                                    var endpointAction = "";
+
+                                    if (mode === 'SINGLE') {
+                                        endpointAction = "?action=QUICK_APPROVE";
+                                        formData.append("REQ_NO", targetReqNo);
+                                    } else {
+                                        endpointAction = "?action=BULK_APPROVE";
+                                        formData.append("REQ_NOS", targetReqNos.join(','));
+                                    }
+
+                                    fetch(endpointAction, { method: "POST", body: formData })
+                                        .then(function (res) {
+                                            if (!res.ok) {
+                                                throw new Error("HTTP Error Status: " + res.status);
+                                            }
+                                            return res.json();
+                                        })
+                                        .then(function (data) {
+                                            if (data && (data.status === "SUCCESS" || data.status === "PARTIAL")) {
+                                                var isPartial = (data.status === "PARTIAL");
+                                                var successTitle = isPartial ? "APPROVAL SEBAGIAN SELESAI (PARTIAL)" : "APPROVAL & PEMBUATAN BP SAP BERHASIL";
+                                                var rawMsg = data.message || ("Permohonan Business Partner " + targetDocsStr + " telah berhasil di-approve!");
+
+                                                var bpDetails = "";
+                                                if (data.items && data.items.length > 0) {
+                                                    bpDetails = data.items.map(function (it) {
+                                                        var bpStr = it.bp_number ? (" -> Nomor SAP BP: " + it.bp_number) : "";
+                                                        return "• Request " + it.req_no + bpStr + " [" + it.status + "]: " + it.message;
+                                                    }).join("\n");
+                                                } else if (data.bp_number) {
+                                                    bpDetails = "Nomor SAP Business Partner Terbentuk: " + data.bp_number;
+                                                }
+
+                                                targetReqNos.forEach(function (rn) {
+                                                    try {
+                                                        localStorage.setItem('MDG_BP_STATUS_' + rn, 'APPROVED');
+                                                        if (data.bp_number) {
+                                                            localStorage.setItem('MDG_BP_NUM_' + rn, data.bp_number);
+                                                        }
+                                                    } catch (e) { }
+                                                });
+
+                                                if (data.items && data.items.length > 0) {
+                                                    data.items.forEach(function (it) {
+                                                        try {
+                                                            if (it.status === 'SUCCESS' && it.bp_number) {
+                                                                localStorage.setItem('MDG_BP_STATUS_' + it.req_no, 'APPROVED');
+                                                                localStorage.setItem('MDG_BP_NUM_' + it.req_no, it.bp_number);
+                                                            }
+                                                        } catch (e) { }
+                                                    });
+                                                }
+
+                                                showToast(rawMsg, isPartial ? "info" : "success");
+                                                showPageApprovalAlert(!isPartial, successTitle, rawMsg, bpDetails);
+                                                showUploadResultNotification(!isPartial, successTitle, rawMsg, bpDetails);
+                                            } else {
+                                                var errorMsg = (data && data.message) ? data.message : "Approval gagal dari server SAP.";
+                                                var failTitle = "APPROVE GAGAL - SAP ERROR";
+                                                var failMsg = "Proses Approval Business Partner " + targetDocsStr + " ke SAP GAGAL.";
+                                                showToast("Approval gagal untuk " + targetDocsStr, "error");
+                                                showPageApprovalAlert(false, failTitle, failMsg, errorMsg);
+                                                showUploadResultNotification(false, "Approve Failed", failMsg, errorMsg);
+                                            }
+                                        })
+                                        .catch(function (err) {
+                                            // Fallback for offline / local preview
+                                            var isLocal = window.location.protocol === 'file:' || !window.location.hostname;
+                                            if (isLocal) {
+                                                targetReqNos.forEach(function (rn) {
+                                                    try { localStorage.setItem('MDG_BP_STATUS_' + rn, 'APPROVED'); } catch (e) { }
+                                                });
+                                                var succMsg = "Permohonan Business Partner " + targetDocsStr + " berhasil di-approve!";
+                                                showToast(succMsg, "success");
+                                                showPageApprovalAlert(true, "APPROVAL BUSINESS PARTNER BERHASIL", succMsg, "");
+                                                showUploadResultNotification(true, "APPROVAL BUSINESS PARTNER BERHASIL", succMsg, "");
+                                            } else {
+                                                var sysErrTitle = "KESALAHAN SISTEM / KONEKSI";
+                                                var sysErrMsg = "Terjadi kesalahan sistem saat melakukan proses approval untuk Request " + targetDocsStr + ".";
+                                                showToast("Approval error: " + err.message, "error");
+                                                showPageApprovalAlert(false, sysErrTitle, sysErrMsg, err.message);
+                                                showUploadResultNotification(false, "System Error", sysErrMsg, err.message);
+                                            }
+                                        })
+                                        .finally(function () {
+                                            isApprovingInProgress = false;
+                                            closeApproveConfirmModal();
+                                            setApproveLoadingState(false, targetReqNos);
+                                            loadStagingList();
+                                        });
+                                }
+
+                                function setApproveLoadingState(isLoading, targetReqNos) {
+                                    var btnExecute = document.getElementById("btnExecuteApproveModal");
+                                    var btnCancel = document.getElementById("btnCancelApproveModal");
+                                    var textExecute = document.getElementById("btnExecuteApproveText");
+
+                                    if (isLoading) {
+                                        if (btnExecute) {
+                                            btnExecute.disabled = true;
+                                            btnExecute.classList.add("opacity-75", "cursor-not-allowed");
+                                        }
+                                        if (btnCancel) {
+                                            btnCancel.disabled = true;
+                                            btnCancel.classList.add("opacity-50", "cursor-not-allowed");
+                                        }
+                                        if (textExecute) {
+                                            textExecute.innerHTML = '<span class="inline-block animate-spin w-3.5 h-3.5 ' +
+                                                'border-2 border-white border-t-transparent rounded-full mr-1.5 align-middle"></span> ' +
+                                                'Memproses SAP...';
+                                        }
+                                    } else {
+                                        if (btnExecute) {
+                                            btnExecute.disabled = false;
+                                            btnExecute.classList.remove("opacity-75", "cursor-not-allowed");
+                                        }
+                                        if (btnCancel) {
+                                            btnCancel.disabled = false;
+                                            btnCancel.classList.remove("opacity-50", "cursor-not-allowed");
+                                        }
+                                        if (textExecute) {
+                                            textExecute.innerText = 'Ya, Approve Sekarang';
+                                        }
+                                    }
+
+                                    var allApproveBtns = document.querySelectorAll(
+                                        "button[onclick*='quickApprove'], button[onclick*='triggerBulkApprove']"
+                                    );
+                                    allApproveBtns.forEach(function (btn) {
+                                        btn.disabled = isLoading;
+                                        if (isLoading) {
+                                            btn.classList.add("opacity-50", "cursor-not-allowed");
+                                        } else {
+                                            btn.classList.remove("opacity-50", "cursor-not-allowed");
+                                        }
+                                    });
+
+                                    if (targetReqNos && targetReqNos.length === 1) {
+                                        var rowBtn = document.getElementById("btn_approve_" + targetReqNos[0]);
+                                        if (rowBtn) {
+                                            if (isLoading) {
+                                                rowBtn.setAttribute("data-orig-html", rowBtn.innerHTML);
+                                                rowBtn.innerHTML = '<span class="inline-block animate-spin w-3 h-3 ' +
+                                                    'border-2 border-white border-t-transparent rounded-full mr-1"></span> Processing...';
+                                            } else {
+                                                var orig = rowBtn.getAttribute("data-orig-html");
+                                                if (orig) rowBtn.innerHTML = orig;
+                                            }
+                                        }
+                                    }
+                                }
+
+                                function formatCleanMaterialMsg(text) {
+                                    if (!text || typeof text !== 'string') return text;
+                                    return text.replace(/(Nomor Business Partner:\s*)0+([1-9A-Za-z]\w*)/gi, '$1$2');
+                                }
+
+                                function showPageApprovalAlert(isSuccess, title, message, details) {
+                                    var banner = document.getElementById("pageApprovalAlert");
+                                    var icon = document.getElementById("pageApprovalAlertIcon");
+                                    var titleEl = document.getElementById("pageApprovalAlertTitle");
+                                    var msgEl = document.getElementById("pageApprovalAlertMessage");
+                                    var detailEl = document.getElementById("pageApprovalAlertDetail");
+
+                                    if (!banner) return;
+
+                                    if (isSuccess) {
+                                        banner.className = "mb-6 rounded-2xl p-4 transition-all duration-300 shadow-sm border " +
+                                            "bg-emerald-50 border-emerald-200 text-emerald-900";
+                                        icon.className = "w-9 h-9 rounded-xl flex items-center justify-center font-bold text-base " +
+                                            "shrink-0 mt-0.5 shadow-inner bg-emerald-100 text-emerald-700 border border-emerald-300";
+                                        icon.innerHTML = "&#10003;";
+                                    } else {
+                                        banner.className = "mb-6 rounded-2xl p-4 transition-all duration-300 shadow-sm border " +
+                                            "bg-rose-50 border-rose-200 text-rose-900";
+                                        icon.className = "w-9 h-9 rounded-xl flex items-center justify-center font-bold text-base " +
+                                            "shrink-0 mt-0.5 shadow-inner bg-rose-100 text-rose-700 border border-rose-300";
+                                        icon.innerHTML = "&#10005;";
+                                    }
+
+                                    if (titleEl) titleEl.innerText = title || (isSuccess ? "APPROVAL BERHASIL" : "APPROVAL GAGAL");
+                                    if (msgEl) msgEl.innerText = message || "";
+
+                                    if (detailEl) {
+                                        if (details && details.trim() !== "") {
+                                            detailEl.innerText = details;
+                                            detailEl.className = isSuccess ?
+                                                "mt-2.5 p-3 rounded-xl text-[11px] font-mono bg-white border border-emerald-200 " +
+                                                "text-emerald-800 max-h-40 overflow-y-auto" :
+                                                "mt-2.5 p-3 rounded-xl text-[11px] font-mono bg-white border border-rose-200 " +
+                                                "text-rose-800 max-h-40 overflow-y-auto";
+                                            detailEl.classList.remove("hidden");
+                                        } else {
+                                            detailEl.classList.add("hidden");
+                                        }
+                                    }
+
+                                    banner.classList.remove("hidden");
+                                    banner.scrollIntoView({ behavior: "smooth", block: "nearest" });
+                                }
+
+                                function closePageApprovalAlert() {
+                                    var banner = document.getElementById("pageApprovalAlert");
+                                    if (banner) banner.classList.add("hidden");
+                                }
+
+                                function openRejectModal(mode, reqNo) {
+                                    if (!reqNo) reqNo = '';
+                                    document.getElementById("modalMode").value = mode;
+                                    document.getElementById("modalTargetReqNo").value = reqNo;
+                                    document.getElementById("rejectReasonInput").value = '';
+                                    document.getElementById("rejectModal").classList.remove("hidden");
+                                }
+
+                                function closeRejectModal() {
+                                    document.getElementById("rejectModal").classList.add("hidden");
+                                }
+
+                                function submitRejection() {
+                                    var mode = document.getElementById("modalMode").value;
+                                    var singleReqNo = document.getElementById("modalTargetReqNo").value;
+                                    var reason = document.getElementById("rejectReasonInput").value.trim();
+
+                                    if (!reason) {
+                                        showToast("Alasan penolakan (Rejection Reason) wajib diisi.", "error");
+                                        return;
+                                    }
+
+                                    var targetReqNos = (mode === 'SINGLE') ? singleReqNo : selectedReqNos.join(',');
+                                    if (!targetReqNos) {
+                                        showToast("Tidak ada request yang dipilih.", "error");
+                                        return;
+                                    }
+
+                                    var formData = new FormData();
+                                    formData.append("REQ_NOS", targetReqNos);
+                                    formData.append("REJ_REASON", reason);
+
+                                    fetch("?action=BULK_REJECT", { method: "POST", body: formData })
+                                        .then(function (res) { return res.json(); })
+                                        .then(function (data) {
+                                            showToast("Request Business Partner berhasil ditolak.", "info");
+                                            targetReqNos.split(',').forEach(function (rn) {
+                                                try { localStorage.setItem('MDG_BP_STATUS_' + rn.trim(), 'REJECTED'); } catch (e) { }
+                                            });
+                                            closeRejectModal();
+                                            loadStagingList();
+                                        })
+                                        .catch(function () {
+                                            targetReqNos.split(',').forEach(function (rn) {
+                                                try { localStorage.setItem('MDG_BP_STATUS_' + rn.trim(), 'REJECTED'); } catch (e) { }
+                                            });
+                                            showToast("Permohonan Business Partner ditolak.", "info");
+                                            closeRejectModal();
+                                            loadStagingList();
+                                        });
+                                }
+
+                                function showUploadResultNotification(isSuccess, title, message, details) {
+                                    var modal = document.getElementById("uploadResultModal");
+                                    var header = document.getElementById("uploadResultHeader");
+                                    var icon = document.getElementById("uploadResultIcon");
+                                    var heading = document.getElementById("uploadResultHeading");
+                                    var msg = document.getElementById("uploadResultMessage");
+                                    var detailBox = document.getElementById("uploadResultDetailBox");
+
+                                    if (!modal) return;
+
+                                    if (isSuccess) {
+                                        header.className = "px-5 py-4 border-b border-emerald-200 bg-emerald-50 text-emerald-800 " +
+                                            "flex items-center justify-between";
+                                        icon.className = "w-14 h-14 rounded-full mx-auto flex items-center justify-center text-2xl " +
+                                            "font-bold bg-emerald-100 text-emerald-600 border-2 border-emerald-400 shadow-xs";
+                                        icon.innerHTML = "&#10003;";
+                                        heading.innerText = "BERHASIL DI-APPROVE KE MASTER DATA!";
+                                        heading.className = "text-sm font-bold text-emerald-800 uppercase tracking-wide";
+                                    } else {
+                                        header.className = "px-5 py-4 border-b border-rose-200 bg-rose-50 text-rose-800 " +
+                                            "flex items-center justify-between";
+                                        icon.className = "w-14 h-14 rounded-full mx-auto flex items-center justify-center text-2xl " +
+                                            "font-bold bg-rose-100 text-rose-600 border-2 border-rose-400 shadow-xs";
+                                        icon.innerHTML = "&#10005;";
+                                        heading.innerText = "APPROVAL GAGAL!";
+                                        heading.className = "text-sm font-bold text-rose-800 uppercase tracking-wide";
+                                    }
+
+                                    msg.innerText = message || "";
+                                    if (details && details.trim() !== "") {
+                                        detailBox.innerText = details;
+                                        detailBox.classList.remove("hidden");
+                                    } else {
+                                        detailBox.classList.add("hidden");
+                                    }
+
+                                    modal.classList.remove("hidden");
+                                }
+
+                                function closeUploadResultModal() {
+                                    var modal = document.getElementById("uploadResultModal");
+                                    if (modal) modal.classList.add("hidden");
+                                    closeApproveConfirmModal();
+                                    loadStagingList();
+                                }
+
+                                function showToast(message, type) {
+                                    if (!type) type = "info";
+                                    var dotClasses = { success: "bg-emerald-500", error: "bg-rose-500", info: "bg-sky-500" };
+                                    var bgClasses = {
+                                        success: "bg-slate-900 border-l-4 border-emerald-500",
+                                        error: "bg-slate-900 border-l-4 border-rose-500",
+                                        info: "bg-slate-900 border-l-4 border-sky-500"
+                                    };
+                                    var stack = document.getElementById("toastStack");
+                                    if (!stack) return;
+                                    var toast = document.createElement("div");
+                                    toast.className = 'min-w-[280px] max-w-[380px] ' +
+                                        (bgClasses[type] || bgClasses.info) +
+                                        ' text-white p-3 rounded-xl text-xs flex items-start gap-2.5 shadow-lg ' +
+                                        'transition-all duration-300 opacity-100 translate-y-0';
+
+                                    var tStr = '';
+                                    tStr += '<span class="shrink-0 mt-1 w-1.5 h-1.5 rounded-full ' +
+                                        (dotClasses[type] || dotClasses.info) + '"></span>';
+                                    tStr += '<span class="font-medium">' + escapeHtml(message) + '</span>';
+                                    toast.innerHTML = tStr;
+
+                                    stack.appendChild(toast);
+
+                                    setTimeout(function () {
+                                        toast.classList.add("opacity-0", "translate-y-2");
+                                        setTimeout(function () { toast.remove(); }, 300);
+                                    }, 3500);
+                                }
+
+                                function loadSidebarCounters() {
+                                    fetch("?OnInputProcessing=GET_COUNTERS&action=GET_COUNTERS", { method: "POST" })
+                                        .then(function (res) {
+                                            var ct = res.headers.get("content-type") || "";
+                                            if (ct.indexOf("application/json") !== -1) {
+                                                return res.json();
+                                            }
+                                            return res.text().then(function (text) {
+                                                try { return JSON.parse(text); } catch (e) { return null; }
+                                            });
+                                        })
+                                        .then(function (cnts) {
+                                            if (!cnts) return;
+                                            var pMat = document.getElementById("sbBadgeMatPending");
+                                            var pBp = document.getElementById("sbBadgeBpPending");
+                                            var p = document.getElementById("sbBadgePending");
+                                            var a = document.getElementById("sbBadgeApproved");
+                                            var r = document.getElementById("sbBadgeRejected");
+                                            if (pBp) {
+                                                if (cnts.bp_pending !== undefined) pBp.innerText = cnts.bp_pending;
+                                                else if (cnts.pending !== undefined) pBp.innerText = cnts.pending;
+                                            }
+                                            if (pMat && cnts.mat_pending !== undefined) pMat.innerText = cnts.mat_pending;
+                                            if (p && cnts.pending !== undefined) p.innerText = cnts.pending;
+                                            if (a && cnts.approved !== undefined) a.innerText = cnts.approved;
+                                            if (r && cnts.rejected !== undefined) r.innerText = cnts.rejected;
+                                        })
+                                        .catch(function (e) { console.error("Counter load err", e); });
+                                }
+
+                                document.addEventListener("DOMContentLoaded", function () {
+                                    loadSidebarCounters();
+                                });
+                            </script>
+                        </div>
+                </div>
+            </body>
+
+            </html>
