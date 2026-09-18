@@ -1,0 +1,3551 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Business Partner Governance</title>
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- SheetJS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            "body-md": ['Inter', 'sans-serif'],
+            "headline-md": ['Inter', 'sans-serif'],
+            "label-md": ['Inter', 'sans-serif'],
+            "title-md": ['Inter', 'sans-serif'],
+            "headline-xl": ['Inter', 'sans-serif'],
+            "label-lg": ['Inter', 'sans-serif'],
+            "code-sm": ['monospace'],
+            "body-sm": ['Inter', 'sans-serif'],
+            "headline-lg": ['Inter', 'sans-serif']
+          },
+          colors: {
+            "primary": "#059669",
+            "on-primary": "#ffffff",
+            "primary-container": "#047857",
+            "primary-fixed": "#a7f3d0",
+            "surface": "#f8fafc",
+            "surface-container-lowest": "#ffffff",
+            "surface-container-low": "#f8fafc",
+            "surface-container": "#f1f5f9",
+            "surface-container-high": "#e2e8f0",
+            "surface-container-highest": "#cbd5e1",
+            "on-surface": "#0f172a",
+            "on-surface-variant": "#475569",
+            "secondary-container": "#d1fae5",
+            "on-secondary-container": "#064e3b",
+            "outline": "#64748b",
+            "outline-variant": "#cbd5e1",
+            "error": "#ef4444",
+            "error-container": "#fee2e2",
+            "on-error": "#ffffff",
+            "background": "#eef2f6",
+            "on-background": "#0f172a",
+            "sap-blue": "#0284c7",
+            "sap-header": "#f1f5f9",
+            emerald: {
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              200: '#a7f3d0',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+              800: '#065f46',
+              900: '#064e3b',
+            }
+          },
+          spacing: {
+            "space-xs": "4px",
+            "space-sm": "8px",
+            "space-md": "16px",
+            "space-lg": "24px",
+            "space-xl": "32px",
+            "margin": "24px"
+          },
+          fontSize: {
+            "body-md": ["0.875rem", { "lineHeight": "1.375rem", "fontWeight": "400" }],
+            "headline-md": ["1.125rem", { "lineHeight": "1.5rem", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "label-md": ["0.75rem", { "lineHeight": "1rem", "letterSpacing": "0.05em", "fontWeight": "600" }],
+            "title-md": ["0.9375rem", { "lineHeight": "1.375rem", "fontWeight": "600" }],
+            "headline-xl": ["1.75rem", { "lineHeight": "2.25rem", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "label-lg": ["0.8125rem", { "lineHeight": "1.125rem", "letterSpacing": "0.025em", "fontWeight": "600" }],
+            "code-sm": ["0.75rem", { "lineHeight": "1rem", "fontWeight": "500" }],
+            "body-sm": ["0.8125rem", { "lineHeight": "1.25rem", "fontWeight": "400" }],
+            "headline-lg": ["1.25rem", { "lineHeight": "1.75rem", "letterSpacing": "-0.015em", "fontWeight": "700" }]
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background-color: #eef2f6;
+      background-image:
+        radial-gradient(at 10% 10%, rgba(16, 185, 129, 0.08) 0px, transparent 40%),
+        radial-gradient(at 90% 15%, rgba(100, 116, 139, 0.08) 0px, transparent 45%),
+        radial-gradient(at 50% 85%, rgba(16, 185, 129, 0.05) 0px, transparent 50%);
+      background-attachment: fixed;
+      color: #0f172a;
+    }
+
+    /* TOP HERO BANNER */
+    .hero-banner {
+      width: 100%;
+      background: #184434;
+      padding: 32px 24px 34px 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 20px rgba(10, 35, 25, 0.12);
+    }
+
+    .hero-section {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      text-align: center;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hero-section h1 {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #ffffff !important;
+      margin: 0;
+      line-height: 1.25;
+    }
+
+    .hero-section p {
+      font-size: 13px;
+      color: #52b788 !important;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin: 0;
+    }
+
+    @media (max-width: 768px) {
+      .hero-banner {
+        padding: 22px 18px 24px 18px;
+      }
+      .hero-section h1 {
+        font-size: 22px;
+      }
+      .hero-section p {
+        font-size: 11.5px;
+      }
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgba(241, 245, 249, 0.6);
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #10b981;
+    }
+
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.72);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.05);
+    }
+
+    .glass-subpanel {
+      background: rgba(248, 250, 252, 0.65);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(226, 232, 240, 0.7);
+    }
+
+    .sap-tbl-cell {
+      padding: 6px 8px;
+      border-right: 1px solid rgba(191, 201, 194, 0.4);
+    }
+    .sap-tbl-inp {
+      width: 100%;
+      height: 32px;
+      padding: 0 8px;
+      font-size: 12px;
+      font-family: 'Inter', system-ui, sans-serif;
+      background-color: #ffffff;
+      border: 1px solid rgba(191, 201, 194, 0.6);
+      border-radius: 4px;
+      outline: none;
+    }
+    .sap-tbl-inp:focus {
+      border-color: #059669;
+      box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.2);
+    }
+  </style>
+
+</head>
+<body class="text-[13px] font-sans leading-relaxed m-0 p-0 antialiased min-h-screen">
+
+<!-- TOP NAVIGATION BAR -->
+<header class="bg-white/70 backdrop-blur-xl h-14 border-b border-white/60 sticky top-0 z-50 px-6 lg:px-10 flex items-center justify-between shadow-xs">
+  <a href="http://kmiprd.kmi.com:8001/sap(bD1lbiZjPTMwMA==)/bc/bsp/sap/zmdg_request/landing_page.htm" class="flex items-center gap-3 no-underline group hover:opacity-90 transition">
+    <img src="ENJOYSAP_LOGO.png" alt="EnjoySAP Logo" class="h-8 w-auto object-contain transition-transform group-hover:scale-105" onerror="this.style.display='none'">
+    <div>
+      <span class="font-extrabold text-sm text-slate-900 block leading-none">Business Partner Governance</span>
+      <span class="text-[10px] text-emerald-700 font-semibold tracking-wide">SAP S/4HANA Staging Platform</span>
+    </div>
+  </a>
+
+  <div class="flex items-center gap-3">
+    <div class="flex items-center gap-2 bg-white/80 border border-slate-200/80 px-3 py-1 rounded-full shadow-2xs">
+      <div class="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-[10px]" id="userAvatarInitial">?</div>
+      <span class="text-xs font-bold text-slate-800" id="userNameLabel">
+        <%= sy-uname %>
+      </span>
+    </div>
+    <a href="?OnInputProcessing=LOGOUT" class="text-xs font-semibold text-slate-600 hover:text-emerald-700 px-3 py-1 rounded-full border border-slate-200/80 bg-white/50 hover:bg-white transition">Sign Out</a>
+  </div>
+</header>
+
+<!-- TOP HERO BANNER -->
+<div class="hero-banner">
+  <section class="hero-section">
+    <h1>Request Create Customer</h1>
+    <p>Enterprise Business Partner Governance</p>
+  </section>
+</div>
+
+<!-- MAIN VIEWPORT CANVAS -->
+<main class="max-w-[1900px] my-6 mx-auto px-4 sm:px-8 space-y-6">
+
+  <!-- System Messages & Alerts -->
+  <% IF gt_messages IS NOT INITIAL. %>
+    <div class="space-y-2">
+      <% DATA: ls_msg TYPE ty_message,
+               lv_m_cls TYPE string,
+               lv_m_icon TYPE string,
+               lv_m_color TYPE string. %>
+      <% LOOP AT gt_messages INTO ls_msg. %>
+        <%
+          IF ls_msg-type = 'E'.
+            lv_m_cls = 'bg-red-50 border-red-200 text-red-800'.
+            lv_m_icon = 'error'.
+            lv_m_color = 'text-error'.
+          ELSEIF ls_msg-type = 'S'.
+            lv_m_cls = 'bg-emerald-50 border-emerald-200 text-emerald-800'.
+            lv_m_icon = 'check_circle'.
+            lv_m_color = 'text-primary'.
+          ELSE.
+            lv_m_cls = 'bg-amber-50 border-amber-200 text-amber-800'.
+            lv_m_icon = 'warning'.
+            lv_m_color = 'text-amber-600'.
+          ENDIF.
+        %>
+        <div class="system-msg-item flex items-center gap-3 p-3.5 rounded-xl border <%= lv_m_cls %> text-body-sm font-medium shadow-sm"
+             data-msg-type="<%= ls_msg-type %>">
+          <span class="material-symbols-outlined <%= lv_m_color %> text-[20px]"><%= lv_m_icon %></span>
+          <span class="system-msg-text font-semibold"><%= ls_msg-message %></span>
+        </div>
+      <% ENDLOOP. %>
+    </div>
+  <% ENDIF. %>
+
+  <!-- FORM CONTENT CONTAINER -->
+  <form id="mdgBpForm" name="bpForm" method="post" action="test_bp_create_request.htm"
+        class="glass-panel rounded-3xl p-6 lg:p-8 space-y-6">
+    <input type="hidden" id="actionField" name="action" value="">
+    <input type="hidden" id="onInputProcessingField" name="onInputProcessing" value="">
+    <input type="hidden" id="targetReqId" name="target_req_id" value="">
+    <input type="hidden" name="req_id" value="<%= wa_req-req_id %>">
+    <input type="hidden" name="bp_category" value="2">
+
+    <!-- HIDDEN INPUTS UNTUK SERIALISASI JSON TABEL DINAMIS KE BACKEND ABAP -->
+    <input type="hidden" id="json_bank_details" name="json_bank_details" value="">
+    <input type="hidden" id="json_payment_cards" name="json_payment_cards" value="">
+    <input type="hidden" id="json_id_numbers" name="json_id_numbers" value="">
+    <input type="hidden" id="json_additional_texts" name="json_additional_texts" value="">
+
+    <!-- HIDDEN INPUTS SINKRONISASI DATA BANK UTAMA (KOMPATIBILITAS ZMDG_BP_REQ) -->
+    <input type="hidden" id="hidden_banks" name="banks" value="<%= COND string( WHEN wa_req-banks IS NOT INITIAL THEN wa_req-banks ELSE 'ID' ) %>">
+    <input type="hidden" id="hidden_bankl" name="bankl" value="<%= wa_req-bankl %>">
+    <input type="hidden" id="hidden_bankn" name="bankn" value="<%= wa_req-bankn %>">
+    <input type="hidden" id="hidden_koinh" name="koinh" value="<%= wa_req-koinh %>">
+    <input type="hidden" id="hidden_bank_name" name="bank_name" value="<%= wa_req-bank_name %>">
+
+    <!-- HIDDEN SINKRONISASI FIELD TEKNIS SAP RLTYP & BU_GROUP -->
+    <input type="hidden" name="rltyp" id="hidden_rltyp" value="<%= COND string( WHEN wa_req-bp_role IS NOT INITIAL THEN wa_req-bp_role ELSE 'FLVN01' ) %>">
+    <input type="hidden" name="bu_group" id="hidden_bu_group" value="<%= COND string( WHEN wa_req-bu_group IS NOT INITIAL THEN wa_req-bu_group ELSE 'C001' ) %>">
+
+    <!-- SUBSECTION: 1. Header & Role Selection -->
+    <div class="space-y-4">
+      <div class="flex items-center gap-3 pb-3 border-b border-slate-200/60">
+        <span class="w-8 h-8 rounded-xl bg-emerald-600 text-white font-extrabold text-xs flex items-center justify-center shadow-xs">01</span>
+        <div>
+          <h2 class="text-xs font-black text-slate-900 uppercase tracking-wider">Pemilihan Role &amp; Klasifikasi BP</h2>
+          <p class="text-[11px] text-slate-500 font-medium">Role BP dan Grouping Penomoran Internal SAP</p>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-space-md">
+        <!-- Create in BP Role (RLTYP) -->
+        <div class="space-y-1.5">
+          <label class="block text-label-lg font-label-lg text-on-surface font-medium">
+            Create in BP Role (RLTYP) <span class="text-error">*</span>
+          </label>
+          <div class="relative">
+            <select name="bp_role" id="bpRoleTypeSelect" onchange="onBpRequestTypeChange(this.value);"
+                    class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 appearance-none transition-colors">
+              <option value="FLVN01" <%= COND string( WHEN wa_req-bp_role = 'FLVN01' OR wa_req-bp_role IS INITIAL THEN 'selected' ELSE '' ) %>>FLVN01 - Business Partner MM Supplier</option>
+              <option value="FLVN00" <%= COND string( WHEN wa_req-bp_role = 'FLVN00' THEN 'selected' ELSE '' ) %>>FLVN00 - Business Partner FI Supplier</option>
+            </select>
+            <span class="material-symbols-outlined absolute right-3 top-3 pointer-events-none text-outline text-[20px]">expand_more</span>
+          </div>
+          <span class="text-[11px] text-outline font-body-sm block" id="bpRoleHelpText">Role FLVN01: MM Supplier untuk transaksi pengadaan logistik.</span>
+        </div>
+
+        <!-- Grouping (Account Group) -->
+        <div class="space-y-1.5">
+          <label class="block text-label-lg font-label-lg text-on-surface font-medium">
+            Grouping (Account Group) (BU_GROUP) <span class="text-error">*</span>
+          </label>
+          <div class="relative">
+            <select name="bp_grouping" id="bpGroupingSelect" onchange="document.getElementById('hidden_bu_group').value = this.value;"
+                    class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 appearance-none transition-colors">
+              <!-- Dynamically populated via JS on load / change -->
+            </select>
+            <span class="material-symbols-outlined absolute right-3 top-3 pointer-events-none text-outline text-[20px]">expand_more</span>
+          </div>
+          <span class="text-[11px] text-outline font-body-sm block" id="groupingHelpText">Klasifikasi penomoran &amp; account group SAP BP.</span>
+        </div>
+
+        <!-- Business Partner Category -->
+        <div class="space-y-1.5">
+          <label class="block text-label-lg font-label-lg text-on-surface font-medium">
+            Business Partner Category
+          </label>
+          <input class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-low border border-outline-variant rounded-lg text-on-surface cursor-not-allowed" readonly="" type="text" value="2 - Organization">
+        </div>
+      </div>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- SECTION 2: FORMULIR DATA MASTER BUSINESS PARTNER                   -->
+    <!-- =================================================================== -->
+    <div class="space-y-4">
+      <div class="flex items-center gap-3 pb-3 border-b border-slate-200/60">
+        <span class="w-8 h-8 rounded-xl bg-emerald-600 text-white font-extrabold text-xs flex items-center justify-center shadow-xs">02</span>
+        <div>
+          <h2 class="text-xs font-black text-slate-900 uppercase tracking-wider">Formulir Data Master Business Partner</h2>
+          <p class="text-[11px] text-slate-500 font-medium">Input Detail Data Master Business Partner</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SAP GUI STANDARD TAB STRIP (SESUAI GAMBAR TCODE BP) -->
+    <div class="border-b-2 border-emerald-600 -mx-4 md:-mx-8 px-4 md:px-8 bg-[#e9eef2] pt-2 rounded-t-xl">
+      <nav class="flex space-x-1 overflow-x-auto no-scrollbar items-end" id="bpTabBar" role="tablist">
+        <!-- 1. Address (AKTIF DEFAULT DENGAN RED DOT MANDATORI) -->
+        <button type="button" onclick="switchBpTab('address', this);" id="tabBtn_address"
+                class="bp-tab-btn active px-4 py-2 text-xs font-bold rounded-t-md flex items-center gap-1.5 transition-all whitespace-nowrap bg-emerald-700 text-white shadow-sm border-t border-l border-r border-emerald-700">
+          <span class="w-2.5 h-2.5 rounded-full bg-red-400 inline-block ring-2 ring-red-200" title="Mandatory fields"></span>
+          <span>Address &amp; General Data</span>
+        </button>
+
+        <!-- 2. Address Overview -->
+        <button type="button" onclick="switchBpTab('address_overview', this);" id="tabBtn_address_overview"
+                class="bp-tab-btn px-3.5 py-2 text-xs font-semibold rounded-t-md flex items-center gap-1.5 transition-all whitespace-nowrap text-slate-700 hover:bg-slate-200/60 border-t border-l border-r border-transparent">
+          <span>Address Overview</span>
+        </button>
+
+        <!-- 3. Identification -->
+        <button type="button" onclick="switchBpTab('identification', this);" id="tabBtn_identification"
+                class="bp-tab-btn px-3.5 py-2 text-xs font-semibold rounded-t-md flex items-center gap-1.5 transition-all whitespace-nowrap text-slate-700 hover:bg-slate-200/60 border-t border-l border-r border-transparent">
+          <span>Identification</span>
+          <span id="badgeIdCount" class="ml-1 px-1.5 py-0.2 text-[10px] font-bold rounded-full bg-slate-200 text-slate-700">0</span>
+        </button>
+
+        <!-- 4. Control -->
+        <button type="button" onclick="switchBpTab('control', this);" id="tabBtn_control"
+                class="bp-tab-btn px-3.5 py-2 text-xs font-semibold rounded-t-md flex items-center gap-1.5 transition-all whitespace-nowrap text-slate-700 hover:bg-slate-200/60 border-t border-l border-r border-transparent">
+          <span>Control</span>
+        </button>
+
+        <!-- 5. Payment Transactions -->
+        <button type="button" onclick="switchBpTab('payment', this);" id="tabBtn_payment"
+                class="bp-tab-btn px-3.5 py-2 text-xs font-semibold rounded-t-md flex items-center gap-1.5 transition-all whitespace-nowrap text-slate-700 hover:bg-slate-200/60 border-t border-l border-r border-transparent">
+          <span>Payment Transactions</span>
+          <span id="badgeBankCount" class="ml-1 px-1.5 py-0.2 text-[10px] font-bold rounded-full bg-slate-200 text-slate-700">1</span>
+        </button>
+
+        <!-- 6. Status -->
+        <button type="button" onclick="switchBpTab('status', this);" id="tabBtn_status"
+                class="bp-tab-btn px-3.5 py-2 text-xs font-semibold rounded-t-md flex items-center gap-1.5 transition-all whitespace-nowrap text-slate-700 hover:bg-slate-200/60 border-t border-l border-r border-transparent">
+          <span>Status</span>
+        </button>
+
+        <!-- 7. Additional Texts -->
+        <button type="button" onclick="switchBpTab('texts', this);" id="tabBtn_texts"
+                class="bp-tab-btn px-3.5 py-2 text-xs font-semibold rounded-t-md flex items-center gap-1.5 transition-all whitespace-nowrap text-slate-700 hover:bg-slate-200/60 border-t border-l border-r border-transparent">
+          <span>Additional Texts</span>
+          <span id="badgeTextsCount" class="ml-1 px-1.5 py-0.2 text-[10px] font-bold rounded-full bg-slate-200 text-slate-700">0</span>
+        </button>
+
+        <!-- 8. Technical ID / Company Code -->
+        <button type="button" onclick="switchBpTab('company', this);" id="tabBtn_company"
+                class="bp-tab-btn px-3.5 py-2 text-xs font-semibold rounded-t-md flex items-center gap-1.5 transition-all whitespace-nowrap text-slate-700 hover:bg-slate-200/60 border-t border-l border-r border-transparent">
+          <span>Technical ID / Company Code</span>
+        </button>
+
+        <!-- 9. Purchasing View (FLVN01 MM Supplier - EKORG) -->
+        <button type="button" onclick="switchBpTab('purchasing', this);" id="tabBtn_purchasing"
+                class="bp-tab-btn px-3.5 py-2 text-xs font-semibold rounded-t-md flex items-center gap-1.5 transition-all whitespace-nowrap text-slate-700 hover:bg-slate-200/60 border-t border-l border-r border-transparent">
+          <span class="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block ring-2 ring-amber-200" title="Purchasing Data (MM Supplier)"></span>
+          <span>Purchasing View (EKORG)</span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- TAB PANEL 1: ADDRESS & GENERAL DATA                                 -->
+    <!-- =================================================================== -->
+    <div id="tabContent_address" class="bp-tab-panel space-y-space-lg">
+      <div class="flex items-center justify-between pb-space-xs border-b border-outline-variant">
+        <div class="flex items-center gap-space-xs">
+          <span class="w-1 h-4 bg-emerald-600 rounded-full"></span>
+          <h2 class="text-headline-md font-headline-md text-on-surface font-bold">General Data &amp; Address</h2>
+        </div>
+        <span class="text-label-md font-label-md text-emerald-800 bg-emerald-100 px-space-sm py-0.5 rounded-full font-semibold">Organisasi</span>
+      </div>
+
+      <!-- Nama Badan Usaha -->
+      <div class="space-y-space-sm">
+        <div class="text-label-lg font-label-lg text-emerald-700 font-bold tracking-wide">Nama Badan Usaha (Legal Entity)</div>
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-space-md">
+          <!-- Title (Anrede) Dropdown Standard SAP BP -->
+          <div class="md:col-span-3 space-y-1.5">
+            <label class="block text-label-md font-label-md text-on-surface-variant font-medium">
+              Title (Anrede) <span class="text-error">*</span>
+            </label>
+            <div class="relative">
+              <select name="title_key" id="titleKeySelect"
+                      class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 appearance-none">
+                <option value="0003" selected>0003 - Company</option>
+                <option value="3000">3000 - Organization</option>
+                <option value="0001">0001 - Ms.</option>
+                <option value="0002">0002 - Mr.</option>
+              </select>
+              <span class="material-symbols-outlined absolute right-3 top-3 pointer-events-none text-outline text-[20px]">expand_more</span>
+            </div>
+          </div>
+          <div class="md:col-span-5 space-y-1.5">
+            <label class="block text-label-md font-label-md text-on-surface-variant font-medium">
+              Name 1 <span class="text-error">*</span>
+            </label>
+            <input type="text" name="name1" maxlength="40" value="<%= wa_req-name1 %>" placeholder="Contoh: PT KAYU MEBEL INDONESIA"
+                   class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+          </div>
+          <div class="md:col-span-4 space-y-1.5">
+            <label class="block text-label-md font-label-md text-on-surface-variant font-medium">
+              Name 2 (NAME_ORG2)
+            </label>
+            <input type="text" name="name2" maxlength="40" value="<%= wa_req-name2 %>" placeholder="Contoh: Divisi Logistik Kayu"
+                   class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+          </div>
+        </div>
+      </div>
+
+      <!-- Search Term -->
+      <div class="space-y-space-sm">
+        <div class="text-label-lg font-label-lg text-emerald-700 font-bold tracking-wide">Search Term</div>
+        <div class="max-w-md space-y-1.5">
+          <label class="block text-label-md font-label-md text-on-surface-variant font-medium">
+            Search Term <span class="text-error">*</span>
+          </label>
+          <input type="text" name="search_term" maxlength="20" value="<%= wa_req-search_term %>" placeholder="CONTOH: KAYUMEBE"
+                 class="w-full h-11 px-space-md text-body-md font-code-sm uppercase bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+        </div>
+      </div>
+
+      <!-- Alamat Standar Perusahaan -->
+      <div class="space-y-space-sm">
+        <div class="text-label-lg font-label-lg text-emerald-700 font-bold tracking-wide">Alamat Standar Perusahaan (Standard Address)</div>
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-space-md">
+          <div class="md:col-span-9 space-y-1.5">
+            <label class="block text-label-md font-label-md text-on-surface-variant font-medium">
+              Street (Nama Jalan Kantor / Pabrik) <span class="text-error">*</span>
+            </label>
+            <input type="text" name="street" maxlength="60" value="<%= wa_req-street %>" placeholder="Contoh: Jl. Industri Kayu No. 88"
+                   class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+          </div>
+          <div class="md:col-span-3 space-y-1.5">
+            <label class="block text-label-md font-label-md text-on-surface-variant font-medium">
+              House Number
+            </label>
+            <input type="text" name="house_num" maxlength="10" value="<%= wa_req-house_num %>" placeholder="Contoh: Blok B-2"
+                   class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+          </div>
+          <div class="md:col-span-3 space-y-1.5">
+            <label class="block text-label-md font-label-md text-on-surface-variant font-medium">
+              Postal Code (POST_CODE1) <span class="text-error">*</span>
+            </label>
+            <input type="text" name="postal_code" maxlength="10" value="<%= COND string( WHEN wa_req-postal_code IS NOT INITIAL THEN wa_req-postal_code ELSE '61292' ) %>" placeholder="Contoh: 61292"
+                   class="w-full h-11 px-space-md text-body-md font-code-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+          </div>
+          <div class="md:col-span-3 space-y-1.5">
+            <label class="block text-label-md font-label-md text-on-surface-variant font-medium">
+              City (CITY1) <span class="text-error">*</span>
+            </label>
+            <input type="text" name="city" maxlength="40" value="<%= COND string( WHEN wa_req-city IS NOT INITIAL THEN wa_req-city ELSE 'JAKARTA' ) %>" placeholder="Contoh: JAKARTA"
+                   class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+          </div>
+          <div class="md:col-span-3 space-y-1.5">
+            <label class="block text-label-md font-label-md text-on-surface-variant font-medium">
+              Country (COUNTRY) <span class="text-error">*</span>
+            </label>
+            <div class="relative">
+              <select id="countrySelect" name="country" onchange="onCountryChange()"
+                      class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 appearance-none">
+                <% DATA: ls_cntry_opt TYPE ty_dropdown. %>
+                <% LOOP AT gt_countries INTO ls_cntry_opt. %>
+                  <option value="<%= ls_cntry_opt-land1 %>"
+                    <%= COND string(
+                          WHEN wa_req-country = ls_cntry_opt-land1
+                            OR ( wa_req-country IS INITIAL AND ls_cntry_opt-land1 = 'ID' )
+                          THEN 'selected' ) %>>
+                    <%= ls_cntry_opt-land1 %> - <%= ls_cntry_opt-landx %>
+                  </option>
+                <% ENDLOOP. %>
+              </select>
+              <span class="material-symbols-outlined absolute right-3 top-3 pointer-events-none text-outline text-[20px]">expand_more</span>
+            </div>
+          </div>
+          <div class="md:col-span-3 space-y-1.5">
+            <label class="block text-label-md font-label-md text-on-surface-variant font-medium">
+              Region / Province
+            </label>
+            <div class="relative">
+              <select id="regionSelect" name="region"
+                      class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 appearance-none">
+                <option value="">-- Memuat Wilayah --</option>
+              </select>
+              <span class="material-symbols-outlined absolute right-3 top-3 pointer-events-none text-outline text-[20px]">expand_more</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Kontak & Komunikasi (LANGU, E_MAIL, Telephone) -->
+      <div class="space-y-space-sm">
+        <div class="text-label-lg font-label-lg text-emerald-700 font-bold tracking-wide">Kontak &amp; Komunikasi (Standar SAP BP)</div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-space-md">
+          <!-- Language Key (LANGU - Mandatory) -->
+          <div class="space-y-1.5">
+            <label class="block text-label-md font-label-md text-on-surface-variant font-medium">
+              Language Key (LANGU) <span class="text-error">*</span>
+            </label>
+            <div class="relative">
+              <select name="langu" id="languSelect"
+                      class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 appearance-none">
+                <% DATA: ls_lang_opt TYPE ty_language,
+                         lv_user_iso TYPE laiso.
+                   CALL FUNCTION 'CONVERSION_EXIT_ISOLA_OUTPUT'
+                     EXPORTING input  = sy-langu
+                     IMPORTING output = lv_user_iso
+                     EXCEPTIONS OTHERS = 1.
+                   IF lv_user_iso IS INITIAL. lv_user_iso = 'ID'. ENDIF. %>
+                <% LOOP AT gt_languages INTO ls_lang_opt. %>
+                  <option value="<%= ls_lang_opt-laiso %>"
+                    <%= COND string(
+                          WHEN wa_req-langu = ls_lang_opt-laiso
+                            OR ( wa_req-langu IS INITIAL AND ls_lang_opt-laiso = lv_user_iso )
+                          THEN 'selected' ) %>>
+                    <%= ls_lang_opt-laiso %> - <%= ls_lang_opt-sptxt %>
+                  </option>
+                <% ENDLOOP. %>
+              </select>
+              <span class="material-symbols-outlined absolute right-3 top-3 pointer-events-none text-outline text-[20px]">expand_more</span>
+            </div>
+            <span class="text-[11px] text-emerald-700 font-medium block">Validasi mandatori guna mencegah error sistem SAP BAPI / BUT000.</span>
+          </div>
+
+          <!-- Telephone -->
+          <div class="space-y-1.5">
+            <label class="block text-label-md font-label-md text-on-surface-variant font-medium">
+              Telephone (Telepon Kantor / PIC)
+            </label>
+            <div class="relative">
+              <span class="material-symbols-outlined absolute left-3 top-3 text-outline text-[18px]">call</span>
+              <input type="text" name="telephone" maxlength="30" value="<%= wa_req-telephone %>" placeholder="Contoh: +62 31 8912345"
+                     class="w-full h-11 pl-9 pr-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+            </div>
+          </div>
+
+          <!-- Fax (Nomor Fax Kantor) -->
+          <div class="space-y-1.5">
+            <label class="block text-label-md font-label-md text-on-surface-variant font-medium">
+              Fax (Nomor Fax Kantor) <span class="text-xs text-outline font-normal">(Opsional)</span>
+            </label>
+            <div class="relative">
+              <span class="material-symbols-outlined absolute left-3 top-3 text-outline text-[18px]">print</span>
+              <input type="text" name="fax" maxlength="30" placeholder="Contoh: +62 31 8912346"
+                     class="w-full h-11 pl-9 pr-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+            </div>
+          </div>
+
+          <!-- E-Mail Address (E_MAIL - Opsional) -->
+          <div class="space-y-1.5">
+            <label class="block text-label-md font-label-md text-on-surface-variant font-medium">
+              E-Mail Address (E_MAIL) <span class="text-xs text-outline font-normal">(Opsional)</span>
+            </label>
+            <div class="relative">
+              <span class="material-symbols-outlined absolute left-3 top-3 text-outline text-[18px]">mail</span>
+              <input type="email" name="email" maxlength="241" value="<%= wa_req-email %>" placeholder="Contoh: procurement@kayumebel.co.id"
+                     class="w-full h-11 pl-9 pr-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation Shortcut ke Purchasing View -->
+      <div class="pt-3 border-t border-outline-variant/60 flex items-center justify-end">
+        <button type="button" onclick="switchBpTab('purchasing', document.getElementById('tabBtn_purchasing'));"
+                class="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold rounded-xl border border-emerald-200 flex items-center gap-2 text-xs transition-colors shadow-2xs cursor-pointer">
+          <span>Lanjut ke Purchasing View (EKORG)</span>
+          <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- TAB PANEL 2: ADDRESS OVERVIEW                                       -->
+    <!-- =================================================================== -->
+    <div id="tabContent_address_overview" class="bp-tab-panel space-y-space-md hidden">
+      <div class="p-space-md rounded-xl border border-outline-variant/70 bg-surface-container-lowest shadow-sm space-y-space-md">
+        <div class="flex items-center justify-between pb-space-xs border-b border-outline-variant">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary text-[22px]">map</span>
+            <h3 class="text-headline-md font-bold text-on-surface">Address Overview (Ringkasan Alamat Lengkap)</h3>
+          </div>
+          <button type="button" onclick="switchBpTab('address', document.getElementById('tabBtn_address'));"
+                  class="px-3 py-1.5 text-xs bg-primary/10 hover:bg-primary/20 text-primary font-semibold rounded-lg flex items-center gap-1">
+            <span class="material-symbols-outlined text-[16px]">edit</span>
+            Ubah Alamat
+          </button>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <div class="p-3 rounded-lg bg-surface-container-low/60 border border-outline-variant/50 space-y-1.5">
+            <span class="text-xs font-bold text-primary block uppercase">Alamat Kantor Utama</span>
+            <p class="font-semibold text-on-surface"><%= wa_req-name1 %> <%= wa_req-name2 %></p>
+            <p class="text-on-surface-variant"><%= wa_req-street %> <%= wa_req-house_num %></p>
+            <p class="text-on-surface-variant"><%= wa_req-city %>, <%= wa_req-postal_code %></p>
+            <p class="text-on-surface-variant font-code-sm">Negara: <%= wa_req-country %> | Region: <%= wa_req-region %></p>
+          </div>
+          <div class="p-3 rounded-lg bg-surface-container-low/60 border border-outline-variant/50 space-y-1.5">
+            <span class="text-xs font-bold text-primary block uppercase">Kontak Resmi Perusahaan</span>
+            <p class="text-on-surface-variant flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-[16px] text-outline">call</span>
+              <span><%= wa_req-telephone %></span>
+            </p>
+            <p class="text-on-surface-variant flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-[16px] text-outline">mail</span>
+              <span><%= wa_req-email %></span>
+            </p>
+            <p class="text-on-surface-variant flex items-center gap-1.5 pt-2">
+              <span class="material-symbols-outlined text-[16px] text-outline">tag</span>
+              <span>Search Term: <strong><%= wa_req-search_term %></strong></span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- TAB PANEL 3: IDENTIFICATION                                         -->
+    <!-- =================================================================== -->
+    <div id="tabContent_identification" class="bp-tab-panel space-y-space-lg hidden">
+      <!-- 3A. Tax Numbers -->
+      <div class="p-space-md rounded-xl border border-outline-variant/70 bg-surface-container-lowest shadow-sm space-y-space-md">
+        <div class="flex items-center gap-2 pb-space-xs border-b border-outline-variant/60">
+          <span class="w-8 h-8 rounded-lg bg-secondary-container text-primary flex items-center justify-center">
+            <span class="material-symbols-outlined text-[20px]">receipt_long</span>
+          </span>
+          <div>
+            <h3 class="text-headline-md font-headline-md font-bold text-on-surface">Tax Numbers (Data Perpajakan)</h3>
+            <p class="text-body-sm text-on-surface-variant">Nomor Pokok Wajib Pajak (NPWP) dan klasifikasi subjek pajak.</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-space-md items-end">
+          <!-- Natural Person Checkbox -->
+          <div class="md:col-span-3 pb-2.5">
+            <label class="flex items-center gap-2.5 cursor-pointer select-none">
+              <input type="checkbox" name="natural_person" id="naturalPersonCheck" value="X"
+                     class="w-4 h-4 rounded text-primary border-outline-variant focus:ring-primary">
+              <span class="text-label-lg font-label-lg text-on-surface font-semibold">Natural Person</span>
+            </label>
+            <span class="text-[11px] text-outline font-body-sm block pt-0.5">Centang jika subjek pajak perorangan / individu.</span>
+          </div>
+
+          <!-- Tax Category -->
+          <div class="md:col-span-4 space-y-1.5">
+            <label class="block text-label-md font-label-md text-on-surface-variant font-medium">
+              Tax Category (Jenis Pajak) <span class="text-error">*</span>
+            </label>
+            <div class="relative">
+              <select name="tax_type" class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 appearance-none">
+                <option value="ID1" <%= COND string( WHEN wa_req-tax_type = 'ID1' OR wa_req-tax_type IS INITIAL THEN 'selected' ) %>>ID1 - Indonesia NPWP (Badan Usaha)</option>
+                <option value="ID2" <%= COND string( WHEN wa_req-tax_type = 'ID2' THEN 'selected' ) %>>ID2 - Indonesia NIK (Perorangan)</option>
+                <option value="SG1" <%= COND string( WHEN wa_req-tax_type = 'SG1' THEN 'selected' ) %>>SG1 - Singapore GST / UEN</option>
+                <option value="MY1" <%= COND string( WHEN wa_req-tax_type = 'MY1' THEN 'selected' ) %>>MY1 - Malaysia SST / BRN</option>
+                <option value="US1" <%= COND string( WHEN wa_req-tax_type = 'US1' THEN 'selected' ) %>>US1 - USA EIN / Tax ID</option>
+              </select>
+              <span class="material-symbols-outlined absolute right-3 top-3 pointer-events-none text-outline text-[20px]">expand_more</span>
+            </div>
+          </div>
+
+          <!-- Tax Number -->
+          <div class="md:col-span-5 space-y-1.5">
+            <label class="block text-label-md font-label-md text-on-surface-variant font-medium">
+              Tax Number (Nomor NPWP / Pajak) <span class="text-error">*</span>
+            </label>
+            <input type="text" name="tax_num" maxlength="30" value="<%= wa_req-tax_num %>" placeholder="Contoh: 01.234.567.8-901.000"
+                   class="w-full h-11 px-space-md text-body-md font-code-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+          </div>
+        </div>
+      </div>
+
+      <!-- 3B. Identification Numbers Table (Dynamic) -->
+      <div class="p-space-md rounded-xl border border-outline-variant/70 bg-surface-container-lowest shadow-sm space-y-space-md">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-space-xs border-b border-outline-variant/60">
+          <div class="flex items-center gap-2">
+            <span class="w-8 h-8 rounded-lg bg-secondary-container text-primary flex items-center justify-center">
+              <span class="material-symbols-outlined text-[20px]">badge</span>
+            </span>
+            <div>
+              <h3 class="text-headline-md font-headline-md font-bold text-on-surface">Identification Numbers (Dokumen Identitas)</h3>
+              <p class="text-body-sm text-on-surface-variant">Dokumen legalitas usaha (NIB, SIUP, SKT, TDP, dll).</p>
+            </div>
+          </div>
+          <button type="button" onclick="addIdNumberRow();"
+                  class="px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg font-semibold text-xs flex items-center gap-1.5 transition-colors self-start sm:self-auto shadow-sm">
+            <span class="material-symbols-outlined text-[16px]">add_circle</span>
+            + Add ID
+          </button>
+        </div>
+
+        <!-- External BP Number Input -->
+        <div class="max-w-md space-y-1.5">
+          <label class="block text-label-md font-label-md text-on-surface-variant font-medium">
+            External BP Number (Nomor Referensi Eksternal)
+          </label>
+          <input type="text" name="external_bp_num" maxlength="20" placeholder="Contoh: EXT-99201"
+                 class="w-full h-11 px-space-md text-body-md font-code-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+          <span class="text-[11px] text-outline font-body-sm block">Nomor identifikasi BP pada sistem legacy atau platform pihak ketiga.</span>
+        </div>
+
+        <div class="overflow-x-auto rounded-lg border border-outline-variant/60">
+          <table class="w-full text-left text-sm border-collapse">
+            <thead class="bg-surface-container-low text-on-surface-variant font-semibold text-xs uppercase tracking-wider border-b border-outline-variant/60">
+              <tr>
+                <th class="py-2.5 px-3 w-48">ID Type</th>
+                <th class="py-2.5 px-3 min-w-[160px]">Description</th>
+                <th class="py-2.5 px-3 min-w-[180px]">Identification Number</th>
+                <th class="py-2.5 px-3 min-w-[180px]">Responsible Institution</th>
+                <th class="py-2.5 px-3 w-36">Entry Date</th>
+                <th class="py-2.5 px-3 w-16 text-center">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="idNumbersBody" class="divide-y divide-outline-variant/40 bg-surface-container-lowest">
+              <!-- Dynamically rendered by JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 3C. Organizational Data -->
+      <div class="p-space-md rounded-xl border border-outline-variant/70 bg-surface-container-lowest shadow-sm space-y-space-md">
+        <div class="flex items-center gap-2 pb-space-xs border-b border-outline-variant/60">
+          <span class="w-8 h-8 rounded-lg bg-secondary-container text-primary flex items-center justify-center">
+            <span class="material-symbols-outlined text-[20px]">domain</span>
+          </span>
+          <div>
+            <h3 class="text-headline-md font-headline-md font-bold text-on-surface">Organizational Data (Struktur &amp; Legalitas)</h3>
+            <p class="text-body-sm text-on-surface-variant">Bentuk badan hukum, status operasional, dan identifikasi lokasi korporat.</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-space-md">
+          <!-- Legal Form -->
+          <div class="space-y-1.5">
+            <label class="block text-label-md font-label-md text-on-surface-variant font-medium">Legal Form (Bentuk Hukum)</label>
+            <div class="relative">
+              <select name="legal_form" class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 appearance-none">
+                <option value="01" selected>01 - PT (Perseroan Terbatas)</option>
+                <option value="02">02 - CV (Commanditaire Vennootschap)</option>
+                <option value="03">03 - Firma (Fa)</option>
+                <option value="04">04 - Yayasan</option>
+                <option value="05">05 - Koperasi</option>
+                <option value="06">06 - BUMN / BUMD</option>
+                <option value="07">07 - Bentuk Usaha Tetap (BUT)</option>
+                <option value="99">99 - Bentuk Usaha Lainnya</option>
+              </select>
+              <span class="material-symbols-outlined absolute right-3 top-3 pointer-events-none text-outline text-[20px]">expand_more</span>
+            </div>
+          </div>
+
+          <!-- Legal Entity -->
+          <div class="space-y-1.5">
+            <label class="block text-label-md font-label-md text-on-surface-variant font-medium">Legal Entity</label>
+            <input type="text" name="legal_entity" maxlength="10" placeholder="Contoh: ENT-01"
+                   class="w-full h-11 px-space-md text-body-md font-code-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+          </div>
+
+          <!-- Date Founded -->
+          <div class="space-y-1.5">
+            <label class="block text-label-md font-label-md text-on-surface-variant font-medium">Date Founded (Tgl Berdiri)</label>
+            <input type="date" name="date_founded"
+                   class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+          </div>
+
+          <!-- Liquidation Date -->
+          <div class="space-y-1.5">
+            <label class="block text-label-md font-label-md text-on-surface-variant font-medium">Liquidation Date</label>
+            <input type="date" name="liquidation_date"
+                   class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+          </div>
+
+          <!-- Int. Location No. 1 -->
+          <div class="space-y-1.5">
+            <label class="block text-label-md font-label-md text-on-surface-variant font-medium">Int. Location No. 1</label>
+            <input type="text" name="loc_no_1" maxlength="7" placeholder="Maks 7 digit"
+                   class="w-full h-11 px-space-md text-body-md font-code-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+          </div>
+
+          <!-- Int. Location No. 2 -->
+          <div class="space-y-1.5">
+            <label class="block text-label-md font-label-md text-on-surface-variant font-medium">Int. Location No. 2</label>
+            <input type="text" name="loc_no_2" maxlength="5" placeholder="Maks 5 digit"
+                   class="w-full h-11 px-space-md text-body-md font-code-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+          </div>
+
+          <!-- Check Digit -->
+          <div class="space-y-1.5">
+            <label class="block text-label-md font-label-md text-on-surface-variant font-medium">Check Digit</label>
+            <input type="text" name="check_digit" maxlength="1" placeholder="1 digit"
+                   class="w-full h-11 px-space-md text-body-md font-code-sm text-center bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- TAB PANEL 4: CONTROL                                                -->
+    <!-- =================================================================== -->
+    <div id="tabContent_control" class="bp-tab-panel space-y-space-lg hidden">
+      <!-- 4A. Control Parameters -->
+      <div class="p-space-md rounded-xl border border-outline-variant/70 bg-surface-container-lowest shadow-sm space-y-space-md">
+        <div class="flex items-center gap-2 pb-space-xs border-b border-outline-variant/60">
+          <span class="w-8 h-8 rounded-lg bg-secondary-container text-primary flex items-center justify-center">
+            <span class="material-symbols-outlined text-[20px]">tune</span>
+          </span>
+          <div>
+            <h3 class="text-headline-md font-headline-md font-bold text-on-surface">Control Parameters</h3>
+            <p class="text-body-sm text-on-surface-variant">Parameter otorisasi dan klasifikasi internal Business Partner.</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-space-md">
+          <div class="space-y-1.5">
+            <label class="block text-label-md font-label-md text-on-surface-variant font-medium">Trading Partner (VBUND)</label>
+            <input type="text" name="vbund" maxlength="6" placeholder="Contoh: 001000"
+                   class="w-full h-11 px-space-md text-body-md font-code-sm uppercase bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+            <span class="text-[11px] text-outline font-body-sm block">Kode rekanan intercompany untuk konsolidasi grup.</span>
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="block text-label-md font-label-md text-on-surface-variant font-medium">Authorization Group (BEGRU)</label>
+            <input type="text" name="begru" maxlength="4" placeholder="Contoh: 0001"
+                   class="w-full h-11 px-space-md text-body-md font-code-sm uppercase bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+            <span class="text-[11px] text-outline font-body-sm block">Grup otorisasi pembatasan akses data master BP.</span>
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="block text-label-md font-label-md text-on-surface-variant font-medium">BP Type</label>
+            <input type="text" name="bp_type" maxlength="4" placeholder="Contoh: VEND"
+                   class="w-full h-11 px-space-md text-body-md font-code-sm uppercase bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+            <span class="text-[11px] text-outline font-body-sm block">Klasifikasi tipe bisnis partner di SAP.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4B. Data Origin -->
+      <div class="p-space-md rounded-xl border border-outline-variant/70 bg-surface-container-lowest shadow-sm space-y-space-md">
+        <div class="flex items-center gap-2 pb-space-xs border-b border-outline-variant/60">
+          <span class="w-8 h-8 rounded-lg bg-secondary-container text-primary flex items-center justify-center">
+            <span class="material-symbols-outlined text-[20px]">hub</span>
+          </span>
+          <div>
+            <h3 class="text-headline-md font-headline-md font-bold text-on-surface">Data Origin (Sumber Asal Data)</h3>
+            <p class="text-body-sm text-on-surface-variant">Informasi audit trail sumber penciptaan data master.</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-space-md">
+          <div class="space-y-1.5">
+            <label class="block text-label-md font-label-md text-on-surface-variant font-medium">Origin System / Source</label>
+            <input type="text" name="origin_source" value="MDG_PORTAL" readonly
+                   class="w-full h-11 px-space-md text-body-md font-code-sm bg-surface-container-low border border-outline-variant rounded-lg text-on-surface cursor-not-allowed">
+            <span class="text-[11px] text-outline font-body-sm block">Sistem asal master data (Default Read-Only: MDG_PORTAL).</span>
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="block text-label-md font-label-md text-on-surface-variant font-medium">Source Reference Key</label>
+            <input type="text" name="origin_ref_key" maxlength="60" placeholder="Contoh: REF-MDG-2026-001"
+                   class="w-full h-11 px-space-md text-body-md font-code-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+            <span class="text-[11px] text-outline font-body-sm block">Kunci referensi unik sistem eksternal / staging.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4C. Notes -->
+      <div class="p-space-md rounded-xl border border-outline-variant/70 bg-surface-container-lowest shadow-sm space-y-space-md">
+        <div class="flex items-center gap-2 pb-space-xs border-b border-outline-variant/60">
+          <span class="w-8 h-8 rounded-lg bg-secondary-container text-primary flex items-center justify-center">
+            <span class="material-symbols-outlined text-[20px]">edit_note</span>
+          </span>
+          <div>
+            <h3 class="text-headline-md font-headline-md font-bold text-on-surface">Notes (Catatan Internal)</h3>
+            <p class="text-body-sm text-on-surface-variant">Catatan penjelasan untuk Data Steward dan Approver MDG.</p>
+          </div>
+        </div>
+
+        <div class="space-y-1.5">
+          <textarea name="internal_notes" rows="4" placeholder="Tuliskan catatan internal, justifikasi pengajuan, atau instruksi khusus di sini..."
+                    class="w-full p-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- TAB PANEL 5: PAYMENT TRANSACTIONS (SESUAI PERSIS SCREENSHOT SAP BP) -->
+    <!-- =================================================================== -->
+    <div id="tabContent_payment" class="bp-tab-panel space-y-space-md hidden">
+      <!-- 5A. BANK DETAILS (TABLE CONTROL SAP STYLE) -->
+      <div class="border border-outline-variant/80 rounded-lg bg-surface-container-lowest shadow-sm overflow-hidden">
+        <!-- Header Strip -->
+        <div class="bg-gradient-to-r from-surface-container-low to-surface-container-lowest px-4 py-2 border-b border-outline-variant/70 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-primary inline-block"></span>
+            <span class="text-xs font-bold uppercase tracking-wider text-on-surface">Bank Details</span>
+          </div>
+          <div class="flex items-center gap-1">
+            <span class="text-[11px] text-outline font-code-sm" id="bankEntryCountTop">Entry 1 of 1</span>
+            <button type="button" title="SAP Table Column Configuration" class="ml-2 p-1 hover:bg-surface-container rounded border border-outline-variant/60 flex items-center">
+              <span class="material-symbols-outlined text-[15px] text-primary">table_chart</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Table Container -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border-collapse font-body-md">
+            <thead>
+              <tr class="bg-[#f2f5f7] border-b border-outline-variant/80 text-on-surface-variant font-bold">
+                <th class="py-2 px-2 w-8 text-center border-r border-outline-variant/50 bg-[#e7ecf0]"></th>
+                <th class="py-2 px-3 w-16 border-r border-outline-variant/50">ID</th>
+                <th class="py-2 px-3 w-20 border-r border-outline-variant/50">Ctry</th>
+                <th class="py-2 px-3 w-32 border-r border-outline-variant/50">Bank Key</th>
+                <th class="py-2 px-3 min-w-[160px] border-r border-outline-variant/50">Bank acct</th>
+                <th class="py-2 px-3 w-24 border-r border-outline-variant/50 text-center">Control Key</th>
+                <th class="py-2 px-3 min-w-[200px] border-r border-outline-variant/50">IBAN</th>
+                <th class="py-2 px-2 w-10 text-center border-r border-outline-variant/50">IBAN</th>
+                <th class="py-2 px-2 w-10 text-center">Hapus</th>
+              </tr>
+            </thead>
+            <tbody id="bankTableBody" class="divide-y divide-outline-variant/40 bg-surface-container-lowest">
+              <!-- Dynamically rendered by JavaScript -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Action Toolbar Bottom Bar (Sesuai Screenshot: Bank Data..., Validity, Change, Entry X of Y) -->
+        <div class="bg-[#f8fafb] px-4 py-2 border-t border-outline-variant/70 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <!-- Bank Data... Button -->
+            <button type="button" onclick="openBankDataModal();"
+                    class="px-3 py-1.5 bg-surface-container-lowest hover:bg-surface-container border border-outline-variant rounded text-on-surface font-medium flex items-center gap-1.5 shadow-sm transition-all">
+              <span class="material-symbols-outlined text-[16px] text-primary">credit_card</span>
+              <span>Bank Data...</span>
+            </button>
+            <!-- Validity Button -->
+            <button type="button" onclick="alert('Validity Bank Details: Rekening berlaku penuh tanpa batas waktu (Standard SAP Permanent Validity).');"
+                    class="px-3 py-1.5 bg-surface-container-lowest hover:bg-surface-container border border-outline-variant rounded text-on-surface font-medium shadow-sm transition-all">
+              <span>Validity</span>
+            </button>
+            <!-- Change / Edit Button -->
+            <button type="button" onclick="openBankDataModal();"
+                    class="px-3 py-1.5 bg-surface-container-lowest hover:bg-surface-container border border-outline-variant rounded text-on-surface font-medium shadow-sm transition-all">
+              <span>Change</span>
+            </button>
+            <!-- + Add Bank Button -->
+            <button type="button" onclick="addBankRow();"
+                    class="px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 rounded font-semibold flex items-center gap-1 shadow-sm transition-all ml-1">
+              <span class="material-symbols-outlined text-[15px]">add_circle</span>
+              <span>+ Add Bank</span>
+            </button>
+          </div>
+          <div class="flex items-center gap-3 font-code-sm text-outline text-[11px]">
+            <span id="bankEntryCountText">Entry 1 of 1</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5B. PAYMENT CARDS (TABLE CONTROL SAP STYLE) -->
+      <div class="border border-outline-variant/80 rounded-lg bg-surface-container-lowest shadow-sm overflow-hidden mt-4">
+        <!-- Header Strip -->
+        <div class="bg-gradient-to-r from-surface-container-low to-surface-container-lowest px-4 py-2 border-b border-outline-variant/70 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-primary inline-block"></span>
+            <span class="text-xs font-bold uppercase tracking-wider text-on-surface">Payment Cards</span>
+          </div>
+          <div class="flex items-center gap-1">
+            <span class="text-[11px] text-outline font-code-sm" id="cardEntryCountTop">Entry 0 of 0</span>
+            <button type="button" title="SAP Table Column Configuration" class="ml-2 p-1 hover:bg-surface-container rounded border border-outline-variant/60 flex items-center">
+              <span class="material-symbols-outlined text-[15px] text-primary">table_chart</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Table Container -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border-collapse font-body-md">
+            <thead>
+              <tr class="bg-[#f2f5f7] border-b border-outline-variant/80 text-on-surface-variant font-bold">
+                <th class="py-2 px-2 w-8 text-center border-r border-outline-variant/50 bg-[#e7ecf0]"></th>
+                <th class="py-2 px-3 w-16 border-r border-outline-variant/50">ID</th>
+                <th class="py-2 px-3 w-24 border-r border-outline-variant/50">Type</th>
+                <th class="py-2 px-3 w-40 border-r border-outline-variant/50">Description</th>
+                <th class="py-2 px-3 min-w-[180px] border-r border-outline-variant/50">Card Number</th>
+                <th class="py-2 px-3 w-20 border-r border-outline-variant/50 text-center">Standard</th>
+                <th class="py-2 px-3 min-w-[180px] border-r border-outline-variant/50">Description</th>
+                <th class="py-2 px-2 w-10 text-center">Hapus</th>
+              </tr>
+            </thead>
+            <tbody id="paymentCardsBody" class="divide-y divide-outline-variant/40 bg-surface-container-lowest">
+              <!-- Dynamically rendered by JavaScript -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Action Toolbar Bottom Bar -->
+        <div class="bg-[#f8fafb] px-4 py-2 border-t border-outline-variant/70 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <button type="button" onclick="addPaymentCardRow();"
+                    class="px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 rounded font-semibold flex items-center gap-1 shadow-sm transition-all">
+              <span class="material-symbols-outlined text-[15px]">add_circle</span>
+              <span>+ Add Card</span>
+            </button>
+          </div>
+          <div class="flex items-center gap-3 font-code-sm text-outline text-[11px]">
+            <span id="cardEntryCountText">Entry 0 of 0</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- TAB PANEL 6: STATUS                                                 -->
+    <!-- =================================================================== -->
+    <div id="tabContent_status" class="bp-tab-panel space-y-space-md hidden">
+      <div class="p-space-md rounded-xl border border-outline-variant/70 bg-surface-container-lowest shadow-sm space-y-space-md">
+        <div class="flex items-center gap-2 pb-space-xs border-b border-outline-variant/60">
+          <span class="w-8 h-8 rounded-lg bg-secondary-container text-primary flex items-center justify-center">
+            <span class="material-symbols-outlined text-[20px]">info</span>
+          </span>
+          <div>
+            <h3 class="text-headline-md font-headline-md font-bold text-on-surface">Lifecycle Status &amp; SAP Business Partner Key</h3>
+            <p class="text-body-sm text-on-surface-variant">Informasi audit trail, status permohonan, dan nomor BP yang digenerate SAP.</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="p-4 rounded-xl bg-surface-container-low border border-outline-variant/60 space-y-1">
+            <span class="text-xs font-semibold text-outline uppercase block">Current Staging Status</span>
+            <span class="text-headline-md font-bold text-primary block"><%= wa_req-status %></span>
+            <span class="text-[11px] text-on-surface-variant">Permohonan ID: <%= wa_req-req_id %></span>
+          </div>
+          <div class="p-4 rounded-xl bg-surface-container-low border border-outline-variant/60 space-y-1">
+            <span class="text-xs font-semibold text-outline uppercase block">Generated SAP BP Number</span>
+            <span class="text-headline-md font-bold font-code-sm text-on-surface block">
+              <% IF wa_req-bp_number IS NOT INITIAL. %>
+                <%= wa_req-bp_number %>
+              <% ELSE. %>
+                Belum Digenerate
+              <% ENDIF. %>
+            </span>
+            <span class="text-[11px] text-on-surface-variant">Dibuat oleh: <%= wa_req-created_by %></span>
+          </div>
+          <div class="p-4 rounded-xl bg-surface-container-low border border-outline-variant/60 space-y-1">
+            <span class="text-xs font-semibold text-outline uppercase block">Data Steward Review</span>
+            <span class="text-body-md font-semibold text-on-surface block">
+              Status:
+              <% IF wa_req-stw_data_status = 'X'. %>
+                <span class="text-emerald-700 font-bold">Verified (OK)</span>
+              <% ELSEIF wa_req-stw_data_status = 'R'. %>
+                <span class="text-error font-bold">Rejected</span>
+              <% ELSE. %>
+                <span class="text-amber-700 font-bold">Pending Review</span>
+              <% ENDIF. %>
+            </span>
+            <span class="text-[11px] text-on-surface-variant truncate block" title="<%= wa_req-stw_data_note %>">
+              Catatan:
+              <% IF wa_req-stw_data_note IS NOT INITIAL. %>
+                <%= wa_req-stw_data_note %>
+              <% ELSE. %>
+                -
+              <% ENDIF. %>
+            </span>
+          </div>
+          <div class="p-4 rounded-xl bg-surface-container-low border border-outline-variant/60 space-y-1">
+            <span class="text-xs font-semibold text-outline uppercase block">Bank Steward Review</span>
+            <span class="text-body-md font-semibold text-on-surface block">
+              Status:
+              <% IF wa_req-stw_bank_status = 'X'. %>
+                <span class="text-sky-700 font-bold">Verified (OK)</span>
+              <% ELSEIF wa_req-stw_bank_status = 'R'. %>
+                <span class="text-error font-bold">Rejected</span>
+              <% ELSE. %>
+                <span class="text-amber-700 font-bold">Pending Review</span>
+              <% ENDIF. %>
+            </span>
+            <span class="text-[11px] text-on-surface-variant truncate block" title="<%= wa_req-stw_bank_note %>">
+              Catatan:
+              <% IF wa_req-stw_bank_note IS NOT INITIAL. %>
+                <%= wa_req-stw_bank_note %>
+              <% ELSE. %>
+                -
+              <% ENDIF. %>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- TAB PANEL 7: ADDITIONAL TEXTS                                       -->
+    <!-- =================================================================== -->
+    <div id="tabContent_texts" class="bp-tab-panel space-y-space-lg hidden">
+      <div class="p-space-md rounded-xl border border-outline-variant/70 bg-surface-container-lowest shadow-sm space-y-space-md">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-space-xs border-b border-outline-variant/60">
+          <div class="flex items-center gap-2">
+            <span class="w-8 h-8 rounded-lg bg-secondary-container text-primary flex items-center justify-center">
+              <span class="material-symbols-outlined text-[20px]">description</span>
+            </span>
+            <div>
+              <h3 class="text-headline-md font-headline-md font-bold text-on-surface">Additional Texts (Catatan Teks Tambahan)</h3>
+              <p class="text-body-sm text-on-surface-variant">Catatan multi-tipe &amp; multi-bahasa standar SAP Business Partner.</p>
+            </div>
+          </div>
+          <button type="button" onclick="addAdditionalTextRow();"
+                  class="px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg font-semibold text-xs flex items-center gap-1.5 transition-colors self-start sm:self-auto shadow-sm">
+            <span class="material-symbols-outlined text-[16px]">add_circle</span>
+            + Add Text
+          </button>
+        </div>
+
+        <div id="additionalTextsContainer" class="space-y-3">
+          <!-- Dynamically rendered by JavaScript -->
+        </div>
+      </div>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- TAB PANEL 8: COMPANY CODE / ACCOUNTING VIEW                         -->
+    <!-- =================================================================== -->
+    <div id="tabContent_company" class="bp-tab-panel space-y-space-lg hidden">
+      <div class="p-space-md rounded-xl border border-outline-variant/70 bg-surface-container-lowest shadow-sm space-y-space-md">
+        <div class="flex items-center gap-2 pb-space-xs border-b border-outline-variant/60">
+          <span class="w-8 h-8 rounded-lg bg-secondary-container text-primary flex items-center justify-center">
+            <span class="material-symbols-outlined text-[20px]">account_balance_wallet</span>
+          </span>
+          <div>
+            <h3 class="text-headline-md font-headline-md font-bold text-on-surface">Company Code Data (Accounting View)</h3>
+            <p class="text-body-sm text-on-surface-variant">Konfigurasi akun rekonsiliasi vendor, termin pembayaran, dan mata uang.</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-space-md">
+          <div class="space-y-1.5">
+            <label class="block text-label-md font-label-md text-on-surface-variant font-medium">
+              Company Code (BUKRS) <span class="text-error">*</span>
+            </label>
+            <input type="text" name="bukrs" maxlength="4" value="<%= COND string( WHEN wa_req-bukrs IS NOT INITIAL THEN wa_req-bukrs ELSE '1000' ) %>"
+                   class="w-full h-11 px-space-md text-body-md font-code-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+          </div>
+          <div class="space-y-1.5">
+            <label class="block text-label-md font-label-md text-on-surface-variant font-medium">
+              Recon Account (AKONT) <span class="text-error">*</span>
+            </label>
+            <input type="text" name="akont" maxlength="10" value="<%= wa_req-akont %>" placeholder="Contoh: 21100000"
+                   class="w-full h-11 px-space-md text-body-md font-code-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+          </div>
+          <div class="space-y-1.5">
+            <label class="block text-label-md font-label-md text-on-surface-variant font-medium">
+              Payment Terms (ZTERM)
+            </label>
+            <div class="relative">
+              <select name="zterm" class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 appearance-none">
+                <option value="NT30" <%= COND string( WHEN wa_req-zterm = 'NT30' OR wa_req-zterm IS INITIAL THEN 'selected' ) %>>NT30 - Net 30 Days</option>
+                <option value="NT14" <%= COND string( WHEN wa_req-zterm = 'NT14' THEN 'selected' ) %>>NT14 - Net 14 Days</option>
+                <option value="NT60" <%= COND string( WHEN wa_req-zterm = 'NT60' THEN 'selected' ) %>>NT60 - Net 60 Days</option>
+                <option value="NT90" <%= COND string( WHEN wa_req-zterm = 'NT90' THEN 'selected' ) %>>NT90 - Net 90 Days</option>
+                <option value="IMM"  <%= COND string( WHEN wa_req-zterm = 'IMM' THEN 'selected' ) %>>IMM - Immediate Due</option>
+              </select>
+              <span class="material-symbols-outlined absolute right-3 top-3 pointer-events-none text-outline text-[20px]">expand_more</span>
+            </div>
+          </div>
+          <div class="space-y-1.5">
+            <label class="block text-label-md font-label-md text-on-surface-variant font-medium">
+              Currency (WAERS)
+            </label>
+            <input type="text" name="company_waers" maxlength="5" value="<%= COND string( WHEN wa_req-waers IS NOT INITIAL THEN wa_req-waers ELSE 'IDR' ) %>"
+                   class="w-full h-11 px-space-md text-body-md font-code-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- TAB PANEL 9: PURCHASING VIEW (FLVN01 MM SUPPLIER - EKORG)           -->
+    <!-- =================================================================== -->
+    <div id="tabContent_purchasing" class="bp-tab-panel space-y-space-md hidden">
+      <div class="p-space-lg bg-surface-container-low border border-outline-variant rounded-xl space-y-space-md shadow-sm">
+        <div class="flex items-center justify-between pb-space-xs border-b border-outline-variant">
+          <div class="flex items-center gap-space-xs">
+            <span class="w-1 h-4 bg-primary rounded-full"></span>
+            <h2 class="text-headline-md font-headline-md text-on-surface font-bold">Purchasing View (Role FLVN01)</h2>
+          </div>
+          <span class="text-label-md font-label-md text-amber-700 bg-amber-100 px-space-sm py-0.5 rounded-full font-semibold">MM Supplier Purchasing Data</span>
+        </div>
+
+        <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-900 flex items-start gap-2">
+          <span class="material-symbols-outlined text-blue-600 text-[18px] shrink-0 mt-0.5">info</span>
+          <div>
+            <strong>Purchasing Extension (LFM1):</strong> Meng-extend Business Partner ke Purchasing Organization untuk transaksi pengadaan (PO &amp; Invoice Verification) pada tabel standar SAP LFM1.
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-space-md">
+          <!-- Purchasing Organization (EKORG) -->
+          <div class="md:col-span-6 space-y-1.5">
+            <label class="block text-label-md font-label-md text-on-surface-variant font-medium">
+              Purchasing Organization (EKORG) <span class="text-error">*</span>
+            </label>
+            <input type="text" name="ekorg" id="ekorgInput" maxlength="4" placeholder="Contoh: 1000"
+                   value="<%= COND string( WHEN wa_req-ekorg IS NOT INITIAL THEN wa_req-ekorg ELSE '1000' ) %>"
+                   class="w-full h-11 px-space-md text-body-md font-code-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 uppercase">
+            <span class="text-[11px] text-outline font-body-sm block">Unit organisasi pengadaan barang/jasa vendor (contoh: 1000).</span>
+          </div>
+
+          <!-- Order Currency (WAERS) -->
+          <div class="md:col-span-6 space-y-1.5">
+            <label class="block text-label-md font-label-md text-on-surface-variant font-medium">
+              Order Currency (WAERS) <span class="text-error">*</span>
+            </label>
+            <input type="text" name="waers" id="waersInput" maxlength="5" placeholder="Contoh: IDR"
+                   value="<%= COND string( WHEN wa_req-waers IS NOT INITIAL THEN wa_req-waers ELSE 'IDR' ) %>"
+                   class="w-full h-11 px-space-md text-body-md font-code-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 uppercase">
+            <span class="text-[11px] text-outline font-body-sm block">Mata uang transaksi pesanan pembelian standar (contoh: IDR, USD).</span>
+          </div>
+        </div>
+
+        <!-- Invoice Verification Options (WEBRE & LEBRE) -->
+        <div class="pt-space-sm border-t border-outline-variant">
+          <div class="text-label-lg font-label-lg text-primary font-bold tracking-wide mb-3">Invoice Verification Controls (Table LFM1)</div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- GR-Based Inv. Verif. (WEBRE) -->
+            <label class="flex items-start gap-3 p-3.5 bg-surface-container-lowest border border-outline-variant rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer">
+              <input type="checkbox" name="webre" value="X" class="mt-1 h-4 w-4 text-primary rounded border-outline focus:ring-primary"
+                     <%= COND string( WHEN wa_req-webre = 'X' OR wa_req-webre IS INITIAL THEN 'checked' ) %>>
+              <div>
+                <span class="block text-body-md font-medium text-on-surface">GR-Based Inv. Verif. (WEBRE)</span>
+                <span class="block text-xs text-outline">Verifikasi faktur berbasis bukti penerimaan barang (Goods Receipt / GR). Field LFM1-WEBRE = 'X'.</span>
+              </div>
+            </label>
+
+            <!-- Srv.-Based Inv. Ver. (LEBRE) -->
+            <label class="flex items-start gap-3 p-3.5 bg-surface-container-lowest border border-outline-variant rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer">
+              <input type="checkbox" name="lebre" value="X" class="mt-1 h-4 w-4 text-primary rounded border-outline focus:ring-primary"
+                     <%= COND string( WHEN wa_req-lebre = 'X' OR wa_req-lebre IS INITIAL THEN 'checked' ) %>>
+              <div>
+                <span class="block text-body-md font-medium text-on-surface">Srv.-Based Inv. Ver. (LEBRE)</span>
+                <span class="block text-xs text-outline">Verifikasi faktur berbasis lembar verifikasi jasa (Service Entry Sheet / SES). Field LFM1-LEBRE = 'X'.</span>
+              </div>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACTION FOOTER BAR -->
+    <div class="pt-6 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <!-- Left Reset Action -->
+      <div>
+        <button type="button" onclick="resetForm();"
+                class="px-4 py-2.5 text-xs font-bold text-slate-600 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer">
+          <span class="material-symbols-outlined text-[18px]">restart_alt</span>
+          Reset Formulir
+        </button>
+      </div>
+
+      <!-- Right Action Cluster -->
+      <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto justify-end">
+        <button type="button" onclick="submitAction('CHECK');"
+                class="px-4 py-2.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-2 cursor-pointer">
+          <span class="material-symbols-outlined text-[18px] text-emerald-600">check_circle</span>
+          Check Validation
+        </button>
+        <button type="button" onclick="submitAction('SAVE_DRAFT');"
+                class="px-4 py-2.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-2 cursor-pointer">
+          <span class="material-symbols-outlined text-[18px] text-emerald-600">bookmark</span>
+          Simpan Draft
+        </button>
+        <button type="button" onclick="submitAction('SUBMIT');"
+                class="px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-black text-xs rounded-xl shadow-sm hover:shadow transition-all flex items-center gap-2 cursor-pointer">
+          <span class="material-symbols-outlined text-[18px]">send</span>
+          Submit &amp; Buat BP SAP
+        </button>
+      </div>
+    </div>
+  </form>
+
+  <!-- =================================================================== -->
+  <!-- MODAL POPUP: FIND BANK (MINIMALIST SAP BNKA SEARCH HELP)            -->
+  <!-- =================================================================== -->
+  <div id="findBankModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 hidden">
+    <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant/80 shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+      
+      <!-- Modal Header (Minimalist & Modern Fiori Horizon MDG) -->
+      <div class="px-5 py-3.5 border-b border-outline-variant/60 flex items-center justify-between bg-surface-container-lowest">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-xs shrink-0">
+            <span class="material-symbols-outlined text-[20px]">account_balance</span>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="text-sm font-bold text-on-surface leading-none">Find Bank</h3>
+              <span class="px-2 py-0.5 text-[10px] font-bold bg-primary/10 text-primary rounded-full uppercase tracking-wider font-code-sm">SAP BNKA</span>
+            </div>
+            <p class="text-[11px] text-on-surface-variant pt-0.5">Pencarian master data bank standar SAP dari tabel BNKA</p>
+          </div>
+        </div>
+        <!-- Close Control -->
+        <button type="button" onclick="closeFindBankModal();" title="Tutup (Esc)"
+                class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-container-high text-on-surface-variant transition-colors">
+          <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
+      </div>
+
+      <!-- Modal Body (Minimalist Filters + 4-Column Result Table) -->
+      <div class="p-5 overflow-y-auto space-y-4 flex-1">
+        
+        <!-- Minimalist Search Criteria Card (Only Country, Key, Name) -->
+        <div class="bg-surface-container-low/50 border border-outline-variant/60 rounded-xl p-4 space-y-3">
+          <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
+            <!-- Bank Country -->
+            <div class="sm:col-span-3">
+              <label for="fb_banks" class="block text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mb-1">
+                Bank Country
+              </label>
+              <input type="text" id="fb_banks" maxlength="3" value="ID"
+                     placeholder="ID"
+                     onkeydown="if(event.key==='Enter'){event.preventDefault();executeBankSearch();}"
+                     class="w-full h-9 px-3 bg-surface-container-lowest border border-outline-variant rounded-lg uppercase font-code-sm text-xs font-semibold focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all">
+            </div>
+
+            <!-- Bank Key -->
+            <div class="sm:col-span-4">
+              <label for="fb_bankk" class="block text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mb-1">
+                Bank Key
+              </label>
+              <input type="text" id="fb_bankk" maxlength="15"
+                     placeholder="e.g. 014, BCA..."
+                     onkeydown="if(event.key==='Enter'){event.preventDefault();executeBankSearch();}"
+                     class="w-full h-9 px-3 bg-surface-container-lowest border border-outline-variant rounded-lg uppercase font-code-sm text-xs focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all">
+            </div>
+
+            <!-- Bank Name -->
+            <div class="sm:col-span-5">
+              <label for="fb_banka" class="block text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mb-1">
+                Bank Name
+              </label>
+              <input type="text" id="fb_banka" maxlength="60"
+                     placeholder="e.g. BCA, MANDIRI, BRI..."
+                     onkeydown="if(event.key==='Enter'){event.preventDefault();executeBankSearch();}"
+                     class="w-full h-9 px-3 bg-surface-container-lowest border border-outline-variant rounded-lg text-xs focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all">
+            </div>
+          </div>
+
+          <!-- Filter Action Buttons -->
+          <div class="flex items-center justify-end gap-2 pt-1 border-t border-outline-variant/30">
+            <button type="button" onclick="clearBankSearchFields();"
+                    class="px-3 py-1.5 bg-surface-container-lowest hover:bg-surface-container border border-outline-variant rounded-lg text-on-surface-variant text-xs font-medium flex items-center gap-1.5 transition-all"
+                    title="Reset Filter Pencarian">
+              <span class="material-symbols-outlined text-[15px]">restart_alt</span>
+              <span>Reset</span>
+            </button>
+            <button type="button" id="btnFbSearch" onclick="executeBankSearch();"
+                    class="px-4 py-1.5 bg-primary hover:bg-primary-container text-white text-xs font-semibold rounded-lg shadow-xs flex items-center gap-1.5 transition-all"
+                    title="Mulai Pencarian Data Bank SAP">
+              <span class="material-symbols-outlined text-[16px]">search</span>
+              <span>Cari Bank</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Result Grid Section: Clean 4-Column Table -->
+        <div class="border border-outline-variant/70 rounded-xl bg-surface-container-lowest shadow-xs overflow-hidden flex flex-col">
+          <!-- Table Header Strip -->
+          <div class="bg-surface-container-low/80 px-4 py-2.5 border-b border-outline-variant/60 flex items-center justify-between text-xs">
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-on-surface">Hit List BNKA</span>
+              <span id="fbHitBadge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/10 text-primary">0 hits</span>
+            </div>
+            <div id="fbSearchLoading" class="hidden flex items-center gap-1.5 text-primary font-medium">
+              <span class="w-3.5 h-3.5 border-2 border-primary border-t-transparent rounded-full animate-spin"></span>
+              <span class="text-[11px]">Memuat data dari SAP BNKA...</span>
+            </div>
+            <span class="text-[11px] text-outline hidden sm:inline">Tip: Klik baris atau double-click untuk memilih</span>
+          </div>
+
+          <!-- Table Content: Bank Key, Bank Name, City, SWIFT/BIC -->
+          <div class="overflow-x-auto max-h-[320px] overflow-y-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead class="sticky top-0 bg-surface-container-low text-on-surface-variant font-bold shadow-2xs z-10">
+                <tr class="border-b border-outline-variant/60">
+                  <th class="py-2.5 px-3 w-12 text-center border-r border-outline-variant/30">Sel</th>
+                  <th class="py-2.5 px-3 w-32 border-r border-outline-variant/30">Bank Key</th>
+                  <th class="py-2.5 px-3 min-w-[200px] border-r border-outline-variant/30">Bank Name</th>
+                  <th class="py-2.5 px-3 min-w-[140px] border-r border-outline-variant/30">City</th>
+                  <th class="py-2.5 px-3 w-32">SWIFT/BIC</th>
+                </tr>
+              </thead>
+              <tbody id="fbTableBody" class="divide-y divide-outline-variant/30 font-code-sm text-[11px]">
+                <tr>
+                  <td colspan="5" class="py-8 text-center text-outline italic text-xs">
+                    Ketik kriteria pencarian dan klik <strong>Cari Bank</strong> untuk mencari data SAP BNKA.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Table Footer Strip -->
+          <div class="bg-surface-container-low/50 px-4 py-3 border-t border-outline-variant/60 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+            <div class="text-[11px] text-on-surface-variant flex items-center gap-1.5 truncate max-w-full" id="fbSelectedNotice">
+              <span class="text-outline shrink-0">Pilihan:</span>
+              <span class="font-bold text-primary truncate" id="fbSelectedBankText">Belum ada bank yang dipilih</span>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <button type="button" onclick="closeFindBankModal();"
+                      class="px-3.5 py-1.5 bg-surface-container-lowest hover:bg-surface-container border border-outline-variant rounded-lg text-on-surface-variant text-xs font-medium transition-all">
+                Batal
+              </button>
+              <button type="button" id="btnFbSelectConfirm" onclick="confirmBankSelection();" disabled
+                      class="px-4 py-1.5 bg-primary hover:bg-primary-container text-white font-bold rounded-lg flex items-center gap-1.5 text-xs shadow-xs disabled:opacity-40 disabled:cursor-not-allowed transition-all">
+                <span class="material-symbols-outlined text-[16px]">check_circle</span>
+                <span>Select</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL POPUP: BANK DATA DETAILS (MODAL EDIT REKENING BANK SAP) -->
+  <div id="bankDataModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+    <div class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-xl w-full max-w-lg p-6 space-y-4 m-4">
+      <div class="flex items-center justify-between border-b border-outline-variant/60 pb-3">
+        <div class="flex items-center gap-2">
+          <span class="w-8 h-8 rounded-lg bg-secondary-container text-primary flex items-center justify-center">
+            <span class="material-symbols-outlined text-[20px]">account_balance</span>
+          </span>
+          <h3 class="text-headline-md font-bold text-on-surface">Bank Data Details (BNKA SAP)</h3>
+        </div>
+        <button type="button" onclick="closeBankDataModal();" class="text-outline hover:text-on-surface p-1 rounded-lg">
+          <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <input type="hidden" id="modalBankIdx" value="0">
+        
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-on-surface-variant mb-1">Bank Country (Ctry)</label>
+            <input type="text" id="modalBankCtry" maxlength="3" class="w-full h-9 px-2.5 bg-surface-container-low border border-outline-variant rounded uppercase font-code-sm">
+          </div>
+          <div>
+            <label class="block font-semibold text-on-surface-variant mb-1">Bank Key / Kliring</label>
+            <input type="text" id="modalBankKey" maxlength="15" class="w-full h-9 px-2.5 bg-surface-container-low border border-outline-variant rounded font-code-sm">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-on-surface-variant mb-1">Bank Account (Nomor Rekening)</label>
+          <input type="text" id="modalBankAcct" maxlength="18" class="w-full h-9 px-2.5 bg-surface-container-low border border-outline-variant rounded font-code-sm">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-on-surface-variant mb-1">Account Holder (Nama Pemilik)</label>
+          <input type="text" id="modalBankHolder" maxlength="60" class="w-full h-9 px-2.5 bg-surface-container-low border border-outline-variant rounded">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-on-surface-variant mb-1">Bank Name (Nama Lembaga Bank)</label>
+          <input type="text" id="modalBankName" maxlength="60" class="w-full h-9 px-2.5 bg-surface-container-low border border-outline-variant rounded">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-on-surface-variant mb-1">Control Key</label>
+            <input type="text" id="modalBankCtrl" maxlength="2" class="w-full h-9 px-2.5 bg-surface-container-low border border-outline-variant rounded font-code-sm text-center">
+          </div>
+          <div>
+            <label class="block font-semibold text-on-surface-variant mb-1">IBAN Number</label>
+            <input type="text" id="modalBankIban" maxlength="34" class="w-full h-9 px-2.5 bg-surface-container-low border border-outline-variant rounded font-code-sm">
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-3 border-t border-outline-variant/60">
+        <button type="button" onclick="closeBankDataModal();" class="px-4 py-2 rounded-lg text-xs font-semibold text-on-surface-variant hover:bg-surface-container">
+          Batal
+        </button>
+        <button type="button" onclick="saveBankDataModal();" class="px-4 py-2 rounded-lg text-xs font-semibold bg-primary text-on-primary shadow-sm hover:bg-primary-container">
+          Simpan Data Bank
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- REQUEST HISTORY & APPROVAL SECTION -->
+  <section aria-label="Histori Pengajuan dan Persetujuan" class="space-y-space-md pt-space-md">
+    <!-- Section Title & Meta -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-xs">
+      <div>
+        <h2 class="text-headline-lg font-headline-lg text-on-surface font-bold">Histori Pengajuan &amp; Persetujuan</h2>
+        <p class="text-body-sm font-body-sm text-on-surface-variant">Pemantauan status pengajuan Business Partner, audit trail, dan log validasi.</p>
+      </div>
+      <div class="flex items-center gap-space-xs">
+        <button type="button" onclick="exportHistoryExcel();"
+                class="px-space-sm py-1.5 rounded-lg border border-outline-variant bg-surface-container-lowest hover:bg-surface-container-low text-on-surface-variant text-label-md font-label-md flex items-center gap-1.5 shadow-sm">
+          <span class="material-symbols-outlined text-[16px]">file_download</span>
+          Export Excel
+        </button>
+        <button type="button" onclick="submitAction('REFRESH');"
+                class="px-space-sm py-1.5 rounded-lg border border-outline-variant bg-surface-container-lowest hover:bg-surface-container-low text-on-surface-variant text-label-md font-label-md flex items-center gap-1.5 shadow-sm">
+          <span class="material-symbols-outlined text-[16px]">refresh</span>
+          Refresh Log
+        </button>
+      </div>
+    </div>
+
+    <!-- Compute Dynamic Counts -->
+    <%
+      DATA: lv_cnt_pending  TYPE i,
+            lv_cnt_checked  TYPE i,
+            lv_cnt_approved TYPE i,
+            lv_cnt_rejected TYPE i,
+            lv_cnt_total    TYPE i,
+            ls_stat_calc    TYPE ty_bp_request.
+
+      LOOP AT gt_my_requests INTO ls_stat_calc.
+        lv_cnt_total = lv_cnt_total + 1.
+        IF ls_stat_calc-status = 'CHECKED'
+           OR ls_stat_calc-status = 'READY_FOR_FINAL'
+           OR ls_stat_calc-status = 'REVIEWED'.
+          lv_cnt_checked = lv_cnt_checked + 1.
+        ELSEIF ls_stat_calc-status = 'APPROVED'
+            OR ls_stat_calc-status = 'POSTED'.
+          lv_cnt_approved = lv_cnt_approved + 1.
+        ELSEIF ls_stat_calc-status = 'REJECTED'
+            OR ls_stat_calc-status = 'RETURNED'
+            OR ls_stat_calc-status = 'POST_ERROR'.
+          lv_cnt_rejected = lv_cnt_rejected + 1.
+        ELSE.
+          lv_cnt_pending = lv_cnt_pending + 1.
+        ENDIF.
+      ENDLOOP.
+    %>
+
+    <!-- 4 Modern Status Summary Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4 rounded-2xl bg-gradient-to-r from-emerald-900 via-emerald-800 to-emerald-700 border border-emerald-600/30 shadow-sm">
+      <!-- Pending -->
+      <div class="p-4 bg-white rounded-xl border border-slate-200/80 shadow-xs flex items-center justify-between gap-3">
+        <div class="space-y-1">
+          <span class="text-xs font-semibold text-slate-600 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+            Pending Requests
+          </span>
+          <div class="text-2xl font-extrabold text-slate-900 leading-tight"><%= lv_cnt_pending %></div>
+          <span class="text-[11px] font-medium text-slate-500 block">Menunggu verifikasi</span>
+        </div>
+        <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center shrink-0">
+          <span class="material-symbols-outlined text-[20px]">hourglass_empty</span>
+        </div>
+      </div>
+
+      <!-- Checked -->
+      <div class="p-4 bg-white rounded-xl border border-slate-200/80 shadow-xs flex items-center justify-between gap-3">
+        <div class="space-y-1">
+          <span class="text-xs font-semibold text-slate-600 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+            Checked Requests
+          </span>
+          <div class="text-2xl font-extrabold text-slate-900 leading-tight"><%= lv_cnt_checked %></div>
+          <span class="text-[11px] font-medium text-slate-500 block">Proses verifikator</span>
+        </div>
+        <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 border border-blue-200 flex items-center justify-center shrink-0">
+          <span class="material-symbols-outlined text-[20px]">fact_check</span>
+        </div>
+      </div>
+
+      <!-- Approved -->
+      <div class="p-4 bg-white rounded-xl border border-emerald-300 shadow-xs flex items-center justify-between gap-3 ring-1 ring-emerald-500/20">
+        <div class="space-y-1">
+          <span class="text-xs font-bold text-emerald-700 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            Approved Requests
+          </span>
+          <div class="text-2xl font-extrabold text-emerald-700 leading-tight"><%= lv_cnt_approved %></div>
+          <span class="text-[11px] font-medium text-emerald-800 block">Siap disinkronkan SAP</span>
+        </div>
+        <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center shrink-0">
+          <span class="material-symbols-outlined text-[20px]">check_circle</span>
+        </div>
+      </div>
+
+      <!-- Rejected -->
+      <div class="p-4 bg-white rounded-xl border border-slate-200/80 shadow-xs flex items-center justify-between gap-3">
+        <div class="space-y-1">
+          <span class="text-xs font-semibold text-slate-600 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+            Rejected Requests
+          </span>
+          <div class="text-2xl font-extrabold text-slate-900 leading-tight"><%= lv_cnt_rejected %></div>
+          <span class="text-[11px] font-medium text-slate-500 block">Perlu revisi data</span>
+        </div>
+        <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 border border-rose-200 flex items-center justify-center shrink-0">
+          <span class="material-symbols-outlined text-[20px]">cancel</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB FILTER STATUS LOG RIWAYAT -->
+    <div class="flex items-center gap-1.5 p-1 bg-surface-container-low rounded-xl w-fit border border-outline-variant/60 shadow-sm">
+      <button type="button" onclick="filterHistoryTab('all', this);" id="tabAll"
+              class="filter-tab-btn active px-3.5 py-1.5 rounded-lg text-label-md font-label-md bg-primary text-on-primary font-bold transition-all shadow-sm">
+        Semua (<%= lv_cnt_total %>)
+      </button>
+      <button type="button" onclick="filterHistoryTab('pending', this);"
+              class="filter-tab-btn px-3.5 py-1.5 rounded-lg text-label-md font-label-md text-on-surface-variant hover:bg-surface-container transition-all">
+        Pending (<%= lv_cnt_pending %>)
+      </button>
+      <button type="button" onclick="filterHistoryTab('checked', this);"
+              class="filter-tab-btn px-3.5 py-1.5 rounded-lg text-label-md font-label-md text-on-surface-variant hover:bg-surface-container transition-all">
+        Checked (<%= lv_cnt_checked %>)
+      </button>
+      <button type="button" onclick="filterHistoryTab('approved', this);"
+              class="filter-tab-btn px-3.5 py-1.5 rounded-lg text-label-md font-label-md text-on-surface-variant hover:bg-surface-container transition-all">
+        Approved (<%= lv_cnt_approved %>)
+      </button>
+      <button type="button" onclick="filterHistoryTab('rejected', this);"
+              class="filter-tab-btn px-3.5 py-1.5 rounded-lg text-label-md font-label-md text-on-surface-variant hover:bg-surface-container transition-all">
+        Rejected (<%= lv_cnt_rejected %>)
+      </button>
+    </div>
+
+    <!-- TABEL RIWAYAT DRAFT & PENGAJUAN -->
+    <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-sm overflow-hidden">
+      <div class="overflow-x-auto">
+        <table id="historyTable" class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-surface-container-low/70 border-b border-outline-variant text-label-md font-label-md text-on-surface-variant uppercase tracking-wider">
+              <th class="py-3 px-space-md w-12 text-center">No</th>
+              <th class="py-3 px-space-md">Request ID &amp; User</th>
+              <th class="py-3 px-space-md">Nama Organisasi</th>
+              <th class="py-3 px-space-md">Waktu Pengajuan</th>
+              <th class="py-3 px-space-md">SAP BP Number</th>
+              <th class="py-3 px-space-md">Catatan / Alasan</th>
+              <th class="py-3 px-space-md text-center">Status</th>
+              <th class="py-3 px-space-md text-center w-28">Aksi</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-outline-variant/60 text-body-md font-body-md text-on-surface">
+            <% IF gt_my_requests IS INITIAL. %>
+              <tr>
+                <td colspan="8" class="text-center py-12 text-outline">
+                  <div class="flex flex-col items-center justify-center space-y-2">
+                    <span class="material-symbols-outlined text-[40px] text-outline/50">folder_open</span>
+                    <span class="font-medium">Belum ada riwayat permohonan Business Partner yang diajukan.</span>
+                    <span class="text-[11px]">Silakan isi formulir di atas dan klik tombol "Submit Permohonan".</span>
+                  </div>
+                </td>
+              </tr>
+            <% ELSE. %>
+              <%
+                DATA: ls_hist_row TYPE ty_bp_request,
+                      lv_h_badge  TYPE string,
+                      lv_h_cat    TYPE string,
+                      lv_h_num    TYPE i VALUE 0.
+              %>
+              <% LOOP AT gt_my_requests INTO ls_hist_row. %>
+                <%
+                  lv_h_num = lv_h_num + 1.
+                  IF ls_hist_row-status = 'CHECKED'
+                     OR ls_hist_row-status = 'READY_FOR_FINAL'
+                     OR ls_hist_row-status = 'REVIEWED'.
+                    lv_h_cat = 'checked'.
+                    lv_h_badge = 'bg-blue-50 text-blue-700 border-blue-200'.
+                  ELSEIF ls_hist_row-status = 'APPROVED'
+                      OR ls_hist_row-status = 'POSTED'.
+                    lv_h_cat = 'approved'.
+                    lv_h_badge = 'bg-emerald-50 text-primary border-primary/20'.
+                  ELSEIF ls_hist_row-status = 'REJECTED'
+                      OR ls_hist_row-status = 'RETURNED'
+                      OR ls_hist_row-status = 'POST_ERROR'.
+                    lv_h_cat = 'rejected'.
+                    lv_h_badge = 'bg-red-50 text-error border-red-200'.
+                  ELSE.
+                    lv_h_cat = 'pending'.
+                    lv_h_badge = 'bg-amber-50 text-amber-700 border-amber-200'.
+                  ENDIF.
+                %>
+                <tr class="history-row hover:bg-surface-container-low/40 transition-colors"
+                    data-category="<%= lv_h_cat %>"
+                    data-req-id="<%= ls_hist_row-req_id %>">
+                  <!-- No -->
+                  <td class="py-3.5 px-space-md text-center text-label-md font-code-sm text-outline">
+                    <%= lv_h_num %>
+                  </td>
+
+                  <!-- Request ID & User -->
+                  <td class="py-3.5 px-space-md">
+                    <div class="flex flex-col">
+                      <span class="font-bold text-primary font-code-sm hover:underline cursor-pointer"
+                            onclick="loadRequest('<%= ls_hist_row-req_id %>');">
+                        <%= ls_hist_row-req_id %>
+                      </span>
+                      <span class="text-[11px] text-on-surface-variant font-body-sm">Oleh: <%= ls_hist_row-created_by %></span>
+                    </div>
+                  </td>
+
+                  <!-- Nama Organisasi -->
+                  <td class="py-3.5 px-space-md">
+                    <div class="flex flex-col">
+                      <span class="font-semibold text-on-surface"><%= ls_hist_row-name1 %></span>
+                      <% IF ls_hist_row-search_term IS NOT INITIAL. %>
+                        <span class="text-[11px] font-code-sm text-outline">Term: <%= ls_hist_row-search_term %></span>
+                      <% ENDIF. %>
+                    </div>
+                  </td>
+
+                  <!-- Timestamp -->
+                  <td class="py-3.5 px-space-md font-code-sm text-xs text-on-surface-variant">
+                    <%= ls_hist_row-created_at %>
+                  </td>
+
+                  <!-- SAP BP Number -->
+                  <td class="py-3.5 px-space-md">
+                    <% IF ls_hist_row-bp_number IS NOT INITIAL. %>
+                      <span class="px-2.5 py-1 rounded-md text-xs font-bold font-code-sm bg-secondary-container text-primary border border-primary/20 flex items-center gap-1 w-fit">
+                        <span class="material-symbols-outlined text-[14px]">verified</span>
+                        <%= ls_hist_row-bp_number %>
+                      </span>
+                    <% ELSE. %>
+                      <span class="text-xs text-outline font-code-sm italic">Belum Ada</span>
+                    <% ENDIF. %>
+                  </td>
+
+                  <!-- Catatan / Alasan -->
+                  <td class="py-3.5 px-space-md text-xs text-on-surface-variant max-w-[200px] truncate" title="<%= ls_hist_row-rejection_reason %>">
+                    <%= COND string(
+                          WHEN ls_hist_row-rejection_reason IS NOT INITIAL
+                          THEN ls_hist_row-rejection_reason
+                          ELSE '-' ) %>
+                  </td>
+
+                  <!-- Status Badge -->
+                  <td class="py-3.5 px-space-md text-center">
+                    <span class="px-2.5 py-1 rounded-full text-xs font-semibold border <%= lv_h_badge %> inline-flex items-center gap-1">
+                      <%= ls_hist_row-status %>
+                    </span>
+                  </td>
+
+                  <!-- Aksi -->
+                  <td class="py-3.5 px-space-md text-center">
+                    <div class="flex items-center justify-center gap-1">
+                      <button type="button" title="Muat Data ke Form"
+                              onclick="loadRequest('<%= ls_hist_row-req_id %>');"
+                              class="p-1.5 text-on-surface-variant hover:text-primary hover:bg-surface-container rounded-lg transition-colors">
+                        <span class="material-symbols-outlined text-[18px]">edit_square</span>
+                      </button>
+                      <button type="button" title="Export Baris ke Excel"
+                              onclick="exportSingleRow('<%= ls_hist_row-req_id %>', '<%= ls_hist_row-name1 %>', '<%= ls_hist_row-status %>');"
+                              class="p-1.5 text-on-surface-variant hover:text-primary hover:bg-surface-container rounded-lg transition-colors">
+                        <span class="material-symbols-outlined text-[18px]">download</span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              <% ENDLOOP. %>
+            <% ENDIF. %>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pesan jika hasil filter kosong -->
+      <div id="noRowsFiltered" style="display:none;" class="text-center py-8 text-outline text-body-sm">
+        Tidak ada data permohonan dalam kategori ini.
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- JAVASCRIPT LOGIC & STATE MANAGEMENT -->
+<script>
+  // -------------------------------------------------------------------
+  // 1. DATA MASTER BUFFER & CASCADING REGION
+  // -------------------------------------------------------------------
+  var regionsData = [
+    <% DATA: ls_reg TYPE ty_dropdown. %>
+    <% LOOP AT gt_regions INTO ls_reg. %>
+      { land1: "<%= ls_reg-land1 %>",
+        bland: "<%= ls_reg-bland %>",
+        bezei: "<%= ls_reg-bezei %>" },
+    <% ENDLOOP. %>
+  ];
+
+  var currentSelectedRegion = "<%= wa_req-region %>";
+
+  function updateRegionDropdown(selectedCountry) {
+    var regSelect = document.getElementById('regionSelect');
+    if (!regSelect) return;
+
+    regSelect.innerHTML = '';
+
+    var filtered = regionsData.filter(function(r) {
+      return r.land1 === selectedCountry;
+    });
+
+    if (filtered.length === 0) {
+      var optEmpty = document.createElement('option');
+      optEmpty.value = '';
+      optEmpty.text = '-- Tidak Ada Pilihan Wilayah --';
+      regSelect.appendChild(optEmpty);
+      return;
+    }
+
+    var optDefault = document.createElement('option');
+    optDefault.value = '';
+    optDefault.text = '-- Pilih Wilayah / Provinsi --';
+    regSelect.appendChild(optDefault);
+
+    filtered.forEach(function(r) {
+      var opt = document.createElement('option');
+      opt.value = r.bland;
+      opt.text = r.bland + ' - ' + r.bezei;
+      if (r.bland === currentSelectedRegion || (selectedCountry === 'ID' && !currentSelectedRegion && r.bland === '08')) {
+        opt.selected = true;
+      }
+      regSelect.appendChild(opt);
+    });
+  }
+
+  function onCountryChange() {
+    var countryEl = document.getElementById('countrySelect');
+    var countryVal = countryEl ? countryEl.value : 'ID';
+    currentSelectedRegion = '';
+    updateRegionDropdown(countryVal);
+  }
+
+  // -------------------------------------------------------------------
+  // 2. SAP TAB STRIP NAVIGATION (PERSIS SCREENSHOT SAP BP)
+  // -------------------------------------------------------------------
+  function switchBpTab(tabId, btnElement) {
+    var panels = document.querySelectorAll('.bp-tab-panel');
+    panels.forEach(function(p) { p.classList.add('hidden'); });
+
+    var targetPanel = document.getElementById('tabContent_' + tabId);
+    if (targetPanel) {
+      targetPanel.classList.remove('hidden');
+    }
+
+    var tabButtons = document.querySelectorAll('.bp-tab-btn');
+    tabButtons.forEach(function(btn) {
+      btn.classList.remove(
+        'active', 'bg-primary', 'text-on-primary',
+        'shadow-sm', 'border-primary', 'font-bold'
+      );
+      btn.classList.add('text-on-surface-variant', 'border-transparent');
+    });
+
+    if (btnElement) {
+      btnElement.classList.add(
+        'active', 'bg-primary', 'text-on-primary',
+        'shadow-sm', 'border-primary', 'font-bold'
+      );
+      btnElement.classList.remove('text-on-surface-variant', 'border-transparent');
+    }
+  }
+
+  // -------------------------------------------------------------------
+  // 3. DYNAMIC TABLES STATE MANAGEMENT (VANILLA JAVASCRIPT)
+  // -------------------------------------------------------------------
+  var stateBankDetails = [];
+  var statePaymentCards = [];
+  var stateIdNumbers = [];
+  var stateAdditionalTexts = [];
+
+  function formatRowId(num) {
+    var s = '0000' + num;
+    return s.substr(s.length - 4);
+  }
+
+  // Input event delegates using data-attributes (completely safe from quote-escaping issues)
+  function onBankInput(el) {
+    var idx = parseInt(el.getAttribute('data-idx'), 10);
+    var field = el.getAttribute('data-field');
+    updateBankField(idx, field, el.value);
+  }
+
+  function onCardInput(el) {
+    var idx = parseInt(el.getAttribute('data-idx'), 10);
+    var field = el.getAttribute('data-field');
+    updateCardField(idx, field, el.value);
+  }
+
+  function onIdInput(el) {
+    var idx = parseInt(el.getAttribute('data-idx'), 10);
+    var field = el.getAttribute('data-field');
+    updateIdField(idx, field, el.value);
+  }
+
+  function onTextInput(el) {
+    var idx = parseInt(el.getAttribute('data-idx'), 10);
+    var field = el.getAttribute('data-field');
+    updateTextField(idx, field, el.value);
+  }
+
+  // --- 3A. BANK DETAILS DYNAMIC TABLE (PERSIS SCREENSHOT SAP BP) ---
+  function renderBankTable() {
+    var tbody = document.getElementById('bankTableBody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    if (stateBankDetails.length === 0) {
+      var trEmpty = document.createElement('tr');
+      trEmpty.innerHTML = '<td colspan="9" '
+        + 'class="py-6 text-center text-outline text-xs italic">'
+        + 'Belum ada data rekening bank. Klik "+ Add Bank" untuk menambahkan.'
+        + '</td>';
+      tbody.appendChild(trEmpty);
+    } else {
+      stateBankDetails.forEach(function(item, idx) {
+        var tr = document.createElement('tr');
+        tr.className = 'hover:bg-amber-50/40 transition-colors border-b border-outline-variant/40';
+
+        // Column 1: Row Selector indicator (SAP table control)
+        var selCell = '<td class="py-1.5 px-2 text-center bg-[#f0f4f7] '
+          + 'border-r border-outline-variant/60 font-code-sm text-[10px]">'
+          + (idx + 1) + '</td>';
+
+        // Column 2: ID
+        var idCell = '<td class="py-1.5 px-3 font-code-sm font-bold '
+          + 'text-primary border-r border-outline-variant/40">'
+          + item.id + '</td>';
+
+        // Column 3: Ctry (Country)
+        var ctryCell = '<td class="sap-tbl-cell">'
+          + '<input type="text" maxlength="3" '
+          + 'data-idx="' + idx + '" data-field="ctry" '
+          + 'value="' + (item.ctry || 'ID') + '" '
+          + 'onchange="onBankInput(this)" '
+          + 'class="sap-tbl-inp uppercase">'
+          + '</td>';
+
+        // Column 4: Bank Key with SAP Find Bank (Search Help F4)
+        var bankNameDisplay = '';
+        if (item.bank_name) {
+          bankNameDisplay = '<span class="block text-[10px] text-primary font-medium truncate max-w-[170px] pt-0.5" title="'
+            + item.bank_name + '">' + item.bank_name + '</span>';
+        }
+        var keyCell = '<td class="sap-tbl-cell">'
+          + '<div class="flex items-center gap-1">'
+          + '<input type="text" maxlength="15" '
+          + 'data-idx="' + idx + '" data-field="bank_key" '
+          + 'value="' + (item.bank_key || '') + '" '
+          + 'placeholder="Sandi BNKA" '
+          + 'onchange="onBankInput(this)" '
+          + 'class="sap-tbl-inp uppercase">'
+          + '<button type="button" onclick="openFindBankModal(' + idx + ')" '
+          + 'title="Find bank (Standar SAP Search Help)" '
+          + 'class="px-1.5 py-1 bg-surface-container-low hover:bg-surface-container-high border border-outline-variant/70 rounded text-primary flex items-center shadow-xs transition-colors shrink-0">'
+          + '<span class="material-symbols-outlined text-[16px]">search</span>'
+          + '</button>'
+          + '</div>'
+          + bankNameDisplay
+          + '</td>';
+
+        // Column 5: Bank acct
+        var acctCell = '<td class="sap-tbl-cell">'
+          + '<input type="text" maxlength="18" '
+          + 'data-idx="' + idx + '" data-field="bank_acct" '
+          + 'value="' + (item.bank_acct || '') + '" '
+          + 'placeholder="Nomor Rekening" '
+          + 'onchange="onBankInput(this)" '
+          + 'class="sap-tbl-inp">'
+          + '</td>';
+
+        // Column 6: Control Key
+        var ctrlCell = '<td class="sap-tbl-cell">'
+          + '<input type="text" maxlength="2" '
+          + 'data-idx="' + idx + '" data-field="ctrl_key" '
+          + 'value="' + (item.ctrl_key || '') + '" '
+          + 'onchange="onBankInput(this)" '
+          + 'class="sap-tbl-inp text-center">'
+          + '</td>';
+
+        // Column 7: IBAN input
+        var ibanCell = '<td class="sap-tbl-cell">'
+          + '<input type="text" maxlength="34" '
+          + 'data-idx="' + idx + '" data-field="iban" '
+          + 'value="' + (item.iban || '') + '" '
+          + 'placeholder="ID..." '
+          + 'onchange="onBankInput(this)" '
+          + 'class="sap-tbl-inp">'
+          + '</td>';
+
+        // Column 8: IBAN folder action icon
+        var ibanBtnCell = '<td class="py-1.5 px-1 text-center '
+          + 'border-r border-outline-variant/40">'
+          + '<button type="button" '
+          + 'onclick="quickGenerateIban(' + idx + ')" '
+          + 'title="Detail / Generate IBAN" '
+          + 'class="p-1 hover:bg-amber-100 rounded text-amber-700">'
+          + '<span class="material-symbols-outlined text-[18px]">'
+          + 'drive_file_move</span></button>'
+          + '</td>';
+
+        // Column 9: Delete row action
+        var actCell = '<td class="py-1.5 px-1 text-center">'
+          + '<button type="button" '
+          + 'onclick="removeBankRow(' + idx + ')" '
+          + 'title="Hapus Baris Bank" '
+          + 'class="p-1 text-on-surface-variant hover:text-error '
+          + 'hover:bg-error-container/20 rounded">'
+          + '<span class="material-symbols-outlined text-[18px]">'
+          + 'delete</span></button>'
+          + '</td>';
+
+        tr.innerHTML = selCell + idCell + ctryCell + keyCell
+          + acctCell + ctrlCell + ibanCell + ibanBtnCell + actCell;
+        tbody.appendChild(tr);
+      });
+    }
+
+    var total = stateBankDetails.length;
+    var countStr = 'Entry ' + (total > 0 ? '1' : '0') + ' of ' + total;
+    var countTopEl = document.getElementById('bankEntryCountTop');
+    if (countTopEl) countTopEl.innerText = countStr;
+    var countBtmEl = document.getElementById('bankEntryCountText');
+    if (countBtmEl) countBtmEl.innerText = countStr;
+
+    var badge = document.getElementById('badgeBankCount');
+    if (badge) badge.innerText = total;
+  }
+
+  function addBankRow() {
+    var nextNum = stateBankDetails.length + 1;
+    stateBankDetails.push({
+      id: formatRowId(nextNum),
+      ctry: 'ID',
+      bank_key: '',
+      bank_acct: '',
+      ctrl_key: '',
+      iban: '',
+      bank_name: '',
+      koinh: ''
+    });
+    renderBankTable();
+  }
+
+  function removeBankRow(idx) {
+    stateBankDetails.splice(idx, 1);
+    for (var i = 0; i < stateBankDetails.length; i++) {
+      stateBankDetails[i].id = formatRowId(i + 1);
+    }
+    renderBankTable();
+  }
+
+  function updateBankField(idx, field, value) {
+    if (stateBankDetails[idx]) {
+      stateBankDetails[idx][field] = value.trim();
+      if (idx === 0) {
+        if (field === 'ctry') {
+          var hbBanks = document.getElementById('hidden_banks');
+          if (hbBanks) hbBanks.value = value.trim().toUpperCase();
+        } else if (field === 'bank_key') {
+          var hbBankl = document.getElementById('hidden_bankl');
+          if (hbBankl) hbBankl.value = value.trim().toUpperCase();
+        } else if (field === 'bank_acct') {
+          var hbBankn = document.getElementById('hidden_bankn');
+          if (hbBankn) hbBankn.value = value.trim();
+        }
+      }
+    }
+  }
+
+  function quickGenerateIban(idx) {
+    var b = stateBankDetails[idx];
+    if (!b) return;
+    if (!b.iban) {
+      var ctry = b.ctry || 'ID';
+      var k = (b.bank_key || '014').replace(/\D/g, '');
+      var a = (b.bank_acct || '1234567890').replace(/\D/g, '');
+      b.iban = ctry + '00' + k + a;
+      renderBankTable();
+    }
+    openBankDataModal(idx);
+  }
+
+  // --- 3A-1. MINIMALIST "FIND BANK" SAP BNKA VALUE HELP ---
+  var activeBankRowIndex = 0;
+  var selectedBankRecord = null;
+  var foundBankList = [];
+
+  function openFindBankModal(idx) {
+    if (idx === undefined || isNaN(idx)) idx = 0;
+    activeBankRowIndex = idx;
+    selectedBankRecord = null;
+
+    var curRow = stateBankDetails[activeBankRowIndex];
+    var defCtry = (curRow && curRow.ctry) ? curRow.ctry : 'ID';
+    var defKey  = (curRow && curRow.bank_key) ? curRow.bank_key : '';
+    var defName = (curRow && curRow.bank_name) ? curRow.bank_name : '';
+
+    var elCtry = document.getElementById('fb_banks');
+    var elKey  = document.getElementById('fb_bankk');
+    var elName = document.getElementById('fb_banka');
+
+    if (elCtry) elCtry.value = defCtry || 'ID';
+    if (elKey)  elKey.value  = defKey;
+    if (elName) elName.value = defName;
+
+    updateSelectedBankDisplay(null);
+
+    var modal = document.getElementById('findBankModal');
+    if (modal) modal.classList.remove('hidden');
+
+    // Auto search on modal open
+    executeBankSearch();
+
+    // Auto focus ke field pencarian
+    setTimeout(function() {
+      if (elName && !defName) {
+        elName.focus();
+      } else if (elKey && !defKey) {
+        elKey.focus();
+      }
+    }, 100);
+  }
+
+  function closeFindBankModal() {
+    var modal = document.getElementById('findBankModal');
+    if (modal) modal.classList.add('hidden');
+  }
+
+  function clearBankSearchFields() {
+    var elCtry = document.getElementById('fb_banks');
+    var elKey  = document.getElementById('fb_bankk');
+    var elName = document.getElementById('fb_banka');
+
+    if (elCtry) elCtry.value = 'ID';
+    if (elKey)  elKey.value  = '';
+    if (elName) elName.value = '';
+
+    updateSelectedBankDisplay(null);
+    executeBankSearch();
+  }
+
+  function updateSelectedBankDisplay(b) {
+    selectedBankRecord = b;
+    var txtEl = document.getElementById('fbSelectedBankText');
+    var btnConfirm = document.getElementById('btnFbSelectConfirm');
+    if (!b) {
+      if (txtEl) txtEl.innerText = 'Belum ada bank yang dipilih';
+      if (btnConfirm) btnConfirm.disabled = true;
+    } else {
+      if (txtEl) {
+        var ctryText = b.banks ? ('[' + b.banks + '] ') : '';
+        var cityText = b.ort01 ? (' (' + b.ort01 + ')') : '';
+        txtEl.innerText = ctryText + (b.bankl || '') + ' - ' + (b.banka || '') + cityText;
+      }
+      if (btnConfirm) btnConfirm.disabled = false;
+    }
+  }
+
+  function executeBankSearch() {
+    var elCtry = document.getElementById('fb_banks');
+    var elKey  = document.getElementById('fb_bankk');
+    var elName = document.getElementById('fb_banka');
+
+    var banksVal = elCtry ? elCtry.value.trim().toUpperCase() : 'ID';
+    var bankkVal = elKey ? elKey.value.trim().toUpperCase() : '';
+    var bankaVal = elName ? elName.value.trim() : '';
+
+    var loadingEl = document.getElementById('fbSearchLoading');
+    if (loadingEl) loadingEl.classList.remove('hidden');
+
+    var tbody = document.getElementById('fbTableBody');
+    if (tbody) {
+      tbody.innerHTML = '<tr><td colspan="5" class="py-8 text-center text-outline italic text-xs">'
+        + '<span class="inline-block w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin mr-2 align-middle"></span>'
+        + 'Sedang memuat data dari tabel BNKA SAP...</td></tr>';
+    }
+
+    var bodyParams = new URLSearchParams();
+    bodyParams.append('action', 'SEARCH_BANKS');
+    bodyParams.append('banks', banksVal || 'ID');
+    bodyParams.append('bankk', bankkVal);
+    bodyParams.append('banka', bankaVal);
+    bodyParams.append('max_rows', '500');
+
+    fetch(window.location.pathname, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: bodyParams.toString()
+    })
+    .then(function(res) {
+      return res.json();
+    })
+    .then(function(data) {
+      if (loadingEl) loadingEl.classList.add('hidden');
+      if (data && data.status === 'SUCCESS' && Array.isArray(data.data)) {
+        foundBankList = data.data;
+        renderBankSearchResults(foundBankList);
+      } else {
+        foundBankList = [];
+        renderBankSearchResults([]);
+      }
+    })
+    .catch(function(err) {
+      console.warn('[Find Bank Error]', err);
+      if (loadingEl) loadingEl.classList.add('hidden');
+      foundBankList = [];
+      if (tbody) {
+        tbody.innerHTML = '<tr><td colspan="5" class="py-6 text-center text-error text-xs">'
+          + 'Gagal memuat data dari server SAP. Silakan periksa koneksi backend atau coba lagi.'
+          + '</td></tr>';
+      }
+    });
+  }
+
+  function renderBankSearchResults(list) {
+    var tbody = document.getElementById('fbTableBody');
+    var badge = document.getElementById('fbHitBadge');
+    if (badge) badge.innerText = list.length + ' bank';
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    if (!list || list.length === 0) {
+      var trNone = document.createElement('tr');
+      trNone.innerHTML = '<td colspan="5" class="py-8 text-center text-outline italic text-xs">'
+        + 'Tidak ada data bank yang cocok dengan kriteria pencarian.'
+        + '</td>';
+      tbody.appendChild(trNone);
+      updateSelectedBankDisplay(null);
+      return;
+    }
+
+    list.forEach(function(b, idx) {
+      var tr = document.createElement('tr');
+      tr.id = 'fb_row_' + idx;
+      tr.className = 'cursor-pointer hover:bg-primary-container/15 transition-colors border-b border-outline-variant/30 text-xs';
+
+      tr.onclick = function() {
+        highlightBankRow(idx);
+      };
+      tr.ondblclick = function() {
+        highlightBankRow(idx);
+        confirmBankSelection(idx);
+      };
+
+      var tdSel = '<td class="py-2.5 px-3 text-center border-r border-outline-variant/30">'
+        + '<input type="radio" name="fb_radio" id="fb_radio_' + idx + '" onclick="highlightBankRow(' + idx + '); event.stopPropagation();" class="text-primary focus:ring-primary cursor-pointer">'
+        + '</td>';
+      var tdKey = '<td class="py-2.5 px-3 uppercase border-r border-outline-variant/30 font-bold text-primary font-code-sm">'
+        + (b.bankl || '-') + '</td>';
+      var tdName = '<td class="py-2.5 px-3 border-r border-outline-variant/30 font-semibold text-on-surface">'
+        + (b.banka || '-') + '</td>';
+      var tdCity = '<td class="py-2.5 px-3 border-r border-outline-variant/30 text-on-surface-variant">'
+        + (b.ort01 || '-') + '</td>';
+      var tdSwift = '<td class="py-2.5 px-3 uppercase font-code-sm text-outline">'
+        + (b.swift || '-') + '</td>';
+
+      tr.innerHTML = tdSel + tdKey + tdName + tdCity + tdSwift;
+      tbody.appendChild(tr);
+    });
+
+    if (list.length > 0) {
+      highlightBankRow(0);
+    }
+  }
+
+  function highlightBankRow(idx) {
+    if (!foundBankList[idx]) return;
+    updateSelectedBankDisplay(foundBankList[idx]);
+
+    var allRows = document.querySelectorAll('#fbTableBody tr');
+    allRows.forEach(function(r) {
+      r.classList.remove('bg-primary/10', 'font-semibold');
+    });
+
+    var row = document.getElementById('fb_row_' + idx);
+    if (row) {
+      row.classList.add('bg-primary/10', 'font-semibold');
+    }
+    var radio = document.getElementById('fb_radio_' + idx);
+    if (radio) {
+      radio.checked = true;
+    }
+  }
+
+  function confirmBankSelection(idx) {
+    var b = (idx !== undefined && foundBankList[idx]) ? foundBankList[idx] : selectedBankRecord;
+    if (!b) {
+      if (foundBankList.length > 0) {
+        b = foundBankList[0];
+      } else {
+        alert('Silakan pilih salah satu baris bank dari tabel terlebih dahulu.');
+        return;
+      }
+    }
+
+    if (!stateBankDetails[activeBankRowIndex]) {
+      addBankRow();
+      activeBankRowIndex = stateBankDetails.length - 1;
+    }
+
+    var targetRow = stateBankDetails[activeBankRowIndex];
+    targetRow.ctry = b.banks || 'ID';
+    targetRow.bank_key = b.bankl || '';
+    targetRow.bank_name = b.banka || '';
+
+    // Sinkronkan ke primary hidden inputs jika baris ke-0
+    if (activeBankRowIndex === 0) {
+      var hbBanks = document.getElementById('hidden_banks');
+      var hbBankl = document.getElementById('hidden_bankl');
+      var hbName  = document.getElementById('hidden_bank_name');
+      if (hbBanks) hbBanks.value = targetRow.ctry;
+      if (hbBankl) hbBankl.value = targetRow.bank_key;
+      if (hbName)  hbName.value  = targetRow.bank_name;
+    }
+
+    // Sinkronkan juga ke form edit modalBankData jika sedang terbuka
+    var mbKey  = document.getElementById('modalBankKey');
+    var mbName = document.getElementById('modalBankName');
+    var mbCtry = document.getElementById('modalBankCtry');
+    if (mbKey)  mbKey.value  = targetRow.bank_key;
+    if (mbName) mbName.value = targetRow.bank_name;
+    if (mbCtry) mbCtry.value = targetRow.ctry;
+
+    renderBankTable();
+    closeFindBankModal();
+  }
+
+  // --- 3B. BANK DATA DETAILS MODAL (BNKA SAP) ---
+  function openBankDataModal(idx) {
+    if (idx === undefined) idx = 0;
+    var b = stateBankDetails[idx];
+    if (!b) {
+      addBankRow();
+      idx = 0;
+      b = stateBankDetails[0];
+    }
+
+    document.getElementById('modalBankIdx').value = idx;
+    document.getElementById('modalBankCtry').value = b.ctry || 'ID';
+    document.getElementById('modalBankKey').value = b.bank_key || '';
+    document.getElementById('modalBankAcct').value = b.bank_acct || '';
+    var defHolder = '<%= wa_req-koinh %>' || '<%= wa_req-name1 %>';
+    document.getElementById('modalBankHolder').value = b.koinh || defHolder;
+    document.getElementById('modalBankName').value = b.bank_name || '<%= wa_req-bank_name %>';
+    document.getElementById('modalBankCtrl').value = b.ctrl_key || '';
+    document.getElementById('modalBankIban').value = b.iban || '';
+
+    var modal = document.getElementById('bankDataModal');
+    if (modal) modal.classList.remove('hidden');
+  }
+
+  function closeBankDataModal() {
+    var modal = document.getElementById('bankDataModal');
+    if (modal) modal.classList.add('hidden');
+  }
+
+  function saveBankDataModal() {
+    var idx = parseInt(document.getElementById('modalBankIdx').value, 10);
+    if (!stateBankDetails[idx]) return;
+
+    var elCtry = document.getElementById('modalBankCtry');
+    var elKey  = document.getElementById('modalBankKey');
+    var elAcct = document.getElementById('modalBankAcct');
+    var elCtrl = document.getElementById('modalBankCtrl');
+    var elIban = document.getElementById('modalBankIban');
+    var elHold = document.getElementById('modalBankHolder');
+    var elNm   = document.getElementById('modalBankName');
+
+    stateBankDetails[idx].ctry = elCtry ? elCtry.value.trim().toUpperCase() : 'ID';
+    stateBankDetails[idx].bank_key = elKey ? elKey.value.trim().toUpperCase() : '';
+    stateBankDetails[idx].bank_acct = elAcct ? elAcct.value.trim() : '';
+    stateBankDetails[idx].ctrl_key = elCtrl ? elCtrl.value.trim() : '';
+    stateBankDetails[idx].iban = elIban ? elIban.value.trim() : '';
+    stateBankDetails[idx].koinh = elHold ? elHold.value.trim() : '';
+    stateBankDetails[idx].bank_name = elNm ? elNm.value.trim() : '';
+
+    // Sync primary bank ke form hidden inputs
+    if (idx === 0) {
+      var hbBanks = document.getElementById('hidden_banks');
+      var hbBankl = document.getElementById('hidden_bankl');
+      var hbBankn = document.getElementById('hidden_bankn');
+      var hbKoinh = document.getElementById('hidden_koinh');
+      var hbName  = document.getElementById('hidden_bank_name');
+
+      if (hbBanks) hbBanks.value = stateBankDetails[0].ctry;
+      if (hbBankl) hbBankl.value = stateBankDetails[0].bank_key;
+      if (hbBankn) hbBankn.value = stateBankDetails[0].bank_acct;
+      if (hbKoinh) hbKoinh.value = stateBankDetails[0].koinh;
+      if (hbName)  hbName.value  = stateBankDetails[0].bank_name;
+    }
+
+    renderBankTable();
+    closeBankDataModal();
+  }
+
+  // --- 3C. PAYMENT CARDS DYNAMIC TABLE (PERSIS SCREENSHOT SAP BP) ---
+  function renderPaymentCardsTable() {
+    var tbody = document.getElementById('paymentCardsBody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    if (statePaymentCards.length === 0) {
+      var trEmpty = document.createElement('tr');
+      trEmpty.innerHTML = '<td colspan="8" '
+        + 'class="py-6 text-center text-outline text-xs italic">'
+        + 'Belum ada kartu pembayaran terdaftar. Klik "+ Add Card" untuk menambahkan.'
+        + '</td>';
+      tbody.appendChild(trEmpty);
+    } else {
+      var typeDescMap = {
+        'VISA': 'Visa Credit / Debit',
+        'MAST': 'MasterCard Corporate',
+        'AMEX': 'American Express',
+        'JCB':  'JCB Card'
+      };
+
+      statePaymentCards.forEach(function(card, idx) {
+        var tr = document.createElement('tr');
+        tr.className = 'hover:bg-amber-50/40 transition-colors border-b border-outline-variant/40';
+
+        // Selection
+        var selCell = '<td class="py-1.5 px-2 text-center bg-[#f0f4f7] '
+          + 'border-r border-outline-variant/60 font-code-sm text-[10px]">'
+          + (idx + 1) + '</td>';
+
+        // ID
+        var idCell = '<td class="py-1.5 px-3 font-code-sm font-bold '
+          + 'text-primary border-r border-outline-variant/40">'
+          + card.id + '</td>';
+
+        // Type dropdown
+        var typeOpt = ['VISA', 'MAST', 'AMEX', 'JCB'];
+        var typeSelect = '<select data-idx="' + idx + '" '
+          + 'data-field="card_type" '
+          + 'onchange="onCardTypeChange(' + idx + ', this.value)" '
+          + 'class="sap-tbl-inp text-xs">';
+        typeOpt.forEach(function(t) {
+          var isSel = (card.card_type === t ? ' selected' : '');
+          typeSelect += '<option value="' + t + '"' + isSel + '>'
+            + t + '</option>';
+        });
+        typeSelect += '</select>';
+        var typeCell = '<td class="sap-tbl-cell">' + typeSelect + '</td>';
+
+        // Description (Type Description)
+        var autoDesc = card.type_desc
+          || typeDescMap[card.card_type]
+          || card.card_type;
+        var typeDescCell = '<td class="sap-tbl-cell">'
+          + '<input type="text" maxlength="30" '
+          + 'data-idx="' + idx + '" data-field="type_desc" '
+          + 'value="' + autoDesc + '" '
+          + 'onchange="onCardInput(this)" '
+          + 'class="sap-tbl-inp">'
+          + '</td>';
+
+        // Card Number
+        var numCell = '<td class="sap-tbl-cell">'
+          + '<input type="text" maxlength="25" '
+          + 'data-idx="' + idx + '" data-field="card_num" '
+          + 'value="' + (card.card_num || '') + '" '
+          + 'placeholder="Nomor Kartu" '
+          + 'onchange="onCardInput(this)" '
+          + 'class="sap-tbl-inp font-code-sm">'
+          + '</td>';
+
+        // Standard Radio Button
+        var stdCell = '<td class="sap-tbl-cell text-center">'
+          + '<input type="radio" name="stdCardRadio" '
+          + (card.is_std ? 'checked ' : '')
+          + 'onchange="setStandardCard(' + idx + ')" '
+          + 'class="w-4 h-4 text-primary border-outline-variant">'
+          + '</td>';
+
+        // Description (Cardholder / Note)
+        var descCell = '<td class="sap-tbl-cell">'
+          + '<input type="text" maxlength="40" '
+          + 'data-idx="' + idx + '" data-field="desc" '
+          + 'value="' + (card.desc || '') + '" '
+          + 'placeholder="Nama Pemilik / Catatan" '
+          + 'onchange="onCardInput(this)" '
+          + 'class="sap-tbl-inp">'
+          + '</td>';
+
+        // Delete action
+        var actCell = '<td class="py-1.5 px-1 text-center">'
+          + '<button type="button" '
+          + 'onclick="removePaymentCardRow(' + idx + ')" '
+          + 'title="Hapus Kartu" '
+          + 'class="p-1 text-on-surface-variant hover:text-error '
+          + 'hover:bg-error-container/20 rounded">'
+          + '<span class="material-symbols-outlined text-[18px]">'
+          + 'delete</span></button>'
+          + '</td>';
+
+        tr.innerHTML = selCell + idCell + typeCell + typeDescCell
+          + numCell + stdCell + descCell + actCell;
+        tbody.appendChild(tr);
+      });
+    }
+
+    var total = statePaymentCards.length;
+    var countStr = 'Entry ' + (total > 0 ? '1' : '0') + ' of ' + total;
+    var countTopEl = document.getElementById('cardEntryCountTop');
+    if (countTopEl) countTopEl.innerText = countStr;
+    var countBtmEl = document.getElementById('cardEntryCountText');
+    if (countBtmEl) countBtmEl.innerText = countStr;
+  }
+
+  function onCardTypeChange(idx, val) {
+    if (statePaymentCards[idx]) {
+      statePaymentCards[idx].card_type = val;
+      var typeDescMap = {
+        'VISA': 'Visa Credit / Debit',
+        'MAST': 'MasterCard Corporate',
+        'AMEX': 'American Express',
+        'JCB':  'JCB Card'
+      };
+      statePaymentCards[idx].type_desc = typeDescMap[val] || val;
+      renderPaymentCardsTable();
+    }
+  }
+
+  function addPaymentCardRow() {
+    var nextNum = statePaymentCards.length + 1;
+    statePaymentCards.push({
+      id: formatRowId(nextNum),
+      card_type: 'VISA',
+      type_desc: 'Visa Credit / Debit',
+      card_num: '',
+      desc: '',
+      is_std: statePaymentCards.length === 0
+    });
+    renderPaymentCardsTable();
+  }
+
+  function removePaymentCardRow(idx) {
+    var wasStd = statePaymentCards[idx] ? statePaymentCards[idx].is_std : false;
+    statePaymentCards.splice(idx, 1);
+    for (var i = 0; i < statePaymentCards.length; i++) {
+      statePaymentCards[i].id = formatRowId(i + 1);
+    }
+    if (wasStd && statePaymentCards.length > 0) {
+      statePaymentCards[0].is_std = true;
+    }
+    renderPaymentCardsTable();
+  }
+
+  function setStandardCard(selectedIdx) {
+    for (var i = 0; i < statePaymentCards.length; i++) {
+      statePaymentCards[i].is_std = (i === selectedIdx);
+    }
+  }
+
+  function updateCardField(idx, field, value) {
+    if (statePaymentCards[idx]) {
+      statePaymentCards[idx][field] = value.trim();
+    }
+  }
+
+  // --- 3D. IDENTIFICATION NUMBERS DYNAMIC TABLE ---
+  function renderIdNumbersTable() {
+    var tbody = document.getElementById('idNumbersBody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    if (stateIdNumbers.length === 0) {
+      var trEmpty = document.createElement('tr');
+      trEmpty.innerHTML = '<td colspan="6" '
+        + 'class="py-6 text-center text-outline text-body-sm font-medium">'
+        + 'Belum ada dokumen identitas terdaftar. Klik "+ Add ID" untuk menambahkan.'
+        + '</td>';
+      tbody.appendChild(trEmpty);
+    } else {
+      var idTypes = [
+        { code: 'BUP001', label: 'BUP001 - Commercial Register (NIB/TDP)' },
+        { code: 'BUP002', label: 'BUP002 - Tax Register (SKT Pajak)' },
+        { code: 'BUP003', label: 'BUP003 - Operating License (SIUP/IUI)' },
+        { code: 'FS0001', label: 'FS0001 - Identity Card (KTP)' },
+        { code: 'FS0002', label: 'FS0002 - Passport Number' }
+      ];
+
+      stateIdNumbers.forEach(function(item, idx) {
+        var tr = document.createElement('tr');
+        tr.className = 'hover:bg-surface-container-low/50 transition-colors';
+
+        var selectType = '<select data-idx="' + idx + '" '
+          + 'data-field="id_type" '
+          + 'onchange="onIdInput(this)" '
+          + 'class="w-full h-9 px-2 text-xs bg-surface-container-lowest '
+          + 'border border-outline-variant/80 rounded focus:border-primary">';
+        idTypes.forEach(function(it) {
+          var isSel = (item.id_type === it.code ? ' selected' : '');
+          selectType += '<option value="' + it.code + '"' + isSel + '>'
+            + it.label + '</option>';
+        });
+        selectType += '</select>';
+
+        var typeCell = '<td class="py-2.5 px-3">' + selectType + '</td>';
+        var descCell = '<td class="py-2.5 px-3">'
+          + '<input type="text" maxlength="40" '
+          + 'data-idx="' + idx + '" data-field="desc" '
+          + 'value="' + (item.desc || '') + '" '
+          + 'placeholder="Keterangan" '
+          + 'onchange="onIdInput(this)" '
+          + 'class="w-full h-9 px-2 text-xs bg-surface-container-lowest '
+          + 'border border-outline-variant/80 rounded focus:border-primary">'
+          + '</td>';
+        var numCell = '<td class="py-2.5 px-3">'
+          + '<input type="text" maxlength="60" '
+          + 'data-idx="' + idx + '" data-field="id_num" '
+          + 'value="' + (item.id_num || '') + '" '
+          + 'placeholder="Nomor Dokumen" '
+          + 'onchange="onIdInput(this)" '
+          + 'class="w-full h-9 px-2 text-xs font-code-sm '
+          + 'bg-surface-container-lowest border border-outline-variant/80 '
+          + 'rounded focus:border-primary">'
+          + '</td>';
+        var instCell = '<td class="py-2.5 px-3">'
+          + '<input type="text" maxlength="40" '
+          + 'data-idx="' + idx + '" data-field="resp_inst" '
+          + 'value="' + (item.resp_inst || '') + '" '
+          + 'placeholder="Instansi Penerbit" '
+          + 'onchange="onIdInput(this)" '
+          + 'class="w-full h-9 px-2 text-xs bg-surface-container-lowest '
+          + 'border border-outline-variant/80 rounded focus:border-primary">'
+          + '</td>';
+        var dateCell = '<td class="py-2.5 px-3">'
+          + '<input type="date" '
+          + 'data-idx="' + idx + '" data-field="entry_date" '
+          + 'value="' + (item.entry_date || '') + '" '
+          + 'onchange="onIdInput(this)" '
+          + 'class="w-full h-9 px-2 text-xs bg-surface-container-lowest '
+          + 'border border-outline-variant/80 rounded focus:border-primary">'
+          + '</td>';
+        var actCell = '<td class="py-2.5 px-3 text-center">'
+          + '<button type="button" '
+          + 'onclick="removeIdNumberRow(' + idx + ')" '
+          + 'title="Hapus Dokumen" '
+          + 'class="p-1 text-on-surface-variant hover:text-error '
+          + 'hover:bg-error-container/20 rounded">'
+          + '<span class="material-symbols-outlined text-[18px]">'
+          + 'delete</span></button>'
+          + '</td>';
+
+        tr.innerHTML = typeCell + descCell + numCell + instCell + dateCell + actCell;
+        tbody.appendChild(tr);
+      });
+    }
+
+    var badge = document.getElementById('badgeIdCount');
+    if (badge) badge.innerText = stateIdNumbers.length;
+  }
+
+  function addIdNumberRow() {
+    stateIdNumbers.push({
+      id_type: 'BUP001',
+      desc: 'NIB / TDP',
+      id_num: '',
+      resp_inst: 'Kemenkumham / OSS',
+      entry_date: ''
+    });
+    renderIdNumbersTable();
+  }
+
+  function removeIdNumberRow(idx) {
+    stateIdNumbers.splice(idx, 1);
+    renderIdNumbersTable();
+  }
+
+  function updateIdField(idx, field, value) {
+    if (stateIdNumbers[idx]) {
+      stateIdNumbers[idx][field] = value.trim();
+    }
+  }
+
+  // --- 3E. ADDITIONAL TEXTS DYNAMIC LIST ---
+  function renderAdditionalTextsList() {
+    var container = document.getElementById('additionalTextsContainer');
+    if (!container) return;
+    container.innerHTML = '';
+
+    if (stateAdditionalTexts.length === 0) {
+      container.innerHTML = '<div class="p-6 text-center text-outline '
+        + 'text-body-sm font-medium border border-dashed border-outline-variant '
+        + 'rounded-xl">Belum ada catatan teks tambahan. '
+        + 'Klik "+ Add Text" untuk menambahkan.</div>';
+    } else {
+      var textTypes = [
+        { code: '0001', label: '0001 - General Note (Catatan Umum)' },
+        { code: '0002', label: '0002 - Purchasing Note (Instruksi Pembelian)' },
+        { code: '0003', label: '0003 - Accounting Note (Instruksi Akuntansi)' },
+        { code: '0004', label: '0004 - QC / Delivery Note (Instruksi Pengiriman)' }
+      ];
+
+      stateAdditionalTexts.forEach(function(item, idx) {
+        var card = document.createElement('div');
+        card.className = 'p-3.5 rounded-xl border border-outline-variant/80 bg-surface-container-low/40 space-y-2.5 shadow-sm';
+
+        var headerRow = '<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">';
+        
+        var selectType = '<select data-idx="' + idx + '" '
+          + 'data-field="text_type" '
+          + 'onchange="onTextInput(this)" '
+          + 'class="h-9 px-2.5 text-xs font-semibold '
+          + 'bg-surface-container-lowest border border-outline-variant/80 '
+          + 'rounded-lg focus:border-primary">';
+        textTypes.forEach(function(tt) {
+          var isSel = (item.text_type === tt.code ? ' selected' : '');
+          selectType += '<option value="' + tt.code + '"' + isSel + '>'
+            + tt.label + '</option>';
+        });
+        selectType += '</select>';
+
+        var selectLang = '<select data-idx="' + idx + '" '
+          + 'data-field="lang" '
+          + 'onchange="onTextInput(this)" '
+          + 'class="h-9 px-2 text-xs bg-surface-container-lowest '
+          + 'border border-outline-variant/80 rounded-lg '
+          + 'focus:border-primary">';
+        selectLang += '<option value="ID"'
+          + (item.lang === 'ID' ? ' selected' : '') + '>ID - Indonesia</option>';
+        selectLang += '<option value="EN"'
+          + (item.lang === 'EN' ? ' selected' : '') + '>EN - English</option>';
+        selectLang += '</select>';
+
+        var delBtn = '<button type="button" '
+          + 'onclick="removeAdditionalTextRow(' + idx + ')" '
+          + 'title="Hapus Teks" '
+          + 'class="p-1 text-on-surface-variant hover:text-error '
+          + 'hover:bg-error-container/20 rounded">'
+          + '<span class="material-symbols-outlined text-[18px]">'
+          + 'delete</span></button>';
+
+        headerRow += '<div class="flex items-center gap-2 flex-wrap">'
+          + selectType + selectLang + '</div>' + delBtn + '</div>';
+
+        var textarea = '<textarea rows="2" '
+          + 'data-idx="' + idx + '" data-field="content" '
+          + 'placeholder="Tuliskan isi catatan teks di sini..." '
+          + 'onchange="onTextInput(this)" '
+          + 'class="w-full p-2.5 text-xs bg-surface-container-lowest '
+          + 'border border-outline-variant/80 rounded-lg '
+          + 'focus:border-primary">'
+          + (item.content || '') + '</textarea>';
+
+        card.innerHTML = headerRow + textarea;
+        container.appendChild(card);
+      });
+    }
+
+    var badge = document.getElementById('badgeTextsCount');
+    if (badge) badge.innerText = stateAdditionalTexts.length;
+  }
+
+  function addAdditionalTextRow() {
+    stateAdditionalTexts.push({
+      text_type: '0001',
+      lang: 'ID',
+      content: ''
+    });
+    renderAdditionalTextsList();
+  }
+
+  function removeAdditionalTextRow(idx) {
+    stateAdditionalTexts.splice(idx, 1);
+    renderAdditionalTextsList();
+  }
+
+  function updateTextField(idx, field, value) {
+    if (stateAdditionalTexts[idx]) {
+      stateAdditionalTexts[idx][field] = value.trim();
+    }
+  }
+
+  // --- 3F. SERIALISASI STATE ARRAY KE HIDDEN INPUT JSON ---
+  function serializeDynamicTables() {
+    var jBank = document.getElementById('json_bank_details');
+    if (jBank) jBank.value = JSON.stringify(stateBankDetails);
+
+    var jCards = document.getElementById('json_payment_cards');
+    if (jCards) jCards.value = JSON.stringify(statePaymentCards);
+
+    var jIds = document.getElementById('json_id_numbers');
+    if (jIds) jIds.value = JSON.stringify(stateIdNumbers);
+
+    var jTexts = document.getElementById('json_additional_texts');
+    if (jTexts) jTexts.value = JSON.stringify(stateAdditionalTexts);
+
+    // Sinkronisasi baris bank pertama ke field standar ZMDG_BP_REQ
+    if (stateBankDetails.length > 0) {
+      var primaryBank = stateBankDetails[0];
+      var hbBanks = document.getElementById('hidden_banks');
+      var hbBankl = document.getElementById('hidden_bankl');
+      var hbBankn = document.getElementById('hidden_bankn');
+      var hbName  = document.getElementById('hidden_bank_name');
+      var hbKoinh = document.getElementById('hidden_koinh');
+
+      if (hbBanks) hbBanks.value = primaryBank.ctry || 'ID';
+      if (hbBankl) hbBankl.value = primaryBank.bank_key || '';
+      if (hbBankn) hbBankn.value = primaryBank.bank_acct || '';
+      if (hbName)  hbName.value  = primaryBank.bank_name || '';
+      if (hbKoinh) {
+        if (primaryBank.koinh) {
+          hbKoinh.value = primaryBank.koinh;
+        } else if (!hbKoinh.value) {
+          var n1 = document.querySelector('[name="name1"]');
+          hbKoinh.value = n1 ? n1.value.trim() : '';
+        }
+      }
+    }
+  }
+
+  // -------------------------------------------------------------------
+  // 4. HISTORY FILTER TABS
+  // -------------------------------------------------------------------
+  var currentActiveCategory = 'all';
+
+  function filterHistoryTab(category, btnElement) {
+    currentActiveCategory = category;
+
+    var tabButtons = document.querySelectorAll('.filter-tab-btn');
+    tabButtons.forEach(function(btn) {
+      btn.classList.remove('bg-primary', 'text-on-primary', 'font-bold', 'shadow-sm', 'active');
+      btn.classList.add('text-on-surface-variant', 'hover:bg-surface-container');
+    });
+
+    if (btnElement) {
+      btnElement.classList.add('bg-primary', 'text-on-primary', 'font-bold', 'shadow-sm', 'active');
+      btnElement.classList.remove('text-on-surface-variant', 'hover:bg-surface-container');
+    }
+
+    var rows = document.querySelectorAll('.history-row');
+    var matchCount = 0;
+
+    rows.forEach(function(row) {
+      var rowCat = row.getAttribute('data-category');
+      if (category === 'all' || rowCat === category) {
+        row.style.display = '';
+        matchCount++;
+      } else {
+        row.style.display = 'none';
+      }
+    });
+
+    var noRowsMsg = document.getElementById('noRowsFiltered');
+    if (noRowsMsg) {
+      noRowsMsg.style.display = (matchCount === 0 && rows.length > 0) ? '' : 'none';
+    }
+  }
+
+  // -------------------------------------------------------------------
+  // 5. EXPORT EXCEL VIA SHEETJS
+  // -------------------------------------------------------------------
+  function exportHistoryExcel() {
+    var table = document.getElementById('historyTable');
+    if (!table) return;
+
+    var data = [
+      ['NO', 'REQUEST ID', 'REQUESTOR', 'ORGANIZATION NAME', 'SEARCH TERM', 'TIMESTAMP', 'REASON', 'STATUS']
+    ];
+
+    var rows = document.querySelectorAll('.history-row');
+    var rowNum = 1;
+    rows.forEach(function(row) {
+      if (row.style.display !== 'none') {
+        var cells = row.querySelectorAll('td');
+        if (cells.length >= 7) {
+          var reqId = cells[1].querySelector('span') ? cells[1].querySelector('span').innerText.trim() : '';
+          var reqUser = cells[1].querySelector('.font-body-sm') ? cells[1].querySelector('.font-body-sm').innerText.replace('Oleh:','').trim() : '';
+          var orgName = cells[2].querySelector('.font-semibold') ? cells[2].querySelector('.font-semibold').innerText.trim() : '';
+          var sTerm = cells[2].querySelector('.text-outline') ? cells[2].querySelector('.text-outline').innerText.trim() : '';
+          var tStamp = cells[3].innerText.trim();
+          var reason = cells[5].innerText.trim();
+          var status = cells[6].innerText.trim();
+
+          data.push([rowNum++, reqId, reqUser, orgName, sTerm, tStamp, reason, status]);
+        }
+      }
+    });
+
+    var ws = XLSX.utils.aoa_to_sheet(data);
+    var wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'BP_History_' + currentActiveCategory.toUpperCase());
+    XLSX.writeFile(wb, 'MDG_BP_Requests_' + currentActiveCategory + '.xlsx');
+  }
+
+  function exportSingleRow(reqId, name, status) {
+    var data = [
+      ['FIELD', 'VALUE'],
+      ['Request ID', reqId],
+      ['Organization Name', name],
+      ['Status', status],
+      ['Exported By', '<%= sy-uname %>'],
+      ['Timestamp', new Date().toLocaleString()]
+    ];
+    var ws = XLSX.utils.aoa_to_sheet(data);
+    var wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'BP_Request_' + reqId);
+    XLSX.writeFile(wb, 'BP_' + reqId + '.xlsx');
+  }
+
+  // -------------------------------------------------------------------
+  // 6. FORM ACTIONS & CONSOLE LOGGING
+  // -------------------------------------------------------------------
+  // ===================================================================
+  // 6. FORM ACTIONS & COMPREHENSIVE CONSOLE LOGGING (SE80 COMPLIANT)
+  // ===================================================================
+
+  var C_STYLE_ERR = 'background:#fff1f2;color:#ba1a1a;font-weight:bold;' +
+                    'font-size:12px;padding:3px 6px;border:1px solid #ffdad6;';
+  var C_STYLE_OK  = 'background:#ecfdf5;color:#047857;font-weight:bold;' +
+                    'font-size:12px;padding:3px 6px;border:1px solid #a7f3d0;';
+  var C_STYLE_HDR = 'color:#006948;font-weight:bold;font-size:13px;';
+  var C_STYLE_SUB = 'color:#0284c7;font-weight:bold;font-size:12px;';
+  var C_STYLE_WRN = 'color:#b45309;font-weight:bold;';
+
+  // Ekstraksi pesan server SAP dari DOM (Aman dari escape error string ABAP)
+  function getServerMessages() {
+    var items = document.querySelectorAll('.system-msg-item');
+    var list = [];
+    items.forEach(function(item) {
+      var mType = item.getAttribute('data-msg-type') || 'I';
+      var span = item.querySelector('.system-msg-text');
+      var txt = span ? span.innerText.trim() : item.innerText.trim();
+      if (txt) {
+        list.push({ type: mType, text: txt });
+      }
+    });
+    return list;
+  }
+
+  // Ekstraksi seluruh riwayat data dari tabel staging di halaman
+  function getHistoryRecords() {
+    var rows = document.querySelectorAll('.history-row');
+    var records = [];
+    rows.forEach(function(r, idx) {
+      var cells = r.querySelectorAll('td');
+      if (cells.length >= 7) {
+        var reqIdEl = cells[1].querySelector('span');
+        var userEl = cells[1].querySelector('.font-body-sm');
+        var orgEl = cells[2].querySelector('.font-semibold');
+        var termEl = cells[2].querySelector('.text-outline');
+        var timeEl = cells[3];
+        var bpNumEl = cells[4].querySelector('.font-code-sm');
+        var statusEl = cells[6].querySelector('span');
+
+        records.push({
+          'No': idx + 1,
+          'Request ID': reqIdEl ? reqIdEl.innerText.trim() : '',
+          'Nama Organisasi': orgEl ? orgEl.innerText.trim() : '',
+          'Search Term': termEl ? termEl.innerText.replace('Term:','').trim() : '',
+          'Status': statusEl ? statusEl.innerText.trim() : '',
+          'Dibuat Oleh': userEl ? userEl.innerText.replace('Oleh:','').trim() : '',
+          'Waktu': timeEl ? timeEl.innerText.trim() : '',
+          'BP SAP Number': bpNumEl ? bpNumEl.innerText.trim() : '-'
+        });
+      }
+    });
+    return records;
+  }
+
+  function logServerResponse() {
+    var msgs = getServerMessages();
+    var historyData = getHistoryRecords();
+    var successMsgs = msgs.filter(function(m) { return m.type === 'S'; });
+    var errorMsgs = msgs.filter(function(m) { return m.type === 'E'; });
+    var warnMsgs = msgs.filter(function(m) { return m.type === 'W' || m.type === 'I'; });
+
+    // Cek data submission yang disimpan sesaat sebelum reload
+    var lastSubmit = null;
+    try {
+      var raw = sessionStorage.getItem('_MDG_BP_LAST_SUBMIT');
+      if (raw) {
+        lastSubmit = JSON.parse(raw);
+        sessionStorage.removeItem('_MDG_BP_LAST_SUBMIT');
+      }
+    } catch(e) {}
+
+    console.group('%c[STATUS] LAPORAN SINKRONISASI STAGING ZMDG_BP_REQ', C_STYLE_HDR);
+    console.log('%cTarget Tabel Staging SAP : %cZMDG_BP_REQ',
+      'color:#334155;font-weight:bold;', C_STYLE_SUB);
+    console.log('%cTotal Rekaman di Staging : %c' + historyData.length + ' Baris',
+      'color:#334155;font-weight:bold;', 'color:#059669;font-weight:bold;');
+
+    // 1. TAMPILKAN DATA YANG GAGAL / DITOLAK SAP
+    if (errorMsgs.length > 0) {
+      console.group('%c[GAGAL] ' + errorMsgs.length + ' Pesan Error dari SAP', C_STYLE_ERR);
+      console.error('[MDG BP] Permohonan TIDAK tersimpan ke database ZMDG_BP_REQ.');
+
+      var failedList = errorMsgs.map(function(err, i) {
+        var analisa = 'Validasi Logika SAP';
+        if (err.text.indexOf('mandatory') !== -1 || err.text.indexOf('wajib') !== -1) {
+          analisa = 'Field wajib (*) belum terisi saat submit';
+        } else if (err.text.indexOf('SY-SUBRC') !== -1) {
+          analisa = 'Gagal Open SQL MODIFY (Cek Authorization / Lock Table)';
+        } else if (err.text.indexOf('karakter') !== -1) {
+          analisa = 'Panjang input melampaui batas karakter SAP';
+        }
+        return {
+          'No': i + 1,
+          'Pesan Error SAP': err.text,
+          'Analisa Masalah': analisa
+        };
+      });
+      console.table(failedList);
+
+      if (lastSubmit) {
+        console.warn('[MDG BP] Data yang tadi Anda kirim namun GAGAL masuk:');
+        console.table([{
+          'Action': lastSubmit.action,
+          'Name 1': lastSubmit.name1 || '(KOSONG)',
+          'Search Term': lastSubmit.search_term || '(KOSONG)',
+          'Kota': lastSubmit.city || '(KOSONG)',
+          'Negara': lastSubmit.country || '(KOSONG)',
+          'BP Role': lastSubmit.bp_role || '000000'
+        }]);
+      }
+      console.groupEnd();
+    }
+
+    // 2. TAMPILKAN DATA YANG BERHASIL MASUK STAGING
+    if (successMsgs.length > 0) {
+      console.group('%c[BERHASIL] Data Masuk ke Tabel Staging ZMDG_BP_REQ', C_STYLE_OK);
+      successMsgs.forEach(function(s) {
+        console.log('[SUKSES] ' + s.text);
+      });
+
+      if (lastSubmit) {
+        console.log('[MDG BP] Rincian Data yang Baru Diajukan:');
+        console.table([{
+          'Nama 1 (Organisasi)': lastSubmit.name1,
+          'Search Term': lastSubmit.search_term,
+          'Kota': lastSubmit.city,
+          'Negara': lastSubmit.country,
+          'Role BP': lastSubmit.bp_role,
+          'Rekening Bank': (lastSubmit.bank_details && lastSubmit.bank_details.length)
+            ? lastSubmit.bank_details[0].bank_acct : '-'
+        }]);
+      }
+      console.groupEnd();
+    }
+
+    // 3. DAFTAR SELURUH DATA AKTIF DI ZMDG_BP_REQ
+    if (historyData.length > 0) {
+      console.group('%c[TABEL] Riwayat Permohonan di ZMDG_BP_REQ (' + historyData.length + ' Entri)', C_STYLE_SUB);
+      console.table(historyData);
+      console.groupEnd();
+    } else {
+      console.warn('%c[PERINGATAN] Belum ada rekaman di database staging ZMDG_BP_REQ.', C_STYLE_WRN);
+    }
+
+    // 4. PERINGATAN VALIDASI
+    if (warnMsgs.length > 0) {
+      console.group('%c[PERINGATAN] Peringatan Validasi SAP', C_STYLE_WRN);
+      warnMsgs.forEach(function(w) {
+        console.warn('[Peringatan]: ' + w.text);
+      });
+      console.groupEnd();
+    }
+
+    if (msgs.length === 0 && !lastSubmit) {
+      console.log('%c[MDG BP] Formulir siap digunakan.', 'color:#64748b;font-style:italic;');
+    }
+
+    console.groupEnd();
+  }
+
+  function submitAction(actionName) {
+    var form = document.getElementById('mdgBpForm') || document.getElementById('bpForm');
+    if (!form) {
+      console.error('[MDG BP ERROR] Formulir tidak ditemukan!');
+      return;
+    }
+
+    // Serialisasi tabel dinamis ke hidden input JSON
+    serializeDynamicTables();
+
+    var actFld = document.getElementById('actionField');
+    if (actFld) actFld.value = actionName;
+    var oipFld = document.getElementById('onInputProcessingField');
+    if (oipFld) oipFld.value = actionName;
+
+    // Ambil nilai field form
+    var name1El   = form.querySelector('[name="name1"]');
+    var name2El   = form.querySelector('[name="name2"]');
+    var searchEl  = form.querySelector('[name="search_term"]');
+    var cityEl    = form.querySelector('[name="city"]');
+    var countryEl = form.querySelector('[name="country"]');
+    var streetEl  = form.querySelector('[name="street"]');
+    var houseEl   = form.querySelector('[name="house_num"]');
+    var postalEl  = form.querySelector('[name="postal_code"]');
+    var regionEl  = form.querySelector('[name="region"]');
+    var languEl   = form.querySelector('[name="langu"]');
+    var telEl     = form.querySelector('[name="telephone"]');
+    var emailEl   = form.querySelector('[name="email"]');
+    var roleEl    = form.querySelector('[name="bp_role"]');
+    var groupEl   = form.querySelector('[name="bp_grouping"]') || form.querySelector('#hidden_bu_group');
+    var ekorgEl   = form.querySelector('[name="ekorg"]');
+    var waersEl   = form.querySelector('[name="waers"]');
+    var webreEl   = form.querySelector('[name="webre"]');
+    var lebreEl   = form.querySelector('[name="lebre"]');
+    var reqIdEl   = form.querySelector('[name="req_id"]');
+
+    var name1Val  = name1El ? name1El.value.trim() : '';
+    var name2Val  = name2El ? name2El.value.trim() : '';
+    var searchVal = searchEl ? searchEl.value.trim() : '';
+    var cityVal   = cityEl ? cityEl.value.trim() : '';
+    var countryVal= countryEl ? countryEl.value.trim() : '';
+    var streetVal = streetEl ? streetEl.value.trim() : '';
+    var houseVal  = houseEl ? houseEl.value.trim() : '';
+    var postalVal = postalEl ? postalEl.value.trim() : '';
+    var regionVal = regionEl ? regionEl.value.trim() : '';
+    var languVal  = languEl ? languEl.value.trim() : '';
+    var telVal    = telEl ? telEl.value.trim() : '';
+    var emailVal  = emailEl ? emailEl.value.trim() : '';
+    var roleVal   = roleEl ? roleEl.value.trim() : 'FLVN01';
+    var groupVal  = groupEl ? groupEl.value.trim() : '0001';
+    var ekorgVal  = ekorgEl ? ekorgEl.value.trim() : '';
+    var waersVal  = waersEl ? waersEl.value.trim() : '';
+    var webreVal  = (webreEl && webreEl.checked) ? 'X' : '';
+    var lebreVal  = (lebreEl && lebreEl.checked) ? 'X' : '';
+    var reqIdVal  = reqIdEl ? reqIdEl.value.trim() : '';
+
+    var payload = {
+      action: actionName,
+      req_id: reqIdVal || '(Baru - akan di-generate oleh SAP)',
+      bp_role: roleVal,
+      bu_group: groupVal,
+      name1: name1Val,
+      name2: name2Val,
+      search_term: searchVal,
+      street: streetVal,
+      house_num: houseVal,
+      postal_code: postalVal,
+      city: cityVal,
+      country: countryVal,
+      region: regionVal,
+      langu: languVal,
+      ekorg: ekorgVal,
+      waers: waersVal,
+      webre: webreVal,
+      lebre: lebreVal,
+      telephone: telVal,
+      email: emailVal,
+      bank_details: stateBankDetails,
+      payment_cards: statePaymentCards,
+      id_numbers: stateIdNumbers,
+      additional_texts: stateAdditionalTexts
+    };
+
+    // VALIDASI CLIENT-SIDE SEBELUM SUBMIT
+    if (actionName === 'SUBMIT' || actionName === 'CHECK') {
+      var validationFailures = [];
+
+      if (!name1Val) {
+        validationFailures.push({
+          Field: 'Name 1 (NAME_ORG1)',
+          Tab: 'address',
+          Element: name1El,
+          Status: 'GAGAL',
+          Keterangan: 'Nama Legal Entitas Organisasi wajib diisi'
+        });
+      } else if (name1Val.length > 40) {
+        validationFailures.push({
+          Field: 'Name 1 (NAME_ORG1)',
+          Tab: 'address',
+          Element: name1El,
+          Status: 'GAGAL',
+          Keterangan: 'Nama Legal Entitas melebihi 40 karakter'
+        });
+      }
+
+      if (!searchVal) {
+        validationFailures.push({
+          Field: 'Search Term 1 (BU_SORT1)',
+          Tab: 'address',
+          Element: searchEl,
+          Status: 'GAGAL',
+          Keterangan: 'Search Term 1 wajib diisi'
+        });
+      } else if (searchVal.length > 20) {
+        validationFailures.push({
+          Field: 'Search Term 1 (BU_SORT1)',
+          Tab: 'address',
+          Element: searchEl,
+          Status: 'GAGAL',
+          Keterangan: 'Search Term melebihi 20 karakter'
+        });
+      }
+
+      if (!countryVal) {
+        validationFailures.push({
+          Field: 'Country (COUNTRY)',
+          Tab: 'address',
+          Element: countryEl,
+          Status: 'GAGAL',
+          Keterangan: 'Kode Negara wajib dipilih (contoh: ID)'
+        });
+      }
+
+      if (!cityVal) {
+        validationFailures.push({
+          Field: 'City (CITY1)',
+          Tab: 'address',
+          Element: cityEl,
+          Status: 'GAGAL',
+          Keterangan: 'Kota Domisili wajib diisi (contoh: JAKARTA)'
+        });
+      }
+
+      if (!postalVal) {
+        validationFailures.push({
+          Field: 'Postal Code (POST_CODE1)',
+          Tab: 'address',
+          Element: postalEl,
+          Status: 'GAGAL',
+          Keterangan: 'Kode Pos wajib diisi (contoh: 61292)'
+        });
+      }
+
+      if (!languVal) {
+        validationFailures.push({
+          Field: 'Language Key (LANGU)',
+          Tab: 'address',
+          Element: languEl,
+          Status: 'GAGAL',
+          Keterangan: 'Kunci Bahasa wajib dipilih (contoh: ID / Indonesian) guna mencegah error sistem SAP'
+        });
+      }
+
+      var isVendorRole = (roleVal !== 'FLCU01' && roleVal !== 'CUSTOMER');
+      if (isVendorRole) {
+        if (!ekorgVal) {
+          validationFailures.push({
+            Field: 'Purchasing Organization (EKORG)',
+            Tab: 'purchasing',
+            Element: ekorgEl,
+            Status: 'GAGAL',
+            Keterangan: 'Purchasing Organization wajib diisi (contoh: 1000)'
+          });
+        }
+
+        if (!waersVal) {
+          validationFailures.push({
+            Field: 'Order Currency (WAERS)',
+            Tab: 'purchasing',
+            Element: waersEl,
+            Status: 'GAGAL',
+            Keterangan: 'Order Currency wajib diisi (contoh: IDR)'
+          });
+        }
+      }
+
+      if (emailVal && (emailVal.indexOf('@') === -1 || emailVal.indexOf('.') === -1)) {
+        validationFailures.push({
+          Field: 'E-Mail (E_MAIL)',
+          Tab: 'address',
+          Element: emailEl,
+          Status: 'GAGAL',
+          Keterangan: 'Format email tidak valid (harus mengandung @ dan domain)'
+        });
+      }
+
+      // JIKA ADA FIELD YANG GAGAL VALIDASI:
+      if (validationFailures.length > 0) {
+        console.group('%c[GAGAL VALIDASI] Submission Dibatalkan (' + validationFailures.length + ' Field Belum Lengkap)', C_STYLE_ERR);
+        console.error('[MDG BP] Pengiriman dibatalkan. Field bertanda bintang (*) belum lengkap.');
+        console.table(validationFailures);
+        console.groupEnd();
+
+        var firstFail = validationFailures[0];
+        var tabTarget = firstFail.Tab || 'address';
+        var tabBtn = document.getElementById('tabBtn_' + tabTarget);
+        if (tabBtn) {
+          switchBpTab(tabTarget, tabBtn);
+        }
+
+        alert('Mohon lengkapi field mandatory (*):\n- ' +
+              validationFailures.map(function(f) {
+                return f.Field + ': ' + f.Keterangan;
+              }).join('\n- '));
+
+        if (firstFail.Element) {
+          firstFail.Element.focus();
+        }
+
+        return; // CEGAH SUBMIT
+      }
+    }
+
+    // VALIDASI LOLOS: LOG DATA YANG AKAN DIKIRIM
+    console.group('%c[KIRIM] Mengirim Data Valid ke SAP Staging ZMDG_BP_REQ', C_STYLE_OK);
+    console.log('[MDG BP] Target Action URL: ' + (form.getAttribute('action') || 'test_bp_create_request.htm'));
+    console.log('[MDG BP] Aksi             : ' + actionName);
+    console.table([{
+      'Aksi': actionName,
+      'Request ID': payload.req_id,
+      'Nama 1': payload.name1,
+      'Search Term': payload.search_term,
+      'Kota': payload.city,
+      'Negara': payload.country,
+      'Role BP': payload.bp_role,
+      'Rekening Bank': stateBankDetails.length,
+      'Dokumen ID': stateIdNumbers.length
+    }]);
+    console.log('[MDG BP] Payload Lengkap:', payload);
+    console.groupEnd();
+
+    // Simpan payload ke sessionStorage agar bisa dibaca setelah reload
+    try {
+      sessionStorage.setItem('_MDG_BP_LAST_SUBMIT', JSON.stringify(payload));
+    } catch(e) {}
+
+    form.submit();
+  }
+
+  function loadRequest(reqId) {
+    console.log('%c[LOAD] Memuat ulang permohonan ID: ' + reqId, C_STYLE_SUB);
+    var targetEl = document.getElementById('targetReqId');
+    if (targetEl) targetEl.value = reqId;
+    submitAction('LOAD_REQ');
+  }
+
+  function resetForm() {
+    if (confirm('Apakah Anda yakin ingin mengosongkan formulir?')) {
+      console.log('[MDG BP] Mengosongkan formulir...');
+      window.location.href = 'test_bp_create_request.htm';
+    }
+  }
+
+  // Real-time table search filter
+  var topSearch = document.getElementById('topSearchInput');
+  if (topSearch) {
+    topSearch.addEventListener('input', function(e) {
+      var q = e.target.value.toLowerCase().trim();
+      var rows = document.querySelectorAll('.history-row');
+      rows.forEach(function(row) {
+        var text = row.innerText.toLowerCase();
+        if (!q || text.indexOf(q) !== -1) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    });
+  }
+
+  // -------------------------------------------------------------------
+  // 7. INITIALIZE PAGE COMPONENT STATES
+  // -------------------------------------------------------------------
+  window.addEventListener('DOMContentLoaded', function() {
+    var initialCountry = document.getElementById('countrySelect') ? document.getElementById('countrySelect').value : 'ID';
+    updateRegionDropdown(initialCountry);
+
+    // Initial state setup for Bank Details from wa_req
+    var initBankl = '<%= wa_req-bankl %>';
+    var initBankn = '<%= wa_req-bankn %>';
+    var initBanks = '<%= wa_req-banks %>';
+    var initBankName = '<%= wa_req-bank_name %>';
+    var initKoinh = '<%= wa_req-koinh %>';
+    if (!initBanks) initBanks = 'ID';
+
+    if (initBankn || initBankl) {
+      stateBankDetails.push({
+        id: '0001',
+        ctry: initBanks,
+        bank_key: initBankl,
+        bank_acct: initBankn,
+        ctrl_key: '',
+        iban: '',
+        bank_name: initBankName,
+        koinh: initKoinh
+      });
+    } else {
+      stateBankDetails.push({
+        id: '0001',
+        ctry: 'ID',
+        bank_key: '',
+        bank_acct: '',
+        ctrl_key: '',
+        iban: '',
+        bank_name: '',
+        koinh: ''
+      });
+    }
+
+    renderBankTable();
+    renderPaymentCardsTable();
+    renderIdNumbersTable();
+    renderAdditionalTextsList();
+
+    // Default active tab to Address & General Data (Tab 1)
+    var addressTabBtn = document.getElementById('tabBtn_address');
+    if (addressTabBtn) {
+      switchBpTab('address', addressTabBtn);
+    }
+
+    // Grouping Mapping Data Sesuai Kebutuhan SPRO SAP
+    var VENDOR_GROUPINGS = [
+      { code: 'S001', text: 'S001 Import Trade' },
+      { code: 'S002', text: 'S002 Local Trade' }
+    ];
+
+    var CUSTOMER_GROUPINGS = [
+      { code: 'C001', text: 'C001 Export Customer' },
+      { code: 'C002', text: 'C002 Local Customer' },
+      { code: 'C003', text: 'C003 Employee Customer' }
+    ];
+
+    window.onBpRequestTypeChange = function(selectedType, targetGroup) {
+      var rltypElem = document.getElementById('hidden_rltyp');
+      var groupSelect = document.getElementById('bpGroupingSelect');
+      var hiddenGroup = document.getElementById('hidden_bu_group');
+      var roleHelpText = document.getElementById('bpRoleHelpText');
+      var purchasingTabBtn = document.getElementById('tabBtn_purchasing');
+
+      if (rltypElem) rltypElem.value = selectedType;
+
+      var isCustomer = (selectedType && selectedType.indexOf('FLCU') === 0) || (selectedType === 'CUSTOMER');
+      var groupings = isCustomer ? CUSTOMER_GROUPINGS : VENDOR_GROUPINGS;
+
+      if (groupSelect) {
+        groupSelect.innerHTML = '';
+        groupings.forEach(function(g) {
+          var opt = document.createElement('option');
+          opt.value = g.code;
+          opt.textContent = g.text;
+          groupSelect.appendChild(opt);
+        });
+
+        if (targetGroup) {
+          groupSelect.value = targetGroup;
+        } else if (isCustomer) {
+          groupSelect.value = 'C001';
+        } else {
+          groupSelect.value = 'S001';
+        }
+
+        if (hiddenGroup) {
+          hiddenGroup.value = groupSelect.value;
+        }
+      }
+
+      if (roleHelpText) {
+        if (selectedType === 'FLVN01') {
+          roleHelpText.textContent = 'Role FLVN01: MM Supplier untuk transaksi pengadaan logistik & purchasing.';
+        } else if (selectedType === 'FLVN00') {
+          roleHelpText.textContent = 'Role FLVN00: FI Supplier untuk transaksi keuangan & accounting.';
+        } else if (selectedType === 'FLCU01') {
+          roleHelpText.textContent = 'Role FLCU01: SD Customer untuk transaksi penjualan.';
+        } else if (selectedType === 'FLCU00') {
+          roleHelpText.textContent = 'Role FLCU00: FI Customer untuk transaksi penerimaan piutang.';
+        } else if (isCustomer) {
+          roleHelpText.textContent = 'Role Customer.';
+        } else {
+          roleHelpText.textContent = 'Role Vendor.';
+        }
+      }
+
+      if (purchasingTabBtn) {
+        if (isCustomer) {
+          purchasingTabBtn.style.display = 'none';
+        } else {
+          purchasingTabBtn.style.display = 'flex';
+        }
+      }
+    };
+
+    var initialRoleSelect = document.getElementById('bpRoleTypeSelect');
+    var initialRoleVal = initialRoleSelect ? initialRoleSelect.value : 'FLVN01';
+    var initialSavedGroup = '<%= wa_req-bu_group %>';
+    onBpRequestTypeChange(initialRoleVal, initialSavedGroup);
+
+    // Tampilkan log server komprehensif ke console browser
+    logServerResponse();
+  });
+</script>
+
+</body>
+</html>
