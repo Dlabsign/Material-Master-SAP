@@ -1,0 +1,307 @@
+<%@page language="ABAP" %>
+<%
+  DATA: lv_sb_mat_pending TYPE i,
+        lv_sb_bp_pending  TYPE i,
+        lv_sb_ir_pending  TYPE i,
+        lv_sb_approved    TYPE i,
+        lv_sb_rejected    TYPE i.
+
+  SELECT COUNT( * ) FROM zmdg_req_hdr
+    WHERE status IN ( 'CHECKED', 'CODED' )
+    INTO @lv_sb_mat_pending.
+
+  SELECT COUNT( * ) FROM zmdg_bp_req
+    WHERE status = 'CHECKED'
+      AND stw_data_status = 'X'
+      AND stw_bank_status = 'X'
+    INTO @lv_sb_bp_pending.
+
+  SELECT COUNT( * ) FROM zmdg_req_pir
+    WHERE status = '01'
+    INTO @lv_sb_ir_pending.
+
+  SELECT COUNT( * ) FROM zmdg_req_hdr
+    WHERE status = 'APPROVED'
+    INTO @lv_sb_approved.
+
+  SELECT COUNT( * ) FROM zmdg_req_hdr
+    WHERE status = 'REJECTED' OR status = 'FAILED'
+    INTO @lv_sb_rejected.
+%>
+<!-- ==================================================================== -->
+<!-- SAP BSP PAGE FRAGMENT: sidebar_approval.htm                          -->
+<!-- Reusable Sidebar Component for Approval Module                       -->
+<!-- ==================================================================== -->
+<aside class="w-64 bg-slate-900 text-slate-300 flex flex-col shrink-0 min-h-screen
+              border-r border-slate-800 shadow-xl sticky top-0 h-screen z-40">
+    <!-- Sidebar Brand Header -->
+    <a href="landing_page.htm" id="sbBrandLink"
+       class="h-14 flex items-center gap-3 px-5 border-b border-slate-800 bg-slate-950/60
+              hover:bg-slate-800/40 transition decoration-none group">
+        <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-brand-600 via-emerald-500 to-teal-400
+                    text-white flex items-center justify-center font-black text-xs tracking-wider
+                    shadow-md shadow-emerald-500/20 group-hover:scale-105 transition-transform">
+            MDG
+        </div>
+        <div>
+            <h2 class="font-bold text-xs text-white tracking-wide">Approval Center</h2>
+            <p class="text-[10px] text-slate-400 font-medium">Master Data Governance</p>
+        </div>
+    </a>
+
+    <!-- Navigation Menu -->
+    <div class="p-3 space-y-1.5 flex-1 overflow-y-auto" id="sbNavMenuContainer">
+        <div class="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+            Approval Requests
+        </div>
+
+        <!-- 1. Material Master Approval -->
+        <a href="mm_approval.htm" id="sbNavMaterial"
+           class="group flex items-center justify-between px-3.5 py-2.5 rounded-xl font-semibold text-xs transition-all duration-200 hover:bg-slate-800/80 text-slate-300 hover:text-white"
+           title="Material Master Approval">
+            <div class="flex items-center gap-2.5">
+                <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                </svg>
+                <span>Material Approval</span>
+            </div>
+            <span id="sbBadgeMatPending" class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                <%= lv_sb_mat_pending %>
+            </span>
+        </a>
+
+        <!-- 2. Business Partner Approval -->
+        <a href="bp_approval.htm" id="sbNavBp"
+           class="group flex items-center justify-between px-3.5 py-2.5 rounded-xl font-semibold text-xs transition-all duration-200 hover:bg-slate-800/80 text-slate-300 hover:text-white"
+           title="Business Partner Approval">
+            <div class="flex items-center gap-2.5">
+                <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857
+                             M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857
+                             m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0
+                             zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                </svg>
+                <span>BP Approval</span>
+            </div>
+            <span id="sbBadgeBpPending" class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                <%= lv_sb_bp_pending %>
+            </span>
+        </a>
+
+        <!-- 3. Info Record Approval -->
+        <a href="ir_approval.htm" id="sbNavIr"
+           class="group flex items-center justify-between px-3.5 py-2.5 rounded-xl font-semibold text-xs transition-all duration-200 hover:bg-slate-800/80 text-slate-300 hover:text-white"
+           title="Info Record Approval">
+            <div class="flex items-center gap-2.5">
+                <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                <span>Info Record Approval</span>
+            </div>
+            <span id="sbBadgeIrPending" class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                <%= lv_sb_ir_pending %>
+            </span>
+        </a>
+
+        <!-- Divider & Section: History & Archive -->
+        <div class="pt-3 px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+            History &amp; Archive
+        </div>
+
+        <!-- APPROVED History -->
+        <a href="history_approved.htm" id="sbNavApproved"
+           class="group flex items-center justify-between px-3.5 py-2.5 rounded-xl font-semibold text-xs transition-all duration-200 hover:bg-slate-800/80 text-slate-300 hover:text-white"
+           title="Approved Records">
+            <div class="flex items-center gap-2.5">
+                <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span>Approved</span>
+            </div>
+            <span id="sbBadgeApproved" class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                <%= lv_sb_approved %>
+            </span>
+        </a>
+
+        <!-- REJECTED History -->
+        <a href="history_rejected.htm" id="sbNavRejected"
+           class="group flex items-center justify-between px-3.5 py-2.5 rounded-xl font-semibold text-xs transition-all duration-200 hover:bg-slate-800/80 text-slate-300 hover:text-white"
+           title="Rejected Records">
+            <div class="flex items-center gap-2.5">
+                <svg class="w-4 h-4 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span>Rejected</span>
+            </div>
+            <span id="sbBadgeRejected" class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                <%= lv_sb_rejected %>
+            </span>
+        </a>
+    </div>
+
+    <!-- Sidebar User Profile Footer -->
+    <div class="p-3 border-t border-slate-800 bg-slate-950/60 flex items-center justify-between">
+        <div class="flex items-center gap-2.5 overflow-hidden">
+            <div class="w-8 h-8 rounded-lg bg-slate-800 text-brand-400 font-bold flex items-center justify-center text-xs border border-slate-700 shadow-inner">
+                A
+            </div>
+            <div class="truncate">
+                <div class="text-xs font-bold text-white truncate" id="sbUserName"><%= sy-uname %></div>
+                <div class="text-[10px] text-slate-400 font-medium">Approver Role</div>
+            </div>
+        </div>
+        <a href="?action=LOGOUT" title="Sign Out" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+            </svg>
+        </a>
+    </div>
+</aside>
+
+<script>
+    (function() {
+        var path = (window.location.pathname || "").toLowerCase();
+        var matEl = document.getElementById("sbNavMaterial");
+        var bpEl = document.getElementById("sbNavBp");
+        var irEl = document.getElementById("sbNavIr");
+        var approvedEl = document.getElementById("sbNavApproved");
+        var rejectedEl = document.getElementById("sbNavRejected");
+
+        function setTabActive(el, activeClass, textBadgeClass) {
+            if (!el) return;
+            el.className = "group flex items-center justify-between px-3.5 py-2.5 rounded-xl font-bold text-xs transition-all duration-200 " + activeClass;
+            var badge = el.querySelector("span[id^='sbBadge']");
+            if (badge) {
+                badge.className = "px-2 py-0.5 text-[10px] font-bold rounded-full " + textBadgeClass;
+            }
+        }
+
+        // 1. Highlight active menu item based on current URL path
+        if (path.indexOf("ir_approval") !== -1) {
+            setTabActive(irEl, "bg-purple-600 text-white shadow-md shadow-purple-600/30", "bg-white/20 text-white shadow-xs");
+        } else if (path.indexOf("approve_bp") !== -1 || path.indexOf("bp_approval") !== -1) {
+            setTabActive(bpEl, "bg-sky-600 text-white shadow-md shadow-sky-600/30", "bg-white/20 text-white shadow-xs");
+        } else if (path.indexOf("history_approved") !== -1) {
+            setTabActive(approvedEl, "bg-emerald-600 text-white shadow-md shadow-emerald-600/30", "bg-white/20 text-white shadow-xs");
+        } else if (path.indexOf("history_rejected") !== -1) {
+            setTabActive(rejectedEl, "bg-rose-600 text-white shadow-md shadow-rose-600/30", "bg-white/20 text-white shadow-xs");
+        } else {
+            setTabActive(matEl, "bg-emerald-600 text-white shadow-md shadow-emerald-600/30", "bg-white/20 text-white shadow-xs");
+        }
+
+        // 2. Intelligent relative link adjustment for local file preview
+        if (window.location.protocol === "file:") {
+            var curr = (window.location.pathname || "").split(String.fromCharCode(92)).join("/").toLowerCase();
+            var inMat = curr.indexOf("/approve_material/") !== -1 || curr.indexOf("/mm_approval/") !== -1;
+            var inBp = curr.indexOf("/approve_bp/") !== -1 || curr.indexOf("/bp_approval/") !== -1;
+            var inIr = curr.indexOf("/ir_approval/") !== -1;
+            var inHistAppr = curr.indexOf("/hist_approved/") !== -1;
+            var inHistRej = curr.indexOf("/reject/") !== -1;
+
+            if (matEl) {
+                if (inMat) matEl.setAttribute("href", "approve_material.htm");
+                else if (inBp || inIr) matEl.setAttribute("href", "../approve_material/approve_material.htm");
+                else if (inHistAppr || inHistRej) matEl.setAttribute("href", "../Approval/approve_material/approve_material.htm");
+            }
+            if (bpEl) {
+                if (inBp) bpEl.setAttribute("href", "bp_approval.htm");
+                else if (inMat || inIr) bpEl.setAttribute("href", "../bp_approval/bp_approval.htm");
+                else if (inHistAppr || inHistRej) bpEl.setAttribute("href", "../Approval/bp_approval/bp_approval.htm");
+            }
+            if (irEl) {
+                if (inIr) irEl.setAttribute("href", "ir_approval.htm");
+                else if (inMat || inBp) irEl.setAttribute("href", "../ir_approval/ir_approval.htm");
+                else if (inHistAppr || inHistRej) irEl.setAttribute("href", "../Approval/ir_approval/ir_approval.htm");
+            }
+            if (approvedEl) {
+                if (inHistAppr) approvedEl.setAttribute("href", "history_approved.htm");
+                else if (inHistRej) approvedEl.setAttribute("href", "../HIST_APPROVED/history_approved.htm");
+                else if (inMat || inBp || inIr) approvedEl.setAttribute("href", "../../HIST_APPROVED/history_approved.htm");
+            }
+            if (rejectedEl) {
+                if (inHistRej) rejectedEl.setAttribute("href", "history_rejected.htm");
+                else if (inHistAppr) rejectedEl.setAttribute("href", "../REJECT/history_rejected.htm");
+                else if (inMat || inBp || inIr) rejectedEl.setAttribute("href", "../../REJECT/history_rejected.htm");
+            }
+            var brandLink = document.getElementById("sbBrandLink");
+            if (brandLink) {
+                if (inMat || inBp || inIr) brandLink.setAttribute("href", "../../landing/landing_page.htm");
+                else if (inHistAppr || inHistRej) brandLink.setAttribute("href", "../landing/landing_page.htm");
+            }
+        }
+
+        // 3. Dynamic Badge Counter Updater Function
+        function updateBadgeElements(cnts) {
+            if (!cnts) return;
+            var pMat = document.getElementById("sbBadgeMatPending");
+            var pBp = document.getElementById("sbBadgeBpPending");
+            var pIr = document.getElementById("sbBadgeIrPending");
+            var a = document.getElementById("sbBadgeApproved");
+            var r = document.getElementById("sbBadgeRejected");
+
+            // Material Pending badge
+            if (cnts.mat_pending !== undefined) {
+                if (pMat) pMat.innerText = cnts.mat_pending;
+            } else if (cnts.pending !== undefined && path.indexOf("approve_bp") === -1 && path.indexOf("ir_approval") === -1) {
+                if (pMat) pMat.innerText = cnts.pending;
+            }
+
+            // BP Pending badge
+            if (cnts.bp_pending !== undefined) {
+                if (pBp) pBp.innerText = cnts.bp_pending;
+            } else if (cnts.pending !== undefined && path.indexOf("approve_bp") !== -1) {
+                if (pBp) pBp.innerText = cnts.pending;
+            }
+
+            // Info Record Pending badge
+            if (cnts.ir_pending !== undefined) {
+                if (pIr) pIr.innerText = cnts.ir_pending;
+            } else if (cnts.pending !== undefined && path.indexOf("ir_approval") !== -1) {
+                if (pIr) pIr.innerText = cnts.pending;
+            }
+
+            // Approved & Rejected badge
+            if (a && cnts.approved !== undefined) a.innerText = cnts.approved;
+            if (r && cnts.rejected !== undefined) r.innerText = cnts.rejected;
+        }
+
+        // Expose globally so host pages can invoke it after approval / rejection
+        window.loadSidebarCounters = function() {
+            fetch("?OnInputProcessing=GET_COUNTERS&action=GET_COUNTERS", { method: "POST" })
+            .then(function(res) {
+                var ct = res.headers.get("content-type") || "";
+                if (ct.indexOf("application/json") !== -1) {
+                    return res.json();
+                }
+                return res.text().then(function(text) {
+                    try { return JSON.parse(text); } catch(e) { return null; }
+                });
+            })
+            .then(function(cnts) {
+                updateBadgeElements(cnts);
+            })
+            .catch(function(e) {
+                console.error("Sidebar counter fetch err:", e);
+            });
+        };
+
+        // 4. Run immediately and attach reactive triggers
+        window.loadSidebarCounters();
+
+        // Refresh when window regains focus (approver switches tabs)
+        window.addEventListener("focus", function() {
+            if (typeof window.loadSidebarCounters === "function") {
+                window.loadSidebarCounters();
+            }
+        });
+
+        // Periodic light background refresh (every 30s)
+        setInterval(function() {
+            if (typeof window.loadSidebarCounters === "function") {
+                window.loadSidebarCounters();
+            }
+        }, 30000);
+    })();
+</script>

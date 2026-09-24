@@ -1,3 +1,24 @@
+<%
+  DATA: lv_uname TYPE sy-uname,
+        lv_persnumber TYPE usr21-persnumber,
+        lv_name_first TYPE adrp-name_first,
+        lv_name_last TYPE adrp-name_last,
+        gv_user_fullname TYPE string.
+
+  lv_uname = sy-uname.
+  SELECT SINGLE persnumber FROM usr21 INTO lv_persnumber WHERE bname = lv_uname.
+  IF sy-subrc = 0 AND lv_persnumber IS NOT INITIAL.
+    SELECT SINGLE name_first name_last FROM adrp 
+      INTO (lv_name_first, lv_name_last) 
+      WHERE persnumber = lv_persnumber.
+    IF sy-subrc = 0.
+      CONCATENATE lv_name_first lv_name_last INTO gv_user_fullname SEPARATED BY space.
+    ENDIF.
+  ENDIF.
+  IF gv_user_fullname IS INITIAL.
+    gv_user_fullname = sy-uname.
+  ENDIF.
+%>
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -214,7 +235,8 @@
 
 <!-- TOP NAVIGATION BAR -->
 <header class="bg-white/70 backdrop-blur-xl h-14 border-b border-white/60 sticky top-0 z-50 px-6 lg:px-10 flex items-center justify-between shadow-xs">
-  <a href="http://kmiprd.kmi.com:8001/sap(bD1lbiZjPTMwMA==)/bc/bsp/sap/zmdg_request/landing_page.htm" class="flex items-center gap-3 no-underline group hover:opacity-90 transition">
+<a href="http://kmiprd.kmi.com:8001/sap(bD1lbiZjPTMwMA==)/bc/bsp/sap/zmdg_request/landing_page.htm" class="flex items-center gap-3 no-underline group
+    hover:opacity-90 transition">
     <img src="ENJOYSAP_LOGO.png" alt="EnjoySAP Logo" class="h-8 w-auto object-contain transition-transform group-hover:scale-105" onerror="this.style.display='none'">
     <div>
       <span class="font-extrabold text-sm text-slate-900 block leading-none">Business Partner Governance</span>
@@ -226,10 +248,11 @@
     <div class="flex items-center gap-2 bg-white/80 border border-slate-200/80 px-3 py-1 rounded-full shadow-2xs">
       <div class="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-[10px]" id="userAvatarInitial">?</div>
       <span class="text-xs font-bold text-slate-800" id="userNameLabel">
-        <%= sy-uname %>
+        <%= gv_user_fullname %>
       </span>
     </div>
-    <a href="?OnInputProcessing=LOGOUT" class="text-xs font-semibold text-slate-600 hover:text-emerald-700 px-3 py-1 rounded-full border border-slate-200/80 bg-white/50 hover:bg-white transition">Sign Out</a>
+<a href="?OnInputProcessing=LOGOUT" class="text-xs font-semibold text-slate-600 hover:text-emerald-700 px-3 py-1 rounded-full border border-slate-200/80
+      bg-white/50 hover:bg-white transition">Sign Out</a>
   </div>
 </header>
 
@@ -317,9 +340,13 @@
             Peran Business Partner (BP Role) <span class="text-error">*</span>
           </label>
           <div class="relative">
-            <select name="bp_role" id="bpRoleTypeSelect" onchange="document.getElementById('hidden_rltyp').value = this.value; if(typeof onBpRequestTypeChange === 'function') onBpRequestTypeChange(this.value, '');"
-                    class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 appearance-none transition-colors">
-              <option value="FLCU01" <%= COND string( WHEN wa_req-bp_role = 'FLCU01' OR wa_req-bp_role IS INITIAL THEN 'selected' ) %>>FLCU01 - SD Customer (Lengkap: Penjualan &amp; Keuangan)</option>
+<select name="bp_role" id="bpRoleTypeSelect" onchange="document.getElementById('hidden_rltyp').value = this.value; if(typeof onBpRequestTypeChange ===
+              'function') onBpRequestTypeChange(this.value, '');"
+                   
+class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none
+                     focus:border-primary focus:ring-2 focus:ring-primary/20 appearance-none transition-colors">
+<option value="FLCU01" <%= COND string( WHEN wa_req-bp_role = 'FLCU01' OR wa_req-bp_role IS INITIAL THEN 'selected' ) %>>FLCU01 - SD Customer (Lengkap:
+                Penjualan &amp; Keuangan)</option>
               <option value="FLCU00" <%= COND string( WHEN wa_req-bp_role = 'FLCU00' THEN 'selected' ) %>>FLCU00 - FI Customer (Keuangan Saja)</option>
             </select>
             <span class="material-symbols-outlined absolute right-3 top-3 pointer-events-none text-outline text-[20px]">expand_more</span>
@@ -333,7 +360,9 @@
           </label>
           <div class="relative">
             <select name="bp_grouping" id="bpGroupingSelect" onchange="document.getElementById('hidden_bu_group').value = this.value;"
-                    class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 appearance-none transition-colors">
+                   
+class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none
+                     focus:border-primary focus:ring-2 focus:ring-primary/20 appearance-none transition-colors">
               <!-- Dynamically populated via JS on load / change -->
             </select>
             <span class="material-symbols-outlined absolute right-3 top-3 pointer-events-none text-outline text-[20px]">expand_more</span>
@@ -359,59 +388,77 @@
       <nav class="flex space-x-1 overflow-x-auto no-scrollbar items-end" id="bpTabBar" role="tablist">
         <!-- 1. Address -->
         <button type="button" onclick="switchBpTab('address', this);" id="tabBtn_address"
-                class="bp-tab-btn active px-4 py-2 text-xs font-bold rounded-t-md flex items-center gap-1.5 transition-all whitespace-nowrap bg-emerald-700 text-white shadow-sm border-t border-l border-r border-emerald-700">
+               
+class="bp-tab-btn active px-4 py-2 text-xs font-bold rounded-t-md flex items-center gap-1.5 transition-all whitespace-nowrap bg-emerald-700 text-white shadow-sm
+                     border-t border-l border-r border-emerald-700">
           <span class="w-2.5 h-2.5 rounded-full bg-red-400 inline-block ring-2 ring-red-200" title="Mandatory fields"></span>
           <span>Alamat &amp; Data Umum</span>
         </button>
 
         <!-- 2. Address Overview -->
         <button type="button" onclick="switchBpTab('address_overview', this);" id="tabBtn_address_overview"
-                class="bp-tab-btn px-3.5 py-2 text-xs font-semibold rounded-t-md flex items-center gap-1.5 transition-all whitespace-nowrap text-slate-700 hover:bg-slate-200/60 border-t border-l border-r border-transparent">
+               
+class="bp-tab-btn px-3.5 py-2 text-xs font-semibold rounded-t-md flex items-center gap-1.5 transition-all whitespace-nowrap text-slate-700 hover:bg-slate-200/60
+                     border-t border-l border-r border-transparent">
           <span>Ringkasan Alamat</span>
         </button>
 
         <!-- 3. Identification -->
         <button type="button" onclick="switchBpTab('identification', this);" id="tabBtn_identification"
-                class="bp-tab-btn px-3.5 py-2 text-xs font-semibold rounded-t-md flex items-center gap-1.5 transition-all whitespace-nowrap text-slate-700 hover:bg-slate-200/60 border-t border-l border-r border-transparent">
+               
+class="bp-tab-btn px-3.5 py-2 text-xs font-semibold rounded-t-md flex items-center gap-1.5 transition-all whitespace-nowrap text-slate-700 hover:bg-slate-200/60
+                     border-t border-l border-r border-transparent">
           <span>Identitas</span>
           <span id="badgeIdCount" class="ml-1 px-1.5 py-0.2 text-[10px] font-bold rounded-full bg-slate-200 text-slate-700">0</span>
         </button>
 
         <!-- 4. Control -->
         <button type="button" onclick="switchBpTab('control', this);" id="tabBtn_control"
-                class="bp-tab-btn px-3.5 py-2 text-xs font-semibold rounded-t-md flex items-center gap-1.5 transition-all whitespace-nowrap text-slate-700 hover:bg-slate-200/60 border-t border-l border-r border-transparent">
+               
+class="bp-tab-btn px-3.5 py-2 text-xs font-semibold rounded-t-md flex items-center gap-1.5 transition-all whitespace-nowrap text-slate-700 hover:bg-slate-200/60
+                     border-t border-l border-r border-transparent">
           <span>Kontrol</span>
         </button>
 
         <!-- 5. Payment Transactions -->
         <button type="button" onclick="switchBpTab('payment', this);" id="tabBtn_payment"
-                class="bp-tab-btn px-3.5 py-2 text-xs font-semibold rounded-t-md flex items-center gap-1.5 transition-all whitespace-nowrap text-slate-700 hover:bg-slate-200/60 border-t border-l border-r border-transparent">
+               
+class="bp-tab-btn px-3.5 py-2 text-xs font-semibold rounded-t-md flex items-center gap-1.5 transition-all whitespace-nowrap text-slate-700 hover:bg-slate-200/60
+                     border-t border-l border-r border-transparent">
           <span>Transaksi Pembayaran</span>
           <span id="badgeBankCount" class="ml-1 px-1.5 py-0.2 text-[10px] font-bold rounded-full bg-slate-200 text-slate-700">1</span>
         </button>
 
         <!-- 6. Status -->
         <button type="button" onclick="switchBpTab('status', this);" id="tabBtn_status"
-                class="bp-tab-btn px-3.5 py-2 text-xs font-semibold rounded-t-md flex items-center gap-1.5 transition-all whitespace-nowrap text-slate-700 hover:bg-slate-200/60 border-t border-l border-r border-transparent">
+               
+class="bp-tab-btn px-3.5 py-2 text-xs font-semibold rounded-t-md flex items-center gap-1.5 transition-all whitespace-nowrap text-slate-700 hover:bg-slate-200/60
+                     border-t border-l border-r border-transparent">
           <span>Status</span>
         </button>
 
         <!-- 7. Additional Texts -->
         <button type="button" onclick="switchBpTab('texts', this);" id="tabBtn_texts"
-                class="bp-tab-btn px-3.5 py-2 text-xs font-semibold rounded-t-md flex items-center gap-1.5 transition-all whitespace-nowrap text-slate-700 hover:bg-slate-200/60 border-t border-l border-r border-transparent">
+               
+class="bp-tab-btn px-3.5 py-2 text-xs font-semibold rounded-t-md flex items-center gap-1.5 transition-all whitespace-nowrap text-slate-700 hover:bg-slate-200/60
+                     border-t border-l border-r border-transparent">
           <span>Catatan Tambahan</span>
           <span id="badgeTextsCount" class="ml-1 px-1.5 py-0.2 text-[10px] font-bold rounded-full bg-slate-200 text-slate-700">0</span>
         </button>
 
         <!-- 8. Technical ID / Company Code -->
         <button type="button" onclick="switchBpTab('company', this);" id="tabBtn_company"
-                class="bp-tab-btn px-3.5 py-2 text-xs font-semibold rounded-t-md flex items-center gap-1.5 transition-all whitespace-nowrap text-slate-700 hover:bg-slate-200/60 border-t border-l border-r border-transparent">
+               
+class="bp-tab-btn px-3.5 py-2 text-xs font-semibold rounded-t-md flex items-center gap-1.5 transition-all whitespace-nowrap text-slate-700 hover:bg-slate-200/60
+                     border-t border-l border-r border-transparent">
           <span>Kode Perusahaan</span>
         </button>
 
         <!-- 9. Purchasing View -->
         <button type="button" onclick="switchBpTab('purchasing', this);" id="tabBtn_purchasing"
-                class="bp-tab-btn px-3.5 py-2 text-xs font-semibold rounded-t-md flex items-center gap-1.5 transition-all whitespace-nowrap text-slate-700 hover:bg-slate-200/60 border-t border-l border-r border-transparent">
+               
+class="bp-tab-btn px-3.5 py-2 text-xs font-semibold rounded-t-md flex items-center gap-1.5 transition-all whitespace-nowrap text-slate-700 hover:bg-slate-200/60
+                     border-t border-l border-r border-transparent">
           <span class="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block ring-2 ring-amber-200" title="Purchasing Data"></span>
           <span>Data Pembelian</span>
         </button>
@@ -441,7 +488,9 @@
             </label>
             <div class="relative">
               <select name="title_key" id="titleKeySelect"
-                      class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 appearance-none">
+                     
+class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none
+                     focus:border-primary focus:ring-2 focus:ring-primary/20 appearance-none">
                 <option value="0003" selected>0003 - Company</option>
                 <option value="3000">3000 - Organization</option>
                 <option value="0001">0001 - Ms.</option>
@@ -455,14 +504,18 @@
               Nama Badan Usaha <span class="text-error">*</span>
             </label>
             <input type="text" name="name1" maxlength="40" value="<%= wa_req-name1 %>" placeholder="Contoh: PT KAYU MEBEL INDONESIA"
-                   class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                  
+class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none
+                     focus:border-primary focus:ring-2 focus:ring-primary/20">
           </div>
           <div class="md:col-span-4 space-y-1.5">
             <label class="block text-label-md font-label-md text-on-surface-variant font-medium">
               Nama Tambahan
             </label>
             <input type="text" name="name2" maxlength="40" value="<%= wa_req-name2 %>" placeholder="Contoh: Divisi Logistik Kayu"
-                   class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                  
+class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none
+                     focus:border-primary focus:ring-2 focus:ring-primary/20">
           </div>
         </div>
       </div>
@@ -475,7 +528,9 @@
             Search Term <span class="text-error">*</span>
           </label>
           <input type="text" name="search_term" maxlength="20" value="<%= wa_req-search_term %>" placeholder="CONTOH: KAYUMEBE"
-                 class="w-full h-11 px-space-md text-body-md font-code-sm uppercase bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                
+class="w-full h-11 px-space-md text-body-md font-code-sm uppercase bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface
+                     focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
         </div>
       </div>
 
@@ -488,28 +543,39 @@
               Alamat <span class="text-error">*</span>
             </label>
             <input type="text" name="street" maxlength="60" value="<%= wa_req-street %>" placeholder="Contoh: Jl. Industri Kayu No. 88"
-                   class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                  
+class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none
+                     focus:border-primary focus:ring-2 focus:ring-primary/20">
           </div>
           <div class="md:col-span-3 space-y-1.5">
             <label class="block text-label-md font-label-md text-on-surface-variant font-medium">
               Nomor Bangunan
             </label>
             <input type="text" name="house_num" maxlength="10" value="<%= wa_req-house_num %>" placeholder="Contoh: Blok B-2"
-                   class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                  
+class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none
+                     focus:border-primary focus:ring-2 focus:ring-primary/20">
           </div>
           <div class="md:col-span-3 space-y-1.5">
             <label class="block text-label-md font-label-md text-on-surface-variant font-medium">
               Kode Pos <span class="text-error">*</span>
             </label>
-            <input type="text" name="postal_code" maxlength="10" value="<%= COND string( WHEN wa_req-postal_code IS NOT INITIAL THEN wa_req-postal_code ELSE '61292' ) %>" placeholder="Contoh: 61292"
-                   class="w-full h-11 px-space-md text-body-md font-code-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+<input type="text" name="postal_code" maxlength="10" value="<%= COND string( WHEN wa_req-postal_code IS NOT INITIAL THEN wa_req-postal_code ELSE '61292' ) %>"
+              placeholder="Contoh: 61292"
+                  
+class="w-full h-11 px-space-md text-body-md font-code-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none
+                     focus:border-primary focus:ring-2 focus:ring-primary/20">
           </div>
           <div class="md:col-span-3 space-y-1.5">
             <label class="block text-label-md font-label-md text-on-surface-variant font-medium">
               Kota <span class="text-error">*</span>
             </label>
-            <input type="text" name="city" maxlength="40" value="<%= COND string( WHEN wa_req-city IS NOT INITIAL THEN wa_req-city ELSE 'JAKARTA' ) %>" placeholder="Contoh: JAKARTA"
-                   class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+<input type="text" name="city" maxlength="40" value="<%= COND string( WHEN wa_req-city IS NOT INITIAL THEN wa_req-city ELSE 'JAKARTA' ) %>" placeholder="Contoh:
+              JAKARTA"
+                   oninput="autoSelectRegionByCity(this.value)" onchange="autoSelectRegionByCity(this.value)"
+                  
+class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none
+                     focus:border-primary focus:ring-2 focus:ring-primary/20">
           </div>
           <div class="md:col-span-3 space-y-1.5">
             <label class="block text-label-md font-label-md text-on-surface-variant font-medium">
@@ -517,7 +583,9 @@
             </label>
             <div class="relative">
               <select id="countrySelect" name="country" onchange="onCountryChange()"
-                      class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 appearance-none">
+                     
+class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none
+                     focus:border-primary focus:ring-2 focus:ring-primary/20 appearance-none">
                 <% DATA: ls_cntry_opt TYPE ty_dropdown. %>
                 <% LOOP AT gt_countries INTO ls_cntry_opt. %>
                   <option value="<%= ls_cntry_opt-land1 %>"
@@ -538,7 +606,9 @@
             </label>
             <div class="relative">
               <select id="regionSelect" name="region"
-                      class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 appearance-none">
+                     
+class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none
+                     focus:border-primary focus:ring-2 focus:ring-primary/20 appearance-none">
                 <option value="">-- Memuat Wilayah --</option>
               </select>
               <span class="material-symbols-outlined absolute right-3 top-3 pointer-events-none text-outline text-[20px]">expand_more</span>
@@ -558,7 +628,9 @@
             </label>
             <div class="relative">
               <select name="langu" id="languSelect"
-                      class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 appearance-none">
+                     
+class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none
+                     focus:border-primary focus:ring-2 focus:ring-primary/20 appearance-none">
                 <% DATA: ls_lang_opt TYPE ty_language,
                          lv_user_iso TYPE laiso.
                     CALL FUNCTION 'CONVERSION_EXIT_ISOLA_OUTPUT'
@@ -588,7 +660,9 @@
             <div class="relative">
               <span class="material-symbols-outlined absolute left-3 top-3 text-outline text-[18px]">call</span>
               <input type="text" name="telephone" maxlength="30" value="<%= wa_req-telephone %>" placeholder="Contoh: +62 31 8912345"
-                     class="w-full h-11 pl-9 pr-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                    
+class="w-full h-11 pl-9 pr-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface
+                     focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
             </div>
           </div>
 
@@ -600,7 +674,9 @@
             <div class="relative">
               <span class="material-symbols-outlined absolute left-3 top-3 text-outline text-[18px]">print</span>
               <input type="text" name="fax" maxlength="30" placeholder="Contoh: +62 31 8912346"
-                     class="w-full h-11 pl-9 pr-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                    
+class="w-full h-11 pl-9 pr-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface
+                     focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
             </div>
           </div>
 
@@ -612,7 +688,9 @@
             <div class="relative">
               <span class="material-symbols-outlined absolute left-3 top-3 text-outline text-[18px]">mail</span>
               <input type="email" name="email" maxlength="241" value="<%= wa_req-email %>" placeholder="Contoh: procurement@kayumebel.co.id"
-                     class="w-full h-11 pl-9 pr-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                    
+class="w-full h-11 pl-9 pr-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface
+                     focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
             </div>
           </div>
         </div>
@@ -622,7 +700,8 @@
       <!-- Navigation Shortcut ke Purchasing View -->
       <div class="pt-3 border-t border-outline-variant/60 flex items-center justify-end">
         <button type="button" onclick="switchBpTab('purchasing', document.getElementById('tabBtn_purchasing'));"
-                class="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold rounded-xl border border-emerald-200 flex items-center gap-2 text-xs transition-colors shadow-2xs cursor-pointer">
+class="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold rounded-xl border border-emerald-200 flex items-center gap-2 text-xs
+                  transition-colors shadow-2xs cursor-pointer">
           <span>Lanjut ke Data Pembelian</span>
           <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
         </button>
@@ -705,7 +784,9 @@
               Jenis Pajak <span class="text-error">*</span>
             </label>
             <div class="relative">
-              <select name="tax_type" class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 appearance-none">
+              <select name="tax_type"
+class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none
+                     focus:border-primary focus:ring-2 focus:ring-primary/20 appearance-none">
                 <option value="ID1" <%= COND string( WHEN wa_req-tax_type = 'ID1' OR wa_req-tax_type IS INITIAL THEN 'selected' ) %>>Indonesia NPWP (Badan Usaha)</option>
                 <option value="ID2" <%= COND string( WHEN wa_req-tax_type = 'ID2' THEN 'selected' ) %>>Indonesia NIK (Perorangan)</option>
                 <option value="SG1" <%= COND string( WHEN wa_req-tax_type = 'SG1' THEN 'selected' ) %>>Singapore GST / UEN</option>
@@ -722,7 +803,9 @@
               Nomor Pajak / NPWP <span class="text-error">*</span>
             </label>
             <input type="text" name="tax_num" maxlength="30" value="<%= wa_req-tax_num %>" placeholder="Contoh: 01.234.567.8-901.000"
-                   class="w-full h-11 px-space-md text-body-md font-code-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                  
+class="w-full h-11 px-space-md text-body-md font-code-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none
+                     focus:border-primary focus:ring-2 focus:ring-primary/20">
           </div>
         </div>
       </div>
@@ -740,7 +823,8 @@
             </div>
           </div>
           <button type="button" onclick="addIdNumberRow();"
-                  class="px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg font-semibold text-xs flex items-center gap-1.5 transition-colors self-start sm:self-auto shadow-sm">
+class="px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg font-semibold text-xs flex items-center gap-1.5 transition-colors self-start
+                    sm:self-auto shadow-sm">
             <span class="material-symbols-outlined text-[16px]">add_circle</span>
             + Tambah Dokumen
           </button>
@@ -752,7 +836,9 @@
             Nomor Referensi Eksternal
           </label>
           <input type="text" name="external_bp_num" maxlength="20" placeholder="Contoh: EXT-99201"
-                 class="w-full h-11 px-space-md text-body-md font-code-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                
+class="w-full h-11 px-space-md text-body-md font-code-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none
+                     focus:border-primary focus:ring-2 focus:ring-primary/20">
           <span class="text-[11px] text-outline font-body-sm block">Nomor referensi sistem eksternal.</span>
         </div>
 
@@ -792,7 +878,9 @@
           <div class="space-y-1.5">
             <label class="block text-label-md font-label-md text-on-surface-variant font-medium">Bentuk Hukum</label>
             <div class="relative">
-              <select name="legal_form" class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 appearance-none">
+              <select name="legal_form"
+class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none
+                     focus:border-primary focus:ring-2 focus:ring-primary/20 appearance-none">
                 <option value="01" selected>PT (Perseroan Terbatas)</option>
                 <option value="02">CV (Commanditaire Vennootschap)</option>
                 <option value="03">Firma (Fa)</option>
@@ -810,42 +898,54 @@
           <div class="space-y-1.5">
             <label class="block text-label-md font-label-md text-on-surface-variant font-medium">Tipe Entitas</label>
             <input type="text" name="legal_entity" maxlength="10" placeholder="Contoh: ENT-01"
-                   class="w-full h-11 px-space-md text-body-md font-code-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                  
+class="w-full h-11 px-space-md text-body-md font-code-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none
+                     focus:border-primary focus:ring-2 focus:ring-primary/20">
           </div>
 
           <!-- Date Founded -->
           <div class="space-y-1.5">
             <label class="block text-label-md font-label-md text-on-surface-variant font-medium">Tanggal Berdiri</label>
             <input type="date" name="date_founded"
-                   class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                  
+class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none
+                     focus:border-primary focus:ring-2 focus:ring-primary/20">
           </div>
 
           <!-- Liquidation Date -->
           <div class="space-y-1.5">
             <label class="block text-label-md font-label-md text-on-surface-variant font-medium">Tanggal Likuidasi</label>
             <input type="date" name="liquidation_date"
-                   class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                  
+class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none
+                     focus:border-primary focus:ring-2 focus:ring-primary/20">
           </div>
 
           <!-- Int. Location No. 1 -->
           <div class="space-y-1.5">
             <label class="block text-label-md font-label-md text-on-surface-variant font-medium">Lokasi Internasional 1</label>
             <input type="text" name="loc_no_1" maxlength="7" placeholder="Maks 7 digit"
-                   class="w-full h-11 px-space-md text-body-md font-code-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                  
+class="w-full h-11 px-space-md text-body-md font-code-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none
+                     focus:border-primary focus:ring-2 focus:ring-primary/20">
           </div>
 
           <!-- Int. Location No. 2 -->
           <div class="space-y-1.5">
             <label class="block text-label-md font-label-md text-on-surface-variant font-medium">Lokasi Internasional 2</label>
             <input type="text" name="loc_no_2" maxlength="5" placeholder="Maks 5 digit"
-                   class="w-full h-11 px-space-md text-body-md font-code-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                  
+class="w-full h-11 px-space-md text-body-md font-code-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none
+                     focus:border-primary focus:ring-2 focus:ring-primary/20">
           </div>
 
           <!-- Check Digit -->
           <div class="space-y-1.5">
             <label class="block text-label-md font-label-md text-on-surface-variant font-medium">Digit Pemeriksa</label>
             <input type="text" name="check_digit" maxlength="1" placeholder="1 digit"
-                   class="w-full h-11 px-space-md text-body-md font-code-sm text-center bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                  
+class="w-full h-11 px-space-md text-body-md font-code-sm text-center bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface
+                     focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
           </div>
         </div>
       </div>
@@ -871,21 +971,27 @@
           <div class="space-y-1.5">
             <label class="block text-label-md font-label-md text-on-surface-variant font-medium">Mitra Dagang</label>
             <input type="text" name="vbund" maxlength="6" placeholder="Contoh: 001000"
-                   class="w-full h-11 px-space-md text-body-md font-code-sm uppercase bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                  
+class="w-full h-11 px-space-md text-body-md font-code-sm uppercase bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface
+                     focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
             <span class="text-[11px] text-outline font-body-sm block">Kode rekanan mitra dagang.</span>
           </div>
 
           <div class="space-y-1.5">
             <label class="block text-label-md font-label-md text-on-surface-variant font-medium">Grup Otorisasi</label>
             <input type="text" name="begru" maxlength="4" placeholder="Contoh: 0001"
-                   class="w-full h-11 px-space-md text-body-md font-code-sm uppercase bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                  
+class="w-full h-11 px-space-md text-body-md font-code-sm uppercase bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface
+                     focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
             <span class="text-[11px] text-outline font-body-sm block">Pembatasan akses grup otorisasi.</span>
           </div>
 
           <div class="space-y-1.5">
             <label class="block text-label-md font-label-md text-on-surface-variant font-medium">Tipe Business Partner</label>
             <input type="text" name="bp_type" maxlength="4" placeholder="Contoh: VEND"
-                   class="w-full h-11 px-space-md text-body-md font-code-sm uppercase bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                  
+class="w-full h-11 px-space-md text-body-md font-code-sm uppercase bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface
+                     focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
             <span class="text-[11px] text-outline font-body-sm block">Klasifikasi tipe bisnis partner.</span>
           </div>
         </div>
@@ -893,7 +999,8 @@
 
       <!-- 4B. Data Origin (Auto-Populated by System) -->
       <input type="hidden" name="origin_source" value="MDG_PORTAL">
-      <input type="hidden" name="origin_ref_key" id="hidden_origin_ref_key" value="<%= COND string( WHEN wa_req-origin_ref_key IS NOT INITIAL THEN wa_req-origin_ref_key ELSE '' ) %>">
+<input type="hidden" name="origin_ref_key" id="hidden_origin_ref_key" value="<%= COND string( WHEN wa_req-origin_ref_key IS NOT INITIAL THEN
+        wa_req-origin_ref_key ELSE '' ) %>">
 
       <!-- 4C. Notes -->
       <div class="p-space-md rounded-xl border border-outline-variant/70 bg-surface-container-lowest shadow-sm space-y-space-md">
@@ -909,7 +1016,9 @@
 
         <div class="space-y-1.5">
           <textarea name="internal_notes" rows="4" placeholder="Tuliskan catatan internal, justifikasi pengajuan, atau instruksi khusus di sini..."
-                    class="w-full p-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"></textarea>
+                   
+class="w-full p-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none
+                     focus:border-primary focus:ring-2 focus:ring-primary/20"></textarea>
         </div>
       </div>
     </div>
@@ -961,23 +1070,27 @@
           <div class="flex items-center gap-1.5 flex-wrap">
             <!-- Bank Data... Button -->
             <button type="button" onclick="openBankDataModal();"
-                    class="px-3 py-1.5 bg-surface-container-lowest hover:bg-surface-container border border-outline-variant rounded text-on-surface font-medium flex items-center gap-1.5 shadow-sm transition-all">
+class="px-3 py-1.5 bg-surface-container-lowest hover:bg-surface-container border border-outline-variant rounded text-on-surface font-medium flex items-center
+                      gap-1.5 shadow-sm transition-all">
               <span class="material-symbols-outlined text-[16px] text-primary">credit_card</span>
               <span>Bank Data...</span>
             </button>
             <!-- Validity Button -->
             <button type="button" onclick="alert('Validity Bank Details: Rekening berlaku penuh tanpa batas waktu.');"
-                    class="px-3 py-1.5 bg-surface-container-lowest hover:bg-surface-container border border-outline-variant rounded text-on-surface font-medium shadow-sm transition-all">
+class="px-3 py-1.5 bg-surface-container-lowest hover:bg-surface-container border border-outline-variant rounded text-on-surface font-medium shadow-sm
+                      transition-all">
               <span>Validity</span>
             </button>
             <!-- Change / Edit Button -->
             <button type="button" onclick="openBankDataModal();"
-                    class="px-3 py-1.5 bg-surface-container-lowest hover:bg-surface-container border border-outline-variant rounded text-on-surface font-medium shadow-sm transition-all">
+class="px-3 py-1.5 bg-surface-container-lowest hover:bg-surface-container border border-outline-variant rounded text-on-surface font-medium shadow-sm
+                      transition-all">
               <span>Change</span>
             </button>
             <!-- + Add Bank Button -->
             <button type="button" onclick="addBankRow();"
-                    class="px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 rounded font-semibold flex items-center gap-1 shadow-sm transition-all ml-1">
+class="px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 rounded font-semibold flex items-center gap-1 shadow-sm
+                      transition-all ml-1">
               <span class="material-symbols-outlined text-[15px]">add_circle</span>
               <span>+ Add Bank</span>
             </button>
@@ -1029,7 +1142,8 @@
         <div class="bg-[#f8fafb] px-4 py-2 border-t border-outline-variant/70 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
           <div class="flex items-center gap-1.5 flex-wrap">
             <button type="button" onclick="addPaymentCardRow();"
-                    class="px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 rounded font-semibold flex items-center gap-1 shadow-sm transition-all">
+class="px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 rounded font-semibold flex items-center gap-1 shadow-sm
+                      transition-all">
               <span class="material-symbols-outlined text-[15px]">add_circle</span>
               <span>+ Add Card</span>
             </button>
@@ -1135,7 +1249,8 @@
             </div>
           </div>
           <button type="button" onclick="addAdditionalTextRow();"
-                  class="px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg font-semibold text-xs flex items-center gap-1.5 transition-colors self-start sm:self-auto shadow-sm">
+class="px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg font-semibold text-xs flex items-center gap-1.5 transition-colors self-start
+                    sm:self-auto shadow-sm">
             <span class="material-symbols-outlined text-[16px]">add_circle</span>
             + Add Text
           </button>
@@ -1168,21 +1283,27 @@
               Kode Perusahaan <span class="text-error">*</span>
             </label>
             <input type="text" name="bukrs" maxlength="4" value="<%= COND string( WHEN wa_req-bukrs IS NOT INITIAL THEN wa_req-bukrs ELSE '1000' ) %>"
-                   class="w-full h-11 px-space-md text-body-md font-code-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                  
+class="w-full h-11 px-space-md text-body-md font-code-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none
+                     focus:border-primary focus:ring-2 focus:ring-primary/20">
           </div>
           <div class="space-y-1.5">
             <label class="block text-label-md font-label-md text-on-surface-variant font-medium">
               Akun Rekonsiliasi <span class="text-error">*</span>
             </label>
             <input type="text" name="akont" maxlength="10" value="<%= wa_req-akont %>" placeholder="Contoh: 21100000"
-                   class="w-full h-11 px-space-md text-body-md font-code-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                  
+class="w-full h-11 px-space-md text-body-md font-code-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none
+                     focus:border-primary focus:ring-2 focus:ring-primary/20">
           </div>
           <div class="space-y-1.5">
             <label class="block text-label-md font-label-md text-on-surface-variant font-medium">
               Termin Pembayaran
             </label>
             <div class="relative">
-              <select name="zterm" class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 appearance-none">
+              <select name="zterm"
+class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none
+                     focus:border-primary focus:ring-2 focus:ring-primary/20 appearance-none">
                 <option value="NT30" <%= COND string( WHEN wa_req-zterm = 'NT30' OR wa_req-zterm IS INITIAL THEN 'selected' ) %>>NT30 - Net 30 Days</option>
                 <option value="NT14" <%= COND string( WHEN wa_req-zterm = 'NT14' THEN 'selected' ) %>>NT14 - Net 14 Days</option>
                 <option value="NT60" <%= COND string( WHEN wa_req-zterm = 'NT60' THEN 'selected' ) %>>NT60 - Net 60 Days</option>
@@ -1197,7 +1318,9 @@
               Mata Uang
             </label>
             <input type="text" name="company_waers" maxlength="5" value="<%= COND string( WHEN wa_req-waers IS NOT INITIAL THEN wa_req-waers ELSE 'IDR' ) %>"
-                   class="w-full h-11 px-space-md text-body-md font-code-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                  
+class="w-full h-11 px-space-md text-body-md font-code-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none
+                     focus:border-primary focus:ring-2 focus:ring-primary/20">
           </div>
         </div>
       </div>
@@ -1231,7 +1354,9 @@
             </label>
             <input type="text" name="ekorg" id="ekorgInput" maxlength="4" placeholder="Contoh: 1000"
                    value="<%= COND string( WHEN wa_req-ekorg IS NOT INITIAL THEN wa_req-ekorg ELSE '1000' ) %>"
-                   class="w-full h-11 px-space-md text-body-md font-code-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 uppercase">
+                  
+class="w-full h-11 px-space-md text-body-md font-code-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none
+                     focus:border-primary focus:ring-2 focus:ring-primary/20 uppercase">
             <span class="text-[11px] text-outline font-body-sm block">Unit pengadaan barang/jasa.</span>
           </div>
 
@@ -1242,7 +1367,9 @@
             </label>
             <input type="text" name="waers" id="waersInput" maxlength="5" placeholder="Contoh: IDR"
                    value="<%= COND string( WHEN wa_req-waers IS NOT INITIAL THEN wa_req-waers ELSE 'IDR' ) %>"
-                   class="w-full h-11 px-space-md text-body-md font-code-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 uppercase">
+                  
+class="w-full h-11 px-space-md text-body-md font-code-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none
+                     focus:border-primary focus:ring-2 focus:ring-primary/20 uppercase">
             <span class="text-[11px] text-outline font-body-sm block">Mata uang transaksi pembelian.</span>
           </div>
         </div>
@@ -1252,7 +1379,8 @@
           <div class="text-label-lg font-label-lg text-primary font-bold tracking-wide mb-3">Kontrol Verifikasi Faktur</div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <!-- GR-Based Inv. Verif. (WEBRE) -->
-            <label class="flex items-start gap-3 p-3.5 bg-surface-container-lowest border border-outline-variant rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer">
+<label class="flex items-start gap-3 p-3.5 bg-surface-container-lowest border border-outline-variant rounded-lg hover:bg-surface-container-low transition-colors
+              cursor-pointer">
               <input type="checkbox" name="webre" value="X" class="mt-1 h-4 w-4 text-primary rounded border-outline focus:ring-primary"
                      <%= COND string( WHEN wa_req-webre = 'X' OR wa_req-webre IS INITIAL THEN 'checked' ) %>>
               <div>
@@ -1262,7 +1390,8 @@
             </label>
 
             <!-- Srv.-Based Inv. Ver. (LEBRE) -->
-            <label class="flex items-start gap-3 p-3.5 bg-surface-container-lowest border border-outline-variant rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer">
+<label class="flex items-start gap-3 p-3.5 bg-surface-container-lowest border border-outline-variant rounded-lg hover:bg-surface-container-low transition-colors
+              cursor-pointer">
               <input type="checkbox" name="lebre" value="X" class="mt-1 h-4 w-4 text-primary rounded border-outline focus:ring-primary"
                      <%= COND string( WHEN wa_req-lebre = 'X' OR wa_req-lebre IS INITIAL THEN 'checked' ) %>>
               <div>
@@ -1289,17 +1418,21 @@
       <!-- Right Action Cluster -->
       <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto justify-end">
         <button type="button" onclick="submitAction('CHECK');"
-                class="px-4 py-2.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-2 cursor-pointer">
+class="px-4 py-2.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 font-bold text-xs rounded-xl shadow-xs transition-all flex items-center
+                  gap-2 cursor-pointer">
           <span class="material-symbols-outlined text-[18px] text-emerald-600">check_circle</span>
           Validasi Data
         </button>
         <button type="button" onclick="submitAction('SAVE_DRAFT');"
-                class="px-4 py-2.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-2 cursor-pointer">
+class="px-4 py-2.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 font-bold text-xs rounded-xl shadow-xs transition-all flex items-center
+                  gap-2 cursor-pointer">
           <span class="material-symbols-outlined text-[18px] text-emerald-600">bookmark</span>
           Simpan Draft
         </button>
         <button type="button" onclick="submitAction('SUBMIT');"
-                class="px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-black text-xs rounded-xl shadow-sm hover:shadow transition-all flex items-center gap-2 cursor-pointer">
+               
+class="px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-black text-xs rounded-xl
+                     shadow-sm hover:shadow transition-all flex items-center gap-2 cursor-pointer">
           <span class="material-symbols-outlined text-[18px]">send</span>
           Submit Permohonan
         </button>
@@ -1311,7 +1444,8 @@
   <!-- MODAL POPUP: FIND BANK (MINIMALIST SAP BNKA SEARCH HELP)            -->
   <!-- =================================================================== -->
   <div id="findBankModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 hidden">
-    <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant/80 shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+<div class="bg-surface-container-lowest rounded-2xl border border-outline-variant/80 shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden
+      animate-in fade-in zoom-in-95 duration-150">
       
       <!-- Modal Header (Minimalist & Modern Fiori Horizon MDG) -->
       <div class="px-5 py-3.5 border-b border-outline-variant/60 flex items-center justify-between bg-surface-container-lowest">
@@ -1348,7 +1482,9 @@
               <input type="text" id="fb_banks" maxlength="3" value="ID"
                      placeholder="ID"
                      onkeydown="if(event.key==='Enter'){event.preventDefault();executeBankSearch();}"
-                     class="w-full h-9 px-3 bg-surface-container-lowest border border-outline-variant rounded-lg uppercase font-code-sm text-xs font-semibold focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all">
+                    
+class="w-full h-9 px-3 bg-surface-container-lowest border border-outline-variant rounded-lg uppercase font-code-sm text-xs font-semibold focus:border-primary
+                     focus:ring-1 focus:ring-primary outline-none transition-all">
             </div>
 
             <!-- Bank Key -->
@@ -1359,7 +1495,9 @@
               <input type="text" id="fb_bankk" maxlength="15"
                      placeholder="e.g. 014, BCA..."
                      onkeydown="if(event.key==='Enter'){event.preventDefault();executeBankSearch();}"
-                     class="w-full h-9 px-3 bg-surface-container-lowest border border-outline-variant rounded-lg uppercase font-code-sm text-xs focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all">
+                    
+class="w-full h-9 px-3 bg-surface-container-lowest border border-outline-variant rounded-lg uppercase font-code-sm text-xs focus:border-primary focus:ring-1
+                     focus:ring-primary outline-none transition-all">
             </div>
 
             <!-- Bank Name -->
@@ -1370,14 +1508,17 @@
               <input type="text" id="fb_banka" maxlength="60"
                      placeholder="e.g. BCA, MANDIRI, BRI..."
                      onkeydown="if(event.key==='Enter'){event.preventDefault();executeBankSearch();}"
-                     class="w-full h-9 px-3 bg-surface-container-lowest border border-outline-variant rounded-lg text-xs focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all">
+class="w-full h-9 px-3 bg-surface-container-lowest border border-outline-variant rounded-lg text-xs focus:border-primary focus:ring-1 focus:ring-primary
+                       outline-none transition-all">
             </div>
           </div>
 
           <!-- Filter Action Buttons -->
           <div class="flex items-center justify-end gap-2 pt-1 border-t border-outline-variant/30">
             <button type="button" onclick="clearBankSearchFields();"
-                    class="px-3 py-1.5 bg-surface-container-lowest hover:bg-surface-container border border-outline-variant rounded-lg text-on-surface-variant text-xs font-medium flex items-center gap-1.5 transition-all"
+                   
+class="px-3 py-1.5 bg-surface-container-lowest hover:bg-surface-container border border-outline-variant rounded-lg text-on-surface-variant text-xs font-medium
+                     flex items-center gap-1.5 transition-all"
                     title="Reset Filter Pencarian">
               <span class="material-symbols-outlined text-[15px]">restart_alt</span>
               <span>Reset</span>
@@ -1436,11 +1577,13 @@
             </div>
             <div class="flex items-center gap-2 shrink-0">
               <button type="button" onclick="closeFindBankModal();"
-                      class="px-3.5 py-1.5 bg-surface-container-lowest hover:bg-surface-container border border-outline-variant rounded-lg text-on-surface-variant text-xs font-medium transition-all">
+class="px-3.5 py-1.5 bg-surface-container-lowest hover:bg-surface-container border border-outline-variant rounded-lg text-on-surface-variant text-xs font-medium
+                        transition-all">
                 Batal
               </button>
               <button type="button" id="btnFbSelectConfirm" onclick="confirmBankSelection();" disabled
-                      class="px-4 py-1.5 bg-primary hover:bg-primary-container text-white font-bold rounded-lg flex items-center gap-1.5 text-xs shadow-xs disabled:opacity-40 disabled:cursor-not-allowed transition-all">
+class="px-4 py-1.5 bg-primary hover:bg-primary-container text-white font-bold rounded-lg flex items-center gap-1.5 text-xs shadow-xs disabled:opacity-40
+                        disabled:cursor-not-allowed transition-all">
                 <span class="material-symbols-outlined text-[16px]">check_circle</span>
                 <span>Select</span>
               </button>
@@ -1523,7 +1666,8 @@
   <!-- MODAL POPUP: VIEW DETAIL REQUEST (READ-ONLY)                        -->
   <!-- =================================================================== -->
   <div id="viewDetailModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 hidden">
-    <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant/80 shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+<div class="bg-surface-container-lowest rounded-2xl border border-outline-variant/80 shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden
+      animate-in fade-in zoom-in-95 duration-150">
       
       <!-- Modal Header -->
       <div class="px-6 py-4 border-b border-outline-variant/60 flex items-center justify-between bg-surface-container-low/50">
@@ -1564,43 +1708,211 @@
     </div>
   </div>
 
+  <!-- PROGRESS TRACKER & APPROVAL TIMELINE MODAL POPUP -->
+  <div id="progressTrackerModal"
+       class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-sm p-4 transition-all">
+    <div class="glass-panel border border-white/80 rounded-2xl shadow-2xl max-w-2xl w-full flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      <!-- Header -->
+      <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center font-extrabold text-white text-sm shadow-xs">
+            📊
+          </div>
+          <div>
+            <h2 class="font-extrabold text-sm text-white flex items-center gap-2">
+              <span>Progress Tracker &amp; Timeline Approval</span>
+<span id="trackerModalReqId" class="bg-emerald-500/20 text-emerald-300 text-xs font-mono font-bold px-2.5 py-0.5 rounded border border-emerald-500/30
+                uppercase">REQ-0000</span>
+            </h2>
+            <p id="trackerModalSubLabel" class="text-[11px] text-slate-400 font-medium mt-0.5">Organisasi: - | Requestor: -</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeProgressTrackerModal()" class="text-slate-400 hover:text-white p-1.5 rounded-lg transition hover:bg-slate-800 cursor-pointer">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6
+            6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Body: Vertical Stepper Timeline -->
+      <div class="p-6 bg-slate-50/50 max-h-[75vh] overflow-y-auto">
+        <div id="trackerTimelineContainer" class="relative pl-6 border-l-2 border-slate-200 space-y-6">
+          <!-- Dynamically populated vertical steps -->
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="px-6 py-3.5 bg-slate-100 border-t border-slate-200 flex items-center justify-between gap-3">
+        <button type="button" onclick="openDetailFromTracker()"
+class="text-xs font-extrabold text-emerald-800 bg-emerald-100 hover:bg-emerald-200 border border-emerald-300 px-4 py-2 rounded-full transition flex items-center
+                     gap-1.5 cursor-pointer shadow-2xs">
+          <svg
+class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0
+                     11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0
+                     8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+          <span>Preview Detail Permohonan</span>
+        </button>
+        <button type="button" onclick="closeProgressTrackerModal()"
+                   class="text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 px-5 py-2 rounded-full transition cursor-pointer shadow-2xs">
+          Tutup
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- =================================================================== -->
   <!-- MODAL POPUP: CATATAN SUBMIT PERMOHONAN                               -->
   <!-- =================================================================== -->
-  <div id="submitNotesModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 hidden">
-    <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant/80 shadow-2xl w-full max-w-lg p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150">
-      <div class="flex items-center justify-between border-b border-outline-variant/60 pb-3">
+  <div id="submitNotesModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[95] flex items-center justify-center p-4 hidden animate-in fade-in duration-200">
+    <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full p-6 space-y-5 animate-in zoom-in-95 duration-200">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-200">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center justify-center font-bold text-lg shadow-xs shrink-0">
-            <span class="material-symbols-outlined text-[22px]">edit_note</span>
+          <div class="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold shadow-xs">
+            <span class="material-symbols-outlined text-[24px]">edit_note</span>
           </div>
           <div>
-            <h3 class="text-base font-bold text-on-surface leading-tight">Catatan Permohonan</h3>
-            <p class="text-xs text-on-surface-variant pt-0.5">Konfirmasi submit permohonan ke sistem MDG</p>
+            <h3 class="text-base font-extrabold text-slate-900 leading-tight">Alasan &amp; Catatan Permohonan</h3>
+            <p class="text-xs text-slate-500">Masukkan alasan pengajuan Business Partner ke staging SAP</p>
           </div>
         </div>
-        <button type="button" onclick="closeSubmitNotesModal();" title="Tutup (Esc)"
-                class="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-surface-container-high text-on-surface-variant transition-colors cursor-pointer">
+        <button type="button" onclick="closeSubmitNotesModal();" class="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg transition">
+          <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
+      </div>
+      
+      <div class="space-y-2">
+        <label class="block text-xs font-bold text-slate-700">Alasan / Catatan Permohonan <span class="text-rose-500">*</span></label>
+        <textarea id="modalSubmitNotesTextarea" rows="4" placeholder="Tuliskan alasan permohonan atau catatan pengajuan di sini..."
+class="w-full p-3 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:border-emerald-600 focus:ring-2
+                    focus:ring-emerald-600/20"></textarea>
+        <p class="text-[11px] text-slate-500">Catatan ini akan diteruskan ke Data Steward &amp; Bank Steward untuk pemeriksaan.</p>
+      </div>
+
+      <div class="flex items-center justify-end gap-3 pt-2">
+<button type="button" onclick="closeSubmitNotesModal();" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl
+          transition cursor-pointer">
+          Batal
+        </button>
+        <button type="button" onclick="confirmAndExecuteSubmit();"
+class="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-black text-xs rounded-xl
+                     shadow-md transition flex items-center gap-2 cursor-pointer">
+          <span class="material-symbols-outlined text-[18px]">send</span>
+          <span>Konfirmasi Submit</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL POPUP: PREVIEW DETAIL PERMOHONAN (3 CARDS LAYOUT) -->
+  <div id="detailPreviewModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[95] flex items-center justify-center p-4 hidden animate-in fade-in duration-200">
+    <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-3xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+      <!-- Header -->
+      <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center font-extrabold text-white text-sm shadow-xs">
+            📄
+          </div>
+          <div>
+            <h2 class="font-extrabold text-sm text-white flex items-center gap-2">
+              <span>Preview Detail Permohonan</span>
+            </h2>
+            <p id="detailPreviewOrgName" class="text-[11px] text-slate-400 font-medium mt-0.5">Detail Data Customer Staging</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeDetailPreviewModal();" class="text-slate-400 hover:text-white p-1.5 rounded-lg transition hover:bg-slate-800 cursor-pointer">
           <span class="material-symbols-outlined text-[20px]">close</span>
         </button>
       </div>
 
-      <div class="space-y-2 text-xs">
-        <label class="block font-semibold text-on-surface">Catatan / Justifikasi Permohonan <span class="text-outline font-normal">(Opsional)</span></label>
-        <textarea id="modalSubmitNotesTextarea" rows="4" placeholder="Tuliskan catatan permohonan, justifikasi, atau instruksi khusus di sini..."
-                  class="w-full p-3 text-xs font-body-md bg-surface-container-lowest border border-outline-variant rounded-xl text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 shadow-2xs"></textarea>
-        <p class="text-[11px] text-slate-500 italic">Catatan ini akan tersimpan pada riwayat permohonan dan dapat dilihat oleh Data Steward.</p>
+      <!-- Body Container for 3 Cards -->
+      <div class="p-6 bg-slate-50/70 overflow-y-auto space-y-4">
+        <!-- Card 01. General Data -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-3">
+          <div class="flex items-center gap-2 pb-2 border-b border-slate-100">
+            <span class="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-800 font-bold text-xs flex items-center justify-center">01</span>
+            <h3 class="text-xs font-black text-slate-900 uppercase tracking-wider">General Data</h3>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <div>
+              <span class="text-[11px] font-semibold text-slate-500 block">First Name</span>
+              <span id="cardDetailFirstName" class="font-bold text-slate-900 block pt-0.5">-</span>
+            </div>
+            <div>
+              <span class="text-[11px] font-semibold text-slate-500 block">Last Name</span>
+              <span id="cardDetailLastName" class="font-bold text-slate-900 block pt-0.5">-</span>
+            </div>
+            <div>
+              <span class="text-[11px] font-semibold text-slate-500 block">Search Term 1</span>
+              <span id="cardDetailSearchTerm" class="font-mono font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 inline-block mt-0.5">-</span>
+            </div>
+            <div>
+              <span class="text-[11px] font-semibold text-slate-500 block">Phone &amp; Email</span>
+              <span id="cardDetailPhoneEmail" class="font-medium text-slate-800 block pt-0.5">-</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 02. Address & Comm. -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-3">
+          <div class="flex items-center gap-2 pb-2 border-b border-slate-100">
+            <span class="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-800 font-bold text-xs flex items-center justify-center">02</span>
+            <h3 class="text-xs font-black text-slate-900 uppercase tracking-wider">Address &amp; Comm.</h3>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+            <div class="sm:col-span-3">
+              <span class="text-[11px] font-semibold text-slate-500 block">Street &amp; House No.</span>
+              <span id="cardDetailStreetHouse" class="font-medium text-slate-900 block pt-0.5">-</span>
+            </div>
+            <div>
+              <span class="text-[11px] font-semibold text-slate-500 block">City &amp; Postal Code</span>
+              <span id="cardDetailCityPostal" class="font-bold text-slate-900 block pt-0.5">-</span>
+            </div>
+            <div class="sm:col-span-2">
+              <span class="text-[11px] font-semibold text-slate-500 block">Country &amp; Region</span>
+              <span id="cardDetailCountryRegion" class="font-bold text-slate-900 block pt-0.5">-</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 03. Tax, Bank & Payment Terms -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-3">
+          <div class="flex items-center gap-2 pb-2 border-b border-slate-100">
+            <span class="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-800 font-bold text-xs flex items-center justify-center">03</span>
+            <h3 class="text-xs font-black text-slate-900 uppercase tracking-wider">Tax, Bank &amp; Payment Terms</h3>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <div>
+              <span class="text-[11px] font-semibold text-slate-500 block">Tax Number / NPWP</span>
+              <span id="cardDetailTaxNum" class="font-mono font-bold text-slate-900 block pt-0.5">-</span>
+            </div>
+            <div>
+              <span class="text-[11px] font-semibold text-slate-500 block">Bank Key &amp; Name</span>
+              <span id="cardDetailBankKeyName" class="font-bold text-slate-900 block pt-0.5">-</span>
+            </div>
+            <div>
+              <span class="text-[11px] font-semibold text-slate-500 block">Bank Account &amp; Holder</span>
+              <span id="cardDetailAcctHolder" class="font-bold text-slate-900 block pt-0.5">-</span>
+            </div>
+            <div>
+              <span class="text-[11px] font-semibold text-slate-500 block">Payment Terms (ZTERM)</span>
+              <span id="cardDetailPaymentTerms" class="font-bold text-slate-900 block pt-0.5">-</span>
+            </div>
+            <div>
+              <span class="text-[11px] font-semibold text-slate-500 block">Checked Data Steward</span>
+              <span id="cardDetailDataSteward" class="font-medium text-slate-800 block pt-0.5">-</span>
+            </div>
+            <div>
+              <span class="text-[11px] font-semibold text-slate-500 block">Checked Bank Steward</span>
+              <span id="cardDetailBankSteward" class="font-medium text-slate-800 block pt-0.5">-</span>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div class="flex items-center justify-end gap-2 pt-3 border-t border-outline-variant/60">
-        <button type="button" onclick="closeSubmitNotesModal();"
-                class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-all cursor-pointer">
-          Batal
-        </button>
-        <button type="button" onclick="confirmAndExecuteSubmit();"
-                class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-sm transition-all cursor-pointer">
-          <span class="material-symbols-outlined text-[16px]">send</span>
-          <span>Submit Permohonan</span>
+      <!-- Footer -->
+      <div class="px-6 py-3.5 bg-slate-100 border-t border-slate-200 flex justify-end">
+<button type="button" onclick="closeDetailPreviewModal();" class="px-5 py-2 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs rounded-full border
+          border-slate-300 transition cursor-pointer shadow-2xs">
+          Tutup
         </button>
       </div>
     </div>
@@ -1621,7 +1933,8 @@
       </div>
       <div class="space-y-1.5">
         <h3 class="text-base font-bold text-on-surface">Mengirim Data Permohonan...</h3>
-        <p class="text-xs text-on-surface-variant leading-relaxed">Mohon tunggu sejenak, sistem sedang memproses dan menyimpan data permohonan Business Partner ke tabel staging SAP.</p>
+<p class="text-xs text-on-surface-variant leading-relaxed">Mohon tunggu sejenak, sistem sedang memproses dan menyimpan data permohonan Business Partner ke tabel
+          staging SAP.</p>
       </div>
       <div class="flex items-center justify-center gap-2 pt-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 py-2 px-3 rounded-xl border border-emerald-200">
         <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
@@ -1643,7 +1956,9 @@
       <div class="space-y-2">
         <h3 class="text-lg font-bold text-slate-900 leading-tight">Data Berhasil Di-upload!</h3>
         <p class="text-xs text-slate-600 leading-relaxed">
-          Permohonan Business Partner telah berhasil disimpan ke tabel staging <span class="font-mono font-bold text-emerald-700">ZMDG_BP_REQ</span> dengan status <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[11px]">SUBMITTED</span>.
+          Permohonan Business Partner telah berhasil disimpan ke tabel staging <span
+                   class="font-mono font-bold text-emerald-700">ZMDG_BP_REQ</span> dengan status <span
+                   class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[11px]">SUBMITTED</span>.
         </p>
       </div>
 
@@ -1665,7 +1980,8 @@
 
       <!-- Action Button -->
       <button type="button" onclick="closeSuccessResultModal();"
-              class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all cursor-pointer">
+class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 shadow-md hover:shadow-lg
+                transition-all cursor-pointer">
         <span class="material-symbols-outlined text-[18px]">done_all</span>
         <span>Selesai / Tutup</span>
       </button>
@@ -1682,12 +1998,16 @@
       </div>
       <div class="flex items-center gap-space-xs">
         <button type="button" onclick="exportHistoryExcel();"
-                class="px-space-sm py-1.5 rounded-lg border border-outline-variant bg-surface-container-lowest hover:bg-surface-container-low text-on-surface-variant text-label-md font-label-md flex items-center gap-1.5 shadow-sm">
+               
+class="px-space-sm py-1.5 rounded-lg border border-outline-variant bg-surface-container-lowest hover:bg-surface-container-low text-on-surface-variant
+                     text-label-md font-label-md flex items-center gap-1.5 shadow-sm">
           <span class="material-symbols-outlined text-[16px]">file_download</span>
           Export Excel
         </button>
         <button type="button" onclick="submitAction('REFRESH');"
-                class="px-space-sm py-1.5 rounded-lg border border-outline-variant bg-surface-container-lowest hover:bg-surface-container-low text-on-surface-variant text-label-md font-label-md flex items-center gap-1.5 shadow-sm">
+               
+class="px-space-sm py-1.5 rounded-lg border border-outline-variant bg-surface-container-lowest hover:bg-surface-container-low text-on-surface-variant
+                     text-label-md font-label-md flex items-center gap-1.5 shadow-sm">
           <span class="material-symbols-outlined text-[16px]">refresh</span>
           Refresh Log
         </button>
@@ -1704,26 +2024,29 @@
             ls_stat_calc    TYPE ty_bp_request.
 
       LOOP AT gt_my_requests INTO ls_stat_calc.
-        lv_cnt_total = lv_cnt_total + 1.
-        IF ls_stat_calc-status = 'CHECKED'
-           OR ls_stat_calc-status = 'READY_FOR_FINAL'
-           OR ls_stat_calc-status = 'REVIEWED'.
-          lv_cnt_checked = lv_cnt_checked + 1.
-        ELSEIF ls_stat_calc-status = 'APPROVED'
-            OR ls_stat_calc-status = 'POSTED'.
-          lv_cnt_approved = lv_cnt_approved + 1.
-        ELSEIF ls_stat_calc-status = 'REJECTED'
-            OR ls_stat_calc-status = 'RETURNED'
-            OR ls_stat_calc-status = 'POST_ERROR'.
-          lv_cnt_rejected = lv_cnt_rejected + 1.
-        ELSE.
-          lv_cnt_pending = lv_cnt_pending + 1.
+        IF ls_stat_calc-bu_group CP 'C*' OR ls_stat_calc-bp_role CP 'FLCU*' OR ls_stat_calc-bu_group IS INITIAL.
+          lv_cnt_total = lv_cnt_total + 1.
+          IF ls_stat_calc-status = 'CHECKED'
+             OR ls_stat_calc-status = 'READY_FOR_FINAL'
+             OR ls_stat_calc-status = 'REVIEWED'.
+            lv_cnt_checked = lv_cnt_checked + 1.
+          ELSEIF ls_stat_calc-status = 'APPROVED'
+              OR ls_stat_calc-status = 'POSTED'.
+            lv_cnt_approved = lv_cnt_approved + 1.
+          ELSEIF ls_stat_calc-status = 'REJECTED'
+              OR ls_stat_calc-status = 'RETURNED'
+              OR ls_stat_calc-status = 'POST_ERROR'.
+            lv_cnt_rejected = lv_cnt_rejected + 1.
+          ELSE.
+            lv_cnt_pending = lv_cnt_pending + 1.
+          ENDIF.
         ENDIF.
       ENDLOOP.
     %>
 
     <!-- 4 Modern Status Summary Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4 rounded-2xl bg-gradient-to-r from-emerald-900 via-emerald-800 to-emerald-700 border border-emerald-600/30 shadow-sm">
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4 rounded-2xl bg-gradient-to-r from-emerald-900 via-emerald-800 to-emerald-700 border
+      border-emerald-600/30 shadow-sm">
       <!-- Pending -->
       <div class="p-4 bg-white rounded-xl border border-slate-200/80 shadow-xs flex items-center justify-between gap-3">
         <div class="space-y-1">
@@ -1785,30 +2108,6 @@
       </div>
     </div>
 
-    <!-- TAB FILTER STATUS LOG RIWAYAT -->
-    <div class="flex items-center gap-1.5 p-1 bg-surface-container-low rounded-xl w-fit border border-outline-variant/60 shadow-sm">
-      <button type="button" onclick="filterHistoryTab('all', this);" id="tabAll"
-              class="filter-tab-btn active px-3.5 py-1.5 rounded-lg text-label-md font-label-md bg-primary text-on-primary font-bold transition-all shadow-sm">
-        Semua (<%= lv_cnt_total %>)
-      </button>
-      <button type="button" onclick="filterHistoryTab('pending', this);"
-              class="filter-tab-btn px-3.5 py-1.5 rounded-lg text-label-md font-label-md text-on-surface-variant hover:bg-surface-container transition-all">
-        Pending (<%= lv_cnt_pending %>)
-      </button>
-      <button type="button" onclick="filterHistoryTab('checked', this);"
-              class="filter-tab-btn px-3.5 py-1.5 rounded-lg text-label-md font-label-md text-on-surface-variant hover:bg-surface-container transition-all">
-        Checked (<%= lv_cnt_checked %>)
-      </button>
-      <button type="button" onclick="filterHistoryTab('approved', this);"
-              class="filter-tab-btn px-3.5 py-1.5 rounded-lg text-label-md font-label-md text-on-surface-variant hover:bg-surface-container transition-all">
-        Approved (<%= lv_cnt_approved %>)
-      </button>
-      <button type="button" onclick="filterHistoryTab('rejected', this);"
-              class="filter-tab-btn px-3.5 py-1.5 rounded-lg text-label-md font-label-md text-on-surface-variant hover:bg-surface-container transition-all">
-        Rejected (<%= lv_cnt_rejected %>)
-      </button>
-    </div>
-
     <!-- TABEL RIWAYAT DRAFT & PENGAJUAN -->
     <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-sm overflow-hidden">
       <div class="overflow-x-auto">
@@ -1816,13 +2115,13 @@
           <thead>
             <tr class="bg-surface-container-low/70 border-b border-outline-variant text-label-md font-label-md text-on-surface-variant uppercase tracking-wider">
               <th class="py-3 px-space-md w-12 text-center">No</th>
-              <th class="py-3 px-space-md">Request ID &amp; User</th>
+              <th class="py-3 px-space-md">Pengaju (Requestor)</th>
               <th class="py-3 px-space-md">Nama Organisasi</th>
               <th class="py-3 px-space-md">Waktu Pengajuan</th>
               <th class="py-3 px-space-md">SAP BP Number</th>
               <th class="py-3 px-space-md">Catatan / Alasan</th>
               <th class="py-3 px-space-md text-center">Status</th>
-              <th class="py-3 px-space-md text-center w-32">Aksi</th>
+              <th class="py-3 px-space-md text-center w-36">Aksi</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-outline-variant/60 text-body-md font-body-md text-on-surface">
@@ -1831,7 +2130,7 @@
                 <td colspan="8" class="text-center py-12 text-outline">
                   <div class="flex flex-col items-center justify-center space-y-2">
                     <span class="material-symbols-outlined text-[40px] text-outline/50">folder_open</span>
-                    <span class="font-medium">Belum ada riwayat permohonan Business Partner yang diajukan.</span>
+                    <span class="font-medium">Belum ada riwayat permohonan Business Partner Customer yang diajukan.</span>
                     <span class="text-[11px]">Silakan isi formulir di atas dan klik tombol "Submit Permohonan".</span>
                   </div>
                 </td>
@@ -1845,6 +2144,9 @@
               %>
               <% LOOP AT gt_my_requests INTO ls_hist_row. %>
                 <%
+                  IF NOT ( ls_hist_row-bu_group CP 'C*' OR ls_hist_row-bp_role CP 'FLCU*' OR ls_hist_row-bu_group IS INITIAL ).
+                    CONTINUE.
+                  ENDIF.
                   lv_h_num = lv_h_num + 1.
                   IF ls_hist_row-status = 'CHECKED'
                      OR ls_hist_row-status = 'READY_FOR_FINAL'
@@ -1873,14 +2175,13 @@
                     <%= lv_h_num %>
                   </td>
 
-                  <!-- Request ID & User -->
+                  <!-- Pengaju (Requestor) -->
                   <td class="py-3.5 px-space-md">
-                    <div class="flex flex-col">
-                      <span class="font-bold text-primary font-code-sm hover:underline cursor-pointer"
-                            onclick="viewRequestDetail('<%= ls_hist_row-req_id %>');">
-                        <%= ls_hist_row-req_id %>
-                      </span>
-                      <span class="text-[11px] text-on-surface-variant font-body-sm">Oleh: <%= ls_hist_row-created_by %></span>
+                    <div class="flex items-center gap-2">
+                      <div class="w-7 h-7 rounded-full bg-emerald-100 text-emerald-800 font-bold text-xs flex items-center justify-center border border-emerald-200">
+                        <%= COND string( WHEN ls_hist_row-created_by IS NOT INITIAL THEN ls_hist_row-created_by(1) ELSE 'U' ) %>
+                      </div>
+                      <span class="font-bold text-slate-800 text-xs"><%= ls_hist_row-created_by %></span>
                     </div>
                   </td>
 
@@ -1895,14 +2196,14 @@
                   </td>
 
                   <!-- Timestamp -->
-                  <td class="py-3.5 px-space-md font-code-sm text-xs text-on-surface-variant">
+                  <td class="py-3.5 px-space-md font-code-sm text-xs text-on-surface-variant formatted-timestamp" data-raw-time="<%= ls_hist_row-created_at %>">
                     <%= ls_hist_row-created_at %>
                   </td>
 
                   <!-- SAP BP Number -->
                   <td class="py-3.5 px-space-md">
                     <% IF ls_hist_row-bp_number IS NOT INITIAL. %>
-                      <span class="px-2.5 py-1 rounded-md text-xs font-bold font-code-sm bg-secondary-container text-primary border border-primary/20 flex items-center gap-1 w-fit">
+<span class="px-2.5 py-1 rounded-md text-xs font-bold font-code-sm bg-secondary-container text-primary border border-primary/20 flex items-center gap-1 w-fit">
                         <span class="material-symbols-outlined text-[14px]">verified</span>
                         <%= ls_hist_row-bp_number %>
                       </span>
@@ -1928,19 +2229,14 @@
 
                   <!-- Aksi -->
                   <td class="py-3.5 px-space-md text-center">
-                    <div class="flex items-center justify-center gap-1.5">
-                      <button type="button" title="View Detail Permohonan"
-                              onclick="viewRequestDetail('<%= ls_hist_row-req_id %>');"
-                              class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold rounded-lg border border-emerald-200 text-xs flex items-center gap-1 transition-colors cursor-pointer shadow-2xs">
-                        <span class="material-symbols-outlined text-[16px]">visibility</span>
-                        <span>View Detail</span>
-                      </button>
-                      <button type="button" title="Export Baris ke Excel"
-                              onclick="exportSingleRow('<%= ls_hist_row-req_id %>', '<%= ls_hist_row-name1 %>', '<%= ls_hist_row-status %>');"
-                              class="p-1.5 text-on-surface-variant hover:text-primary hover:bg-surface-container rounded-lg transition-colors">
-                        <span class="material-symbols-outlined text-[18px]">download</span>
-                      </button>
-                    </div>
+                    <button type="button" title="Progress Tracker & Timeline Approval"
+                            onclick="openProgressTrackerModal('<%= ls_hist_row-req_id %>');"
+                           
+class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-lg text-xs flex items-center justify-center gap-1.5 transition-colors
+                     cursor-pointer shadow-xs mx-auto">
+                      <span class="material-symbols-outlined text-[15px]">analytics</span>
+                      <span>Tracker</span>
+                    </button>
                   </td>
                 </tr>
               <% ENDLOOP. %>
@@ -1955,9 +2251,13 @@
       </div>
 
       <!-- CONTROLS PAGINATION TABLE HISTORI -->
-      <div id="historyPaginationBar" class="px-4 py-3 bg-surface-container-low border-t border-outline-variant/60 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+<div id="historyPaginationBar" class="px-4 py-3 bg-surface-container-low border-t border-outline-variant/60 flex flex-col sm:flex-row items-center
+        justify-between gap-3 text-xs">
         <div class="text-on-surface-variant font-medium text-xs">
-          Menampilkan <span id="paginationStart" class="font-bold text-on-surface">0</span> - <span id="paginationEnd" class="font-bold text-on-surface">0</span> dari <span id="paginationTotal" class="font-bold text-on-surface">0</span> pengajuan
+          Menampilkan <span id="paginationStart"
+                   class="font-bold text-on-surface">0</span> - <span id="paginationEnd"
+                   class="font-bold text-on-surface">0</span> dari <span id="paginationTotal"
+                   class="font-bold text-on-surface">0</span> pengajuan
         </div>
         <div class="flex items-center gap-1.5" id="paginationControls">
           <!-- Rendered dynamically by JS -->
@@ -2146,7 +2446,10 @@
           + 'class="sap-tbl-inp uppercase">'
           + '<button type="button" onclick="openFindBankModal(' + idx + ')" '
           + 'title="Find bank (Standar SAP Search Help)" '
-          + 'class="px-1.5 py-1 bg-surface-container-low hover:bg-surface-container-high border border-outline-variant/70 rounded text-primary flex items-center shadow-xs transition-colors shrink-0">'
+          + 'class="px-1.5 py-1 bg-surface-container-low '
+          + 'hover:bg-surface-container-high border '
+          + 'border-outline-variant/70 rounded text-primary '
+          + 'flex items-center shadow-xs transition-colors shrink-0">'
           + '<span class="material-symbols-outlined text-[16px]">search</span>'
           + '</button>'
           + '</div>'
@@ -2439,8 +2742,12 @@
         confirmBankSelection(idx);
       };
 
-      var tdSel = '<td class="py-2.5 px-3 text-center border-r border-outline-variant/30">'
-        + '<input type="radio" name="fb_radio" id="fb_radio_' + idx + '" onclick="highlightBankRow(' + idx + '); event.stopPropagation();" class="text-primary focus:ring-primary cursor-pointer">'
+      var tdSel = '<td class="py-2.5 px-3 text-center '
+        + 'border-r border-outline-variant/30">'
+        + '<input type="radio" name="fb_radio" id="fb_radio_'
+        + idx + '" onclick="highlightBankRow(' + idx
+        + '); event.stopPropagation();" class="text-primary '
+        + 'focus:ring-primary cursor-pointer">'
         + '</td>';
       var tdKey = '<td class="py-2.5 px-3 uppercase border-r border-outline-variant/30 font-bold text-primary font-code-sm">'
         + (b.bankl || '-') + '</td>';
@@ -3008,10 +3315,73 @@
     }
   }
 
-  // SERIALISASI SELURUH REQUEST HISTORY UNTUK POPUP VIEW DETAIL (READ-ONLY)
+  // -------------------------------------------------------------------
+  // 1A. CITY AUTO-SELECT REGION LOOKUP
+  // -------------------------------------------------------------------
+  function autoSelectRegionByCity(cityVal) {
+    if (!cityVal) return;
+    var c = cityVal.toLowerCase().trim();
+    var regSelect = document.getElementById('regionSelect');
+    if (!regSelect) return;
+
+    var cityToRegionMap = {
+      'sidoarjo': '08',
+      'surabaya': '08',
+      'malang': '08',
+      'gresik': '08',
+      'pasuruan': '08',
+      'mojokerto': '08',
+      'jember': '08',
+      'banyuwangi': '08',
+      'kediri': '08',
+      'blitar': '08',
+      'madiun': '08',
+      'tuban': '08',
+      'lamongan': '08',
+      'semarang': '07',
+      'solo': '07',
+      'surakarta': '07',
+      'magelang': '07',
+      'kudus': '07',
+      'salatiga': '07',
+      'yogyakarta': '05',
+      'bandung': '09',
+      'bogor': '09',
+      'bekasi': '09',
+      'depok': '09',
+      'cirebon': '09',
+      'jakarta': '04',
+      'tangerang': '03',
+      'serang': '03',
+      'denpasar': '02',
+      'medan': '34',
+      'palembang': '33',
+      'padang': '32',
+      'pekanbaru': '31',
+      'macassar': '21',
+      'makassar': '21',
+      'manado': '22',
+      'banjarmasin': '11',
+      'balikpapan': '13',
+      'samarinda': '13',
+      'pontianak': '10'
+    };
+
+    for (var key in cityToRegionMap) {
+      if (c.indexOf(key) !== -1) {
+        var targetRegion = cityToRegionMap[key];
+        currentSelectedRegion = targetRegion;
+        regSelect.value = targetRegion;
+        break;
+      }
+    }
+  }
+
+  // SERIALISASI SELURUH REQUEST HISTORY UNTUK PROGRESS TRACKER & POPUP VIEW DETAIL
   window.allRequestsData = [
     <% DATA: ls_req_json TYPE ty_bp_request. %>
     <% LOOP AT gt_my_requests INTO ls_req_json. %>
+      <% IF ls_req_json-bu_group CP 'C*' OR ls_req_json-bp_role CP 'FLCU*' OR ls_req_json-bu_group IS INITIAL. %>
       {
         req_id: "<%= ls_req_json-req_id %>",
         status: "<%= ls_req_json-status %>",
@@ -3031,320 +3401,396 @@
         telephone: "<%= ls_req_json-telephone %>",
         fax: "<%= ls_req_json-fax %>",
         email: "<%= ls_req_json-email %>",
-        tax_type: "<%= ls_req_json-tax_type %>",
         tax_num: "<%= ls_req_json-tax_num %>",
-        natural_person: "<%= ls_req_json-natural_person %>",
-        external_bp_num: "<%= ls_req_json-external_bp_num %>",
-        legal_form: "<%= ls_req_json-legal_form %>",
-        legal_entity: "<%= ls_req_json-legal_entity %>",
-        date_founded: "<%= ls_req_json-date_founded %>",
-        liquidation_date: "<%= ls_req_json-liquidation_date %>",
-        loc_no_1: "<%= ls_req_json-loc_no_1 %>",
-        loc_no_2: "<%= ls_req_json-loc_no_2 %>",
-        check_digit: "<%= ls_req_json-check_digit %>",
-        vbund: "<%= ls_req_json-vbund %>",
-        begru: "<%= ls_req_json-begru %>",
-        bp_type: "<%= ls_req_json-bp_type %>",
-        origin_source: "<%= ls_req_json-origin_source %>",
-        origin_ref_key: "<%= ls_req_json-origin_ref_key %>",
-        internal_notes: "<%= ls_req_json-internal_notes %>",
-        banks: "<%= ls_req_json-banks %>",
         bankl: "<%= ls_req_json-bankl %>",
         bankn: "<%= ls_req_json-bankn %>",
-        koinh: "<%= ls_req_json-koinh %>",
         bank_name: "<%= ls_req_json-bank_name %>",
-        bukrs: "<%= ls_req_json-bukrs %>",
-        akont: "<%= ls_req_json-akont %>",
+        koinh: "<%= ls_req_json-koinh %>",
         zterm: "<%= ls_req_json-zterm %>",
-        ekorg: "<%= ls_req_json-ekorg %>",
-        waers: "<%= ls_req_json-waers %>",
-        webre: "<%= ls_req_json-webre %>",
-        lebre: "<%= ls_req_json-lebre %>",
         stw_data_status: "<%= ls_req_json-stw_data_status %>",
+        stw_data_user: "",
         stw_data_note: "<%= ls_req_json-stw_data_note %>",
         stw_bank_status: "<%= ls_req_json-stw_bank_status %>",
+        stw_bank_user: "",
         stw_bank_note: "<%= ls_req_json-stw_bank_note %>",
         rejection_reason: "<%= ls_req_json-rejection_reason %>",
         created_by: "<%= ls_req_json-created_by %>",
         created_at: "<%= ls_req_json-created_at %>"
       },
+      <% ENDIF. %>
     <% ENDLOOP. %>
   ];
 
-  // -------------------------------------------------------------------
-  // 4. HISTORY FILTER & PAGINATION LOGIC (MAKSIMAL 10 DATA / HALAMAN)
-  // -------------------------------------------------------------------
-  var currentActiveCategory = 'all';
-  var historyCurrentPage = 1;
-  var historyPageSize = 10;
+  var currentTrackerReqId = "";
 
-  function filterHistoryTab(category, btnElement) {
-    currentActiveCategory = category;
-    historyCurrentPage = 1;
-
-    var tabButtons = document.querySelectorAll('.filter-tab-btn');
-    tabButtons.forEach(function(btn) {
-      btn.classList.remove('bg-primary', 'text-on-primary', 'font-bold', 'shadow-sm', 'active');
-      btn.classList.add('text-on-surface-variant', 'hover:bg-surface-container');
-    });
-
-    if (btnElement) {
-      btnElement.classList.add('bg-primary', 'text-on-primary', 'font-bold', 'shadow-sm', 'active');
-      btnElement.classList.remove('text-on-surface-variant', 'hover:bg-surface-container');
-    }
-
-    applyHistoryPagination();
+  function escapeHtml(str) {
+    if (!str) return "";
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
   }
 
-  function applyHistoryPagination() {
-    var rows = Array.from(document.querySelectorAll('.history-row'));
-    var topSearchEl = document.getElementById('topSearchInput');
-    var topSearchVal = topSearchEl ? topSearchEl.value.toLowerCase().trim() : '';
+  function formatBpDateTime(rawDate, rawTime) {
+    if (!rawDate) return "-";
+    var str = rawDate.toString().trim();
+    var months = [
+      "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+      "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+    ];
 
-    var filteredRows = rows.filter(function(row) {
-      var rowCat = row.getAttribute('data-category');
-      var matchCategory = (currentActiveCategory === 'all' || rowCat === currentActiveCategory);
-      var text = row.innerText.toLowerCase();
-      var matchSearch = (!topSearchVal || text.indexOf(topSearchVal) !== -1);
-      return matchCategory && matchSearch;
-    });
-
-    var totalMatching = filteredRows.length;
-    var totalPages = Math.ceil(totalMatching / historyPageSize) || 1;
-
-    if (historyCurrentPage > totalPages) historyCurrentPage = totalPages;
-    if (historyCurrentPage < 1) historyCurrentPage = 1;
-
-    var startIdx = (historyCurrentPage - 1) * historyPageSize;
-    var endIdx = startIdx + historyPageSize;
-
-    rows.forEach(function(row) { row.style.display = 'none'; });
-
-    filteredRows.forEach(function(row, idx) {
-      if (idx >= startIdx && idx < endIdx) {
-        row.style.display = '';
-      }
-    });
-
-    var noRowsMsg = document.getElementById('noRowsFiltered');
-    if (noRowsMsg) {
-      noRowsMsg.style.display = (totalMatching === 0 && rows.length > 0) ? '' : 'none';
+    if (str.length === 14) {
+      var yyyy = str.substring(0, 4);
+      var mm = str.substring(4, 6);
+      var dd = str.substring(6, 8);
+      var hh = str.substring(8, 10);
+      var mi = str.substring(10, 12);
+      var ss = str.substring(12, 14);
+      var mIdx = parseInt(mm, 10) - 1;
+      var mName = months[mIdx] || mm;
+      return dd + " " + mName + " " + yyyy + " / " + hh + ":" + mi + ":" + ss;
     }
 
-    var startDisplay = totalMatching === 0 ? 0 : startIdx + 1;
-    var endDisplay = Math.min(endIdx, totalMatching);
-    var pStart = document.getElementById('paginationStart');
-    var pEnd = document.getElementById('paginationEnd');
-    var pTotal = document.getElementById('paginationTotal');
-    if (pStart) pStart.innerText = startDisplay;
-    if (pEnd) pEnd.innerText = endDisplay;
-    if (pTotal) pTotal.innerText = totalMatching;
-
-    renderPaginationButtons(totalPages);
+    if (str.length === 8) {
+      var yyyy = str.substring(0, 4);
+      var mm = str.substring(4, 6);
+      var dd = str.substring(6, 8);
+      var mIdx = parseInt(mm, 10) - 1;
+      var mName = months[mIdx] || mm;
+      var timeStr = "";
+      if (rawTime) {
+        var t = rawTime.toString().trim();
+        if (t.length >= 6) {
+          timeStr = " / " + t.substring(0, 2) + ":" + t.substring(2, 4) + ":" + t.substring(4, 6);
+        } else if (t.length >= 4) {
+          timeStr = " / " + t.substring(0, 2) + ":" + t.substring(2, 4);
+        }
+      }
+      return dd + " " + mName + " " + yyyy + timeStr;
+    }
+    return str;
   }
 
-  function renderPaginationButtons(totalPages) {
-    var container = document.getElementById('paginationControls');
-    if (!container) return;
-    container.innerHTML = '';
-
-    if (totalPages <= 1) {
-      container.style.display = 'none';
-      return;
+  function openProgressTrackerModal(reqId) {
+    if (!reqId && window.allRequestsData && window.allRequestsData.length > 0) {
+      reqId = window.allRequestsData[0].req_id;
     }
-    container.style.display = 'flex';
-
-    // Previous Button
-    var prevBtn = document.createElement('button');
-    prevBtn.type = 'button';
-    prevBtn.className = 'px-3 py-1.5 rounded-lg border text-xs font-semibold flex items-center gap-1 transition-all ' +
-      (historyCurrentPage === 1
-        ? 'border-slate-200 text-slate-400 bg-slate-50 cursor-not-allowed'
-        : 'border-slate-300 text-slate-700 bg-white hover:bg-slate-100 cursor-pointer');
-    prevBtn.disabled = (historyCurrentPage === 1);
-    prevBtn.innerHTML = '<span class="material-symbols-outlined text-[14px]">chevron_left</span><span>Previous</span>';
-    prevBtn.onclick = function() {
-      if (historyCurrentPage > 1) {
-        historyCurrentPage--;
-        applyHistoryPagination();
-      }
-    };
-    container.appendChild(prevBtn);
-
-    // Page numbers
-    for (var i = 1; i <= totalPages; i++) {
-      (function(p) {
-        var pageBtn = document.createElement('button');
-        pageBtn.type = 'button';
-        var isCurrent = (p === historyCurrentPage);
-        pageBtn.className = 'px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ' +
-          (isCurrent
-            ? 'bg-emerald-600 text-white shadow-xs'
-            : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-100');
-        pageBtn.innerText = p;
-        pageBtn.onclick = function() {
-          historyCurrentPage = p;
-          applyHistoryPagination();
-        };
-        container.appendChild(pageBtn);
-      })(i);
-    }
-
-    // Next Button
-    var nextBtn = document.createElement('button');
-    nextBtn.type = 'button';
-    nextBtn.className = 'px-3 py-1.5 rounded-lg border text-xs font-semibold flex items-center gap-1 transition-all ' +
-      (historyCurrentPage === totalPages
-        ? 'border-slate-200 text-slate-400 bg-slate-50 cursor-not-allowed'
-        : 'border-slate-300 text-slate-700 bg-white hover:bg-slate-100 cursor-pointer');
-    nextBtn.disabled = (historyCurrentPage === totalPages);
-    nextBtn.innerHTML = '<span>Next</span><span class="material-symbols-outlined text-[14px]">chevron_right</span>';
-    nextBtn.onclick = function() {
-      if (historyCurrentPage < totalPages) {
-        historyCurrentPage++;
-        applyHistoryPagination();
-      }
-    };
-    container.appendChild(nextBtn);
-  }
-
-  // -------------------------------------------------------------------
-  // READ-ONLY VIEW DETAIL MODAL FUNCTIONALITY
-  // -------------------------------------------------------------------
-  function viewRequestDetail(reqId) {
-    var req = null;
+    var item = null;
     if (window.allRequestsData && window.allRequestsData.length > 0) {
-      req = window.allRequestsData.find(function(r) { return r.req_id === reqId; });
+      item = window.allRequestsData.find(function(r) { return r.req_id === reqId; });
+    }
+    if (!item && window.allRequestsData && window.allRequestsData.length > 0) {
+      item = window.allRequestsData[0];
+    }
+    if (!item) return;
+
+    currentTrackerReqId = item.req_id;
+
+    var modal = document.getElementById("progressTrackerModal");
+    var subLabelEl = document.getElementById("trackerModalSubLabel");
+    var container = document.getElementById("trackerTimelineContainer");
+
+    var reqDisplayName = item.created_by || '-';
+    if (subLabelEl) {
+      subLabelEl.innerText = "Organisasi: " + (item.name1 || '-') + " | Requestor: " + reqDisplayName;
     }
 
-    if (!req) {
-      var row = document.querySelector('.history-row[data-req-id="' + reqId + '"]');
-      if (row) {
-        var cells = row.querySelectorAll('td');
-        req = {
-          req_id: reqId,
-          name1: cells[2] ? cells[2].querySelector('.font-semibold').innerText.trim() : '',
-          created_by: cells[1] ? cells[1].querySelector('.font-body-sm').innerText.replace('Oleh:','').trim() : '',
-          created_at: cells[3] ? cells[3].innerText.trim() : '',
-          bp_number: cells[4] ? cells[4].innerText.trim() : '',
-          status: cells[6] ? cells[6].innerText.trim() : '',
-          rejection_reason: cells[5] ? cells[5].innerText.trim() : ''
-        };
-      }
-    }
+    var st = (item.status || '').toUpperCase();
+    
+    // Status flags
+    var isDataChecked = (item.stw_data_status === 'X' || st === 'CHECKED' || st === 'APPROVED' || st === 'POSTED');
+    var isDataRejected = (item.stw_data_status === 'R' || (st === 'REJECTED' && item.stw_bank_status !== 'R'));
+    
+    var isBankChecked = (item.stw_bank_status === 'X' || st === 'APPROVED' || st === 'POSTED');
+    var isBankRejected = (item.stw_bank_status === 'R');
+    
+    var isFinalApproved = (st === 'APPROVED' || st === 'POSTED');
 
-    if (!req) {
-      alert('Data permohonan ' + reqId + ' tidak ditemukan.');
-      return;
-    }
+    var s1Time = formatBpDateTime(item.created_at || item.erdat, item.ertim);
+    var s2Time = (isDataChecked || isDataRejected) ? formatBpDateTime(item.app_date || item.created_at, item.app_time) : '-';
+    var s3Time = (isBankChecked || isBankRejected) ? formatBpDateTime(item.app_date || item.created_at, item.app_time) : '-';
+    var s4Time = isFinalApproved ? formatBpDateTime(item.app_date || item.created_at, item.app_time) : '-';
 
-    var titleEl = document.getElementById('vdmTitle');
-    var badgeEl = document.getElementById('vdmStatusBadge');
-    var subTitleEl = document.getElementById('vdmSubTitle');
-    var bodyEl = document.getElementById('vdmBody');
-
-    if (titleEl) titleEl.innerText = req.name1 ? req.name1 : ('Permohonan ID: ' + req.req_id);
-    if (subTitleEl) subTitleEl.innerText = 'Request ID: ' + req.req_id + ' | Dibuat: ' + (req.created_at || '-') + ' | Oleh: ' + (req.created_by || '-');
-    if (badgeEl) badgeEl.innerText = req.status || 'DRAFT';
-
-    function renderField(label, val) {
-      var displayVal = (val !== undefined && val !== null && val.toString().trim() !== '') ? val : '-';
-      return '<div class="p-2.5 bg-slate-50 border border-slate-200/80 rounded-lg space-y-0.5">' +
-             '<span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">' + label + '</span>' +
-             '<span class="text-xs font-semibold text-slate-900 block break-words">' + displayVal + '</span>' +
-             '</div>';
-    }
+    var dataStewardUser = item.stw_data_user || item.approver_name || 'Data Steward';
+    var bankStewardUser = item.stw_bank_user || 'Bank Steward';
 
     var html = '';
 
-    // Section 1: Informasi Utama
-    html += '<div class="space-y-2">' +
-            '<h4 class="text-xs font-black text-emerald-800 uppercase tracking-wider flex items-center gap-1.5 pb-1 border-b border-emerald-200">' +
-            '<span class="material-symbols-outlined text-[16px]">domain</span><span>Informasi Utama Business Partner</span></h4>' +
-            '<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">' +
-            renderField('Request ID', req.req_id) +
-            renderField('Nomor BP SAP', req.bp_number) +
-            renderField('Grouping', req.bu_group || 'C001') +
-            renderField('Status Staging', req.status) +
-            renderField('Nama Badan Usaha', req.name1) +
-            renderField('Nama Tambahan', req.name2) +
-            renderField('Search Term', req.search_term) +
-            renderField('Pemohon', req.created_by) +
-            '</div></div>';
+    // TAHAP 1: Pengajuan Customer (Submitted)
+    html += '<div class="relative group">';
+    html += '  <div class="absolute -left-[31px] top-0 w-6 h-6 '
+      + 'rounded-full bg-emerald-600 text-white font-black text-xs '
+      + 'flex items-center justify-center ring-4 ring-white shadow-2xs">'
+      + '&check;</div>';
+    html += '  <div class="bg-white border border-slate-200 '
+      + 'rounded-xl p-4 shadow-2xs hover:border-emerald-500/50 transition">';
+    html += '    <div class="flex items-center justify-between mb-1.5 '
+      + 'flex-wrap gap-2">';
+    html += '      <h4 class="text-xs font-black text-slate-900 uppercase">'
+      + 'Tahap 1: Pengajuan Customer (Submitted)</h4>';
+    html += '      <span class="text-[10px] font-extrabold bg-emerald-100 '
+      + 'text-emerald-800 border border-emerald-300 px-2.5 py-0.5 '
+      + 'rounded-full font-mono">' + s1Time + '</span>';
+    html += '    </div>';
+    html += '    <p class="text-xs text-slate-700 font-medium">'
+      + 'Requestor <b>' + escapeHtml(reqDisplayName)
+      + '</b> telah mengajukan permohonan Customer <b>'
+      + escapeHtml(item.name1 || '-')
+      + '</b> ke staging data governance.</p>';
+    if (item.search_term) {
+      html += '    <div class="mt-2 text-[11px] text-slate-600 bg-slate-50 '
+        + 'p-2 rounded-lg border border-slate-200 font-mono">'
+        + '<b>Search Term:</b> ' + escapeHtml(item.search_term) + '</div>';
+    }
+    html += '  </div>';
+    html += '</div>';
 
-    // Section 2: Alamat & Komunikasi
-    html += '<div class="space-y-2">' +
-            '<h4 class="text-xs font-black text-emerald-800 uppercase tracking-wider flex items-center gap-1.5 pb-1 border-b border-emerald-200">' +
-            '<span class="material-symbols-outlined text-[16px]">location_on</span><span>Alamat &amp; Kontak Komunikasi</span></h4>' +
-            '<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">' +
-            renderField('Alamat', req.street) +
-            renderField('Nomor Bangunan', req.house_num) +
-            renderField('Kode Pos', req.postal_code) +
-            renderField('Kota', req.city) +
-            renderField('Negara', req.country) +
-            renderField('Provinsi / Wilayah', req.region) +
-            renderField('Bahasa', req.langu) +
-            renderField('Telepon', req.telephone) +
-            renderField('Fax', req.fax) +
-            renderField('Email', req.email) +
-            '</div></div>';
+    // TAHAP 2: Pengecekan Customer (Data Steward)
+    html += '<div class="relative group">';
+    if (isDataRejected) {
+      html += '  <div class="absolute -left-[31px] top-0 w-6 h-6 '
+        + 'rounded-full bg-rose-600 text-white font-black text-xs '
+        + 'flex items-center justify-center ring-4 ring-white shadow-2xs">'
+        + '&times;</div>';
+      html += '  <div class="bg-rose-50/50 border border-rose-200 '
+        + 'rounded-xl p-4 shadow-2xs">';
+      html += '    <div class="flex items-center justify-between mb-1.5 '
+        + 'flex-wrap gap-2">';
+      html += '      <h4 class="text-xs font-black text-rose-900 uppercase">'
+        + 'Tahap 2: Pengecekan Customer (Ditolak)</h4>';
+      html += '      <span class="text-[10px] font-extrabold bg-rose-100 '
+        + 'text-rose-800 border border-rose-300 px-2.5 py-0.5 '
+        + 'rounded-full font-mono">' + s2Time + '</span>';
+      html += '    </div>';
+      html += '    <p class="text-xs text-rose-900 font-bold">'
+        + 'Data Steward <b>' + escapeHtml(dataStewardUser)
+        + '</b> menolak pengajuan ini.</p>';
+      var rejReason = item.stw_data_note || item.rejection_reason || '-';
+      html += '    <div class="mt-2 text-[11px] text-rose-900 bg-white '
+        + 'p-2.5 rounded-lg border border-rose-200 font-mono">'
+        + '<b>Alasan Penolakan:</b> ' + escapeHtml(rejReason) + '</div>';
+      html += '  </div>';
+    } else if (isDataChecked) {
+      html += '  <div class="absolute -left-[31px] top-0 w-6 h-6 '
+        + 'rounded-full bg-blue-600 text-white font-black text-xs '
+        + 'flex items-center justify-center ring-4 ring-white shadow-2xs">'
+        + '&check;</div>';
+      html += '  <div class="bg-white border border-blue-200 '
+        + 'rounded-xl p-4 shadow-2xs">';
+      html += '    <div class="flex items-center justify-between mb-1.5 '
+        + 'flex-wrap gap-2">';
+      html += '      <h4 class="text-xs font-black text-slate-900 uppercase">'
+        + 'Tahap 2: Pengecekan Customer (Checked)</h4>';
+      html += '      <span class="text-[10px] font-extrabold bg-blue-100 '
+        + 'text-blue-800 border border-blue-300 px-2.5 py-0.5 '
+        + 'rounded-full font-mono">' + s2Time + '</span>';
+      html += '    </div>';
+      html += '    <p class="text-xs text-slate-700 font-medium">'
+        + 'Data Steward <b>' + escapeHtml(dataStewardUser)
+        + '</b> telah memeriksa &amp; memverifikasi '
+        + 'kelengkapan spesifikasi Customer.</p>';
+      html += '  </div>';
+    } else {
+      html += '  <div class="absolute -left-[31px] top-0 w-6 h-6 '
+        + 'rounded-full bg-slate-300 text-slate-600 font-black text-xs '
+        + 'flex items-center justify-center ring-4 ring-white">2</div>';
+      html += '  <div class="bg-white border border-slate-200/80 '
+        + 'rounded-xl p-4 shadow-2xs">';
+      html += '    <h4 class="text-xs font-black text-slate-900 uppercase mb-1">'
+        + 'Tahap 2: Pengecekan Customer</h4>';
+      html += '    <p class="text-xs text-slate-400 font-medium italic">'
+        + 'Dokumen pengajuan dalam antrean pengecekan oleh Data Steward.</p>';
+      html += '  </div>';
+    }
+    html += '</div>';
 
-    // Section 3: Identitas & Legalitas
-    html += '<div class="space-y-2">' +
-            '<h4 class="text-xs font-black text-emerald-800 uppercase tracking-wider flex items-center gap-1.5 pb-1 border-b border-emerald-200">' +
-            '<span class="material-symbols-outlined text-[16px]">receipt_long</span><span>Identitas &amp; Legalitas</span></h4>' +
-            '<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">' +
-            renderField('Jenis Pajak', req.tax_type) +
-            renderField('Nomor Pajak / NPWP', req.tax_num) +
-            renderField('Perorangan', req.natural_person ? 'Ya' : 'Tidak') +
-            renderField('No. Referensi Eksternal', req.external_bp_num) +
-            renderField('Bentuk Hukum', req.legal_form) +
-            renderField('Tipe Entitas', req.legal_entity) +
-            renderField('Tanggal Berdiri', req.date_founded) +
-            renderField('Tanggal Likuidasi', req.liquidation_date) +
-            '</div></div>';
+    // TAHAP 3: Pengecekan Bank / Rekening
+    html += '<div class="relative group">';
+    if (isBankRejected) {
+      html += '  <div class="absolute -left-[31px] top-0 w-6 h-6 '
+        + 'rounded-full bg-amber-600 text-white font-black text-xs '
+        + 'flex items-center justify-center ring-4 ring-white shadow-2xs">'
+        + '&times;</div>';
+      html += '  <div class="bg-amber-50/60 border border-amber-300 '
+        + 'rounded-xl p-4 shadow-2xs">';
+      html += '    <div class="flex items-center justify-between mb-1.5 '
+        + 'flex-wrap gap-2">';
+      html += '      <h4 class="text-xs font-black text-amber-900 uppercase">'
+        + 'Tahap 3: Pengecekan Bank / Rekening (Bank Perlu Direvisi)</h4>';
+      html += '      <span class="text-[10px] font-extrabold bg-amber-100 '
+        + 'text-amber-800 border border-amber-300 px-2.5 py-0.5 '
+        + 'rounded-full font-mono">' + s3Time + '</span>';
+      html += '    </div>';
+      html += '    <p class="text-xs text-amber-900 font-bold">'
+        + 'Bank Steward <b>' + escapeHtml(bankStewardUser)
+        + '</b> menyatakan data bank perlu direvisi.</p>';
+      var bankRejReason = item.stw_bank_note || item.rejection_reason || '-';
+      html += '    <div class="mt-2 text-[11px] text-amber-900 bg-white '
+        + 'p-2.5 rounded-lg border border-amber-200 font-mono">'
+        + '<b>Alasan Revisi Bank:</b> ' + escapeHtml(bankRejReason) + '</div>';
+      html += '  </div>';
+    } else if (isBankChecked) {
+      html += '  <div class="absolute -left-[31px] top-0 w-6 h-6 '
+        + 'rounded-full bg-blue-600 text-white font-black text-xs '
+        + 'flex items-center justify-center ring-4 ring-white shadow-2xs">'
+        + '&check;</div>';
+      html += '  <div class="bg-white border border-blue-200 '
+        + 'rounded-xl p-4 shadow-2xs">';
+      html += '    <div class="flex items-center justify-between mb-1.5 '
+        + 'flex-wrap gap-2">';
+      html += '      <h4 class="text-xs font-black text-slate-900 uppercase">'
+        + 'Tahap 3: Pengecekan Bank / Rekening (Checked)</h4>';
+      html += '      <span class="text-[10px] font-extrabold bg-blue-100 '
+        + 'text-blue-800 border border-blue-300 px-2.5 py-0.5 '
+        + 'rounded-full font-mono">' + s3Time + '</span>';
+      html += '    </div>';
+      html += '    <p class="text-xs text-slate-700 font-medium">'
+        + 'Bank Steward <b>' + escapeHtml(bankStewardUser)
+        + '</b> telah memverifikasi keabsahan data rekening bank.</p>';
+      html += '  </div>';
+    } else {
+      html += '  <div class="absolute -left-[31px] top-0 w-6 h-6 '
+        + 'rounded-full bg-slate-300 text-slate-600 font-black text-xs '
+        + 'flex items-center justify-center ring-4 ring-white">3</div>';
+      html += '  <div class="bg-white border border-slate-200/80 '
+        + 'rounded-xl p-4 shadow-2xs">';
+      html += '    <h4 class="text-xs font-black text-slate-900 uppercase mb-1">'
+        + 'Tahap 3: Pengecekan Bank / Rekening</h4>';
+      html += '    <p class="text-xs text-slate-400 font-medium italic">'
+        + 'Menunggu verifikasi data rekening oleh Bank Steward.</p>';
+      html += '  </div>';
+    }
+    html += '</div>';
 
-    // Section 4: Keuangan & Bank & Pembelian
-    html += '<div class="space-y-2">' +
-            '<h4 class="text-xs font-black text-emerald-800 uppercase tracking-wider flex items-center gap-1.5 pb-1 border-b border-emerald-200">' +
-            '<span class="material-symbols-outlined text-[16px]">account_balance</span><span>Data Keuangan, Bank &amp; Pembelian</span></h4>' +
-            '<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">' +
-            renderField('Negara Bank', req.banks) +
-            renderField('Bank Key', req.bankl) +
-            renderField('Nomor Rekening Bank', req.bankn) +
-            renderField('Nama Pemilik Rekening', req.koinh) +
-            renderField('Nama Lembaga Bank', req.bank_name) +
-            renderField('Kode Perusahaan', req.bukrs) +
-            renderField('Akun Rekonsiliasi', req.akont) +
-            renderField('Termin Pembayaran', req.zterm) +
-            renderField('Organisasi Pembelian', req.ekorg) +
-            renderField('Mata Uang Pesanan', req.waers) +
-            renderField('Verifikasi Faktur GR', req.webre ? 'Ya' : 'Tidak') +
-            renderField('Verifikasi Faktur Jasa', req.lebre ? 'Ya' : 'Tidak') +
-            '</div></div>';
+    // TAHAP 4: Approve Customer & Kode Bank
+    html += '<div class="relative group">';
+    if (isFinalApproved) {
+      html += '  <div class="absolute -left-[31px] top-0 w-6 h-6 '
+        + 'rounded-full bg-emerald-600 text-white font-black text-xs '
+        + 'flex items-center justify-center ring-4 ring-white shadow-2xs">'
+        + '&check;</div>';
+      html += '  <div class="bg-emerald-50/50 border border-emerald-300 '
+        + 'rounded-xl p-4 shadow-2xs">';
+      html += '    <div class="flex items-center justify-between mb-1.5 '
+        + 'flex-wrap gap-2">';
+      html += '      <h4 class="text-xs font-black text-emerald-950 uppercase">'
+        + 'Tahap 4: Approve Customer &amp; Kode Bank (DISETUJUI)</h4>';
+      html += '      <span class="text-[10px] font-extrabold bg-emerald-100 '
+        + 'text-emerald-800 border border-emerald-300 px-2.5 py-0.5 '
+        + 'rounded-full font-mono">' + s4Time + '</span>';
+      html += '    </div>';
+      html += '    <p class="text-xs text-emerald-950 font-bold mb-3">'
+        + 'Pengajuan ini secara resmi telah DISETUJUI. '
+        + 'Nomor Kode Customer SAP &amp; Bank telah diterbitkan.</p>';
+      html += '    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs '
+        + 'bg-white p-3 rounded-lg border border-emerald-200 shadow-2xs '
+        + 'font-mono">';
+      html += '      <div><span class="text-slate-500 block text-[10px]">'
+        + 'Nomor BP SAP:</span> <b class="text-emerald-800 text-sm">'
+        + escapeHtml(item.bp_number || '-') + '</b></div>';
+      html += '      <div><span class="text-slate-500 block text-[10px]">'
+        + 'Bank Key &amp; Name:</span> <b class="text-slate-900">'
+        + escapeHtml(item.bankl || '-') + ' - '
+        + escapeHtml(item.bank_name || '-') + '</b></div>';
+      html += '      <div><span class="text-slate-500 block text-[10px]">'
+        + 'Bank Account &amp; Holder:</span> <b class="text-slate-900">'
+        + escapeHtml(item.bankn || '-') + ' ('
+        + escapeHtml(item.koinh || item.name1 || '-') + ')</b></div>';
+      html += '      <div><span class="text-slate-500 block text-[10px]">'
+        + 'Payment Terms (ZTERM):</span> <b class="text-slate-900">'
+        + escapeHtml(item.zterm || 'NT30') + '</b></div>';
+      html += '    </div>';
+      html += '  </div>';
+    } else {
+      html += '  <div class="absolute -left-[31px] top-0 w-6 h-6 '
+        + 'rounded-full bg-slate-300 text-slate-600 font-black text-xs '
+        + 'flex items-center justify-center ring-4 ring-white">4</div>';
+      html += '  <div class="bg-white border border-slate-200/80 '
+        + 'rounded-xl p-4 shadow-2xs">';
+      html += '    <h4 class="text-xs font-black text-slate-900 uppercase mb-1">'
+        + 'Tahap 4: Approve Customer &amp; Kode Bank</h4>';
+      html += '    <p class="text-xs text-slate-400 font-medium italic">'
+        + 'Menunggu persetujuan akhir &amp; penerbitan nomor kode SAP.</p>';
+      html += '  </div>';
+    }
+    html += '</div>';
 
-    // Section 5: Review Steward & Catatan
-    html += '<div class="space-y-2">' +
-            '<h4 class="text-xs font-black text-emerald-800 uppercase tracking-wider flex items-center gap-1.5 pb-1 border-b border-emerald-200">' +
-            '<span class="material-symbols-outlined text-[16px]">fact_check</span><span>Audit Review Steward &amp; Catatan</span></h4>' +
-            '<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">' +
-            renderField('Data Steward Status', req.stw_data_status) +
-            renderField('Data Steward Note', req.stw_data_note) +
-            renderField('Bank Steward Status', req.stw_bank_status) +
-            renderField('Bank Steward Note', req.stw_bank_note) +
-            renderField('Alasan Penolakan', req.rejection_reason) +
-            renderField('Catatan Internal', req.internal_notes) +
-            '</div></div>';
-
-    if (bodyEl) bodyEl.innerHTML = html;
-
-    var modal = document.getElementById('viewDetailModal');
-    if (modal) modal.classList.remove('hidden');
+    container.innerHTML = html;
+    if (modal) modal.classList.remove("hidden");
   }
 
-  function closeViewDetailModal() {
-    var modal = document.getElementById('viewDetailModal');
-    if (modal) modal.classList.add('hidden');
+  function closeProgressTrackerModal() {
+    var modal = document.getElementById("progressTrackerModal");
+    if (modal) modal.classList.add("hidden");
+  }
+
+  function openDetailFromTracker() {
+    closeProgressTrackerModal();
+    if (currentTrackerReqId) {
+      showDetailPreviewModal(currentTrackerReqId);
+    }
+  }
+
+  function showDetailPreviewModal(reqId) {
+    var item = null;
+    if (window.allRequestsData && window.allRequestsData.length > 0) {
+      item = window.allRequestsData.find(function(r) { return r.req_id === reqId; });
+    }
+    if (!item && window.allRequestsData && window.allRequestsData.length > 0) {
+      item = window.allRequestsData[0];
+    }
+    if (!item) return;
+
+    var orgTitleEl = document.getElementById("detailPreviewOrgName");
+    if (orgTitleEl) orgTitleEl.innerText = item.name1 || 'Detail Staging';
+
+    // Card 01: General Data
+    var fnEl = document.getElementById("cardDetailFirstName");
+    var lnEl = document.getElementById("cardDetailLastName");
+    var stEl = document.getElementById("cardDetailSearchTerm");
+    var peEl = document.getElementById("cardDetailPhoneEmail");
+
+    if (fnEl) fnEl.innerText = item.name1 || '-';
+    if (lnEl) lnEl.innerText = item.name2 || '-';
+    if (stEl) stEl.innerText = item.search_term || '-';
+    if (peEl) {
+      var tel = item.telephone || '-';
+      var eml = item.email || '-';
+      peEl.innerText = tel + ' | ' + eml;
+    }
+
+    // Card 02: Address & Comm.
+    var shEl = document.getElementById("cardDetailStreetHouse");
+    var cpEl = document.getElementById("cardDetailCityPostal");
+    var crEl = document.getElementById("cardDetailCountryRegion");
+
+    if (shEl) shEl.innerText = (item.street || '-') + ' ' + (item.house_num || '');
+    if (cpEl) cpEl.innerText = (item.city || '-') + ' ' + (item.postal_code || '');
+    if (crEl) crEl.innerText = (item.country || 'ID') + ' (' + (item.region || '-') + ')';
+
+    // Card 03: Tax, Bank & Payment Terms
+    var txEl = document.getElementById("cardDetailTaxNum");
+    var bkEl = document.getElementById("cardDetailBankKeyName");
+    var ahEl = document.getElementById("cardDetailAcctHolder");
+    var ptEl = document.getElementById("cardDetailPaymentTerms");
+    var dsEl = document.getElementById("cardDetailDataSteward");
+    var bsEl = document.getElementById("cardDetailBankSteward");
+
+    if (txEl) txEl.innerText = item.tax_num || '-';
+    if (bkEl) bkEl.innerText = (item.bankl || '-') + ' - ' + (item.bank_name || '-');
+    if (ahEl) ahEl.innerText = (item.bankn || '-') + ' (' + (item.koinh || item.name1 || '-') + ')';
+    if (ptEl) ptEl.innerText = (item.zterm || 'NT30');
+    if (dsEl) dsEl.innerText = item.stw_data_user || '-';
+    if (bsEl) bsEl.innerText = item.stw_bank_user || '-';
+
+    var modal = document.getElementById("detailPreviewModal");
+    if (modal) modal.classList.remove("hidden");
+  }
+
+  function closeDetailPreviewModal() {
+    var modal = document.getElementById("detailPreviewModal");
+    if (modal) modal.classList.add("hidden");
   }
 
   // -------------------------------------------------------------------
@@ -3955,12 +4401,20 @@
     }
   }
 
-  // Real-time table search filter with pagination support
+  // Real-time table search filter
   var topSearch = document.getElementById('topSearchInput');
   if (topSearch) {
-    topSearch.addEventListener('input', function() {
-      historyCurrentPage = 1;
-      applyHistoryPagination();
+    topSearch.addEventListener('input', function(e) {
+      var q = e.target.value.toLowerCase().trim();
+      var rows = document.querySelectorAll('.history-row');
+      rows.forEach(function(row) {
+        var text = row.innerText.toLowerCase();
+        if (!q || text.indexOf(q) !== -1) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
     });
   }
 
@@ -3971,8 +4425,11 @@
     var initialCountry = document.getElementById('countrySelect') ? document.getElementById('countrySelect').value : 'ID';
     updateRegionDropdown(initialCountry);
 
-    // Initialize History Pagination
-    applyHistoryPagination();
+    // Format all raw timestamps in history table
+    document.querySelectorAll('.formatted-timestamp').forEach(function(el) {
+      var raw = el.getAttribute('data-raw-time') || el.innerText;
+      el.innerText = formatBpDateTime(raw);
+    });
 
     // Initial state setup for Bank Details from wa_req
     var initBankl = '<%= wa_req-bankl %>';

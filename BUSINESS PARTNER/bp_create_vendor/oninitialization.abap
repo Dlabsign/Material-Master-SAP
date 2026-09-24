@@ -227,10 +227,11 @@ ELSE.
   GET TIME STAMP FIELD wa_req-created_at.
 ENDIF.
 
-" 4. Load User Request History (Semua status untuk audit trail & tab filtering)
+" 4. Load User Request History (Vendor requests only)
 SELECT *
   FROM zmdg_bp_req
  WHERE created_by = @sy-uname
+   AND ( bu_group LIKE 'S%' OR bp_role LIKE 'FLVN%' OR bu_group = '' )
   ORDER BY created_at DESCENDING
   INTO CORRESPONDING FIELDS OF TABLE @gt_my_requests
  UP TO 100 ROWS.
@@ -274,7 +275,7 @@ SELECT a~bu_group, b~txt40
   FROM tb001 AS a
  INNER JOIN tb002 AS b ON a~bu_group = b~bu_group
  WHERE b~spras = @sy-langu
-   AND a~bu_group IN ( 'C001', 'C002', 'C003', 'S001', 'S002' )
+   AND a~bu_group IN ( 'C001', 'C002', 'C003', 'S001', 'S002', 'S003', 'S004', 'S005' )
  ORDER BY a~bu_group
   INTO CORRESPONDING FIELDS OF TABLE @gt_bp_grouping.
 
@@ -283,7 +284,7 @@ IF gt_bp_grouping IS INITIAL.
     FROM tb001 AS a
    INNER JOIN tb002 AS b ON a~bu_group = b~bu_group
    WHERE b~spras = 'E'
-     AND a~bu_group IN ( 'C001', 'C002', 'C003', 'S001', 'S002' )
+     AND a~bu_group IN ( 'C001', 'C002', 'C003', 'S001', 'S002', 'S003', 'S004', 'S005' )
    ORDER BY a~bu_group
     INTO CORRESPONDING FIELDS OF TABLE @gt_bp_grouping.
 ENDIF.
@@ -294,6 +295,9 @@ IF gt_bp_grouping IS INITIAL.
   APPEND VALUE #( bu_group = 'C003' txt40 = 'Employee Customer' ) TO gt_bp_grouping.
   APPEND VALUE #( bu_group = 'S001' txt40 = 'Import Trade' )      TO gt_bp_grouping.
   APPEND VALUE #( bu_group = 'S002' txt40 = 'Local Trade' )       TO gt_bp_grouping.
+  APPEND VALUE #( bu_group = 'S003' txt40 = 'Leasing Trade' )     TO gt_bp_grouping.
+  APPEND VALUE #( bu_group = 'S004' txt40 = 'Service Trade' )     TO gt_bp_grouping.
+  APPEND VALUE #( bu_group = 'S005' txt40 = 'Service Non Trade' ) TO gt_bp_grouping.
 ENDIF.
 
 " 7. Query Countries langsung dari tabel standar SAP T005T

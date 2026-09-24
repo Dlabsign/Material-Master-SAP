@@ -1,8 +1,18 @@
 <%@page language="ABAP" %>
-    <% DATA: lv_auth_user TYPE string, lv_is_authorized TYPE c LENGTH 1 VALUE ' ' . lv_auth_user=sy-uname. TRANSLATE
-        lv_auth_user TO UPPER CASE. CONDENSE lv_auth_user NO-GAPS. IF lv_auth_user='ABAPER04' OR lv_auth_user='KMI-BOD'
-        OR lv_auth_user='KMI-U163' . lv_is_authorized='X' . ENDIF. IF lv_is_authorized <> 'X'.
-        %>
+<%
+  DATA: lv_auth_user     TYPE string,
+        lv_is_authorized TYPE c LENGTH 1 VALUE ' '.
+
+  lv_auth_user = sy-uname.
+  TRANSLATE lv_auth_user TO UPPER CASE.
+  CONDENSE lv_auth_user NO-GAPS.
+
+  IF lv_auth_user = 'ABAPER04' OR lv_auth_user = 'KMI-BOD' OR lv_auth_user = 'KMI-U163'.
+    lv_is_authorized = 'X'.
+  ENDIF.
+
+  IF lv_is_authorized <> 'X'.
+%>
         <!DOCTYPE html>
         <html lang="en">
 
@@ -759,78 +769,57 @@
                 <main class="main-wrapper">
 
                     <!-- 4-TILE ANALYTICS DASHBOARD GRID MATCHING USER SCREENSHOT -->
-                    <div class="analytics-grid">
-                        <!-- TILE 1: TOTAL PERMOHONAN -->
-                        <div class="analytics-tile analytics-tile-clickable"
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 w-full">
+                        <!-- CARD 1: APPROVED REQUEST -->
+                        <div class="rounded-2xl p-5 text-white shadow-md cursor-pointer transition transform hover:-translate-y-1"
+                            style="background: linear-gradient(135deg, #059669 0%, #047857 100%);"
                             onclick="document.getElementById('statusFilter').value='ALL'; applyFilters();"
                             title="Klik untuk menampilkan seluruh permohonan BP">
-                            <div class="analytics-icon-box"
-                                style="background: linear-gradient(135deg, #059669 0%, #047857 100%); box-shadow: 0 3px 10px rgba(4, 120, 87, 0.25);">
-                                <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                                    stroke-width="2.2">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10">
-                                    </path>
-                                </svg>
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-[11px] font-extrabold uppercase tracking-wider text-emerald-100">APPROVED REQUEST</span>
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-white/20 text-white border border-white/30">APPROVED</span>
                             </div>
-                            <div class="analytics-data">
-                                <span class="analytics-label">Total Permohonan BP</span>
-                                <span class="analytics-value" id="kpiTotal">0</span>
-                            </div>
+                            <div class="text-3xl font-extrabold tracking-tight mb-1" id="kpiTotal">0</div>
+                            <div class="text-xs text-emerald-100 font-medium">Total Business Partner Request</div>
                         </div>
 
-                        <!-- TILE 2: SIAP REVIEW BANK STEWARD -->
-                        <div class="analytics-tile analytics-tile-clickable"
-                            onclick="document.getElementById('statusFilter').value='PENDING_BANK'; applyFilters();"
-                            title="Klik untuk menyaring status Siap Review Bank Steward">
-                            <div class="analytics-icon-box"
-                                style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); box-shadow: 0 3px 10px rgba(217, 119, 6, 0.25);">
-                                <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                                    stroke-width="2.2">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
+                        <!-- CARD 2: READY TO CHECKED -->
+                        <div class="rounded-2xl p-5 text-white shadow-md cursor-pointer transition transform hover:-translate-y-1"
+                            style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 50%, #0c4a6e 100%);"
+                            onclick="document.getElementById('statusFilter').value='SD_APPROVED'; applyFilters();"
+                            title="Klik untuk menyaring status Ready To Checked">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-[11px] font-extrabold uppercase tracking-wider text-sky-100">READY TO CHECKED</span>
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-white/20 text-white border border-white/30">CHECKED</span>
                             </div>
-                            <div class="analytics-data">
-                                <span class="analytics-label">Siap Review Bank Steward</span>
-                                <span class="analytics-value" id="kpiPending" style="color: #d97706;">0</span>
-                            </div>
+                            <div class="text-3xl font-extrabold tracking-tight mb-1" id="kpiPending">0</div>
+                            <div class="text-xs text-sky-100 font-medium">Siap Review / Staging Queue</div>
                         </div>
 
-                        <!-- TILE 3: LOLOS VERIFIKASI BANK -->
-                        <div class="analytics-tile analytics-tile-clickable"
-                            onclick="document.getElementById('statusFilter').value='BANK_CHECKED'; applyFilters();"
-                            title="Klik untuk menyaring status Lolos Verifikasi Bank Steward">
-                            <div class="analytics-icon-box"
-                                style="background: linear-gradient(135deg, #059669 0%, #047857 100%); box-shadow: 0 3px 10px rgba(4, 120, 87, 0.25);">
-                                <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                                    stroke-width="2.2">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
+                        <!-- CARD 3: APPROVED -->
+                        <div class="rounded-2xl p-5 text-white shadow-md cursor-pointer transition transform hover:-translate-y-1"
+                            style="background: linear-gradient(135deg, #047857 0%, #064e3b 100%);"
+                            onclick="document.getElementById('statusFilter').value='APPROVED'; applyFilters();"
+                            title="Klik untuk menyaring status Approved">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-[11px] font-extrabold uppercase tracking-wider text-emerald-100">APPROVED</span>
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-white/20 text-white border border-white/30">APPROVED</span>
                             </div>
-                            <div class="analytics-data">
-                                <span class="analytics-label">Lolos Verifikasi Bank</span>
-                                <span class="analytics-value" id="kpiChecked" style="color: #047857;">0</span>
-                            </div>
+                            <div class="text-3xl font-extrabold tracking-tight mb-1" id="kpiChecked">0</div>
+                            <div class="text-xs text-emerald-100 font-medium">Total Business Partner Approved</div>
                         </div>
 
-                        <!-- TILE 4: PERMOHONAN DITOLAK -->
-                        <div class="analytics-tile analytics-tile-clickable"
+                        <!-- CARD 4: BANK REJECT -->
+                        <div class="rounded-2xl p-5 text-white shadow-md cursor-pointer transition transform hover:-translate-y-1"
+                            style="background: linear-gradient(135deg, #be123c 0%, #881337 100%);"
                             onclick="document.getElementById('statusFilter').value='REJECTED'; applyFilters();"
-                            title="Klik untuk menyaring status Permohonan Ditolak">
-                            <div class="analytics-icon-box"
-                                style="background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%); box-shadow: 0 3px 10px rgba(225, 29, 72, 0.25);">
-                                <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                                    stroke-width="2.2">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
+                            title="Klik untuk menyaring status Bank Reject">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-[11px] font-extrabold uppercase tracking-wider text-rose-100">BANK REJECT</span>
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-white/20 text-white border border-white/30">REJECTED</span>
                             </div>
-                            <div class="analytics-data">
-                                <span class="analytics-label">Permohonan Ditolak</span>
-                                <span class="analytics-value" id="kpiRejected" style="color: #e11d48;">0</span>
-                            </div>
+                            <div class="text-3xl font-extrabold tracking-tight mb-1" id="kpiRejected">0</div>
+                            <div class="text-xs text-rose-100 font-medium">Total Business Partner Rejected</div>
                         </div>
                     </div>
 
@@ -916,11 +905,11 @@
                                         <thead>
                                             <tr>
                                                 <th style="width:40px; text-align:center;">No</th>
-                                                <th>Request ID</th>
                                                 <th>BP &amp; Name</th>
                                                 <th>Bank &amp; Account</th>
                                                 <th>Financial &amp; Terms</th>
-                                                <th style="text-align:center;">Requestor</th>
+                                                <th style="text-align:center;">User</th>
+                                                <th style="text-align:center;">Create At</th>
                                                 <th style="text-align:center;">Status</th>
                                                 <th style="text-align:center;">Action</th>
                                             </tr>
@@ -1209,13 +1198,13 @@ text-lg p-1 rounded-lg hover:bg-slate-100 transition">&times;</button>
                         justify-center text-xl font-black mb-3">
                             &#10003;
                         </div>
-                        <h3 class="text-sm font-extrabold text-slate-900">
-                            Konfirmasi Aktivasi FI Customer (FLCU00) &amp; Approval Bank
+                        <h3 class="text-sm font-extrabold text-slate-900" id="confirmModalTitle">
+                            Konfirmasi Aktivasi Role FI &amp; Approval Bank
                         </h3>
                         <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">
                             Anda akan menyetujui detail data keuangan &amp; rekening untuk record <strong
                                 id="confirmReqIdLabel" class="font-mono text-sky-900"></strong>. Perintah ini akan
-                            mengaktifkan <span class="font-bold text-sky-700">BP Role FLCU00 – FI Customer</span> pada
+                            mengaktifkan <span id="confirmRoleLabel" class="font-bold text-sky-700">BP Role FI</span> pada
                             Nomor BP SAP yang dibuat di Tahap 1, dan menyelesaikan alur governance (<strong
                                 class="text-emerald-700">APPROVED Complete</strong>).
                         </p>
@@ -1368,8 +1357,8 @@ text-lg p-1 rounded-lg hover:bg-slate-100 transition">&times;</button>
 
                             var matchesStatus = true;
                             if (stat !== 'ALL') {
-                                if (stat === 'SD_APPROVED' || stat === 'PENDING_BANK' || stat === 'PENDING_REVIEW') {
-                                    matchesStatus = (r.status === 'SD_APPROVED' || r.status === 'BANK_CHECKED');
+                                if (stat === 'SD_APPROVED' || stat === 'MM_APPROVED' || stat === 'PENDING_BANK' || stat === 'PENDING_REVIEW') {
+                                    matchesStatus = (r.status === 'SD_APPROVED' || r.status === 'MM_APPROVED' || r.status === 'BANK_CHECKED');
                                 } else if (stat === 'APPROVED') {
                                     matchesStatus = (r.status === 'APPROVED');
                                 } else if (stat === 'REJECTED') {
@@ -1425,11 +1414,11 @@ text-lg p-1 rounded-lg hover:bg-slate-100 transition">&times;</button>
                         pageRows.forEach(function (r, idx) {
                             var rowNum = startIdx + idx + 1;
                             var reqNo = escapeHtml(r.req_no || '-');
-                            var name1 = escapeHtml(r.name1 || '-');
-                            var roleDesc = formatBpRoleText(r.bp_role, r.bp_role_text);
+                            var bpName = escapeHtml((r.name1 || '') + (r.name2 ? ' ' + r.name2 : ''));
+                            if (!bpName.trim()) bpName = '-';
                             var requestor = escapeHtml(r.requestor || '-');
                             var status = r.status || 'PENDING_REVIEW';
-                            var dateStr = formatDate(r.req_date, r.req_time);
+                            var createAtStr = formatDateOnly(r.req_date);
 
                             var bankName = escapeHtml(r.bank_name || '-');
                             var bankl = escapeHtml(r.bankl || '-');
@@ -1440,7 +1429,7 @@ text-lg p-1 rounded-lg hover:bg-slate-100 transition">&times;</button>
                             var zterm = escapeHtml(r.zterm || '-');
                             var akont = escapeHtml(r.akont || '-');
                             var bukrs = escapeHtml(r.bukrs || '1000');
-                            var isActionable = (status === 'SD_APPROVED' || status === 'BANK_CHECKED' || (!r.stw_bank_status || r.stw_bank_status.trim() === '')) &&
+                            var isActionable = (status === 'SD_APPROVED' || status === 'MM_APPROVED' || status === 'BANK_CHECKED' || (!r.stw_bank_status || r.stw_bank_status.trim() === '')) &&
                                 status !== 'REJECTED' && status !== 'FAILED' && status !== 'APPROVED';
 
                             // Status Badge
@@ -1448,15 +1437,19 @@ text-lg p-1 rounded-lg hover:bg-slate-100 transition">&times;</button>
                             if (status === 'APPROVED') {
                                 statusBadge = '<span class="px-2.5 py-1 rounded-full text-[10px] ' +
                                     'font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">' +
-                                    '&#10003; APPROVED (COMPLETE)</span>';
+                                    '&#10003; APPROVED</span>';
                             } else if (status === 'SD_APPROVED') {
                                 statusBadge = '<span class="px-2.5 py-1 rounded-full text-[10px] ' +
                                     'font-bold bg-sky-50 text-sky-800 border border-sky-200 animate-pulse">' +
-                                    '&#10003; SD APPROVED &bull; SIAP FI CUSTOMER</span>';
-                            } else if (status === 'REJECTED' || status === 'FAILED') {
+                                    '&#10003; READY TO CHECKED</span>';
+                            } else if (status === 'MM_APPROVED') {
+                                statusBadge = '<span class="px-2.5 py-1 rounded-full text-[10px] ' +
+                                    'font-bold bg-purple-50 text-purple-800 border border-purple-200 animate-pulse">' +
+                                    '&#10003; MM APPROVED</span>';
+                            } else if (status === 'REJECTED' || status === 'FAILED' || r.stw_bank_status === 'R') {
                                 statusBadge = '<span class="px-2.5 py-1 rounded-full text-[10px] ' +
                                     'font-bold bg-rose-50 text-rose-700 border border-rose-200">' +
-                                    '&#10007; REJECTED</span>';
+                                    '&#10007; BANK REJECT</span>';
                             } else {
                                 statusBadge = '<span class="px-2.5 py-1 rounded-full text-[10px] ' +
                                     'font-bold bg-amber-50 text-amber-700 border border-amber-200 animate-pulse">' +
@@ -1484,7 +1477,7 @@ text-lg p-1 rounded-lg hover:bg-slate-100 transition">&times;</button>
                                     'inline-flex items-center gap-1 opacity-80">&#10003; Disetujui Bank</button> ' +
                                     '<button type="button" class="ds-btn-secondary px-2.5 py-1 text-[11px]" ' +
                                     'onclick="openBpDetailModal(\'' + reqNo + '\')">Detail</button>';
-                            } else if (status === 'REJECTED' || status === 'FAILED') {
+                            } else if (status === 'REJECTED' || status === 'FAILED' || r.stw_bank_status === 'R') {
                                 actionBtns = '<button type="button" disabled ' +
                                     'class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-50 ' +
                                     'text-rose-600 border border-rose-200 cursor-not-allowed ' +
@@ -1500,20 +1493,9 @@ text-lg p-1 rounded-lg hover:bg-slate-100 transition">&times;</button>
                                 '<td class="p-3.5 text-center text-slate-400 font-medium">' + rowNum +
                                 '</td>' +
                                 '<td class="p-3.5">' +
-                                '<div class="font-mono font-bold text-slate-900">' + reqNo + '</div>' +
-                                '<div class="text-[11px] text-slate-400 mt-0.5">' + dateStr +
-                                '</div>' +
+                                '<div class="font-bold text-slate-900 leading-snug">' + bpName + '</div>' +
                                 '</td>' +
                                 '<td class="p-3.5">' +
-                                '<div class="font-bold text-slate-900 leading-snug">' + name1 + '</div>' +
-                                '<div class="flex items-center gap-1.5 mt-1">' +
-                                '<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold ' +
-                                'bg-slate-100 text-slate-700 border border-slate-200">' + roleDesc +
-                                '</span>' +
-                                '</div>' +
-                                '</td>';
-
-                            html += '<td class="p-3.5">' +
                                 '<div class="font-bold text-slate-800 flex items-center gap-1">' +
                                 '<span>' + bankName + '</span>' +
                                 '<span class="text-[10px] font-mono text-slate-400">(' +
@@ -1538,9 +1520,10 @@ text-lg p-1 rounded-lg hover:bg-slate-100 transition">&times;</button>
                                 zterm + '</span></div>' +
                                 '<div class="text-[10px] text-slate-400">CC: ' +
                                 '<span class="font-mono font-semibold">' + bukrs + '</span></div>' +
-                                '</td>';
-
-                            html += '<td class="p-3.5 text-center font-mono font-bold">' + requestor +
+                                '</td>' +
+                                '<td class="p-3.5 text-center font-bold text-slate-800 text-xs">' + requestor +
+                                '</td>' +
+                                '<td class="p-3.5 text-center font-mono text-slate-700 text-xs font-semibold">' + createAtStr +
                                 '</td>' +
                                 '<td class="p-3.5 text-center">' + statusBadge + '</td>' +
                                 '<td class="p-3.5 text-center flex items-center justify-center ' +
@@ -1615,6 +1598,22 @@ text-lg p-1 rounded-lg hover:bg-slate-100 transition">&times;</button>
                         activeReqId = reqNo;
                         document.getElementById('confirmReqIdLabel').innerText = reqNo;
                         document.getElementById('checkNotesInput').value = '';
+
+                        var item = rawBpList.find(function (i) { return i.req_no === reqNo; });
+                        var isVendor = item && (item.bp_role === 'FLVN01' || item.bp_role === 'FLVN00' ||
+                            (item.bp_role && item.bp_role.indexOf('VN') !== -1) || item.status === 'MM_APPROVED');
+                        var titleText = isVendor ?
+                            'Konfirmasi Aktivasi FI Supplier (FLVN00) & Approval Bank' :
+                            'Konfirmasi Aktivasi FI Customer (FLCU00) & Approval Bank';
+                        var roleText = isVendor ?
+                            'BP Role FLVN00 \u2013 FI Supplier' :
+                            'BP Role FLCU00 \u2013 FI Customer';
+
+                        var titleEl = document.getElementById('confirmModalTitle');
+                        if (titleEl) titleEl.innerText = titleText;
+                        var roleEl = document.getElementById('confirmRoleLabel');
+                        if (roleEl) roleEl.innerText = roleText;
+
                         openModal('checkConfirmModal');
                     }
 
@@ -1793,7 +1792,7 @@ text-lg p-1 rounded-lg hover:bg-slate-100 transition">&times;</button>
                         }
 
                         var actionContainer = document.getElementById('modalActionContainer');
-                        var isBankActionable = (!r.stw_bank_status || r.stw_bank_status.trim() === '') &&
+                        var isBankActionable = (r.status === 'SD_APPROVED' || r.status === 'MM_APPROVED' || (!r.stw_bank_status || r.stw_bank_status.trim() === '')) &&
                             r.status !== 'REJECTED' && r.status !== 'FAILED' && r.status !== 'APPROVED';
 
                         if (isBankActionable) {
@@ -1916,6 +1915,14 @@ text-lg p-1 rounded-lg hover:bg-slate-100 transition">&times;</button>
                             res += ' ' + t.substring(0, 2) + ':' + t.substring(2, 4);
                         }
                         return res;
+                    }
+
+                    function formatDateOnly(d) {
+                        if (!d || d === '00000000') return '-';
+                        var y = d.substring(0, 4);
+                        var m = d.substring(4, 6);
+                        var day = d.substring(6, 8);
+                        return day + '/' + m + '/' + y;
                     }
                 </script>
             </body>

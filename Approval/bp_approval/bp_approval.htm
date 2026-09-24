@@ -1,8 +1,18 @@
 <%@page language="ABAP" %>
-    <% DATA: lv_auth_user TYPE string, lv_is_authorized TYPE c LENGTH 1 VALUE ' ' . lv_auth_user=sy-uname. TRANSLATE
-        lv_auth_user TO UPPER CASE. CONDENSE lv_auth_user NO-GAPS. IF lv_auth_user='ABAPER04' OR lv_auth_user='KMI-BOD'
-        OR lv_auth_user='KMI-U163' . lv_is_authorized='X' . ENDIF. IF lv_is_authorized <> 'X'.
-        %>
+<%
+  DATA: lv_auth_user     TYPE string,
+        lv_is_authorized TYPE c LENGTH 1 VALUE ' '.
+
+  lv_auth_user = sy-uname.
+  TRANSLATE lv_auth_user TO UPPER CASE.
+  CONDENSE lv_auth_user NO-GAPS.
+
+  IF lv_auth_user = 'ABAPER04' OR lv_auth_user = 'KMI-BOD' OR lv_auth_user = 'KMI-U163'.
+    lv_is_authorized = 'X'.
+  ENDIF.
+
+  IF lv_is_authorized <> 'X'.
+%>
         <!DOCTYPE html>
         <html lang="en">
 
@@ -10,13 +20,10 @@
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>403 Forbidden</title>
-            <!-- Google Fonts: Plus Jakarta Sans & Inter -->
-            <link rel="preconnect" href="https://fonts.googleapis.com">
-            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-            <link
-                href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Inter:wght@500;600;700&display=swap"
-                rel="stylesheet">
+            <!-- Google Fonts: Inter -->
             <style>
+                @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
                 * {
                     margin: 0;
                     padding: 0;
@@ -29,7 +36,7 @@
                     height: 100%;
                     min-height: 100vh;
                     background-color: #f8fafc;
-                    font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
                     display: flex;
                     flex-direction: column;
                     align-items: center;
@@ -82,11 +89,18 @@
         </body>
 
         </html>
-        <% RETURN. ENDIF. DATA: lv_badge_approved TYPE i, lv_badge_rejected TYPE i, lv_badge_checked TYPE i. SELECT
-            COUNT( * ) FROM zmdg_bp_req WHERE status='APPROVED' INTO @lv_badge_approved. SELECT COUNT( * ) FROM
-            zmdg_bp_req WHERE status IN ( 'REJECTED' , 'FAILED' ) INTO @lv_badge_rejected. SELECT COUNT( * ) FROM
-            zmdg_bp_req WHERE status='CHECKED' AND stw_data_status='X' AND stw_bank_status='X' INTO @lv_badge_checked.
-            %>
+<%
+  RETURN.
+ENDIF.
+
+DATA: lv_badge_approved TYPE i,
+      lv_badge_rejected TYPE i,
+      lv_badge_checked  TYPE i.
+
+SELECT COUNT( * ) FROM zmdg_bp_req WHERE status = 'APPROVED' INTO @lv_badge_approved.
+SELECT COUNT( * ) FROM zmdg_bp_req WHERE status IN ( 'REJECTED' , 'FAILED' ) INTO @lv_badge_rejected.
+SELECT COUNT( * ) FROM zmdg_bp_req WHERE status = 'CHECKED' AND stw_data_status = 'X' AND stw_bank_status = 'X' INTO @lv_badge_checked.
+%>
             <!DOCTYPE html>
             <html lang="en">
 
@@ -96,10 +110,9 @@
                 <title>Master Data Governance - Business Partner Approval Center</title>
 
                 <!-- Google Fonts: Inter -->
-                <link rel="preconnect" href="https://fonts.googleapis.com">
-                <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-                <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
-                    rel="stylesheet">
+                <style>
+                    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+                </style>
 
                 <!-- Tailwind CSS CDN -->
                 <script src="https://cdn.tailwindcss.com"></script>
@@ -168,7 +181,7 @@
                     }
 
                     .custom-select {
-                        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%6b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+                        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%6b7280' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
                         background-position: right 0.75rem center;
                         background-repeat: no-repeat;
                         background-size: 1.25em 1.25em;
@@ -198,7 +211,7 @@
 
                 <div class="flex min-h-screen">
                     <!-- REUSABLE SIDEBAR PAGE FRAGMENT -->
-                    <%@include file="sidebar_approval.htm" %>
+                    <%@include file="sidebar.htm" %>
 
                         <!-- MAIN CONTENT AREA -->
                         <div class="flex-1 min-w-0 flex flex-col">
@@ -250,133 +263,75 @@
                                     </p>
                                 </section>
 
-                                <!-- 4 MODULE BADGES SECTION (Material, Business Partner, Financial, Info Record) -->
-                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                                    <!-- 1. Material Master -->
-                                    <div
-                                        class="bg-gradient-to-br from-emerald-800 via-emerald-700 to-teal-900 text-white rounded-2xl px-5 py-4 shadow-sm border border-emerald-600/30 transition-all hover:shadow-md cursor-pointer group">
+                                <!-- 3 STATUS BADGES SECTION (Approved, Reject, Checked) -->
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                    <!-- 1. Approved Badge Card -->
+                                    <div onclick="filterByStatus('APPROVED')"
+                                        class="bg-gradient-to-br from-emerald-800 via-emerald-700 to-teal-900
+                                               text-white rounded-2xl px-5 py-4 shadow-sm border
+                                               border-emerald-600/30 transition-all hover:shadow-md
+                                               hover:-translate-y-0.5 cursor-pointer group">
                                         <div class="flex items-center justify-between">
                                             <span
-                                                class="text-[11px] font-bold tracking-wide text-emerald-100 uppercase">Material
-                                                Master</span>
+                                                class="text-[11px] font-bold tracking-wide text-emerald-100 uppercase">Approved</span>
                                             <span
-                                                class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-200 border border-emerald-400/30">MM</span>
+                                                class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-200 border border-emerald-400/30">APPROVED</span>
                                         </div>
                                         <span class="text-3xl font-extrabold text-white tracking-tight block mt-1"
-                                            id="badgeMatCount">0</span>
-                                        <div
-                                            class="text-[11px] text-emerald-200/80 mt-1 font-medium flex items-center gap-1.5">
-                                            <span>Material Master Data</span>
-                                        </div>
-                                    </div>
-
-                                    <!-- 2. Business Partner -->
-                                    <div
-                                        class="bg-gradient-to-br from-sky-800 via-sky-700 to-indigo-900 text-white rounded-2xl px-5 py-4 shadow-sm border border-sky-600/30 transition-all hover:shadow-md cursor-pointer group">
-                                        <div class="flex items-center justify-between">
-                                            <span
-                                                class="text-[11px] font-bold tracking-wide text-sky-100 uppercase">Business
-                                                Partner</span>
-                                            <span
-                                                class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-200 border border-sky-400/30">BP</span>
-                                        </div>
-                                        <span class="text-3xl font-extrabold text-white tracking-tight block mt-1"
-                                            id="badgeBpCount">
+                                            id="statApprovedCount">
                                             <%= lv_badge_approved %>
                                         </span>
                                         <div
+                                            class="text-[11px] text-emerald-200/80 mt-1 font-medium flex items-center gap-1.5">
+                                            <span>Total Business Partner Approved</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- 2. Reject Badge Card -->
+                                    <div onclick="filterByStatus('REJECTED')"
+                                        class="bg-gradient-to-br from-rose-900 via-rose-800 to-red-950
+                                               text-white rounded-2xl px-5 py-4 shadow-sm border
+                                               border-rose-600/30 transition-all hover:shadow-md
+                                               hover:-translate-y-0.5 cursor-pointer group">
+                                        <div class="flex items-center justify-between">
+                                            <span
+                                                class="text-[11px] font-bold tracking-wide text-rose-100 uppercase">Reject</span>
+                                            <span
+                                                class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-200 border border-rose-400/30">REJECTED</span>
+                                        </div>
+                                        <span class="text-3xl font-extrabold text-white tracking-tight block mt-1"
+                                            id="statRejectedCount">
+                                            <%= lv_badge_rejected %>
+                                        </span>
+                                        <div
+                                            class="text-[11px] text-rose-200/80 mt-1 font-medium flex items-center gap-1.5">
+                                            <span>Total Business Partner Rejected</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- 3. Checked Badge Card -->
+                                    <div onclick="filterByStatus('CHECKED')"
+                                        class="bg-gradient-to-br from-sky-900 via-sky-800 to-indigo-950
+                                               text-white rounded-2xl px-5 py-4 shadow-sm border
+                                               border-sky-600/30 transition-all hover:shadow-md
+                                               hover:-translate-y-0.5 cursor-pointer group">
+                                        <div class="flex items-center justify-between">
+                                            <span
+                                                class="text-[11px] font-bold tracking-wide text-sky-100 uppercase">Checked</span>
+                                            <span
+                                                class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-sky-500/20 text-sky-200 border border-sky-400/30">CHECKED</span>
+                                        </div>
+                                        <span class="text-3xl font-extrabold text-white tracking-tight block mt-1"
+                                            id="statDraftCount">
+                                            <%= lv_badge_checked %>
+                                        </span>
+                                        <div
                                             class="text-[11px] text-sky-200/80 mt-1 font-medium flex items-center gap-1.5">
-                                            <span>Vendor &amp; Customer</span>
-                                        </div>
-                                    </div>
-
-                                    <!-- 3. Financial -->
-                                    <div
-                                        class="bg-gradient-to-br from-amber-800 via-amber-700 to-slate-900 text-white rounded-2xl px-5 py-4 shadow-sm border border-amber-600/30 transition-all hover:shadow-md cursor-pointer group">
-                                        <div class="flex items-center justify-between">
-                                            <span
-                                                class="text-[11px] font-bold tracking-wide text-amber-100 uppercase">Financial</span>
-                                            <span
-                                                class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-200 border border-amber-400/30">FI</span>
-                                        </div>
-                                        <span class="text-3xl font-extrabold text-white tracking-tight block mt-1"
-                                            id="badgeFinCount">0</span>
-                                        <div
-                                            class="text-[11px] text-amber-200/80 mt-1 font-medium flex items-center gap-1.5">
-                                            <span>Accounting &amp; Finance</span>
-                                        </div>
-                                    </div>
-
-                                    <!-- 4. Info Record -->
-                                    <div
-                                        class="bg-gradient-to-br from-violet-800 via-purple-700 to-slate-900 text-white rounded-2xl px-5 py-4 shadow-sm border border-violet-600/30 transition-all hover:shadow-md cursor-pointer group">
-                                        <div class="flex items-center justify-between">
-                                            <span
-                                                class="text-[11px] font-bold tracking-wide text-purple-100 uppercase">Info
-                                                Record</span>
-                                            <span
-                                                class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-200 border border-purple-400/30">PIR</span>
-                                        </div>
-                                        <span class="text-3xl font-extrabold text-white tracking-tight block mt-1"
-                                            id="badgeInfoCount">0</span>
-                                        <div
-                                            class="text-[11px] text-purple-200/80 mt-1 font-medium flex items-center gap-1.5">
-                                            <span>Info Harga / Purchasing</span>
+                                            <span>Siap Di-approve / Staging Queue</span>
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- TERBARU & TERLAMA QUICK BADGES + STATUS OVERVIEW STRIP -->
-                                <div
-                                    class="glass-panel rounded-2xl p-3.5 flex flex-col sm:flex-row items-center justify-between gap-3">
-                                    <!-- Left: Badges Untuk Menampilkan Terbaru / Terlama -->
-                                    <div class="flex items-center gap-2 w-full sm:w-auto overflow-x-auto">
-                                        <span
-                                            class="text-[10px] font-black uppercase tracking-wider text-slate-400 shrink-0 mr-1">Urutan
-                                            Data:</span>
-
-                                        <!-- Badge Terbaru -->
-                                        <button type="button" id="badgeSortDesc"
-                                            onclick="if(typeof setDateSort==='function') setDateSort('DESC')"
-                                            class="px-3.5 py-1.5 rounded-full text-xs font-extrabold transition cursor-pointer flex items-center gap-1.5 shadow-2xs bg-emerald-700 text-white border border-emerald-500 shrink-0">
-                                            <span class="w-2 h-2 rounded-full bg-emerald-300 animate-pulse"></span>
-                                            <span>Badge Terbaru (Terbaru &rarr; Terlama)</span>
-                                        </button>
-
-                                        <!-- Badge Terlama -->
-                                        <button type="button" id="badgeSortAsc"
-                                            onclick="if(typeof setDateSort==='function') setDateSort('ASC')"
-                                            class="px-3.5 py-1.5 rounded-full text-xs font-bold transition cursor-pointer flex items-center gap-1.5 text-slate-600 bg-white border border-slate-200 hover:bg-slate-100 shrink-0">
-                                            <span class="w-2 h-2 rounded-full bg-slate-400"></span>
-                                            <span>Badge Terlama (Terlama &rarr; Terbaru)</span>
-                                        </button>
-                                    </div>
-
-                                    <!-- Right: Quick Status Overview Chips -->
-                                    <div class="flex items-center gap-2 text-xs shrink-0 self-end sm:self-center">
-                                        <span
-                                            class="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-extrabold flex items-center gap-1 cursor-pointer"
-                                            onclick="filterByStatus('APPROVED')">
-                                            Approved: <strong id="statApprovedCount" class="font-mono text-emerald-900">
-                                                <%= lv_badge_approved %>
-                                            </strong>
-                                        </span>
-                                        <span
-                                            class="px-2.5 py-1 rounded-full bg-rose-50 text-rose-800 border border-rose-200 font-extrabold flex items-center gap-1 cursor-pointer"
-                                            onclick="filterByStatus('REJECTED')">
-                                            Reject: <strong id="statRejectedCount" class="font-mono text-rose-900">
-                                                <%= lv_badge_rejected %>
-                                            </strong>
-                                        </span>
-                                        <span
-                                            class="px-2.5 py-1 rounded-full bg-sky-50 text-sky-800 border border-sky-200 font-extrabold flex items-center gap-1 cursor-pointer"
-                                            onclick="filterByStatus('CHECKED')">
-                                            Checked: <strong id="statDraftCount" class="font-mono text-sky-900">
-                                                <%= lv_badge_checked %>
-                                            </strong>
-                                        </span>
-                                    </div>
-                                </div>
 
                                 <!-- IN-PAGE APPROVAL FEEDBACK ALERT BANNER -->
                                 <div id="pageApprovalAlert"
@@ -416,7 +371,11 @@
 
                                                 <!-- Date Sort Button Badge -->
                                                 <button type="button" id="dateSortBtn" onclick="toggleDateSort()"
-                                                    class="inline-flex items-center gap-2.5 px-3.5 py-2 border border-slate-200 rounded-xl text-xs bg-white hover:bg-slate-50 font-bold text-slate-700 shadow-2xs transition cursor-pointer active:scale-95 focus:outline-none focus:ring-2 focus:ring-emerald-500/20">
+                                                    class="inline-flex items-center gap-2.5 px-3.5 py-2 border
+                                                           border-slate-200 rounded-xl text-xs bg-white
+                                                           hover:bg-slate-50 font-bold text-slate-700
+                                                           shadow-2xs transition cursor-pointer active:scale-95
+                                                           focus:outline-none focus:ring-2 focus:ring-emerald-500/20">
                                                     <span
                                                         class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Date
                                                         Sort</span>
@@ -433,7 +392,11 @@
 
                                                 <div class="relative min-w-[220px] sm:min-w-[280px]">
                                                     <input type="text" id="searchInput" placeholder="Search requests..."
-                                                        class="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 font-medium text-slate-800 bg-white transition placeholder:text-slate-400"
+                                                        class="w-full px-3.5 py-2 border border-slate-200
+                                                               rounded-xl text-xs outline-none focus:border-emerald-600
+                                                               focus:ring-2 focus:ring-emerald-500/10 font-medium
+                                                               text-slate-800 bg-white transition
+                                                               placeholder:text-slate-400"
                                                         onkeyup="applyFilter()">
                                                 </div>
                                             </div>
@@ -490,7 +453,7 @@
                                                                 class="w-3.5 h-3.5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer">
                                                         </th>
                                                         <th class="p-3.5 text-center" style="width: 55px;">Detail</th>
-                                                        <th class="p-3.5">Business Partner (Name &amp; Role)</th>
+                                                        <th class="p-3.5">Alasan Request &amp; Business Partner</th>
                                                         <th class="p-3.5 text-center" style="width: 140px;">Request Date
                                                         </th>
                                                         <th class="p-3.5 text-center" style="width: 150px;">Requestor /
@@ -526,9 +489,11 @@
                                             class="text-xs font-extrabold text-emerald-900 uppercase tracking-wider flex items-center gap-2">
                                             <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
                                             Konfirmasi Approval
-                                        </h3>
-                                        <button type="button" onclick="cancelApproveConfirm()" class="w-7 h-7 rounded-lg bg-white hover:bg-slate-100 text-slate-400 hover:text-slate-700 font-bold text-base flex items-center justify-center transition border
-border-slate-200 cursor-pointer">&times;</button>
+                                        </h3>                                        <button type="button" onclick="cancelApproveConfirm()"
+                                            class="w-7 h-7 rounded-lg bg-white hover:bg-slate-100
+                                                   text-slate-400 hover:text-slate-700 font-bold
+                                                   text-base flex items-center justify-center transition
+                                                   border border-slate-200 cursor-pointer">&times;</button>
                                     </div>
                                     <div class="p-6 space-y-4">
                                         <div
@@ -560,8 +525,10 @@ border-slate-200 cursor-pointer">&times;</button>
                                             Batal
                                         </button>
                                         <button type="button" id="btnExecuteApproveModal"
-                                            onclick="executeConfirmedApprove()" class="px-5 py-2 rounded-full text-xs font-extrabold bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs transition flex items-center
-gap-1.5 cursor-pointer">
+                                            onclick="executeConfirmedApprove()"
+                                            class="px-5 py-2 rounded-full text-xs font-extrabold bg-emerald-600
+                                                   hover:bg-emerald-700 text-white shadow-2xs transition
+                                                   flex items-center gap-1.5 cursor-pointer">
                                             <span id="btnExecuteApproveText">Ya, Approve Sekarang</span>
                                         </button>
                                     </div>
@@ -579,8 +546,11 @@ gap-1.5 cursor-pointer">
                                             class="text-xs font-extrabold text-rose-800 uppercase tracking-wider flex items-center gap-2">
                                             <span class="w-2 h-2 rounded-full bg-rose-500"></span> Reject Request
                                         </h3>
-                                        <button type="button" onclick="closeRejectModal()" class="w-7 h-7 rounded-lg bg-white hover:bg-slate-100 text-slate-400 hover:text-slate-700 font-bold text-base flex items-center justify-center transition border border-slate-200
-cursor-pointer">&times;</button>
+                                        <button type="button" onclick="closeRejectModal()"
+                                            class="w-7 h-7 rounded-lg bg-white hover:bg-slate-100
+                                                   text-slate-400 hover:text-slate-700 font-bold
+                                                   text-base flex items-center justify-center transition
+                                                   border border-slate-200 cursor-pointer">&times;</button>
                                     </div>
                                     <div class="p-6 space-y-3">
                                         <input type="hidden" id="modalTargetReqNo" value="">
@@ -590,8 +560,11 @@ cursor-pointer">&times;</button>
                                             class="block text-[11px] font-extrabold text-slate-700 uppercase tracking-wider mb-1">Reason
                                             <span class="text-rose-600">*</span></label>
                                         <textarea id="rejectReasonInput" rows="3"
-                                            placeholder="Enter rejection reason..." class="w-full p-3 border border-slate-200 rounded-xl text-xs outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 font-medium
-text-slate-800 bg-white transition"></textarea>
+                                            placeholder="Enter rejection reason..."
+                                            class="w-full p-3 border border-slate-200 rounded-xl text-xs
+                                                   outline-none focus:border-rose-500 focus:ring-2
+                                                   focus:ring-rose-500/10 font-medium text-slate-800
+                                                   bg-white transition"></textarea>
                                     </div>
                                     <div class="bg-slate-50 px-6 py-4 border-t border-slate-200 flex justify-end gap-2">
                                         <button type="button" onclick="closeRejectModal()"
@@ -625,8 +598,10 @@ text-slate-800 bg-white transition"></textarea>
                                                     id="detailModalSubTitle"></div>
                                             </div>
                                         </div>
-                                        <button type="button" onclick="closeMaterialDetailModal()" class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white font-bold text-lg flex items-center justify-center transition
-cursor-pointer">&times;</button>
+                                        <button type="button" onclick="closeMaterialDetailModal()"
+                                            class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700
+                                                   text-slate-400 hover:text-white font-bold text-lg
+                                                   flex items-center justify-center transition cursor-pointer">&times;</button>
                                     </div>
                                     <div class="p-6 overflow-y-auto space-y-4 text-xs bg-slate-50/50"
                                         id="detailModalBody">
@@ -653,8 +628,10 @@ cursor-pointer">&times;</button>
                                             id="uploadResultTitle">
                                             SAP Upload Notification
                                         </h3>
-                                        <button type="button" onclick="closeUploadResultModal()" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-600 font-bold text-base flex items-center justify-center transition
-cursor-pointer">&times;</button>
+                                        <button type="button" onclick="closeUploadResultModal()"
+                                            class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200
+                                                   text-slate-400 hover:text-slate-600 font-bold
+                                                   text-base flex items-center justify-center transition cursor-pointer">&times;</button>
                                     </div>
                                     <div class="p-6 space-y-3 text-center">
                                         <div id="uploadResultIcon"
@@ -672,6 +649,30 @@ cursor-pointer">&times;</button>
                                             class="px-6 py-2.5 rounded-full text-xs font-extrabold bg-slate-900 hover:bg-slate-800 text-white shadow-xs transition transform active:scale-95 cursor-pointer">
                                             OK, Mengerti
                                         </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- ANIMATED LOADING POPUP MODAL -->
+                            <div id="loadingModal"
+                                class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[10000] hidden flex flex-col items-center justify-center p-4">
+                                <div class="bg-white rounded-3xl border border-slate-100 shadow-2xl p-8 max-w-sm w-full text-center space-y-5">
+                                    <div class="relative w-20 h-20 mx-auto flex items-center justify-center">
+                                        <div class="absolute inset-0 rounded-full border-4 border-emerald-100 animate-ping opacity-30"></div>
+                                        <div class="w-20 h-20 rounded-full border-4 border-emerald-200 border-t-emerald-600 animate-spin"></div>
+                                        <div class="absolute inset-0 flex items-center justify-center text-emerald-700">
+                                            <svg class="w-8 h-8 animate-pulse text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div class="space-y-1.5">
+                                        <h3 class="text-base font-extrabold text-slate-900" id="loadingModalTitle">Memproses Data SAP...</h3>
+                                        <p class="text-xs text-slate-500 font-medium leading-relaxed" id="loadingModalSub">Mohon tunggu sejenak, sistem sedang mengomunikasikan data dengan SAP Master Data Governance...</p>
+                                    </div>
+                                    <div class="flex items-center justify-center gap-2 pt-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 py-2 px-3 rounded-xl border border-emerald-200">
+                                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                                        <span id="loadingModalStatus">Menghubungkan ke Server SAP...</span>
                                     </div>
                                 </div>
                             </div>
@@ -721,7 +722,7 @@ cursor-pointer">&times;</button>
                                                     var locBp = localStorage.getItem('MDG_BP_NUM_' + i.req_no);
                                                     if (locBp && !i.bp_number) i.bp_number = locBp;
                                                 } catch (e) { }
-                                                return (effStat === 'SUBMITTED' || effStat === 'CHECKED' || effStat === 'SD_APPROVED' || effStat === 'APPROVED');
+                                                return (effStat === 'SUBMITTED' || effStat === 'CHECKED' || effStat === 'SD_APPROVED' || effStat === 'MM_APPROVED' || effStat === 'APPROVED');
                                             });
                                             updateKPICards(fullStagingData);
                                             applyFilter();
@@ -739,7 +740,7 @@ cursor-pointer">&times;</button>
                                                             name1: 'PT Rekanan Mandiri Perkasa',
                                                             search_term: 'REKANAN',
                                                             bp_category: '2',
-                                                            bp_role: 'FLVN00',
+                                                            bp_role: 'FLVN01',
                                                             city: 'Jakarta Selatan',
                                                             country: 'ID',
                                                             tax_num: '01.234.567.8-012.000',
@@ -781,7 +782,7 @@ cursor-pointer">&times;</button>
 
                                 function updateKPICards(data) {
                                     var total = data.length;
-                                    var checkedCount = data.filter(function (i) { return i.status === 'CHECKED'; }).length;
+                                    var checkedCount = data.filter(function (i) { return i.status === 'CHECKED' || i.status === 'SUBMITTED'; }).length;
 
                                     var elPending = document.getElementById("statPendingCount");
                                     if (elPending) elPending.innerText = checkedCount;
@@ -867,7 +868,12 @@ cursor-pointer">&times;</button>
                                         } else {
                                             matchSearch = (item[column] || '').toLowerCase().indexOf(search) >= 0;
                                         }
-                                        var matchStatus = (status === 'ALL') || (effStat === status);
+                                        var matchStatus = false;
+                                        if (status === 'ALL') {
+                                            matchStatus = (effStat !== 'APPROVED');
+                                        } else {
+                                            matchStatus = (effStat === status);
+                                        }
                                         return matchSearch && matchStatus;
                                     });
 
@@ -928,7 +934,7 @@ cursor-pointer">&times;</button>
                                         var name1Esc = escapeHtml(item.name1 || item.remarks || 'Business Partner');
                                         var name2Esc = escapeHtml(item.name2 || '');
                                         var searchEsc = escapeHtml(item.search_term || '-');
-                                        var rawRole = item.bp_role || 'FLCU01';
+                                        var rawRole = item.bp_role || 'FLVN01';
                                         var roleLabel = rawRole;
                                         if (rawRole === 'FLCU01') roleLabel = 'FLCU01 (SD Customer)';
                                         else if (rawRole === 'FLCU00') roleLabel = 'FLCU00 (FI Customer)';
@@ -940,17 +946,16 @@ cursor-pointer">&times;</button>
                                         var requestorEsc = escapeHtml(item.requestor || '-');
                                         var stewardEsc = escapeHtml(item.stw_data_by || 'Data Steward');
                                         var bankStewardEsc = escapeHtml(item.stw_bank_by || 'Bank Steward');
-                                        var cityEsc = escapeHtml(item.city || '-');
-                                        var countryEsc = escapeHtml(item.country || 'ID');
-                                        var bukrsEsc = escapeHtml(item.bukrs || '1000');
-                                        var taxNumEsc = escapeHtml(item.tax_num || '-');
+                                        var bpSingleNameEsc = escapeHtml(item.name1 || item.name2 || 'Business Partner');
+                                        var reasonEsc = escapeHtml(item.internal_notes || item.remarks || item.sub_reason || item.search_term || 'Permohonan BP');
 
-                                        var fDate = (item.req_date && item.req_date.length === 8) ?
-                                            (item.req_date.substring(6, 8) + '/' + item.req_date.substring(4, 6) + '/' + item.req_date.substring(0, 4)) :
-                                            (escapeHtml(item.req_date) || "-");
-                                        var fTime = (item.req_time && item.req_time.length >= 4) ?
-                                            (item.req_time.substring(0, 2) + ':' + item.req_time.substring(2, 4)) : "";
-                                        var dateTimeStr = fDate + (fTime ? ' ' + fTime : '');
+                                        var reqDateRaw = (item.req_date || '').trim();
+                                        var dateOnlyStr = '-';
+                                        if (reqDateRaw.length === 8 && !isNaN(reqDateRaw)) {
+                                            dateOnlyStr = reqDateRaw.substring(6, 8) + '.' + reqDateRaw.substring(4, 6) + '.' + reqDateRaw.substring(0, 4);
+                                        } else if (reqDateRaw.indexOf('.') >= 0 || reqDateRaw.indexOf('/') >= 0 || reqDateRaw.indexOf('-') >= 0) {
+                                            dateOnlyStr = reqDateRaw.split(' ')[0];
+                                        }
 
                                         var badge = '';
                                         if (effStat === 'APPROVED') {
@@ -960,7 +965,11 @@ cursor-pointer">&times;</button>
                                         } else if (effStat === 'SD_APPROVED') {
                                             badge = '<span class="inline-flex items-center gap-1.5 bg-sky-50 text-sky-800 ' +
                                                 'text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-sky-200">' +
-                                                '<span class="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse"></span> SD APPROVED (FLCU01)</span>';
+                                                '<span class="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse"></span> SD APPROVED</span>';
+                                        } else if (effStat === 'MM_APPROVED') {
+                                            badge = '<span class="inline-flex items-center gap-1.5 bg-purple-50 text-purple-800 ' +
+                                                'text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-purple-200">' +
+                                                '<span class="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse"></span> MM APPROVED</span>';
                                         } else if (effStat === 'SUBMITTED') {
                                             badge = '<span class="inline-flex items-center gap-1.5 bg-amber-50 text-amber-800 ' +
                                                 'text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-amber-200">' +
@@ -978,14 +987,18 @@ cursor-pointer">&times;</button>
                                                 '&#10003; Complete</span>';
                                         } else if (effStat === 'SD_APPROVED') {
                                             actionBtns = '<span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-sky-50 ' +
-                                                'text-sky-800 border border-sky-200 inline-flex items-center gap-1" title="Lanjut ke bp_banksteward.htm untuk FI Customer FLCU00">' +
-                                                '&#10003; FLCU01 Approved &rarr; Lanjut Bank Steward</span>';
+                                                'text-sky-800 border border-sky-200 inline-flex items-center gap-1" title="Lanjut ke Bank Steward">' +
+                                                '&#10003; Approved &rarr; Lanjut Bank Steward</span>';
+                                        } else if (effStat === 'MM_APPROVED') {
+                                            actionBtns = '<span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-purple-50 ' +
+                                                'text-purple-800 border border-purple-200 inline-flex items-center gap-1" title="Lanjut ke Bank Steward">' +
+                                                '&#10003; Approved &rarr; Lanjut Bank Steward</span>';
                                         } else {
                                             actionBtns = '<button type="button" id="btn_approve_' + reqNoEsc + '" ' +
                                                 'onclick="quickApprove(\'' + reqNoEsc + '\')" ' +
                                                 'class="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-extrabold ' +
-                                                'px-3 py-1 rounded-full shadow-2xs transition cursor-pointer flex items-center gap-1">' +
-                                                '&#10003; Approve (FLCU01)</button> ' +
+                                                'px-3.5 py-1 rounded-full shadow-2xs transition cursor-pointer flex items-center gap-1">' +
+                                                '&#10003; Approve</button> ' +
                                                 '<button type="button" onclick="openRejectModal(\'SINGLE\', \'' + reqNoEsc + '\')" ' +
                                                 'class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 ' +
                                                 'text-[11px] font-extrabold px-3 py-1 rounded-full shadow-2xs transition cursor-pointer flex items-center gap-1">' +
@@ -1016,38 +1029,15 @@ cursor-pointer">&times;</button>
                                         htmlStr += 'justify-center transition shadow-2xs text-[10px] cursor-pointer">&#9660;</button>';
                                         htmlStr += '</td>';
 
-                                        // 3. Business Partner Details
+                                        // 3. Alasan Request & Business Partner
                                         htmlStr += '<td class="p-3.5 font-medium text-slate-800 max-w-[340px]">';
-                                        htmlStr += '<div class="font-extrabold text-slate-900 text-xs leading-snug">' +
-                                            name1Esc + (name2Esc ? ' <span class="text-slate-500 font-normal">(' + name2Esc + ')</span>' : '') + '</div>';
-                                        htmlStr += '<div class="flex items-center gap-1.5 mt-1 flex-wrap">';
-                                        htmlStr += '<span class="text-[10px] font-mono text-emerald-800 font-bold bg-emerald-50 ' +
-                                            'px-1.5 py-0.5 rounded border border-emerald-200">ID: ' + reqNoEsc + '</span>';
-                                        if (bpNumEsc) {
-                                            htmlStr += '<span class="text-[10px] font-mono text-emerald-950 font-extrabold bg-emerald-100 ' +
-                                                'px-2 py-0.5 rounded border border-emerald-300 shadow-2xs flex items-center gap-1">' +
-                                                '&#10003; SAP BP: <strong>' + bpNumEsc + '</strong></span>';
-                                        }
-                                        htmlStr += '<span class="text-[10px] font-semibold text-slate-700 bg-slate-100 ' +
-                                            'px-1.5 py-0.5 rounded border border-slate-200">' + catEsc + '</span>';
-                                        htmlStr += '<span class="text-[10px] font-mono font-bold text-teal-800 bg-teal-50 ' +
-                                            'px-1.5 py-0.5 rounded border border-teal-200">Role: ' + roleEsc + '</span>';
-                                        htmlStr += '<span class="text-[10px] text-slate-500 font-medium">Search: ' +
-                                            '<strong class="text-slate-700 font-mono">' + searchEsc + '</strong></span>';
-                                        htmlStr += '</div>';
-                                        htmlStr += '<div class="text-[10px] text-slate-500 mt-1 flex items-center gap-2">';
-                                        htmlStr += '<span>Loc: ' + cityEsc + ', ' + countryEsc + '</span>';
-                                        if (taxNumEsc !== '-') {
-                                            htmlStr += '<span>&bull; Tax/NPWP: <strong class="font-mono text-slate-700">' + taxNumEsc + '</strong></span>';
-                                        }
-                                        if (bukrsEsc !== '-') {
-                                            htmlStr += '<span>&bull; CC: <strong class="font-mono text-slate-700">' + bukrsEsc + '</strong></span>';
-                                        }
-                                        htmlStr += '</div>';
+                                        htmlStr += '<div class="font-extrabold text-slate-900 text-xs leading-snug">' + reasonEsc + '</div>';
+                                        htmlStr += '<div class="text-[11px] font-semibold text-emerald-700 mt-0.5 flex items-center gap-1">' +
+                                            '<span class="text-slate-400 font-normal">Business Partner:</span> ' + bpSingleNameEsc + '</div>';
                                         htmlStr += '</td>';
 
-                                        // 4. Request Date
-                                        htmlStr += '<td class="p-3.5 text-center font-mono text-slate-600 text-[11px]">' + dateTimeStr + '</td>';
+                                        // 4. Request Date (Tanggal Sahaja)
+                                        htmlStr += '<td class="p-3.5 text-center font-mono text-slate-700 text-[11px] font-semibold">' + dateOnlyStr + '</td>';
 
                                         // 5. Requestor & Steward
                                         htmlStr += '<td class="p-3.5 text-center text-[11px]">';
@@ -1096,23 +1086,30 @@ cursor-pointer">&times;</button>
                                     });
                                 }
 
-                                function renderBpAccordionCard(item) {
-                                    var h = '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">';
+                                function formatPaymentTerms(zterm) {
+                                    if (!zterm || zterm === '-') return '-';
+                                    var clean = String(zterm).trim();
+                                    var match = clean.match(/\d+/);
+                                    if (match) {
+                                        var days = parseInt(match[0], 10);
+                                        return clean + ' (' + days + ' Hari)';
+                                    } else if (clean === '0001' || clean === 'Z001' || clean.toUpperCase() === 'CASH') {
+                                        return clean + ' (0 Hari / Immediate)';
+                                    }
+                                    return clean;
+                                }
 
-                                    // Card 1: General Info
+                                function renderBpAccordionCard(item) {
+                                    var h = '<div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">';
+
+                                    // Card 1: General Info (First Name & Last Name)
                                     h += '<div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 space-y-1.5">';
                                     h += '<div class="text-[10px] font-black uppercase tracking-wider text-emerald-800 ' +
                                         'flex items-center gap-1.5 pb-1 border-b border-slate-200">01. General Data</div>';
-                                    h += '<div><span class="text-slate-400 text-[10px] block">Category &amp; Role</span>' +
-                                        '<span class="font-bold text-slate-800">' +
-                                        ((item.bp_category === '1') ? 'Person' : 'Organization') +
-                                        ' (' + escapeHtml(item.bp_role || 'FLVN00') + ')</span></div>';
-                                    h += '<div><span class="text-slate-400 text-[10px] block">Name 1 / Legal Name</span>' +
+                                    h += '<div><span class="text-slate-400 text-[10px] block">First Name</span>' +
+                                        '<span class="font-extrabold text-slate-900">' + escapeHtml(item.name2 || '-') + '</span></div>';
+                                    h += '<div><span class="text-slate-400 text-[10px] block">Last Name</span>' +
                                         '<span class="font-extrabold text-slate-900">' + escapeHtml(item.name1 || '-') + '</span></div>';
-                                    if (item.name2) {
-                                        h += '<div><span class="text-slate-400 text-[10px] block">Name 2</span>' +
-                                            '<span class="font-semibold text-slate-700">' + escapeHtml(item.name2) + '</span></div>';
-                                    }
                                     h += '<div><span class="text-slate-400 text-[10px] block">Search Term 1</span>' +
                                         '<span class="font-mono font-bold text-slate-800">' + escapeHtml(item.search_term || '-') + '</span></div>';
                                     h += '<div><span class="text-slate-400 text-[10px] block">Phone &amp; Email</span>' +
@@ -1142,10 +1139,10 @@ cursor-pointer">&times;</button>
                                         escapeHtml(item.country || 'ID') + ' (' + escapeHtml(item.region || '-') + ')</span></div>';
                                     h += '</div>';
 
-                                    // Card 3: Tax & Banking
+                                    // Card 3: Tax, Bank & Payment Terms
                                     h += '<div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 space-y-1.5">';
                                     h += '<div class="text-[10px] font-black uppercase tracking-wider text-emerald-800 ' +
-                                        'flex items-center gap-1.5 pb-1 border-b border-slate-200">03. Tax &amp; Bank</div>';
+                                        'flex items-center gap-1.5 pb-1 border-b border-slate-200">03. Tax, Bank &amp; Payment Terms</div>';
                                     h += '<div><span class="text-slate-400 text-[10px] block">Tax Number / NPWP</span>' +
                                         '<span class="font-mono font-extrabold text-emerald-900">' +
                                         escapeHtml(item.tax_num || '-') + '</span></div>';
@@ -1155,38 +1152,22 @@ cursor-pointer">&times;</button>
                                     h += '<div><span class="text-slate-400 text-[10px] block">Bank Account &amp; Holder</span>' +
                                         '<span class="font-mono text-slate-800">' +
                                         escapeHtml(item.bankn || '-') + ' (' + escapeHtml(item.koinh || '-') + ')</span></div>';
-                                    h += '</div>';
-
-                                    // Card 4: Purchasing, Accounting CVI & Governance
-                                    h += '<div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 space-y-1.5">';
-                                    h += '<div class="text-[10px] font-black uppercase tracking-wider text-emerald-800 ' +
-                                        'flex items-center gap-1.5 pb-1 border-b border-slate-200">04. Purchasing &amp; CVI Accounting</div>';
-                                    h += '<div><span class="text-slate-400 text-[10px] block">Purchasing Org (EKORG) &amp; Currency</span>' +
-                                        '<span class="font-mono font-bold text-slate-800">' +
-                                        escapeHtml(item.ekorg || '1000') + ' (' + escapeHtml(item.waers || 'IDR') + ')</span></div>';
-                                    h += '<div><span class="text-slate-400 text-[10px] block">Invoice Verification (WEBRE &amp; LEBRE)</span>' +
-                                        '<span class="font-mono font-bold text-emerald-800 flex items-center gap-2 flex-wrap mt-0.5">' +
-                                        '<span class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-1.5 py-0.5 rounded text-[10px]">&#10003; GR-Based (WEBRE)</span>' +
-                                        '<span class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-1.5 py-0.5 rounded text-[10px]">&#10003; Srv-Based (LEBRE)</span>' +
-                                        '</span></div>';
-                                    h += '<div><span class="text-slate-400 text-[10px] block">Company Code &amp; Recon Account</span>' +
-                                        '<span class="font-mono text-slate-800">' +
-                                        escapeHtml(item.bukrs || '1000') + ' | AKONT: ' + escapeHtml(item.akont || '-') + '</span></div>';
                                     h += '<div><span class="text-slate-400 text-[10px] block">Payment Terms (ZTERM)</span>' +
-                                        '<span class="font-mono text-slate-800">' + escapeHtml(item.zterm || '-') + '</span></div>';
-                                    h += '<div class="pt-1 border-t border-slate-200/80">' +
-                                        '<span class="text-slate-400 text-[10px] block">Checked by Data Steward</span>' +
-                                        '<span class="font-bold text-emerald-800">' + escapeHtml(item.stw_data_by || '-') + '</span>' +
+                                        '<span class="font-mono font-extrabold text-emerald-800">' +
+                                        escapeHtml(formatPaymentTerms(item.zterm)) + '</span></div>';
+                                    h += '<div class="pt-1.5 border-t border-slate-200/80 mt-1 space-y-1">' +
+                                        '<div class="text-[10px] text-emerald-800 font-semibold flex items-center gap-1">' +
+                                        '<span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span> Checked Data Steward: ' +
+                                        '<strong class="font-bold text-slate-800">' + escapeHtml(item.stw_data_by || '-') + '</strong></div>' +
                                         (item.stw_data_note ?
-                                            ' <span class="text-[10px] text-slate-500 italic block mt-0.5">Note: ' +
-                                            escapeHtml(item.stw_data_note) + '</span>' : '') +
-                                        '</div>';
-                                    h += '<div class="pt-1 border-t border-slate-200/80">' +
-                                        '<span class="text-slate-400 text-[10px] block">Checked by Bank Steward</span>' +
-                                        '<span class="font-bold text-sky-800">' + escapeHtml(item.stw_bank_by || '-') + '</span>' +
+                                            '<div class="text-[10px] text-slate-500 italic pl-3">Note: ' +
+                                            escapeHtml(item.stw_data_note) + '</div>' : '') +
+                                        '<div class="text-[10px] text-sky-800 font-semibold flex items-center gap-1 mt-0.5">' +
+                                        '<span class="w-1.5 h-1.5 rounded-full bg-sky-600"></span> Checked Bank Steward: ' +
+                                        '<strong class="font-bold text-slate-800">' + escapeHtml(item.stw_bank_by || '-') + '</strong></div>' +
                                         (item.stw_bank_note ?
-                                            ' <span class="text-[10px] text-slate-500 italic block mt-0.5">Note: ' +
-                                            escapeHtml(item.stw_bank_note) + '</span>' : '') +
+                                            '<div class="text-[10px] text-slate-500 italic pl-3">Note: ' +
+                                            escapeHtml(item.stw_bank_note) + '</div>' : '') +
                                         '</div>';
                                     h += '</div>';
 
@@ -1321,6 +1302,24 @@ cursor-pointer">&times;</button>
                                     closeApproveConfirmModal();
                                 }
 
+                                function showLoadingModal(title, subtitle, status) {
+                                    var modal = document.getElementById("loadingModal");
+                                    var titleEl = document.getElementById("loadingModalTitle");
+                                    var subEl = document.getElementById("loadingModalSub");
+                                    var statEl = document.getElementById("loadingModalStatus");
+
+                                    if (titleEl && title) titleEl.innerText = title;
+                                    if (subEl && subtitle) subEl.innerText = subtitle;
+                                    if (statEl && status) statEl.innerText = status;
+
+                                    if (modal) modal.classList.remove("hidden");
+                                }
+
+                                function hideLoadingModal() {
+                                    var modal = document.getElementById("loadingModal");
+                                    if (modal) modal.classList.add("hidden");
+                                }
+
                                 function executeConfirmedApprove() {
                                     if (isApprovingInProgress) return;
                                     isApprovingInProgress = true;
@@ -1331,6 +1330,11 @@ cursor-pointer">&times;</button>
                                     var targetDocsStr = targetReqNos.join(', ');
 
                                     closeApproveConfirmModal();
+                                    showLoadingModal(
+                                        "Memproses Approval SAP...",
+                                        "Sedang mendaftarkan Business Partner ke SAP S/4HANA...",
+                                        "Memproses Staging & BAPI SAP..."
+                                    );
                                     setApproveLoadingState(true, targetReqNos);
 
                                     var formData = new FormData();
@@ -1419,6 +1423,7 @@ cursor-pointer">&times;</button>
                                             }
                                         })
                                         .finally(function () {
+                                            hideLoadingModal();
                                             isApprovingInProgress = false;
                                             closeApproveConfirmModal();
                                             setApproveLoadingState(false, targetReqNos);
@@ -1572,6 +1577,12 @@ cursor-pointer">&times;</button>
                                     formData.append("REQ_NOS", targetReqNos);
                                     formData.append("REJ_REASON", reason);
 
+                                    showLoadingModal(
+                                        "Memproses Penolakan...",
+                                        "Sedang memperbarui status penolakan request Business Partner...",
+                                        "Mengirim alasan penolakan..."
+                                    );
+
                                     fetch("?action=BULK_REJECT", { method: "POST", body: formData })
                                         .then(function (res) { return res.json(); })
                                         .then(function (data) {
@@ -1589,6 +1600,9 @@ cursor-pointer">&times;</button>
                                             showToast("Permohonan Business Partner ditolak.", "info");
                                             closeRejectModal();
                                             loadStagingList();
+                                        })
+                                        .finally(function () {
+                                            hideLoadingModal();
                                         });
                                 }
 

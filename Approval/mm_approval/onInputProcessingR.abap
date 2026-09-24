@@ -6,15 +6,16 @@
           lv_auth_user TYPE string.
 
     TYPES: BEGIN OF ty_staging_list,
-            req_no     TYPE string,
-            remarks    TYPE string,
-            sub_reason TYPE string,
-            req_date   TYPE string,
-            req_time   TYPE string,
-            requestor  TYPE string,
-            status     TYPE string,
-            total_item TYPE i,
-            rej_reason TYPE string,
+            req_no         TYPE string,
+            remarks        TYPE string,
+            sub_reason     TYPE string,
+            req_date       TYPE string,
+            req_time       TYPE string,
+            requestor      TYPE string,
+            requestor_name TYPE string,
+            status         TYPE string,
+            total_item     TYPE i,
+            rej_reason     TYPE string,
           END OF ty_staging_list.
 
     DATA: lt_list TYPE TABLE OF ty_staging_list,
@@ -184,6 +185,56 @@
             APPEND ls_list TO lt_list.
           ENDLOOP.
 
+          " Populate requestor_name with First Name + Last Name via BAPI_USER_GET_DETAIL / USR21+ADRP
+          TYPES: BEGIN OF ty_user_map,
+                   uname    TYPE sy-uname,
+                   fullname TYPE string,
+                 END OF ty_user_map.
+          DATA: lt_user_map  TYPE HASHED TABLE OF ty_user_map WITH UNIQUE KEY uname,
+                ls_user_map  TYPE ty_user_map,
+                ls_bapi_addr TYPE bapiaddr3,
+                lt_bapi_ret  TYPE TABLE OF bapiret2,
+                lv_persnum   TYPE usr21-persnumber,
+                lv_fname     TYPE adrp-name_first,
+                lv_lname     TYPE adrp-name_last,
+                lv_uname_tmp TYPE bapibname-bapibname.
+
+          LOOP AT lt_list ASSIGNING FIELD-SYMBOL(<fs_list>).
+            IF <fs_list>-requestor IS NOT INITIAL.
+              READ TABLE lt_user_map INTO ls_user_map WITH KEY uname = <fs_list>-requestor.
+              IF sy-subrc <> 0.
+                CLEAR: ls_user_map, ls_bapi_addr, lt_bapi_ret.
+                ls_user_map-uname = <fs_list>-requestor.
+                lv_uname_tmp = CONV #( <fs_list>-requestor ).
+                CALL FUNCTION 'BAPI_USER_GET_DETAIL'
+                  EXPORTING
+                    username = lv_uname_tmp
+                  IMPORTING
+                    address  = ls_bapi_addr
+                  TABLES
+                    return   = lt_bapi_ret.
+                IF ls_bapi_addr-firstname IS NOT INITIAL OR ls_bapi_addr-lastname IS NOT INITIAL.
+                  CONCATENATE ls_bapi_addr-firstname ls_bapi_addr-lastname INTO ls_user_map-fullname SEPARATED BY space.
+                ELSEIF ls_bapi_addr-fullname IS NOT INITIAL.
+                  ls_user_map-fullname = ls_bapi_addr-fullname.
+                ELSE.
+                  SELECT SINGLE persnumber FROM usr21 INTO lv_persnum WHERE bname = <fs_list>-requestor.
+                  IF sy-subrc = 0.
+                    SELECT SINGLE name_first name_last FROM adrp INTO (lv_fname, lv_lname) WHERE persnumber = lv_persnum.
+                    IF lv_fname IS NOT INITIAL OR lv_lname IS NOT INITIAL.
+                      CONCATENATE lv_fname lv_lname INTO ls_user_map-fullname SEPARATED BY space.
+                    ENDIF.
+                  ENDIF.
+                ENDIF.
+                IF ls_user_map-fullname IS INITIAL.
+                  ls_user_map-fullname = <fs_list>-requestor.
+                ENDIF.
+                INSERT ls_user_map INTO TABLE lt_user_map.
+              ENDIF.
+              <fs_list>-requestor_name = ls_user_map-fullname.
+            ENDIF.
+          ENDLOOP.
+
           lv_json = /ui2/cl_json=>serialize( data = lt_list compress = 'X' pretty_name = /ui2/cl_json=>pretty_mode-low_case ).
 
           _m_response->set_content_type( 'application/json' ).
@@ -206,7 +257,51 @@
             WHERE req_no = @lv_req_no
             ORDER BY item_no ASCENDING.
 
-          lv_json = /ui2/cl_json=>serialize( data = lt_dtl_db compress = 'X' pretty_name = /ui2/cl_json=>pretty_mode-low_case ).
+          TYPES: BEGIN OF ty_att_json,
+                   att_no      TYPE i,
+                   file_name   TYPE string,
+                   file_type   TYPE string,
+                   file_size   TYPE i,
+                   description TYPE string,
+                   file_base64 TYPE string,
+                 END OF ty_att_json.
+          DATA: lt_att_db   TYPE TABLE OF zmdg_req_att,
+                ls_att_db   TYPE zmdg_req_att,
+                lt_att_json TYPE TABLE OF ty_att_json,
+                ls_att_json TYPE ty_att_json.
+
+          CLEAR: lt_att_db, lt_att_json.
+          SELECT * FROM zmdg_req_att
+            INTO TABLE @lt_att_db
+            WHERE req_no = @lv_req_no
+            ORDER BY att_no ASCENDING.
+
+          LOOP AT lt_att_db INTO ls_att_db.
+            CLEAR ls_att_json.
+            ls_att_json-att_no      = ls_att_db-att_no.
+            ls_att_json-file_name   = ls_att_db-file_name.
+            ls_att_json-file_type   = ls_att_db-file_type.
+            ls_att_json-file_size   = ls_att_db-file_size.
+            ls_att_json-description = ls_att_db-description.
+            IF ls_att_db-file_data IS NOT INITIAL.
+              TRY.
+                  ls_att_json-file_base64 = cl_http_utility=>encode_x_base64( unencoded = ls_att_db-file_data ).
+                CATCH cx_root.
+                  CLEAR ls_att_json-file_base64.
+              ENDTRY.
+            ENDIF.
+            APPEND ls_att_json TO lt_att_json.
+          ENDLOOP.
+
+          TYPES: BEGIN OF ty_upload_detail_resp,
+                   items       TYPE TABLE OF zmdg_req_dtl WITH DEFAULT KEY,
+                   attachments TYPE TABLE OF ty_att_json WITH DEFAULT KEY,
+                 END OF ty_upload_detail_resp.
+          DATA: ls_upload_detail_resp TYPE ty_upload_detail_resp.
+          ls_upload_detail_resp-items       = lt_dtl_db.
+          ls_upload_detail_resp-attachments = lt_att_json.
+
+          lv_json = /ui2/cl_json=>serialize( data = ls_upload_detail_resp compress = 'X' pretty_name = /ui2/cl_json=>pretty_mode-low_case ).
 
           _m_response->set_content_type( 'application/json' ).
           _m_response->set_cdata( lv_json ).

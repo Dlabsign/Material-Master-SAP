@@ -138,7 +138,7 @@ IF lv_action IS NOT INITIAL.
       SELECT COUNT( * ) FROM zmdg_bp_req
         WHERE status IN ( 'SUBMITTED', 'CHECKED' )
         INTO @lv_cnt_p.
-      SELECT COUNT( * ) FROM zmdg_bp_req WHERE status IN ( 'SD_APPROVED', 'APPROVED' ) INTO @lv_cnt_a.
+      SELECT COUNT( * ) FROM zmdg_bp_req WHERE status IN ( 'SD_APPROVED', 'MM_APPROVED', 'APPROVED' ) INTO @lv_cnt_a.
       SELECT COUNT( * ) FROM zmdg_bp_req
         WHERE status IN ( 'REJECTED', 'FAILED' ) INTO @lv_cnt_r.
       SELECT COUNT( * ) FROM zmdg_req_hdr
@@ -162,7 +162,7 @@ IF lv_action IS NOT INITIAL.
 
       SELECT * FROM zmdg_bp_req
         INTO TABLE @lt_bp_db
-        WHERE status IN ( 'SUBMITTED', 'CHECKED', 'SD_APPROVED', 'APPROVED' )
+        WHERE status IN ( 'SUBMITTED', 'CHECKED', 'SD_APPROVED', 'MM_APPROVED', 'APPROVED' )
         ORDER BY req_id DESCENDING.
 
       LOOP AT lt_bp_db INTO ls_bp_db.
@@ -314,8 +314,8 @@ IF lv_action IS NOT INITIAL.
           CONTINUE.
         ENDIF.
 
-        " Cek kelayakan approval (Tahap 1: Customer Request / SUBMITTED / CHECKED)
-        IF ls_bp_db-status <> 'SUBMITTED' AND ls_bp_db-status <> 'CHECKED' AND ls_bp_db-status <> 'SD_APPROVED'.
+        " Cek kelayakan approval (Tahap 1: Request Baru / SUBMITTED / CHECKED / APPROVED)
+        IF ls_bp_db-status <> 'SUBMITTED' AND ls_bp_db-status <> 'CHECKED' AND ls_bp_db-status <> 'SD_APPROVED' AND ls_bp_db-status <> 'MM_APPROVED'.
           lv_fail_cnt = lv_fail_cnt + 1.
           lv_last_err = |Request { lv_req_item } (Status { ls_bp_db-status }) belum memenuhi syarat approval.|.
           APPEND VALUE ty_resp_item(
@@ -444,24 +444,26 @@ IF lv_action IS NOT INITIAL.
         ENDIF.
 
         IF lv_gen_bp_num IS NOT INITIAL.
-          " Tambahkan Role (Unified Roles: Vendor FLVN01+FLVN00 & Customer FLCU01+FLCU00)
+          " Tambahkan Role (Unified Vendor Roles: FLVN01 + FLVN00, Customer: FLCU01 + FLCU00)
           DATA: lt_role_ret TYPE TABLE OF bapiret2.
 
           IF ls_bp_db-bp_role CS 'CU' OR ls_bp_db-bu_group CP 'C*'.
-            " Customer Roles: FLCU01 (SD Customer) + 000000 (General BP)
             CALL FUNCTION 'BAPI_BUPA_ROLE_ADD_2'
               EXPORTING
                 businesspartner     = lv_gen_bp_num
                 businesspartnerrole = 'FLCU01'
               TABLES return = lt_role_ret.
+            CALL FUNCTION 'BAPI_BUPA_ROLE_ADD_2'
+              EXPORTING
+                businesspartner     = lv_gen_bp_num
+                businesspartnerrole = 'FLCU00'
+              TABLES return = lt_role_ret.
           ELSE.
-            " Vendor Roles: FLVN01 (MM Supplier) + FLVN00 (FI Supplier) + 000000 (General BP)
             CALL FUNCTION 'BAPI_BUPA_ROLE_ADD_2'
               EXPORTING
                 businesspartner     = lv_gen_bp_num
                 businesspartnerrole = 'FLVN01'
               TABLES return = lt_role_ret.
-
             CALL FUNCTION 'BAPI_BUPA_ROLE_ADD_2'
               EXPORTING
                 businesspartner     = lv_gen_bp_num
@@ -493,8 +495,7 @@ IF lv_action IS NOT INITIAL.
                 businesspartner = lv_gen_bp_num
                 bankdetailid    = '0001'
                 bankdetaildata  = ls_bank_param
-              TABLES
-                return          = lt_bank_ret.
+              TABLES return = lt_bank_ret.
 
             DATA: ls_b_ret TYPE bapiret2.
             LOOP AT lt_bank_ret INTO ls_b_ret WHERE type = 'E' OR type = 'A'.
@@ -516,27 +517,28 @@ IF lv_action IS NOT INITIAL.
                   WHEN ls_bp_db-tax_type IS NOT INITIAL
                   THEN ls_bp_db-tax_type ELSE 'ID1' )
                 taxnumber       = ls_bp_db-tax_num
-              TABLES
-                return          = lt_tax_ret.
+              TABLES return = lt_tax_ret.
           ENDIF.
 
           " Commit perubahan master data ke SAP
           CALL FUNCTION 'BAPI_TRANSACTION_COMMIT'
-            EXPORTING
-              wait = 'X'.
+            EXPORTING wait = 'X'.
 
-          " 9. Ekstensi ke Purchasing View (Tabel LFM1, LFA1, CVI_VEND_LINK)
+          " 9. Ekstensi ke Purchasing & Company Code View (Tabel LFM1, LFB1, LFA1, CVI_VEND_LINK)
           DATA: lv_ekorg_val TYPE ekorg,
+                lv_bukrs_val TYPE bukrs,
                 lv_waers_val TYPE waers,
                 lv_webre_val TYPE webre,
                 lv_lebre_val TYPE lebre,
                 lv_cvi_lifnr TYPE lifnr,
                 ls_lfm1_ins  TYPE lfm1,
+                ls_lfb1_ins  TYPE lfb1,
                 ls_lfa1_ins  TYPE lfa1,
                 ls_cvi_link  TYPE cvi_vend_link,
                 lv_bp_guid   TYPE bu_partner_guid.
 
           lv_ekorg_val = COND #( WHEN ls_bp_db-ekorg IS NOT INITIAL THEN ls_bp_db-ekorg ELSE '1000' ).
+          lv_bukrs_val = COND #( WHEN ls_bp_db-bukrs IS NOT INITIAL THEN ls_bp_db-bukrs ELSE '1000' ).
           lv_waers_val = COND #( WHEN ls_bp_db-waers IS NOT INITIAL THEN ls_bp_db-waers ELSE 'IDR' ).
           lv_webre_val = COND #( WHEN ls_bp_db-webre IS NOT INITIAL THEN ls_bp_db-webre ELSE 'X' ).
           lv_lebre_val = COND #( WHEN ls_bp_db-lebre IS NOT INITIAL THEN ls_bp_db-lebre ELSE 'X' ).
@@ -602,11 +604,25 @@ IF lv_action IS NOT INITIAL.
             ls_lfm1_ins-ernam = sy-uname.
           ENDIF.
           MODIFY lfm1 FROM @ls_lfm1_ins.
+
+          " 9d. Simpan / Extended Company Code Data ke Tabel LFB1 (BUKRS, AKONT, ZTERM) - PENTING UNTUK FLVN00 FI SUPPLIER
+          SELECT SINGLE * FROM lfb1 INTO @ls_lfb1_ins WHERE lifnr = @lv_cvi_lifnr AND bukrs = @lv_bukrs_val.
+          ls_lfb1_ins-mandt = sy-mandt.
+          ls_lfb1_ins-lifnr = lv_cvi_lifnr.
+          ls_lfb1_ins-bukrs = lv_bukrs_val.
+          ls_lfb1_ins-akont = ls_bp_db-akont.
+          ls_lfb1_ins-zterm = ls_bp_db-zterm.
+          IF ls_lfb1_ins-erdat IS INITIAL.
+            ls_lfb1_ins-erdat = sy-datum.
+            ls_lfb1_ins-ernam = sy-uname.
+          ENDIF.
+          MODIFY lfb1 FROM @ls_lfb1_ins.
+
           IF sy-subrc = 0.
             COMMIT WORK AND WAIT.
           ENDIF.
 
-          " Tentukan status lanjutan: Customer -> SD_APPROVED (Lanjut Bank Steward), Vendor -> APPROVED
+          " Tentukan status lanjutan: Customer -> SD_APPROVED, Vendor -> MM_APPROVED (keduanya lanjut Bank Steward)
           DATA: lv_next_stat TYPE char20,
                 lv_succ_msg  TYPE string.
 
@@ -614,8 +630,8 @@ IF lv_action IS NOT INITIAL.
             lv_next_stat = 'SD_APPROVED'.
             lv_succ_msg  = |BP SAP { lv_gen_bp_num } (SD Customer FLCU01) berhasil di-approve! Diteruskan ke Bank Steward untuk BP Role FLCU00 (FI Customer).|.
           ELSE.
-            lv_next_stat = 'APPROVED'.
-            lv_succ_msg  = |BP SAP { lv_gen_bp_num } berhasil dibuat dan di-extend ke Purchasing View (EKORG { lv_ekorg_val }).|.
+            lv_next_stat = 'MM_APPROVED'.
+            lv_succ_msg  = |BP SAP { lv_gen_bp_num } (MM Supplier FLVN01) berhasil di-approve! Diteruskan ke Bank Steward untuk BP Role FLVN00 (FI Supplier).|.
           ENDIF.
 
           " Update Status dan Nomor BP ke Tabel Staging ZMDG_BP_REQ

@@ -44,21 +44,18 @@ IF lv_action_init IS NOT INITIAL.
       SELECT COUNT( * ) FROM zmdg_bp_req
         WHERE status <> 'DRAFT' INTO @lv_cnt_all.
 
-      " Permohonan aktif yang belum diverifikasi oleh Bank Steward (Paralel)
+      " Permohonan aktif yang perlu diverifikasi oleh Bank Steward (SD_APPROVED & MM_APPROVED)
       SELECT COUNT( * ) FROM zmdg_bp_req
-        WHERE status <> 'DRAFT'
-          AND status NOT IN ( 'REJECTED', 'FAILED', 'APPROVED' )
+        WHERE status IN ( 'SD_APPROVED', 'MM_APPROVED', 'CHECKED' )
           AND ( stw_bank_status = '' OR stw_bank_status = ' ' )
         INTO @lv_cnt_p.
 
       SELECT COUNT( * ) FROM zmdg_bp_req
-        WHERE stw_bank_status = 'X'
-           OR status IN ( 'CHECKED', 'APPROVED' )
+        WHERE stw_bank_status = 'X' OR status = 'APPROVED'
         INTO @lv_cnt_chk.
 
       SELECT COUNT( * ) FROM zmdg_bp_req
-        WHERE status IN ( 'REJECTED', 'FAILED' )
-           OR stw_bank_status = 'R'
+        WHERE status IN ( 'REJECTED', 'FAILED' ) OR stw_bank_status = 'R'
         INTO @lv_cnt_rej.
 
       lv_json = |\{"total":{ lv_cnt_all },"pending":{ lv_cnt_p },"checked":{ lv_cnt_chk },"rejected":{ lv_cnt_rej }\}|.

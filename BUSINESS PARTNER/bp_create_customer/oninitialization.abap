@@ -227,10 +227,11 @@ ELSE.
   GET TIME STAMP FIELD wa_req-created_at.
 ENDIF.
 
-" 4. Load User Request History (Semua status untuk audit trail & tab filtering)
+" 4. Load User Request History (Customer requests only)
 SELECT *
   FROM zmdg_bp_req
  WHERE created_by = @sy-uname
+   AND ( bu_group LIKE 'C%' OR bp_role LIKE 'FLCU%' )
   ORDER BY created_at DESCENDING
   INTO CORRESPONDING FIELDS OF TABLE @gt_my_requests
  UP TO 100 ROWS.
