@@ -3,30 +3,57 @@
   DATA: lv_sb_mat_pending TYPE i,
         lv_sb_bp_pending  TYPE i,
         lv_sb_ir_pending  TYPE i,
+        lv_sb_mat_appr    TYPE i,
+        lv_sb_bp_appr     TYPE i,
+        lv_sb_ir_appr     TYPE i,
+        lv_sb_mat_rejc    TYPE i,
+        lv_sb_bp_rejc     TYPE i,
+        lv_sb_ir_rejc     TYPE i,
         lv_sb_approved    TYPE i,
         lv_sb_rejected    TYPE i.
 
+  " 1. Pending Counts per Module
   SELECT COUNT( * ) FROM zmdg_req_hdr
     WHERE status IN ( 'CHECKED', 'CODED' )
     INTO @lv_sb_mat_pending.
 
   SELECT COUNT( * ) FROM zmdg_bp_req
-    WHERE status = 'CHECKED'
-      AND stw_data_status = 'X'
-      AND stw_bank_status = 'X'
+    WHERE status IN ( 'SUBMITTED', 'CHECKED' )
     INTO @lv_sb_bp_pending.
 
   SELECT COUNT( * ) FROM zmdg_req_pir
     WHERE status = '01'
     INTO @lv_sb_ir_pending.
 
+  " 2. Approved Counts per Module & Total Sum
   SELECT COUNT( * ) FROM zmdg_req_hdr
     WHERE status = 'APPROVED'
-    INTO @lv_sb_approved.
+    INTO @lv_sb_mat_appr.
 
+  SELECT COUNT( * ) FROM zmdg_bp_req
+    WHERE status IN ( 'SD_APPROVED', 'MM_APPROVED', 'APPROVED' )
+    INTO @lv_sb_bp_appr.
+
+  SELECT COUNT( * ) FROM zmdg_req_pir
+    WHERE status IN ( '02', '04' )
+    INTO @lv_sb_ir_appr.
+
+  lv_sb_approved = lv_sb_mat_appr + lv_sb_bp_appr + lv_sb_ir_appr.
+
+  " 3. Rejected Counts per Module & Total Sum
   SELECT COUNT( * ) FROM zmdg_req_hdr
-    WHERE status = 'REJECTED' OR status = 'FAILED'
-    INTO @lv_sb_rejected.
+    WHERE status IN ( 'REJECTED', 'FAILED' )
+    INTO @lv_sb_mat_rejc.
+
+  SELECT COUNT( * ) FROM zmdg_bp_req
+    WHERE status IN ( 'REJECTED', 'FAILED' )
+    INTO @lv_sb_bp_rejc.
+
+  SELECT COUNT( * ) FROM zmdg_req_pir
+    WHERE status = '03'
+    INTO @lv_sb_ir_rejc.
+
+  lv_sb_rejected = lv_sb_mat_rejc + lv_sb_bp_rejc + lv_sb_ir_rejc.
 %>
 <!-- ==================================================================== -->
 <!-- SAP BSP PAGE FRAGMENT: sidebar_approval.htm                          -->
@@ -241,28 +268,9 @@
             var a = document.getElementById("sbBadgeApproved");
             var r = document.getElementById("sbBadgeRejected");
 
-            // Material Pending badge
-            if (cnts.mat_pending !== undefined) {
-                if (pMat) pMat.innerText = cnts.mat_pending;
-            } else if (cnts.pending !== undefined && path.indexOf("approve_bp") === -1 && path.indexOf("ir_approval") === -1) {
-                if (pMat) pMat.innerText = cnts.pending;
-            }
-
-            // BP Pending badge
-            if (cnts.bp_pending !== undefined) {
-                if (pBp) pBp.innerText = cnts.bp_pending;
-            } else if (cnts.pending !== undefined && path.indexOf("approve_bp") !== -1) {
-                if (pBp) pBp.innerText = cnts.pending;
-            }
-
-            // Info Record Pending badge
-            if (cnts.ir_pending !== undefined) {
-                if (pIr) pIr.innerText = cnts.ir_pending;
-            } else if (cnts.pending !== undefined && path.indexOf("ir_approval") !== -1) {
-                if (pIr) pIr.innerText = cnts.pending;
-            }
-
-            // Approved & Rejected badge
+            if (pMat && cnts.mat_pending !== undefined) pMat.innerText = cnts.mat_pending;
+            if (pBp && cnts.bp_pending !== undefined) pBp.innerText = cnts.bp_pending;
+            if (pIr && cnts.ir_pending !== undefined) pIr.innerText = cnts.ir_pending;
             if (a && cnts.approved !== undefined) a.innerText = cnts.approved;
             if (r && cnts.rejected !== undefined) r.innerText = cnts.rejected;
         }

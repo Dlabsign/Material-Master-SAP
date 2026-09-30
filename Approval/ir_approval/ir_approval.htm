@@ -7,7 +7,7 @@
   TRANSLATE lv_auth_user TO UPPER CASE.
   CONDENSE lv_auth_user NO-GAPS.
 
-  IF lv_auth_user = 'ABAPER04' OR lv_auth_user = 'KMI-BOD' OR lv_auth_user = 'KMI-U163' OR sy-uname IS NOT INITIAL.
+  IF lv_auth_user = 'ABAPER04' OR lv_auth_user = 'BASIS' OR lv_auth_user = 'KMI-BOD' OR lv_auth_user = 'KMI-U163' OR sy-uname IS NOT INITIAL.
     lv_is_authorized = 'X'.
   ENDIF.
 

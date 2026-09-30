@@ -7,7 +7,7 @@
   TRANSLATE lv_auth_user TO UPPER CASE.
   CONDENSE lv_auth_user NO-GAPS.
 
-  IF lv_auth_user = 'ABAPER04' OR lv_auth_user = 'KMI-BOD'.
+  IF lv_auth_user = 'ABAPER04' OR lv_auth_user = 'BASIS' OR lv_auth_user = 'KMI-BOD'.
     lv_is_authorized = 'X'.
   ENDIF.
 
@@ -524,7 +524,7 @@ cursor-pointer">&times;</button>
                 var loadedBatchDetails = {};
                 var loadedBatchAttachments = {};
 
-                
+
                 var currentMmZoom = 1;
                 var mmPanX = 0;
                 var mmPanY = 0;
@@ -540,7 +540,7 @@ cursor-pointer">&times;</button>
                     if (!target) return;
 
                     target.style.transition = animate ? "transform 0.15s ease-out" : "none";
-                    target.style.transform = "scale(" + currentMmZoom + ") translate(" + 
+                    target.style.transform = "scale(" + currentMmZoom + ") translate(" +
                         (mmPanX / currentMmZoom) + "px, " + (mmPanY / currentMmZoom) + "px)";
 
                     if (zoomLabel) {
@@ -725,9 +725,9 @@ cursor-pointer">&times;</button>
                             console.error("Detail Error AJAX:", err);
                             if (tbody) {
                                 tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-ro' +
-    'se-500 italic">Failed to load data: ' + 
-                                    
-                                    
+    'se-500 italic">Failed to load data: ' +
+
+
                                     err.message + '</td></tr>';
                             }
                         });
@@ -737,10 +737,10 @@ cursor-pointer">&times;</button>
                         .then(function (cnts) {
                             if (!cnts) return;
                             var elApproved = document.getElementById("statApprovedCount");
-                            if (elApproved && 
+                            if (elApproved &&
                                 cnts.approved !== undefined) elApproved.innerText = cnts.approved;
                             var elRejected = document.getElementById("statRejectedCount");
-                            if (elRejected && 
+                            if (elRejected &&
                                 cnts.rejected !== undefined) elRejected.innerText = cnts.rejected;
                             var elDraft = document.getElementById("statDraftCount");
                             if (elDraft && cnts.draft !== undefined) elDraft.innerText = cnts.draft;
@@ -752,7 +752,7 @@ cursor-pointer">&times;</button>
                 function updateKPICards(data) {
                     var total = data.length;
                     var draft = data.filter(function (i) { return i.status === 'DRAFT'; }).length;
-                    var submitted = data.filter(function (i) { return i.status === 'SUBMITTED' || 
+                    var submitted = data.filter(function (i) { return i.status === 'SUBMITTED' ||
                         i.status === 'CHECKED' || i.status === 'CODED'; }).length;
                     var approved = data.filter(function (i) { return i.status === 'APPROVED'; }).length;
                     var failed = data.filter(function (i) { return i.status === 'FAILED'; }).length;
@@ -892,8 +892,8 @@ cursor-pointer">&times;</button>
                         tr.className = "hover:bg-slate-50/80 transition-colors border-b border-slate-100";
 
                         var reqNoEsc = escapeHtml(item.req_no);
-                        var rawSub = item.sub_reason || (item.remarks && 
-                            item.remarks.indexOf('.') === -1 ? item.remarks : '') || 
+                        var rawSub = item.sub_reason || (item.remarks &&
+                            item.remarks.indexOf('.') === -1 ? item.remarks : '') ||
                                 'Permintaan Material Master';
                         var subReasonEsc = escapeHtml(rawSub);
                         var filenameEsc = escapeHtml(item.remarks || '');
@@ -910,16 +910,16 @@ cursor-pointer">&times;</button>
 
                         var fDate = "-";
                         if (item.req_date && item.req_date.length === 8) {
-                            fDate = item.req_date.substring(6, 8) + '/' + 
-                                item.req_date.substring(4, 6) + '/' + 
-                                
+                            fDate = item.req_date.substring(6, 8) + '/' +
+                                item.req_date.substring(4, 6) + '/' +
+
                                 item.req_date.substring(0, 4);
                         } else if (item.req_date) {
                             fDate = escapeHtml(item.req_date);
                         }
-                        var fTime = (item.req_time && item.req_time.length >= 4) ? (item.req_time.substring(0, 2) + 
-                            
-                            
+                        var fTime = (item.req_time && item.req_time.length >= 4) ? (item.req_time.substring(0, 2) +
+
+
                             ':' + item.req_time.substring(2, 4)) : "";
                         var dateTimeStr = fDate + (fTime ? ' ' + fTime : '');
 
@@ -928,7 +928,7 @@ cursor-pointer">&times;</button>
     ' px-2.5 py-0.5 rounded-full border border-slate-20' +
     '0">DRAFT</span>';
 
-                        if (item.status === 'SUBMITTED' || item.status === 'CHECKED' || 
+                        if (item.status === 'SUBMITTED' || item.status === 'CHECKED' ||
                             item.status === 'CODED') {
                             badge = '<span class="inline-flex items-center gap-1.5 bg-sky-50 text-sky-' +
                                 '700 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border ' +
@@ -973,19 +973,19 @@ cursor-pointer">&times;</button>
                         if (item.status === 'REJECTED' && rejReasonEsc) {
                             reasonHtml = '<div class="text-[11px] text-rose-800 font-medium mt-1.5 bg-rose-' +
                                 '50 p-2 rounded-xl border border-rose-200">';
-                            reasonHtml += '<strong class="font-extrabold">Reason:</strong> ' + rejReasonEsc + 
+                            reasonHtml += '<strong class="font-extrabold">Reason:</strong> ' + rejReasonEsc +
                                 '</div>';
                         } else if (item.status === 'FAILED' && rejReasonEsc) {
                             reasonHtml = '<div class="text-[11px] text-rose-800 font-medium mt-1.5 bg-rose-' +
                                 '50 p-2 rounded-xl border border-rose-200">';
-                            reasonHtml += '<strong class="font-extrabold">SAP Error:</strong> ' + 
-                                rejReasonEsc + 
-                                
+                            reasonHtml += '<strong class="font-extrabold">SAP Error:</strong> ' +
+                                rejReasonEsc +
+
                                 '</div>';
                         }
 
                         var actionBtns = '';
-                        if (item.status === 'SUBMITTED' || item.status === 'CHECKED' || 
+                        if (item.status === 'SUBMITTED' || item.status === 'CHECKED' ||
                             item.status === 'CODED' || item.status === 'FAILED') {
                             var approveLabel = item.status === 'FAILED' ? 'Retry' : 'Approve';
 
@@ -996,7 +996,7 @@ cursor-pointer">&times;</button>
                             actionBtns += 'shadow-2xs transition cursor-pointer flex items-center gap-1">';
                             actionBtns += approveLabel + '</button>';
 
-                            actionBtns += '<button type="button" onclick="openRejectModal(\'SINGLE\', \'' + 
+                            actionBtns += '<button type="button" onclick="openRejectModal(\'SINGLE\', \'' +
                                 reqNoEsc + '\')" ';
                             actionBtns += 'class="bg-rose-50 hover:bg-rose-100 text-rose-700 border ';
                             actionBtns += 'border-rose-200 text-[11px] font-extrabold px-3 py-1 rounded-full' +
@@ -1006,7 +1006,7 @@ cursor-pointer">&times;</button>
                         }
 
                         if (item.status === 'DRAFT') {
-                            actionBtns += '<button type="button" onclick="deleteDraft(\'' + reqNoEsc + 
+                            actionBtns += '<button type="button" onclick="deleteDraft(\'' + reqNoEsc +
                                 '\')" ';
                             actionBtns += 'class="bg-rose-50 hover:bg-rose-100 text-rose-700 border ';
                             actionBtns += 'border-rose-200 text-[11px] font-extrabold px-3 py-1 rounded-full' +
@@ -1015,7 +1015,7 @@ cursor-pointer">&times;</button>
                                 'ete</button>';
                         }
 
-                        var canApprove = (item.status === 'SUBMITTED' || item.status === 'CHECKED' || 
+                        var canApprove = (item.status === 'SUBMITTED' || item.status === 'CHECKED' ||
                             item.status === 'CODED' || item.status === 'FAILED');
                         var isChecked = canApprove && (selectedReqNos.indexOf(item.req_no) >= 0);
 
@@ -1048,28 +1048,28 @@ cursor-pointer">&times;</button>
 
                         // 3. Permintaan / Sub Reason
                         htmlStr += '<td class="p-3.5 font-medium text-slate-800 max-w-[340px]">';
-                        htmlStr += '<div class="font-extrabold text-slate-900 text-xs leading-snug">' + 
+                        htmlStr += '<div class="font-extrabold text-slate-900 text-xs leading-snug">' +
                             subReasonEsc + '</div>';
                         if (filenameEsc) {
                             htmlStr += '<div class="flex items-center gap-2 mt-1 flex-wrap">';
                             htmlStr += '<span class="text-[10px] text-slate-500 font-semib' +
     'old bg-slate-100 px-1.5 py-0.5 rounded border bord' +
-    'er-slate-200" title="File Name">File: ' + 
-                                
-                                
+    'er-slate-200" title="File Name">File: ' +
+
+
                                 filenameEsc + '</span>';
                             htmlStr += '</div>';
                         }
                         htmlStr += reasonHtml + '</td>';
 
                         // 4. Request Date
-                        htmlStr += '<td class="p-3.5 text-center font-mono text-slate-600 text-[11px]">' + 
+                        htmlStr += '<td class="p-3.5 text-center font-mono text-slate-600 text-[11px]">' +
                             dateTimeStr + '</td>';
 
                         // 5. Requestor
-                        htmlStr += '<td class="p-3.5 text-center font-extrabold text-emerald-800 font-mono">' + 
-                            
-                            
+                        htmlStr += '<td class="p-3.5 text-center font-extrabold text-emerald-800 font-mono">' +
+
+
                             (requestorEsc || '-') + '</td>';
 
                         // 6. Status
@@ -1077,9 +1077,9 @@ cursor-pointer">&times;</button>
 
                         // 7. Actions
                         htmlStr += '<td class="p-3.5 text-center"><div class="flex ite' +
-    'ms-center justify-center gap-1.5 flex-wrap">' + 
-                            
-                            
+    'ms-center justify-center gap-1.5 flex-wrap">' +
+
+
                             (actionBtns || '-') + '</div></td>';
 
                         tr.innerHTML = htmlStr;
@@ -1098,15 +1098,15 @@ cursor-pointer">&times;</button>
                         expStr += '<div class="flex flex-wrap items-center gap-2">';
                         expStr += '<span class="text-[11px] font-bold text-slate-800 ' +
     'uppercase tracking-wider">Batch Items (ID: <span c' +
-    'lass="font-mono text-emerald-800">' + 
-                            
-                            
+    'lass="font-mono text-emerald-800">' +
+
+
                             reqNoEsc + '</span>)</span>';
                         expStr += '<span class="text-[10px] font-semibold text-slate-' +
     '600 bg-white px-2 py-0.5 rounded border border-sla' +
-    'te-200 shadow-xs">' + 
-                            
-                            
+    'te-200 shadow-xs">' +
+
+
                             (item.total_item || 0) + ' items</span>';
                         expStr += '</div>';
                         expStr += '<div class="flex items-center gap-2">';
@@ -1181,9 +1181,9 @@ cursor-pointer">&times;</button>
                         })
                         .catch(function (err) {
                             container.innerHTML = '<div class="p-4 text-center text-rose-500 text-xs"' +
-    '>Failed to load detail: ' + 
-                                
-                                
+    '>Failed to load detail: ' +
+
+
                                 escapeHtml(err.message) + '</div>';
                         });
                 }
@@ -1222,7 +1222,7 @@ cursor-pointer">&times;</button>
                         html += 'rounded-xl mb-4 space-y-3">';
                         html += '<div class="flex items-center justify-between px-1">';
                         html += '  <span class="text-[11px] font-extrabold text-slate-400 ';
-                        html += 'uppercase tracking-wider">Lampiran & Gambar (' + attachments.length + 
+                        html += 'uppercase tracking-wider">Lampiran & Gambar (' + attachments.length +
                             ' File)</span>';
                         html += '  <span class="text-[11px] font-semibold text-slate-400 ';
                         html += 'flex items-center gap-1.5"><svg class="w-3.5 h-3.5 text-emerald-500" ';
@@ -1240,16 +1240,16 @@ cursor-pointer">&times;</button>
                                 var mime = att.file_type || 'image/png';
                                 fullB64 = 'data:' + mime + ';base64,' + rawB64;
                             }
-                            var isImg = (att.file_type && 
+                            var isImg = (att.file_type &&
                                 att.file_type.toLowerCase().indexOf('image') !== -1) ||
                                        fullB64.startsWith('data:image') ||
                                        /\.(jpg|jpeg|png|webp|gif|bmp)$/i.test(att.file_name || '');
                             var fileName = escapeHtml(att.file_name || ('File ' + (idx + 1)));
                             var captionName = att.file_name ?
                                 att.file_name.replace(/\.[^/.]+$/, '') :
-                                ('Attachment ' + 
-                                
-                                
+                                ('Attachment ' +
+
+
                                 (idx + 1));
                             var caption = 'File ' + (idx + 1) + ': ' + captionName;
 
@@ -1341,21 +1341,21 @@ cursor-pointer">&times;</button>
                             }
 
                             html += '<tr class="hover:bg-slate-50/80 transition-colors">';
-                            html += '<td class="p-3 text-center font-mono text-slate-500 font-semibold">' + 
+                            html += '<td class="p-3 text-center font-mono text-slate-500 font-semibold">' +
                                 itemNo + '</td>';
-                            html += '<td class="p-3 font-mono font-bold text-emerald-800">' + matCodeBadge + 
+                            html += '<td class="p-3 font-mono font-bold text-emerald-800">' + matCodeBadge +
                                 '</td>';
-                            html += '<td class="p-3 font-bold text-slate-900 text-xs">' + 
+                            html += '<td class="p-3 font-bold text-slate-900 text-xs">' +
                                 escapeHtml(r.maktx || '-') + '</td>';
-                            html += '<td class="p-3 text-center font-mono font-semibold text-slate-600">' + 
+                            html += '<td class="p-3 text-center font-mono font-semibold text-slate-600">' +
                                 escapeHtml(r.mtart || '-') + '</td>';
-                            html += '<td class="p-3 text-center font-mono font-semibold text-slate-600">' + 
+                            html += '<td class="p-3 text-center font-mono font-semibold text-slate-600">' +
                                 escapeHtml(r.matkl || '-') + '</td>';
-                            html += '<td class="p-3 text-center font-mono font-semibold text-slate-600">' + 
+                            html += '<td class="p-3 text-center font-mono font-semibold text-slate-600">' +
                                 escapeHtml(r.meins || 'PC') + '</td>';
-                            html += '<td class="p-3 text-center font-mono font-semibold text-slate-600">' + 
+                            html += '<td class="p-3 text-center font-mono font-semibold text-slate-600">' +
                                 escapeHtml(r.werks || '-') + '</td>';
-                            html += '<td class="p-3 text-center font-mono font-semibold text-slate-600">' + 
+                            html += '<td class="p-3 text-center font-mono font-semibold text-slate-600">' +
                                 escapeHtml(r.lgort || '-') + '</td>';
                             html += '</tr>';
                         });
@@ -1497,26 +1497,29 @@ cursor-pointer">&times;</button>
                             return res.json();
                         })
                         .then(function (data) {
-                            if (data && (data.status === "SUCCESS" || data.status === "PARTIAL")) {
-                                var isPartial = (data.status === "PARTIAL");
-                                var successTitle = isPartial ?
-                                    "MASS APPROVAL SEBAGIAN SELESAI (PARTIAL)" :
-                                    "MASS APPROVAL BERHASIL & TERUPLOAD KE SAP S/4HANA";
-                                var rawMsg = data.message || ("Request " + targetDocsStr + 
+                            if (data && data.status === "SUCCESS") {
+                                var successTitle = "MASS APPROVAL BERHASIL & TERUPLOAD KE SAP S/4HANA";
+                                var rawMsg = data.message || ("Request " + targetDocsStr +
                                     " telah BERHASIL divalidasi dan TERUPLOAD ke SAP S/4HANA Master Data!");
                                 var successMsg = formatCleanMaterialMsg(rawMsg);
                                 var displayDetails = formatCleanMaterialMsg(data.message || "");
-                                showToast(successMsg, isPartial ? "info" : "success");
-                                showPageApprovalAlert(!isPartial, successTitle, successMsg, displayDetails);
-                                showUploadResultNotification(!isPartial, successTitle, successMsg,
-                                     displayDetails);
+                                showToast(successMsg, "success");
+                                showPageApprovalAlert(true, successTitle, successMsg, displayDetails);
+                                // Notifikasi popup kedua di-bypass saat sukses agar popup konfirmasi approval tidak muncul 2x
+                            } else if (data && data.status === "PARTIAL") {
+                                var partialTitle = "MASS APPROVAL SEBAGIAN SELESAI (PARTIAL)";
+                                var rawMsg = data.message || "";
+                                var partialMsg = formatCleanMaterialMsg(rawMsg);
+                                var displayDetails = formatCleanMaterialMsg(data.message || "");
+                                showToast(partialMsg, "info");
+                                showPageApprovalAlert(false, partialTitle, partialMsg, displayDetails);
+                                showUploadResultNotification(false, partialTitle, partialMsg, displayDetails);
                             } else {
-                                var errorMsg = (data && 
-                                    data.message) ?
-                                        data.message :
-                                        "Approval failed without details from server.";
+                                var errorMsg = (data && data.message) ?
+                                    data.message :
+                                    "Approval failed without details from server.";
                                 var failTitle = "APPROVE GAGAL - SAP UPLOAD ERROR";
-                                var failMsg = "Proses Upload Material Request " + targetDocsStr + 
+                                var failMsg = "Proses Upload Material Request " + targetDocsStr +
                                     " ke SAP S/4HANA GAGAL.";
                                 showToast("Approval gagal untuk " + targetDocsStr, "error");
                                 showPageApprovalAlert(false, failTitle, failMsg, errorMsg);
@@ -1525,9 +1528,9 @@ cursor-pointer">&times;</button>
                         })
                         .catch(function (err) {
                             var sysErrTitle = "KESALAHAN SISTEM / KONEKSI";
-                            var sysErrMsg = "Terjadi kesalahan sistem saat melakukan proses approval untuk Request " + 
-                                
-                                
+                            var sysErrMsg = "Terjadi kesalahan sistem saat melakukan proses approval untuk Request " +
+
+
                                 targetDocsStr + ".";
                             showToast("Approval error: " + err.message, "error");
                             showPageApprovalAlert(false, sysErrTitle, sysErrMsg, err.message);
@@ -1637,7 +1640,7 @@ cursor-pointer">&times;</button>
                         icon.innerHTML = "&#10005;";
                     }
 
-                    if (titleEl) titleEl.innerText = title || 
+                    if (titleEl) titleEl.innerText = title ||
                         (isSuccess ? "APPROVAL BERHASIL" : "APPROVAL GAGAL");
                     if (msgEl) msgEl.innerText = message || "";
 
@@ -1781,12 +1784,12 @@ cursor-pointer">&times;</button>
                     var stack = document.getElementById("toastStack");
                     if (!stack) return;
                     var toast = document.createElement("div");
-                    toast.className = 'min-w-[280px] max-w-[380px] ' + (bgClasses[type] || bgClasses.info) + 
+                    toast.className = 'min-w-[280px] max-w-[380px] ' + (bgClasses[type] || bgClasses.info) +
                         ' text-white p-3 rounded-xl text-xs flex items-start gap-2.5 ' +
                         'shadow-lg transition-all duration-300 opacity-100 translate-y-0';
 
                     var tStr = '';
-                    tStr += '<span class="shrink-0 mt-1 w-1.5 h-1.5 rounded-full ' + 
+                    tStr += '<span class="shrink-0 mt-1 w-1.5 h-1.5 rounded-full ' +
                         (dotClasses[type] || dotClasses.info) + '"></span>';
                     tStr += '<span class="font-medium">' + escapeHtml(message) + '</span>';
                     toast.innerHTML = tStr;
@@ -1829,7 +1832,7 @@ cursor-pointer">&times;</button>
                         .catch(function (e) { console.error("Counter load err", e); });
                 }
 
-                
+
                 var currentMmZoom = 1;
                 var mmPanX = 0;
                 var mmPanY = 0;
@@ -1849,7 +1852,7 @@ document.addEventListener("DOMContentLoaded", function () {
         <!-- LIGHTBOX MODAL PREVIEW GAMBAR ATTACHMENT -->
     <div id="mmImagePreviewModal" class="hidden fixed inset-0 z-[11000] flex items-center justify-center bg-slate-950/85 backdrop-blur-xl p-3 sm:p-6 transition-all" onclick="closeMmImagePreview()">
         <div class="relative max-w-6xl w-full max-h-[96vh] bg-slate-900 border border-slate-700/80 rounded-3xl p-5 shadow-2xl flex flex-col items-center backdrop-blur-md" onclick="event.stopPropagation()">
-            
+
             <!-- HEADER BAR -->
             <div class="w-full flex items-center justify-between pb-3 mb-3 border-b border-slate-800 flex-wrap gap-2">
                 <div class="flex items-center gap-3">
@@ -1864,7 +1867,8 @@ document.addEventListener("DOMContentLoaded", function () {
                     </div>
                 </div>
 
-                <button type="button" onclick="closeMmImagePreview()" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-lg border border-rose-400/50 flex items-center gap-2 transition cursor-pointer active:scale-95">
+                <button type="button" onclick="closeMmImagePreview()" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-lg border border-rose-400/50 flex items-center gap-2 transition
+cursor-pointer active:scale-95">
                     <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
                     <span>Tutup (ESC)</span>
                 </button>
@@ -1873,19 +1877,22 @@ document.addEventListener("DOMContentLoaded", function () {
             <!-- TOOLBAR: ZOOM CONTROLS -->
             <div class="w-full flex flex-wrap items-center justify-between gap-3 mb-3 p-2 bg-slate-950/80 border border-slate-800 rounded-2xl shadow-inner">
                 <div class="flex items-center gap-2">
-                    <button type="button" onclick="changeMmImageZoom(-0.25)" class="px-3.5 py-2 flex items-center gap-1.5 text-white bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-xl transition cursor-pointer font-bold text-xs sm:text-sm active:scale-95" title="Perkecil (-)">
+                    <button type="button" onclick="changeMmImageZoom(-0.25)" class="px-3.5 py-2 flex items-center gap-1.5 text-white bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-xl transition cursor-pointer font-bold text-xs
+sm:text-sm active:scale-95" title="Perkecil (-)">
                         <svg class="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M20 12H4"/></svg>
                         <span>-</span>
                     </button>
-                    
+
                     <span id="mmImageZoomLevel" class="text-sm sm:text-base font-mono font-black text-emerald-400 bg-slate-900 border border-emerald-500/30 px-3.5 py-1.5 rounded-xl min-w-[75px] text-center shadow-xs select-none">100%</span>
 
-                    <button type="button" onclick="changeMmImageZoom(0.25)" class="px-3.5 py-2 flex items-center gap-1.5 text-white bg-emerald-600 hover:bg-emerald-500 border border-emerald-400/50 rounded-xl transition cursor-pointer font-extrabold text-xs sm:text-sm shadow-md active:scale-95" title="Perbesar (+)">
+                    <button type="button" onclick="changeMmImageZoom(0.25)" class="px-3.5 py-2 flex items-center gap-1.5 text-white bg-emerald-600 hover:bg-emerald-500 border border-emerald-400/50 rounded-xl transition cursor-pointer font-extrabold
+text-xs sm:text-sm shadow-md active:scale-95" title="Perbesar (+)">
                         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"/></svg>
                         <span>+</span>
                     </button>
 
-                    <button type="button" onclick="resetMmImageZoom()" class="px-3.5 py-2 text-xs sm:text-sm font-bold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl transition cursor-pointer active:scale-95 select-none" title="Reset ke Ukuran Normal">
+                    <button type="button" onclick="resetMmImageZoom()" class="px-3.5 py-2 text-xs sm:text-sm font-bold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl transition cursor-pointer
+active:scale-95 select-none" title="Reset ke Ukuran Normal">
                         ↺ Normal
                     </button>
                 </div>

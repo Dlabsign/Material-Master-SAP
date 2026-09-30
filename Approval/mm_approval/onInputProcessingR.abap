@@ -62,6 +62,8 @@
           lt_unitsofmeasurex      TYPE TABLE OF bapi_marmx,
           ls_unitsofmeasurex      TYPE bapi_marmx,
           ls_bapireturn           TYPE bapiret2,
+          lt_taxclassifications   TYPE TABLE OF bapi_mlan,
+          ls_taxclassification    TYPE bapi_mlan,
           lt_returnmes            TYPE TABLE OF bapi_matreturn2,
           ls_returnmes            TYPE bapi_matreturn2.
 
@@ -89,7 +91,8 @@
           lv_pos_dot      TYPE i,
           lv_pos_com      TYPE i,
           lv_len          TYPE i,
-          lv_dec_len      TYPE i.
+          lv_dec_len      TYPE i,
+          lv_valid_tatyp  TYPE tatyp.
 
     DATA: lv_has_error   TYPE sap_bool,
           lv_err_msg     TYPE string,
@@ -117,7 +120,7 @@
     TRANSLATE lv_auth_user TO UPPER CASE.
     CONDENSE lv_auth_user NO-GAPS.
 
-    IF lv_auth_user <> 'ABAPER04' AND lv_auth_user <> 'KMI-BOD' AND lv_auth_user <> 'KMI-U163'.
+    IF lv_auth_user <> 'ABAPER04' AND lv_auth_user <> 'BASIS' AND lv_auth_user <> 'KMI-BOD' AND lv_auth_user <> 'KMI-U163'.
       IF lv_action IS NOT INITIAL.
         _m_response->set_status( code = 403 reason = 'Forbidden' ).
         _m_response->set_content_type( 'application/json' ).
@@ -135,24 +138,64 @@
         " GET COUNTERS FOR SIDEBAR BADGES
         " ------------------------------------------------------------------
         WHEN 'GET_COUNTERS'.
-          DATA: lv_cnt_p    TYPE i,
-                lv_cnt_a    TYPE i,
-                lv_cnt_r    TYPE i,
-                lv_cnt_bp_p TYPE i.
-          SELECT COUNT( * ) FROM zmdg_req_hdr WHERE status IN ( 'CHECKED', 'CODED' ) INTO @lv_cnt_p.
-          SELECT COUNT( * ) FROM zmdg_req_hdr WHERE status = 'APPROVED' INTO @lv_cnt_a.
-          SELECT COUNT( * ) FROM zmdg_req_hdr WHERE status IN ( 'REJECTED', 'FAILED' ) INTO @lv_cnt_r.
+          DATA: lv_cnt_mat_p TYPE i,
+                lv_cnt_bp_p  TYPE i,
+                lv_cnt_ir_p  TYPE i,
+                lv_cnt_mat_a TYPE i,
+                lv_cnt_bp_a  TYPE i,
+                lv_cnt_ir_a  TYPE i,
+                lv_cnt_mat_r TYPE i,
+                lv_cnt_bp_r  TYPE i,
+                lv_cnt_ir_r  TYPE i,
+                lv_cnt_tot_a TYPE i,
+                lv_cnt_tot_r TYPE i.
+
+          SELECT COUNT( * ) FROM zmdg_req_hdr
+            WHERE status IN ( 'CHECKED', 'CODED' )
+            INTO @lv_cnt_mat_p.
+
           SELECT COUNT( * ) FROM zmdg_bp_req
-            WHERE status = 'CHECKED'
-              AND stw_data_status = 'X'
-              AND stw_bank_status = 'X'
+            WHERE status IN ( 'SUBMITTED', 'CHECKED' )
             INTO @lv_cnt_bp_p.
 
-          lv_json = '{"pending":' && lv_cnt_p &&
-                    ',"mat_pending":' && lv_cnt_p &&
+          SELECT COUNT( * ) FROM zmdg_req_pir
+            WHERE status = '01'
+            INTO @lv_cnt_ir_p.
+
+          SELECT COUNT( * ) FROM zmdg_req_hdr
+            WHERE status = 'APPROVED'
+            INTO @lv_cnt_mat_a.
+
+          SELECT COUNT( * ) FROM zmdg_bp_req
+            WHERE status IN ( 'SD_APPROVED', 'MM_APPROVED', 'APPROVED' )
+            INTO @lv_cnt_bp_a.
+
+          SELECT COUNT( * ) FROM zmdg_req_pir
+            WHERE status IN ( '02', '04' )
+            INTO @lv_cnt_ir_a.
+
+          lv_cnt_tot_a = lv_cnt_mat_a + lv_cnt_bp_a + lv_cnt_ir_a.
+
+          SELECT COUNT( * ) FROM zmdg_req_hdr
+            WHERE status IN ( 'REJECTED', 'FAILED' )
+            INTO @lv_cnt_mat_r.
+
+          SELECT COUNT( * ) FROM zmdg_bp_req
+            WHERE status IN ( 'REJECTED', 'FAILED' )
+            INTO @lv_cnt_bp_r.
+
+          SELECT COUNT( * ) FROM zmdg_req_pir
+            WHERE status = '03'
+            INTO @lv_cnt_ir_r.
+
+          lv_cnt_tot_r = lv_cnt_mat_r + lv_cnt_bp_r + lv_cnt_ir_r.
+
+          lv_json = '{"pending":' && lv_cnt_mat_p &&
+                    ',"mat_pending":' && lv_cnt_mat_p &&
                     ',"bp_pending":' && lv_cnt_bp_p &&
-                    ',"approved":' && lv_cnt_a &&
-                    ',"rejected":' && lv_cnt_r && '}'.
+                    ',"ir_pending":' && lv_cnt_ir_p &&
+                    ',"approved":' && lv_cnt_tot_a &&
+                    ',"rejected":' && lv_cnt_tot_r && '}'.
           _m_response->set_content_type( 'application/json' ).
           _m_response->set_cdata( lv_json ).
           _m_navigation->response_complete( ).
@@ -619,7 +662,7 @@
                     ls_valuationdata, ls_valuationdatax,
                     ls_salesdata, ls_salesdatax,
                     ls_bapireturn, lt_materialdesc, lt_unitsofmeasure,
-                    lt_unitsofmeasurex, lt_returnmes.
+                    lt_unitsofmeasurex, lt_taxclassifications, lt_returnmes.
 
               CALL FUNCTION 'CONVERSION_EXIT_MATN1_INPUT'
                 EXPORTING
@@ -639,13 +682,54 @@
               ls_headdata-basic_view      = 'X'.
               ls_headdata-purchase_view   = 'X'.
               ls_headdata-work_sched_view = 'X'.
-              ls_headdata-sales_view      = 'X'.
 
+              " Mapping Country of Origin (HERKL) untuk Plant View
+              IF ls_dtl_db-herkl IS NOT INITIAL.
+                ls_plantdata-countryori      = ls_dtl_db-herkl.
+                ls_plantdata-countryori_iso  = ls_dtl_db-herkl.
+                ls_plantdatax-countryori     = 'X'.
+                ls_plantdatax-countryori_iso = 'X'.
+              ENDIF.
+
+              " Sales View & Tax Classifications (Hanya diaktifkan jika VKORG & VTWEG terisi)
               IF ls_dtl_db-vkorg IS NOT INITIAL AND ls_dtl_db-vtweg IS NOT INITIAL.
+                ls_headdata-sales_view   = 'X'.
                 ls_salesdata-sales_org   = ls_dtl_db-vkorg.
                 ls_salesdatax-sales_org  = ls_dtl_db-vkorg.
                 ls_salesdata-distr_chan  = ls_dtl_db-vtweg.
                 ls_salesdatax-distr_chan = ls_dtl_db-vtweg.
+
+                " Mapping Tax Classifications (Mandatory untuk SAP Sales View)
+                " Validate Tax Category against SAP customizing table TSTL for Country 'ID'
+                CLEAR: lt_taxclassifications, ls_taxclassification, lv_valid_tatyp.
+
+                IF ls_dtl_db-tatyp IS NOT INITIAL.
+                  SELECT SINGLE tatyp FROM tstl INTO lv_valid_tatyp
+                    WHERE talnd = 'ID' AND tatyp = ls_dtl_db-tatyp.
+                ENDIF.
+
+                IF lv_valid_tatyp IS INITIAL.
+                  SELECT SINGLE tatyp FROM tstl INTO lv_valid_tatyp
+                    WHERE talnd = 'ID'.
+                ENDIF.
+
+                IF lv_valid_tatyp IS INITIAL.
+                  lv_valid_tatyp = 'ZPPN'.
+                ENDIF.
+
+                IF lv_valid_tatyp IS NOT INITIAL.
+                  ls_taxclassification-depcountry     = 'ID'.
+                  ls_taxclassification-depcountry_iso = 'ID'.
+                  ls_taxclassification-tax_type_1     = lv_valid_tatyp.
+
+                  IF ls_dtl_db-taxkm IS NOT INITIAL.
+                    ls_taxclassification-taxclass_1 = ls_dtl_db-taxkm.
+                  ELSE.
+                    ls_taxclassification-taxclass_1 = '1'.
+                  ENDIF.
+
+                  APPEND ls_taxclassification TO lt_taxclassifications.
+                ENDIF.
               ENDIF.
 
               IF ls_dtl_db-werks IS NOT INITIAL.
@@ -1029,7 +1113,8 @@
 
                 IF lv_app_hrkft IS INITIAL.
                   IF lv_app_kokrs IS NOT INITIAL.
-                    lv_err_msg = |The value { ls_dtl_db-herbl } is not allowed for the field MBEW-HRKFT/BAPI_MBEW-ORIG_GROUP (Origin Group tidak terdaftar pada Controlling Area { lv_app_kokrs } di tabel SAP TKKH1 untuk Plant { ls_dtl_db-werks })|.
+                    lv_err_msg = |Origin Group { ls_dtl_db-herbl } tidak terdaftar di Controlling Area | &&
+                                 |{ lv_app_kokrs } (Tabel TKKH1 Plant { ls_dtl_db-werks })|.
                   ELSE.
                     lv_err_msg = |The value { ls_dtl_db-herbl } is not allowed for the field MBEW-HRKFT/BAPI_MBEW-ORIG_GROUP (Origin Group tidak terdaftar di tabel SAP TKKH1)|.
                   ENDIF.
@@ -1058,6 +1143,7 @@
                   return               = ls_bapireturn
                 TABLES
                   materialdescription  = lt_materialdesc
+                  taxclassifications   = lt_taxclassifications
                   returnmessages       = lt_returnmes.
 
               IF ls_bapireturn-type = 'E' OR ls_bapireturn-type = 'A'.

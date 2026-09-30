@@ -114,7 +114,7 @@ lv_auth_user = sy-uname.
 TRANSLATE lv_auth_user TO UPPER CASE.
 CONDENSE lv_auth_user NO-GAPS.
 
-IF lv_auth_user <> 'ABAPER04' AND lv_auth_user <> 'KMI-BOD' AND lv_auth_user <> 'KMI-U163'.
+IF lv_auth_user <> 'ABAPER04' AND lv_auth_user <> 'BASIS' AND lv_auth_user <> 'KMI-BOD' AND lv_auth_user <> 'KMI-U163'.
   IF lv_action IS NOT INITIAL.
     _m_response->set_status( code = 403 reason = 'Forbidden' ).
     _m_response->set_content_type( 'application/json' ).
@@ -134,24 +134,64 @@ IF lv_action IS NOT INITIAL.
     " GET COUNTERS FOR APPROVAL METRICS & SIDEBAR BADGES
     " ------------------------------------------------------------------
     WHEN 'GET_COUNTERS'.
-      DATA: lv_cnt_p     TYPE i,
-            lv_cnt_a     TYPE i,
-            lv_cnt_r     TYPE i,
-            lv_cnt_mat_p TYPE i.
+      DATA: lv_cnt_mat_p TYPE i,
+            lv_cnt_bp_p  TYPE i,
+            lv_cnt_ir_p  TYPE i,
+            lv_cnt_mat_a TYPE i,
+            lv_cnt_bp_a  TYPE i,
+            lv_cnt_ir_a  TYPE i,
+            lv_cnt_mat_r TYPE i,
+            lv_cnt_bp_r  TYPE i,
+            lv_cnt_ir_r  TYPE i,
+            lv_cnt_tot_a TYPE i,
+            lv_cnt_tot_r TYPE i.
+
+      SELECT COUNT( * ) FROM zmdg_req_hdr
+        WHERE status IN ( 'CHECKED', 'CODED' )
+        INTO @lv_cnt_mat_p.
+
       SELECT COUNT( * ) FROM zmdg_bp_req
         WHERE status IN ( 'SUBMITTED', 'CHECKED' )
-        INTO @lv_cnt_p.
-      SELECT COUNT( * ) FROM zmdg_bp_req WHERE status IN ( 'SD_APPROVED', 'MM_APPROVED', 'APPROVED' ) INTO @lv_cnt_a.
-      SELECT COUNT( * ) FROM zmdg_bp_req
-        WHERE status IN ( 'REJECTED', 'FAILED' ) INTO @lv_cnt_r.
-      SELECT COUNT( * ) FROM zmdg_req_hdr
-        WHERE status IN ( 'CHECKED', 'CODED' ) INTO @lv_cnt_mat_p.
+        INTO @lv_cnt_bp_p.
 
-      lv_json = '{"pending":' && lv_cnt_p &&
-                ',"bp_pending":' && lv_cnt_p &&
+      SELECT COUNT( * ) FROM zmdg_req_pir
+        WHERE status = '01'
+        INTO @lv_cnt_ir_p.
+
+      SELECT COUNT( * ) FROM zmdg_req_hdr
+        WHERE status = 'APPROVED'
+        INTO @lv_cnt_mat_a.
+
+      SELECT COUNT( * ) FROM zmdg_bp_req
+        WHERE status IN ( 'SD_APPROVED', 'MM_APPROVED', 'APPROVED' )
+        INTO @lv_cnt_bp_a.
+
+      SELECT COUNT( * ) FROM zmdg_req_pir
+        WHERE status IN ( '02', '04' )
+        INTO @lv_cnt_ir_a.
+
+      lv_cnt_tot_a = lv_cnt_mat_a + lv_cnt_bp_a + lv_cnt_ir_a.
+
+      SELECT COUNT( * ) FROM zmdg_req_hdr
+        WHERE status IN ( 'REJECTED', 'FAILED' )
+        INTO @lv_cnt_mat_r.
+
+      SELECT COUNT( * ) FROM zmdg_bp_req
+        WHERE status IN ( 'REJECTED', 'FAILED' )
+        INTO @lv_cnt_bp_r.
+
+      SELECT COUNT( * ) FROM zmdg_req_pir
+        WHERE status = '03'
+        INTO @lv_cnt_ir_r.
+
+      lv_cnt_tot_r = lv_cnt_mat_r + lv_cnt_bp_r + lv_cnt_ir_r.
+
+      lv_json = '{"pending":' && lv_cnt_bp_p &&
                 ',"mat_pending":' && lv_cnt_mat_p &&
-                ',"approved":' && lv_cnt_a &&
-                ',"rejected":' && lv_cnt_r && '}'.
+                ',"bp_pending":' && lv_cnt_bp_p &&
+                ',"ir_pending":' && lv_cnt_ir_p &&
+                ',"approved":' && lv_cnt_tot_a &&
+                ',"rejected":' && lv_cnt_tot_r && '}'.
       _m_response->set_content_type( 'application/json' ).
       _m_response->set_cdata( lv_json ).
       _m_navigation->response_complete( ).

@@ -124,38 +124,64 @@ IF lv_action IS NOT INITIAL.
     " GET COUNTERS FOR APPROVAL METRICS & SIDEBAR BADGES
     " ------------------------------------------------------------------
     WHEN 'GET_COUNTERS'.
-      DATA: lv_cnt_p     TYPE i,
-            lv_cnt_a     TYPE i,
-            lv_cnt_r     TYPE i,
-            lv_cnt_mat_p TYPE i,
-            lv_cnt_bp_p  TYPE i.
-
-      SELECT COUNT( * ) FROM zmdg_req_pir
-        WHERE status = '01'
-        INTO @lv_cnt_p.
-
-      SELECT COUNT( * ) FROM zmdg_req_pir
-        WHERE status IN ( '02', '04' )
-        INTO @lv_cnt_a.
-
-      SELECT COUNT( * ) FROM zmdg_req_pir
-        WHERE status = '03'
-        INTO @lv_cnt_r.
-
-      SELECT COUNT( * ) FROM zmdg_bp_req
-        WHERE status IN ( 'SUBMITTED', 'CHECKED' )
-        INTO @lv_cnt_bp_p.
+      DATA: lv_cnt_mat_p TYPE i,
+            lv_cnt_bp_p  TYPE i,
+            lv_cnt_ir_p  TYPE i,
+            lv_cnt_mat_a TYPE i,
+            lv_cnt_bp_a  TYPE i,
+            lv_cnt_ir_a  TYPE i,
+            lv_cnt_mat_r TYPE i,
+            lv_cnt_bp_r  TYPE i,
+            lv_cnt_ir_r  TYPE i,
+            lv_cnt_tot_a TYPE i,
+            lv_cnt_tot_r TYPE i.
 
       SELECT COUNT( * ) FROM zmdg_req_hdr
         WHERE status IN ( 'CHECKED', 'CODED' )
         INTO @lv_cnt_mat_p.
 
-      lv_json = '{"pending":' && lv_cnt_p &&
-                ',"ir_pending":' && lv_cnt_p &&
-                ',"bp_pending":' && lv_cnt_bp_p &&
+      SELECT COUNT( * ) FROM zmdg_bp_req
+        WHERE status IN ( 'SUBMITTED', 'CHECKED' )
+        INTO @lv_cnt_bp_p.
+
+      SELECT COUNT( * ) FROM zmdg_req_pir
+        WHERE status = '01'
+        INTO @lv_cnt_ir_p.
+
+      SELECT COUNT( * ) FROM zmdg_req_hdr
+        WHERE status = 'APPROVED'
+        INTO @lv_cnt_mat_a.
+
+      SELECT COUNT( * ) FROM zmdg_bp_req
+        WHERE status IN ( 'SD_APPROVED', 'MM_APPROVED', 'APPROVED' )
+        INTO @lv_cnt_bp_a.
+
+      SELECT COUNT( * ) FROM zmdg_req_pir
+        WHERE status IN ( '02', '04' )
+        INTO @lv_cnt_ir_a.
+
+      lv_cnt_tot_a = lv_cnt_mat_a + lv_cnt_bp_a + lv_cnt_ir_a.
+
+      SELECT COUNT( * ) FROM zmdg_req_hdr
+        WHERE status IN ( 'REJECTED', 'FAILED' )
+        INTO @lv_cnt_mat_r.
+
+      SELECT COUNT( * ) FROM zmdg_bp_req
+        WHERE status IN ( 'REJECTED', 'FAILED' )
+        INTO @lv_cnt_bp_r.
+
+      SELECT COUNT( * ) FROM zmdg_req_pir
+        WHERE status = '03'
+        INTO @lv_cnt_ir_r.
+
+      lv_cnt_tot_r = lv_cnt_mat_r + lv_cnt_bp_r + lv_cnt_ir_r.
+
+      lv_json = '{"pending":' && lv_cnt_ir_p &&
                 ',"mat_pending":' && lv_cnt_mat_p &&
-                ',"approved":' && lv_cnt_a &&
-                ',"rejected":' && lv_cnt_r && '}'.
+                ',"bp_pending":' && lv_cnt_bp_p &&
+                ',"ir_pending":' && lv_cnt_ir_p &&
+                ',"approved":' && lv_cnt_tot_a &&
+                ',"rejected":' && lv_cnt_tot_r && '}'.
       _m_response->set_content_type( 'application/json' ).
       _m_response->set_cdata( lv_json ).
       _m_navigation->response_complete( ).
@@ -169,7 +195,7 @@ IF lv_action IS NOT INITIAL.
 
       SELECT * FROM zmdg_req_pir
         INTO TABLE @lt_hdr_db
-        WHERE status IN ( '01', '02', '03', '04' )
+        WHERE status = '01'
         ORDER BY req_id DESCENDING.
 
       LOOP AT lt_hdr_db INTO ls_hdr_db.
@@ -455,10 +481,11 @@ IF lv_action IS NOT INITIAL.
           IF ls_hdr_db-infnr IS NOT INITIAL.
             lv_gen_infnr = ls_hdr_db-infnr.
           ELSE.
-            DATA: lv_seq_num TYPE i.
-            SELECT COUNT( * ) FROM zmdg_req_pir INTO @lv_seq_num
+            DATA: lv_seq_cnt TYPE i,
+                  lv_seq_num TYPE p LENGTH 8 DECIMALS 0.
+            SELECT COUNT( * ) FROM zmdg_req_pir INTO @lv_seq_cnt
               WHERE status IN ( '02', '04' ).
-            lv_seq_num = lv_seq_num + 5300000001.
+            lv_seq_num = 5300000001 + lv_seq_cnt.
             lv_gen_infnr = CONV #( lv_seq_num ).
           ENDIF.
         ENDIF.

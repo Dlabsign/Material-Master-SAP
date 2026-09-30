@@ -7,7 +7,7 @@
   TRANSLATE lv_auth_user TO UPPER CASE.
   CONDENSE lv_auth_user NO-GAPS.
 
-  IF lv_auth_user = 'ABAPER04' OR lv_auth_user = 'KMI-BOD' OR lv_auth_user = 'KMI-U163'.
+  IF lv_auth_user = 'ABAPER04' OR lv_auth_user = 'BASIS' OR lv_auth_user = 'KMI-BOD' OR lv_auth_user = 'KMI-U163'.
     lv_is_authorized = 'X'.
   ENDIF.
 
@@ -1391,9 +1391,15 @@ SELECT COUNT( * ) FROM zmdg_bp_req WHERE status = 'CHECKED' AND stw_data_status 
                                                     });
                                                 }
 
-                                                showToast(rawMsg, isPartial ? "info" : "success");
-                                                showPageApprovalAlert(!isPartial, successTitle, rawMsg, bpDetails);
-                                                showUploadResultNotification(!isPartial, successTitle, rawMsg, bpDetails);
+                                                if (isPartial) {
+                                                    showToast(rawMsg, "info");
+                                                    showPageApprovalAlert(false, successTitle, rawMsg, bpDetails);
+                                                    showUploadResultNotification(false, successTitle, rawMsg, bpDetails);
+                                                } else {
+                                                    showToast(rawMsg, "success");
+                                                    showPageApprovalAlert(true, successTitle, rawMsg, bpDetails);
+                                                    // Notifikasi popup kedua di-bypass saat sukses agar popup konfirmasi approval tidak muncul 2x
+                                                }
                                             } else {
                                                 var errorMsg = (data && data.message) ? data.message : "Approval gagal dari server SAP.";
                                                 var failTitle = "APPROVE GAGAL - SAP ERROR";
