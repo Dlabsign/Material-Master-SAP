@@ -38,6 +38,14 @@ TYPES:
     akont             TYPE akont,          " Reconciliation Account
     zterm             TYPE dzterm,         " Payment Terms
     waers             TYPE waers,          " Currency (Default: 'IDR')
+    ktgrd             TYPE ktgrd,          " Account Assignment Group Customer (01 Export, 02 Local)
+    incov             TYPE char4,          " Incoterms Version (e.g. 2020)
+    inco1             TYPE inco1,          " Incoterms Code (FOB, CIF, EXW, etc.)
+    inco2_l           TYPE char70,         " Incoterms Location 1
+    inco3_l           TYPE char70,         " Incoterms Location 2
+    vkorg             TYPE vkorg,          " Sales Organization
+    vtweg             TYPE vtweg,          " Distribution Channel
+    spart             TYPE spart,          " Division
     ekorg             TYPE ekorg,          " Purchasing Organization (e.g. '1000')
     webre             TYPE webre,          " GR-Based Inv. Verif. ('X')
     lebre             TYPE lebre,          " Srv.-Based Inv. Ver. ('X')

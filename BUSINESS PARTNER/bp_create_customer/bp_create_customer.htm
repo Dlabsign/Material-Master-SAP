@@ -454,13 +454,13 @@ class="bp-tab-btn px-3.5 py-2 text-xs font-semibold rounded-t-md flex items-cent
           <span>Kode Perusahaan</span>
         </button>
 
-        <!-- 9. Purchasing View -->
-        <button type="button" onclick="switchBpTab('purchasing', this);" id="tabBtn_purchasing"
+        <!-- 9. Sales & Billing View -->
+        <button type="button" onclick="switchBpTab('sales', this);" id="tabBtn_sales"
                
 class="bp-tab-btn px-3.5 py-2 text-xs font-semibold rounded-t-md flex items-center gap-1.5 transition-all whitespace-nowrap text-slate-700 hover:bg-slate-200/60
                      border-t border-l border-r border-transparent">
-          <span class="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block ring-2 ring-amber-200" title="Purchasing Data"></span>
-          <span>Data Pembelian</span>
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block ring-2 ring-emerald-200" title="Sales &amp; Billing Data"></span>
+          <span>Data Penjualan &amp; Billing</span>
         </button>
       </nav>
     </div>
@@ -1289,21 +1289,27 @@ class="w-full h-11 px-space-md text-body-md font-code-sm bg-surface-container-lo
           </div>
           <div class="space-y-1.5">
             <label class="block text-label-md font-label-md text-on-surface-variant font-medium">
-              Akun Rekonsiliasi <span class="text-error">*</span>
+              Akun Rekonsiliasi (Reconciliation Acct) <span class="text-error">*</span>
             </label>
-            <input type="text" name="akont" maxlength="10" value="<%= wa_req-akont %>" placeholder="Contoh: 21100000"
-                  
-class="w-full h-11 px-space-md text-body-md font-code-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none
-                     focus:border-primary focus:ring-2 focus:ring-primary/20">
+            <div class="relative">
+              <select name="akont" id="akontSelect"
+                     class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 appearance-none">
+                <option value="1010000001" <%= COND string( WHEN wa_req-akont = '1010000001' THEN 'selected' ) %>>1010000001 - Export Trade Receivable</option>
+                <option value="1010000002" <%= COND string( WHEN wa_req-akont = '1010000002' OR wa_req-akont IS INITIAL THEN 'selected' ) %>>1010000002 - Local Trade Receivable</option>
+                <option value="1010000003" <%= COND string( WHEN wa_req-akont = '1010000003' THEN 'selected' ) %>>1010000003 - Local Service Receivable</option>
+                <option value="1010000004" <%= COND string( WHEN wa_req-akont = '1010000004' THEN 'selected' ) %>>1010000004 - Post dated BG Customer</option>
+                <option value="2020000001" <%= COND string( WHEN wa_req-akont = '2020000001' THEN 'selected' ) %>>2020000001 - Advanced From Customer</option>
+              </select>
+              <span class="material-symbols-outlined absolute right-3 top-3 pointer-events-none text-outline text-[20px]">expand_more</span>
+            </div>
           </div>
           <div class="space-y-1.5">
             <label class="block text-label-md font-label-md text-on-surface-variant font-medium">
-              Termin Pembayaran
+              Termin Pembayaran (Payment Terms)
             </label>
             <div class="relative">
               <select name="zterm"
-class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none
-                     focus:border-primary focus:ring-2 focus:ring-primary/20 appearance-none">
+                     class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 appearance-none">
                 <option value="NT30" <%= COND string( WHEN wa_req-zterm = 'NT30' OR wa_req-zterm IS INITIAL THEN 'selected' ) %>>NT30 - Net 30 Days</option>
                 <option value="NT14" <%= COND string( WHEN wa_req-zterm = 'NT14' THEN 'selected' ) %>>NT14 - Net 14 Days</option>
                 <option value="NT60" <%= COND string( WHEN wa_req-zterm = 'NT60' THEN 'selected' ) %>>NT60 - Net 60 Days</option>
@@ -1318,87 +1324,138 @@ class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lo
               Mata Uang
             </label>
             <input type="text" name="company_waers" maxlength="5" value="<%= COND string( WHEN wa_req-waers IS NOT INITIAL THEN wa_req-waers ELSE 'IDR' ) %>"
-                  
-class="w-full h-11 px-space-md text-body-md font-code-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none
-                     focus:border-primary focus:ring-2 focus:ring-primary/20">
+                   class="w-full h-11 px-space-md text-body-md font-code-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
           </div>
         </div>
       </div>
     </div>
 
     <!-- =================================================================== -->
-    <!-- TAB PANEL 9: PURCHASING VIEW (FLVN01 MM SUPPLIER - EKORG)           -->
+    <!-- TAB PANEL 9: SALES & BILLING VIEW (FLCU01 SD CUSTOMER - PENJUALAN)  -->
     <!-- =================================================================== -->
-    <div id="tabContent_purchasing" class="bp-tab-panel space-y-space-md hidden">
+    <div id="tabContent_sales" class="bp-tab-panel space-y-space-md hidden">
       <div class="p-space-lg bg-surface-container-low border border-outline-variant rounded-xl space-y-space-md shadow-sm">
         <div class="flex items-center justify-between pb-space-xs border-b border-outline-variant">
           <div class="flex items-center gap-space-xs">
             <span class="w-1 h-4 bg-primary rounded-full"></span>
-            <h2 class="text-headline-md font-headline-md text-on-surface font-bold">Data Pembelian</h2>
+            <h2 class="text-headline-md font-headline-md text-on-surface font-bold">Data Penjualan &amp; Billing</h2>
           </div>
-          <span class="text-label-md font-label-md text-emerald-800 bg-emerald-100 px-space-sm py-0.5 rounded-full font-semibold">Data Pembelian</span>
+          <span class="text-label-md font-label-md text-emerald-800 bg-emerald-100 px-space-sm py-0.5 rounded-full font-semibold">Data Penjualan</span>
         </div>
 
         <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-xs text-emerald-900 flex items-start gap-2">
           <span class="material-symbols-outlined text-emerald-600 text-[18px] shrink-0 mt-0.5">info</span>
           <div>
-            Pengaturan data pembelian untuk pengadaan barang dan jasa.
+            Pengaturan data area penjualan dan penagihan (Billing) untuk transaksi Customer.
           </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-space-md">
-          <!-- Purchasing Organization (EKORG) -->
-          <div class="md:col-span-6 space-y-1.5">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-space-md">
+          <!-- Sales Organization (VKORG) -->
+          <div class="space-y-1.5">
             <label class="block text-label-md font-label-md text-on-surface-variant font-medium">
-              Organisasi Pembelian <span class="text-error">*</span>
+              Organisasi Penjualan (Vkorg) <span class="text-error">*</span>
             </label>
-            <input type="text" name="ekorg" id="ekorgInput" maxlength="4" placeholder="Contoh: 1000"
-                   value="<%= COND string( WHEN wa_req-ekorg IS NOT INITIAL THEN wa_req-ekorg ELSE '1000' ) %>"
-                  
-class="w-full h-11 px-space-md text-body-md font-code-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none
-                     focus:border-primary focus:ring-2 focus:ring-primary/20 uppercase">
-            <span class="text-[11px] text-outline font-body-sm block">Unit pengadaan barang/jasa.</span>
+            <input type="text" name="vkorg" id="vkorgInput" maxlength="4" placeholder="Contoh: 1000"
+                   value="<%= COND string( WHEN wa_req-vkorg IS NOT INITIAL THEN wa_req-vkorg ELSE '1000' ) %>"
+                   class="w-full h-11 px-space-md text-body-md font-code-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 uppercase">
           </div>
 
-          <!-- Order Currency (WAERS) -->
-          <div class="md:col-span-6 space-y-1.5">
+          <!-- Distribution Channel (VTWEG) -->
+          <div class="space-y-1.5">
             <label class="block text-label-md font-label-md text-on-surface-variant font-medium">
-              Mata Uang Pesanan <span class="text-error">*</span>
+              Saluran Distribusi (Vtweg) <span class="text-error">*</span>
             </label>
-            <input type="text" name="waers" id="waersInput" maxlength="5" placeholder="Contoh: IDR"
-                   value="<%= COND string( WHEN wa_req-waers IS NOT INITIAL THEN wa_req-waers ELSE 'IDR' ) %>"
-                  
-class="w-full h-11 px-space-md text-body-md font-code-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none
-                     focus:border-primary focus:ring-2 focus:ring-primary/20 uppercase">
-            <span class="text-[11px] text-outline font-body-sm block">Mata uang transaksi pembelian.</span>
+            <input type="text" name="vtweg" id="vtwegInput" maxlength="2" placeholder="Contoh: 10"
+                   value="<%= COND string( WHEN wa_req-vtweg IS NOT INITIAL THEN wa_req-vtweg ELSE '10' ) %>"
+                   class="w-full h-11 px-space-md text-body-md font-code-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 uppercase">
+          </div>
+
+          <!-- Division (SPART) -->
+          <div class="space-y-1.5">
+            <label class="block text-label-md font-label-md text-on-surface-variant font-medium">
+              Divisi (Spart) <span class="text-error">*</span>
+            </label>
+            <input type="text" name="spart" id="spartInput" maxlength="2" placeholder="Contoh: 00"
+                   value="<%= COND string( WHEN wa_req-spart IS NOT INITIAL THEN wa_req-spart ELSE '00' ) %>"
+                   class="w-full h-11 px-space-md text-body-md font-code-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 uppercase">
           </div>
         </div>
 
-        <!-- Invoice Verification Options (WEBRE & LEBRE) -->
-        <div class="pt-space-sm border-t border-outline-variant">
-          <div class="text-label-lg font-label-lg text-primary font-bold tracking-wide mb-3">Kontrol Verifikasi Faktur</div>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <!-- GR-Based Inv. Verif. (WEBRE) -->
-<label class="flex items-start gap-3 p-3.5 bg-surface-container-lowest border border-outline-variant rounded-lg hover:bg-surface-container-low transition-colors
-              cursor-pointer">
-              <input type="checkbox" name="webre" value="X" class="mt-1 h-4 w-4 text-primary rounded border-outline focus:ring-primary"
-                     <%= COND string( WHEN wa_req-webre = 'X' OR wa_req-webre IS INITIAL THEN 'checked' ) %>>
-              <div>
-                <span class="block text-body-md font-medium text-on-surface">Verifikasi Faktur Berbasis Penerimaan Barang</span>
-                <span class="block text-xs text-outline">Verifikasi faktur berbasis penerimaan barang.</span>
+        <!-- Billing & Account Assignment Group Section -->
+        <div class="pt-space-sm border-t border-outline-variant/60 space-y-4">
+          <div class="text-label-lg font-label-lg text-primary font-bold tracking-wide">Pengaturan Billing &amp; Incoterms</div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-space-md">
+            <!-- Account Assignment Group Customer (KTGRD) -->
+            <div class="space-y-1.5">
+              <label class="block text-label-md font-label-md text-on-surface-variant font-medium">
+                Grup Penentuan Akun (Acct Assmt Grp Cust) <span class="text-error">*</span>
+              </label>
+              <div class="relative">
+                <select name="ktgrd" id="ktgrdSelect"
+                       class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 appearance-none">
+                  <option value="01" <%= COND string( WHEN wa_req-ktgrd = '01' THEN 'selected' ) %>>01 - Export Sales</option>
+                  <option value="02" <%= COND string( WHEN wa_req-ktgrd = '02' OR wa_req-ktgrd IS INITIAL THEN 'selected' ) %>>02 - Local Sales</option>
+                </select>
+                <span class="material-symbols-outlined absolute right-3 top-3 pointer-events-none text-outline text-[20px]">expand_more</span>
               </div>
-            </label>
+            </div>
 
-            <!-- Srv.-Based Inv. Ver. (LEBRE) -->
-<label class="flex items-start gap-3 p-3.5 bg-surface-container-lowest border border-outline-variant rounded-lg hover:bg-surface-container-low transition-colors
-              cursor-pointer">
-              <input type="checkbox" name="lebre" value="X" class="mt-1 h-4 w-4 text-primary rounded border-outline focus:ring-primary"
-                     <%= COND string( WHEN wa_req-lebre = 'X' OR wa_req-lebre IS INITIAL THEN 'checked' ) %>>
-              <div>
-                <span class="block text-body-md font-medium text-on-surface">Verifikasi Faktur Berbasis Jasa</span>
-                <span class="block text-xs text-outline">Verifikasi faktur berbasis penyelesaian jasa.</span>
+            <!-- Incoterms Version (INCOV) -->
+            <div class="space-y-1.5">
+              <label class="block text-label-md font-label-md text-on-surface-variant font-medium">
+                Versi Incoterms (Incoterms Version)
+              </label>
+              <input type="text" name="incov" maxlength="4" placeholder="Contoh: 2020"
+                     value="<%= COND string( WHEN wa_req-incov IS NOT INITIAL THEN wa_req-incov ELSE '2020' ) %>"
+                     class="w-full h-11 px-space-md text-body-md font-code-sm bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+            </div>
+
+            <!-- Incoterms Code (INCO1) -->
+            <div class="space-y-1.5">
+              <label class="block text-label-md font-label-md text-on-surface-variant font-medium">
+                Syarat Penyerahan (Incoterms)
+              </label>
+              <div class="relative">
+                <select name="inco1" id="inco1Select"
+                       class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 appearance-none">
+                  <option value="" <%= COND string( WHEN wa_req-inco1 IS INITIAL THEN 'selected' ) %>>-- Pilih Incoterms --</option>
+                  <option value="FOB" <%= COND string( WHEN wa_req-inco1 = 'FOB' THEN 'selected' ) %>>FOB - Free on Board</option>
+                  <option value="CIF" <%= COND string( WHEN wa_req-inco1 = 'CIF' THEN 'selected' ) %>>CIF - Cost, Insurance &amp; Freight</option>
+                  <option value="CFR" <%= COND string( WHEN wa_req-inco1 = 'CFR' THEN 'selected' ) %>>CFR - Cost &amp; Freight</option>
+                  <option value="EXW" <%= COND string( WHEN wa_req-inco1 = 'EXW' THEN 'selected' ) %>>EXW - Ex Works</option>
+                  <option value="DDP" <%= COND string( WHEN wa_req-inco1 = 'DDP' THEN 'selected' ) %>>DDP - Delivered Duty Paid</option>
+                  <option value="FCA" <%= COND string( WHEN wa_req-inco1 = 'FCA' THEN 'selected' ) %>>FCA - Free Carrier</option>
+                  <option value="CPT" <%= COND string( WHEN wa_req-inco1 = 'CPT' THEN 'selected' ) %>>CPT - Carriage Paid To</option>
+                  <option value="CIP" <%= COND string( WHEN wa_req-inco1 = 'CIP' THEN 'selected' ) %>>CIP - Carriage &amp; Insurance Paid To</option>
+                  <option value="DAP" <%= COND string( WHEN wa_req-inco1 = 'DAP' THEN 'selected' ) %>>DAP - Delivered at Place</option>
+                  <option value="DPU" <%= COND string( WHEN wa_req-inco1 = 'DPU' THEN 'selected' ) %>>DPU - Delivered at Place Unloaded</option>
+                  <option value="FAS" <%= COND string( WHEN wa_req-inco1 = 'FAS' THEN 'selected' ) %>>FAS - Free Alongside Ship</option>
+                </select>
+                <span class="material-symbols-outlined absolute right-3 top-3 pointer-events-none text-outline text-[20px]">expand_more</span>
               </div>
-            </label>
+            </div>
+
+            <!-- Incoterms Location 1 (INCO2_L) -->
+            <div class="space-y-1.5">
+              <label class="block text-label-md font-label-md text-on-surface-variant font-medium">
+                Lokasi Incoterms 1 (Incoterms Location 1)
+              </label>
+              <input type="text" name="inco2_l" maxlength="70" placeholder="Lokasi 1 / Pelabuhan Asal"
+                     value="<%= wa_req-inco2_l %>"
+                     class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+            </div>
+
+            <!-- Incoterms Location 2 (INCO3_L) -->
+            <div class="space-y-1.5 md:col-span-2">
+              <label class="block text-label-md font-label-md text-on-surface-variant font-medium">
+                Lokasi Incoterms 2 (Incoterms Location 2)
+              </label>
+              <input type="text" name="inco3_l" maxlength="70" placeholder="Lokasi 2 / Tujuan Penyerahan"
+                     value="<%= wa_req-inco3_l %>"
+                     class="w-full h-11 px-space-md text-body-md font-body-md bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+            </div>
           </div>
         </div>
       </div>
@@ -4040,10 +4097,16 @@ class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold
     var emailEl   = form.querySelector('[name="email"]');
     var roleEl    = form.querySelector('[name="bp_role"]');
     var groupEl   = form.querySelector('[name="bp_grouping"]') || form.querySelector('#hidden_bu_group');
-    var ekorgEl   = form.querySelector('[name="ekorg"]');
-    var waersEl   = form.querySelector('[name="waers"]');
-    var webreEl   = form.querySelector('[name="webre"]');
-    var lebreEl   = form.querySelector('[name="lebre"]');
+    var akontEl   = form.querySelector('[name="akont"]');
+    var ztermEl   = form.querySelector('[name="zterm"]');
+    var ktgrdEl   = form.querySelector('[name="ktgrd"]');
+    var incovEl   = form.querySelector('[name="incov"]');
+    var inco1El   = form.querySelector('[name="inco1"]');
+    var inco2_lEl = form.querySelector('[name="inco2_l"]');
+    var inco3_lEl = form.querySelector('[name="inco3_l"]');
+    var vkorgEl   = form.querySelector('[name="vkorg"]');
+    var vtwegEl   = form.querySelector('[name="vtweg"]');
+    var spartEl   = form.querySelector('[name="spart"]');
     var reqIdEl   = form.querySelector('[name="req_id"]');
 
     var name1Val  = name1El ? name1El.value.trim() : '';
@@ -4060,10 +4123,16 @@ class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold
     var emailVal  = emailEl ? emailEl.value.trim() : '';
     var roleVal   = roleEl ? roleEl.value.trim() : 'FLCU01';
     var groupVal  = groupEl ? groupEl.value.trim() : 'C001';
-    var ekorgVal  = ekorgEl ? ekorgEl.value.trim() : '';
-    var waersVal  = waersEl ? waersEl.value.trim() : '';
-    var webreVal  = (webreEl && webreEl.checked) ? 'X' : '';
-    var lebreVal  = (lebreEl && lebreEl.checked) ? 'X' : '';
+    var akontVal  = akontEl ? akontEl.value.trim() : '';
+    var ztermVal  = ztermEl ? ztermEl.value.trim() : '';
+    var ktgrdVal  = ktgrdEl ? ktgrdEl.value.trim() : '';
+    var incovVal  = incovEl ? incovEl.value.trim() : '';
+    var inco1Val  = inco1El ? inco1El.value.trim() : '';
+    var inco2_lVal= inco2_lEl ? inco2_lEl.value.trim() : '';
+    var inco3_lVal= inco3_lEl ? inco3_lEl.value.trim() : '';
+    var vkorgVal  = vkorgEl ? vkorgEl.value.trim() : '';
+    var vtwegVal  = vtwegEl ? vtwegEl.value.trim() : '';
+    var spartVal  = spartEl ? spartEl.value.trim() : '';
     var reqIdVal  = reqIdEl ? reqIdEl.value.trim() : '';
 
     var payload = {
@@ -4081,10 +4150,16 @@ class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold
       country: countryVal,
       region: regionVal,
       langu: languVal,
-      ekorg: ekorgVal,
-      waers: waersVal,
-      webre: webreVal,
-      lebre: lebreVal,
+      akont: akontVal,
+      zterm: ztermVal,
+      ktgrd: ktgrdVal,
+      incov: incovVal,
+      inco1: inco1Val,
+      inco2_l: inco2_lVal,
+      inco3_l: inco3_lVal,
+      vkorg: vkorgVal,
+      vtweg: vtwegVal,
+      spart: spartVal,
       telephone: telVal,
       email: emailVal,
       bank_details: stateBankDetails,
@@ -4169,7 +4244,37 @@ class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold
           Tab: 'address',
           Element: languEl,
           Status: 'GAGAL',
-          Keterangan: 'Kunci Bahasa wajib dipilih (contoh: ID / Indonesian) guna mencegah error sistem SAP'
+          Keterangan: 'Kunci Bahasa wajib dipilih (contoh: ID / Indonesian)'
+        });
+      }
+
+      if (!akontVal) {
+        validationFailures.push({
+          Field: 'Akun Rekonsiliasi (Reconciliation Acct)',
+          Tab: 'company',
+          Element: akontEl,
+          Status: 'GAGAL',
+          Keterangan: 'Akun Rekonsiliasi wajib dipilih (contoh: 1010000002)'
+        });
+      }
+
+      if (!ktgrdVal) {
+        validationFailures.push({
+          Field: 'Grup Penentuan Akun (Acct Assmt Grp Cust)',
+          Tab: 'sales',
+          Element: ktgrdEl,
+          Status: 'GAGAL',
+          Keterangan: 'Account Assignment Group Customer wajib dipilih (01 Export / 02 Local)'
+        });
+      }
+
+      if (!vkorgVal) {
+        validationFailures.push({
+          Field: 'Organisasi Penjualan (Vkorg)',
+          Tab: 'sales',
+          Element: vkorgEl,
+          Status: 'GAGAL',
+          Keterangan: 'Organisasi Penjualan wajib diisi (contoh: 1000)'
         });
       }
 

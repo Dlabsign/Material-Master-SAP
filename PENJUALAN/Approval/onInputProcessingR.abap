@@ -55,6 +55,10 @@
           ls_valuationdatax       TYPE bapi_mbewx,
           ls_salesdata            TYPE bapi_mvke,
           ls_salesdatax           TYPE bapi_mvkex,
+          ls_warehousenumberdata  TYPE bapi_mlgn,
+          ls_warehousenumberdatax TYPE bapi_mlgnx,
+          ls_storagetypedata      TYPE bapi_mlgt,
+          ls_storagetypedatax     TYPE bapi_mlgtx,
           lt_materialdesc         TYPE TABLE OF bapi_makt,
           ls_materialdesc         TYPE bapi_makt,
           lt_unitsofmeasure       TYPE TABLE OF bapi_marm,
@@ -92,7 +96,8 @@
           lv_pos_com      TYPE i,
           lv_len          TYPE i,
           lv_dec_len      TYPE i,
-          lv_valid_tatyp  TYPE tatyp.
+          lv_valid_tatyp  TYPE tatyp,
+          lv_uom_iso      TYPE t006-isocode.
 
     DATA: lv_has_error   TYPE sap_bool,
           lv_err_msg     TYPE string,
@@ -102,12 +107,22 @@
           lv_fail_cnt    TYPE i,
           lv_curr_stat   TYPE zmdg_stg_hdr-status.
 
+    TYPES: BEGIN OF ty_bapi_msg,
+             type       TYPE string,
+             id         TYPE string,
+             number     TYPE string,
+             message    TYPE string,
+             message_v1 TYPE string,
+             message_v2 TYPE string,
+           END OF ty_bapi_msg.
+
     TYPES: BEGIN OF ty_resp,
-            status    TYPE string,
-            message   TYPE string,
-            matnr     TYPE string,
-            matnr_ext TYPE string,
-            materials TYPE TABLE OF string WITH DEFAULT KEY,
+            status          TYPE string,
+            message         TYPE string,
+            matnr           TYPE string,
+            matnr_ext       TYPE string,
+            materials       TYPE TABLE OF string WITH DEFAULT KEY,
+            return_messages TYPE TABLE OF ty_bapi_msg WITH DEFAULT KEY,
           END OF ty_resp.
     DATA: ls_resp TYPE ty_resp.
 
@@ -673,40 +688,40 @@
               IF ls_dtl_db-xchpf IS INITIAL. ls_dtl_db-xchpf = 'X'. ENDIF.
               IF ls_dtl_db-hkmat IS INITIAL. ls_dtl_db-hkmat = 'X'. ENDIF.
               IF ls_dtl_db-spart IS INITIAL. ls_dtl_db-spart = 'M6'. ENDIF.
-              IF ls_dtl_db-mtpos_mara IS INITIAL. ls_dtl_db-mtpos_mara = 'NORM'. ENDIF.
+              IF ls_dtl_db-mtpos_mara IS INITIAL OR ls_dtl_db-mtpos_mara = 'NOR'. ls_dtl_db-mtpos_mara = 'NORM'. ENDIF.
               IF ls_dtl_db-herkl IS INITIAL. ls_dtl_db-herkl = 'ID'. ENDIF.
               IF ls_dtl_db-taxkm IS INITIAL. ls_dtl_db-taxkm = '1'. ENDIF.
               IF ls_dtl_db-tatyp IS INITIAL. ls_dtl_db-tatyp = 'MWST'. ENDIF.
-              IF ls_dtl_db-mtpos IS INITIAL. ls_dtl_db-mtpos = 'NORM'. ENDIF.
-              IF ls_dtl_db-tragr IS INITIAL. ls_dtl_db-tragr = '1'. ENDIF.
-              IF ls_dtl_db-ladgr IS INITIAL. ls_dtl_db-ladgr = '1'. ENDIF.
-              IF ls_dtl_db-bklas IS INITIAL. ls_dtl_db-bklas = 'SF01'. ENDIF.
-              IF ls_dtl_db-vprsv IS INITIAL. ls_dtl_db-vprsv = 'V'. ENDIF.
-              IF ls_dtl_db-ekgrp IS INITIAL. ls_dtl_db-ekgrp = 'K03'. ENDIF.
+              IF ls_dtl_db-mtpos IS INITIAL OR ls_dtl_db-mtpos = 'NOR'. ls_dtl_db-mtpos = 'NORM'. ENDIF.
+              IF ls_dtl_db-tragr IS INITIAL. ls_dtl_db-tragr = '0001'. ENDIF.
+              IF ls_dtl_db-ladgr IS INITIAL. ls_dtl_db-ladgr = '0001'. ENDIF.
+              IF ls_dtl_db-bklas IS INITIAL. ls_dtl_db-bklas = 'RW02'. ENDIF.
+              IF ls_dtl_db-vprsv IS INITIAL. ls_dtl_db-vprsv = 'S'. ENDIF.
+              IF ls_dtl_db-ekgrp IS INITIAL. ls_dtl_db-ekgrp = 'K02'. ENDIF.
               IF ls_dtl_db-dismm IS INITIAL. ls_dtl_db-dismm = 'PD'. ENDIF.
               IF ls_dtl_db-beskz IS INITIAL. ls_dtl_db-beskz = 'F'. ENDIF.
               IF ls_dtl_db-rgekz IS INITIAL. ls_dtl_db-rgekz = '1'. ENDIF.
               IF ls_dtl_db-fhori IS INITIAL. ls_dtl_db-fhori = '0'. ENDIF.
               IF ls_dtl_db-perkz IS INITIAL. ls_dtl_db-perkz = 'M'. ENDIF.
-              IF ls_dtl_db-bstrf IS INITIAL. ls_dtl_db-bstrf = '100'. ENDIF.
-              IF ls_dtl_db-disls IS INITIAL. ls_dtl_db-disls = 'PB'. ENDIF.
+              IF ls_dtl_db-bstrf IS INITIAL. ls_dtl_db-bstrf = '100.000'. ENDIF.
+              IF ls_dtl_db-disls IS INITIAL. ls_dtl_db-disls = 'EX'. ENDIF.
               IF ls_dtl_db-vtweg IS INITIAL. ls_dtl_db-vtweg = '10'. ENDIF.
               IF ls_dtl_db-ktgrm IS INITIAL. ls_dtl_db-ktgrm = 'M6'. ENDIF.
-              IF ls_dtl_db-prctr IS INITIAL. ls_dtl_db-prctr = '200201'. ENDIF.
+              IF ls_dtl_db-prctr IS INITIAL. ls_dtl_db-prctr = '200301'. ENDIF.
+              IF ls_dtl_db-disgr IS INITIAL. ls_dtl_db-disgr = 'ZWH4'. ENDIF.
+              IF ls_dtl_db-dispo IS INITIAL. ls_dtl_db-dispo = 'RW7'. ENDIF.
+              IF ls_dtl_db-qssys IS INITIAL. ls_dtl_db-qssys = '04'. ENDIF.
+              IF ls_dtl_db-qssys IS INITIAL. ls_dtl_db-qssys = '04'. ENDIF.
+              IF ls_dtl_db-insptype IS INITIAL. ls_dtl_db-insptype = 'X'. ENDIF.
 
               " D. MAPPING BAPI PARAMETERS
-              DATA: ls_forecastparameters  TYPE bapi_mpop,
-                    ls_forecastparametersx TYPE bapi_mpopx,
-                    ls_warehousenumberdata  TYPE bapi_mlgn,
-                    ls_warehousenumberdatax TYPE bapi_mlgnx.
-
               CLEAR: ls_headdata, ls_clientdata, ls_clientdatax,
                     ls_plantdata, ls_plantdatax,
                     ls_storagelocationdata, ls_storagelocationdatax,
                     ls_valuationdata, ls_valuationdatax,
                     ls_salesdata, ls_salesdatax,
-                    ls_forecastparameters, ls_forecastparametersx,
                     ls_warehousenumberdata, ls_warehousenumberdatax,
+                    ls_storagetypedata, ls_storagetypedatax,
                     ls_bapireturn, lt_materialdesc, lt_unitsofmeasure,
                     lt_unitsofmeasurex, lt_taxclassifications, lt_returnmes.
 
@@ -738,43 +753,76 @@
               ls_headdata-ind_sector      = ls_dtl_db-mbrsh.
               ls_headdata-matl_type       = ls_dtl_db-mtart.
 
-              " Aktifkan seluruh Material Master Views yang diminta
+              " Base Unit of Measure (MARA-MEINS / BAPI_MARA-BASE_UOM)
+              IF ls_dtl_db-meins IS INITIAL.
+                ls_dtl_db-meins = 'M3'.
+              ENDIF.
+
+              CLEAR: ls_clientdata-base_uom, ls_clientdata-base_uom_iso, lv_uom_iso.
+
+              CALL FUNCTION 'CONVERSION_EXIT_CUNIT_INPUT'
+                EXPORTING
+                  input          = ls_dtl_db-meins
+                IMPORTING
+                  output         = ls_clientdata-base_uom
+                EXCEPTIONS
+                  OTHERS         = 1.
+
+              IF ls_clientdata-base_uom IS INITIAL.
+                ls_clientdata-base_uom = ls_dtl_db-meins.
+              ENDIF.
+              ls_clientdatax-base_uom = 'X'.
+
+              SELECT SINGLE isocode FROM t006 INTO lv_uom_iso
+                WHERE msehi = ls_clientdata-base_uom.
+
+              IF lv_uom_iso IS NOT INITIAL.
+                ls_clientdata-base_uom_iso  = lv_uom_iso.
+                ls_clientdatax-base_uom_iso = 'X'.
+              ELSE.
+                CLEAR: ls_clientdata-base_uom_iso, ls_clientdatax-base_uom_iso.
+              ENDIF.
+
+              " Aktifkan Material Master Views
               ls_headdata-basic_view      = 'X'. " Basic Data 1 & 2
-              ls_headdata-sales_view      = 'X'. " Sales 1, 2, Gen/Plant, Export, Sales Text
               ls_headdata-purchase_view   = 'X'. " Purchasing, Import, PO Text
-              ls_headdata-mrp_view        = 'X'. " MRP 1, 2, 3, 4
-              ls_headdata-forecast_view   = 'X'. " Forecasting
-              ls_headdata-work_sched_view = 'X'. " Advanced Planning / Work Sched
-              ls_headdata-storage_view    = 'X'. " General Plant Data / Storage 1 & 2
-              ls_headdata-warehouse_view  = 'X'. " WM 1 & 2 / WM Exec / WM Pack
-              ls_headdata-quality_view    = 'X'. " Quality Management
-              ls_headdata-account_view    = 'X'. " Accounting 1 & 2 / Segment Valuation
-              ls_headdata-cost_view       = 'X'. " Costing 1 & 2
 
-              " Mapping Forecast Parameters (Mandatory untuk Forecasting View)
-              ls_forecastparameters-plant     = ls_dtl_db-werks.
-              ls_forecastparametersx-plant    = 'X'.
-              ls_forecastparameters-fore_model  = 'J'.
-              ls_forecastparametersx-fore_model = 'X'.
+              IF ls_dtl_db-sfpro IS NOT INITIAL OR ls_dtl_db-beskz = 'E'.
+                ls_headdata-work_sched_view = 'X'. " Advanced Planning / Work Sched
+              ENDIF.
 
-              " Mapping Warehouse Number (Mandatory untuk WM 1 & WM 2 Views)
-              ls_warehousenumberdata-whse_no  = '001'.
-              ls_warehousenumberdatax-whse_no = 'X'.
+              IF ls_dtl_db-vkorg IS NOT INITIAL AND ls_dtl_db-vtweg IS NOT INITIAL.
+                ls_headdata-sales_view   = 'X'.
+              ENDIF.
+
+              IF ls_dtl_db-werks IS NOT INITIAL.
+                ls_headdata-storage_view   = 'X'.
+                ls_headdata-account_view   = 'X'.
+                ls_headdata-cost_view      = 'X'.
+                ls_headdata-mrp_view       = 'X'.
+                ls_headdata-warehouse_view = 'X'.
+
+                IF ls_dtl_db-lgnum IS NOT INITIAL.
+                  ls_warehousenumberdata-whse_no = ls_dtl_db-lgnum.
+                ELSE.
+                  ls_warehousenumberdata-whse_no = '100'.
+                ENDIF.
+                ls_warehousenumberdatax-whse_no   = ls_warehousenumberdata-whse_no.
+                CLEAR: ls_warehousenumberdata-ref_unit, ls_warehousenumberdatax-ref_unit.
+
+                ls_storagetypedata-whse_no        = ls_warehousenumberdata-whse_no.
+                ls_storagetypedata-stge_type      = '001'.
+                ls_storagetypedatax-whse_no       = ls_warehousenumberdata-whse_no.
+                ls_storagetypedatax-stge_type      = '001'.
+              ENDIF.
+
+              IF ls_dtl_db-insptype IS NOT INITIAL OR ls_dtl_db-qssys IS NOT INITIAL.
+                ls_headdata-quality_view = 'X'.
+              ENDIF.
 
               " Mapping Quality Management (MARC-INSMK & Control Key SSQSS / Plant Level)
               ls_plantdata-ind_post_to_insp_stock  = 'X'.
               ls_plantdatax-ind_post_to_insp_stock = 'X'.
-
-              IF ls_dtl_db-ssqss IS NOT INITIAL.
-                CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
-                  EXPORTING
-                    input  = ls_dtl_db-ssqss
-                  IMPORTING
-                    output = ls_plantdata-ctrl_key.
-              ELSE.
-                ls_plantdata-ctrl_key = '0004'.
-              ENDIF.
-              ls_plantdatax-ctrl_key = 'X'.
 
               " Mapping Country of Origin (HERKL) untuk Plant View
               IF ls_dtl_db-herkl IS NOT INITIAL.
@@ -786,9 +834,16 @@
 
               " Sales View & Tax Classifications Data
               ls_salesdata-sales_org   = ls_dtl_db-vkorg.
-              ls_salesdatax-sales_org  = 'X'.
+              ls_salesdatax-sales_org  = ls_dtl_db-vkorg.
               ls_salesdata-distr_chan  = ls_dtl_db-vtweg.
-              ls_salesdatax-distr_chan = 'X'.
+              ls_salesdatax-distr_chan = ls_dtl_db-vtweg.
+
+              IF ls_dtl_db-mtpos IS NOT INITIAL.
+                ls_salesdata-item_cat  = ls_dtl_db-mtpos.
+              ELSE.
+                ls_salesdata-item_cat  = 'NORM'.
+              ENDIF.
+              ls_salesdatax-item_cat   = 'X'.
 
               " Mapping Tax Classifications (Mandatory untuk SAP Sales View)
               CLEAR: lt_taxclassifications, ls_taxclassification, lv_valid_tatyp.
@@ -826,6 +881,13 @@
                 ls_clientdatax-matl_group = 'X'.
               ENDIF.
 
+              IF ls_dtl_db-mtpos_mara IS NOT INITIAL.
+                ls_clientdata-item_cat  = ls_dtl_db-mtpos_mara.
+              ELSE.
+                ls_clientdata-item_cat  = 'NORM'.
+              ENDIF.
+              ls_clientdatax-item_cat   = 'X'.
+
               " Division (SPART)
               IF ls_dtl_db-spart IS NOT INITIAL.
                 ls_clientdata-division  = ls_dtl_db-spart.
@@ -853,22 +915,9 @@
               ENDIF.
 
               " Material Package (MAGRV)
-              IF ls_dtl_db-magrv IS NOT INITIAL.
+              IF ls_dtl_db-magrv IS NOT INITIAL AND ls_dtl_db-magrv <> '0001' AND ls_dtl_db-magrv <> '1'.
                 ls_clientdata-mat_grp_sm  = ls_dtl_db-magrv.
                 ls_clientdatax-mat_grp_sm = 'X'.
-              ENDIF.
-
-              IF ls_dtl_db-meins IS NOT INITIAL.
-                CALL FUNCTION 'CONVERSION_EXIT_CUNIT_INPUT'
-                  EXPORTING
-                    input          = ls_dtl_db-meins
-                  IMPORTING
-                    output         = ls_clientdata-base_uom
-                  EXCEPTIONS
-                    OTHERS         = 1.
-                ls_clientdata-base_uom_iso  = ls_clientdata-base_uom.
-                ls_clientdatax-base_uom     = 'X'.
-                ls_clientdatax-base_uom_iso = 'X'.
               ENDIF.
 
               CLEAR ls_materialdesc.
@@ -878,6 +927,7 @@
 
               ls_plantdata-plant     = ls_dtl_db-werks.
               ls_plantdatax-plant    = ls_dtl_db-werks.
+
 
               " 1. MRP Type (MARC-DISMM) - Mandatory in SAP Plant View
               IF ls_dtl_db-dismm IS NOT INITIAL.
@@ -917,8 +967,8 @@
                 ls_plantdatax-mrp_group = 'X'.
               ENDIF.
 
-              " 6. Lot Size (MARC-DISLS)
-              IF ls_dtl_db-disls IS NOT INITIAL AND ls_dtl_db-disls <> 'PB'.
+              " 6. Lot Size (MARC-DISLS) - Default 'EX' (Lot-for-lot) to avoid PERIV requirement
+              IF ls_dtl_db-disls IS NOT INITIAL AND ls_dtl_db-disls <> 'PB' AND ls_dtl_db-disls <> 'MB'.
                 ls_plantdata-lotsizekey  = ls_dtl_db-disls.
               ELSE.
                 ls_plantdata-lotsizekey  = 'EX'.
@@ -1017,8 +1067,8 @@
               IF ls_dtl_db-lgort IS NOT INITIAL.
                 ls_storagelocationdata-plant     = ls_dtl_db-werks.
                 ls_storagelocationdata-stge_loc  = ls_dtl_db-lgort.
-                ls_storagelocationdatax-plant    = 'X'.
-                ls_storagelocationdatax-stge_loc = 'X'.
+                ls_storagelocationdatax-plant    = ls_dtl_db-werks.
+                ls_storagelocationdatax-stge_loc = ls_dtl_db-lgort.
               ELSE.
                 CLEAR: ls_storagelocationdata, ls_storagelocationdatax.
               ENDIF.
@@ -1119,7 +1169,7 @@
               ENDIF.
 
               ls_valuationdata-val_area  = ls_dtl_db-werks.
-              ls_valuationdatax-val_area = 'X'.
+              ls_valuationdatax-val_area = ls_dtl_db-werks.
 
               IF ls_dtl_db-bklas IS NOT INITIAL.
                 ls_valuationdata-val_class  = ls_dtl_db-bklas.
@@ -1225,16 +1275,16 @@
                   clientdatax          = ls_clientdatax
                   plantdata            = ls_plantdata
                   plantdatax           = ls_plantdatax
-                  forecastparameters   = ls_forecastparameters
-                  forecastparametersx  = ls_forecastparametersx
                   storagelocationdata  = ls_storagelocationdata
                   storagelocationdatax = ls_storagelocationdatax
                   valuationdata        = ls_valuationdata
                   valuationdatax       = ls_valuationdatax
-                  warehousenumberdata  = ls_warehousenumberdata
-                  warehousenumberdatax = ls_warehousenumberdatax
                   salesdata            = ls_salesdata
                   salesdatax           = ls_salesdatax
+                  warehousenumberdata  = ls_warehousenumberdata
+                  warehousenumberdatax = ls_warehousenumberdatax
+                  storagetypedata      = ls_storagetypedata
+                  storagetypedatax     = ls_storagetypedatax
                 IMPORTING
                   return               = ls_bapireturn
                 TABLES
@@ -1243,12 +1293,24 @@
                   returnmessages       = lt_returnmes.
 
               IF ls_bapireturn-type = 'E' OR ls_bapireturn-type = 'A'.
-                CLEAR lv_err_msg.
-                LOOP AT lt_returnmes INTO ls_returnmes WHERE type = 'E' OR type = 'A'.
-                  IF lv_err_msg IS INITIAL.
-                    lv_err_msg = ls_returnmes-message.
-                  ELSE.
-                    CONCATENATE lv_err_msg ls_returnmes-message INTO lv_err_msg SEPARATED BY ' | '.
+                CLEAR: lv_err_msg, ls_resp-return_messages.
+                DATA: ls_bapi_msg_item TYPE ty_bapi_msg.
+                LOOP AT lt_returnmes INTO ls_returnmes.
+                  CLEAR ls_bapi_msg_item.
+                  ls_bapi_msg_item-type       = ls_returnmes-type.
+                  ls_bapi_msg_item-id         = ls_returnmes-id.
+                  ls_bapi_msg_item-number     = ls_returnmes-number.
+                  ls_bapi_msg_item-message    = ls_returnmes-message.
+                  ls_bapi_msg_item-message_v1 = ls_returnmes-message_v1.
+                  ls_bapi_msg_item-message_v2 = ls_returnmes-message_v2.
+                  APPEND ls_bapi_msg_item TO ls_resp-return_messages.
+
+                  IF ls_returnmes-type = 'E' OR ls_returnmes-type = 'A'.
+                    IF lv_err_msg IS INITIAL.
+                      lv_err_msg = ls_returnmes-message.
+                    ELSE.
+                      CONCATENATE lv_err_msg ls_returnmes-message INTO lv_err_msg SEPARATED BY ' | '.
+                    ENDIF.
                   ENDIF.
                 ENDLOOP.
                 IF lv_err_msg IS INITIAL.
@@ -1337,6 +1399,13 @@
                         OTHERS        = 1.
 
                     LOOP AT lt_ml_return INTO ls_ml_return WHERE type = 'E' OR type = 'A'.
+                      " Abaikan error non-kritis Material Ledger (C+ 020, FG 002, CKML, fiscal year variant)
+                      IF ls_ml_return-id = 'C+' OR ls_ml_return-id = 'FG' OR ls_ml_return-id = 'CK'.
+                        CONTINUE.
+                      ENDIF.
+                      IF ls_ml_return-message CS 'not activated' OR ls_ml_return-message CS 'does not exist' OR ls_ml_return-message CS 'fiscal year variant'.
+                        CONTINUE.
+                      ENDIF.
                       IF lv_err_msg IS INITIAL.
                         lv_err_msg = ls_ml_return-message.
                       ELSE.

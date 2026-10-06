@@ -896,7 +896,7 @@ cursor-pointer">&times;</button>
                         var reqNoEsc = escapeHtml(item.req_no);
                         var rawSub = item.sub_reason || (item.remarks &&
                             item.remarks.indexOf('.') === -1 ? item.remarks : '') ||
-                                'Permintaan Material Master';
+                                'Permintaan Part Request';
                         var subReasonEsc = escapeHtml(rawSub);
                         var filenameEsc = escapeHtml(item.remarks || '');
                         var fname = (item.first_name || item.firstname || '').trim();
@@ -1590,6 +1590,14 @@ cursor-pointer">&times;</button>
                             cancelApproveConfirm();
                             var matList = extractMaterialList(data);
 
+                            console.group("🔍 [MDG APPROVAL DEBUG]");
+                            console.log("Response Data:", data);
+                            if (data && data.return_messages && data.return_messages.length > 0) {
+                                console.error("❌ SAP BAPI Return Messages:");
+                                console.table(data.return_messages);
+                            }
+                            console.groupEnd();
+
                             if (data && data.status === "SUCCESS") {
                                 var successTitle = "DATA BERHASIL DISIMPAN";
                                 var successMsg = "Data berhasil disimpan.";
@@ -1598,7 +1606,7 @@ cursor-pointer">&times;</button>
 
                                 showToast("Data berhasil disimpan.", "success");
                                 showPageApprovalAlert(true, successTitle, successMsg, displayDetails, matList);
-                                showUploadResultNotification(true, successTitle, successMsg, displayDetails, matList);
+                                // Notifikasi popup kedua di-bypass saat sukses agar popup konfirmasi approval tidak muncul 2x
 
                                 selectedReqNos = [];
                                 updateBatchActionBar();
@@ -1623,6 +1631,7 @@ cursor-pointer">&times;</button>
                         })
                         .catch(function (err) {
                             cancelApproveConfirm();
+                            console.error("💥 [MDG APPROVAL EXCEPTION]:", err);
                             var sysErrTitle = "KESALAHAN SISTEM / KONEKSI";
                             var sysErrMsg = "Terjadi kesalahan sistem saat proses approval untuk Request " + targetDocsStr + ".";
 
@@ -1805,6 +1814,8 @@ cursor-pointer">&times;</button>
                         .then(function (data) {
                             showToast("Request rejected.", "info");
                             closeRejectModal();
+                            selectedReqNos = [];
+                            updateBatchActionBar();
                             loadStagingList();
                         })
                         .catch(function () { showToast("Rejection failed.", "error"); });

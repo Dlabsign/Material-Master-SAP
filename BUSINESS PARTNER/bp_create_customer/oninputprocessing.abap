@@ -378,6 +378,16 @@ wa_req-bukrs        = request->get_form_field( 'bukrs' ).
 wa_req-akont        = request->get_form_field( 'akont' ).
 wa_req-zterm        = request->get_form_field( 'zterm' ).
 
+" Section: Sales & Billing View (Customer Specific)
+wa_req-ktgrd        = request->get_form_field( 'ktgrd' ).
+wa_req-incov        = request->get_form_field( 'incov' ).
+wa_req-inco1        = request->get_form_field( 'inco1' ).
+wa_req-inco2_l      = request->get_form_field( 'inco2_l' ).
+wa_req-inco3_l      = request->get_form_field( 'inco3_l' ).
+wa_req-vkorg        = request->get_form_field( 'vkorg' ).
+wa_req-vtweg        = request->get_form_field( 'vtweg' ).
+wa_req-spart        = request->get_form_field( 'spart' ).
+
 " Section: Purchasing View & Purchasing Data (EKORG, WAERS, WEBRE, LEBRE)
 lv_ekorg            = request->get_form_field( 'ekorg' ).
 IF lv_ekorg IS INITIAL.
@@ -415,10 +425,12 @@ CONDENSE lv_ekorg NO-GAPS.
 TRANSLATE lv_ekorg TO UPPER CASE.
 CONDENSE wa_req-waers NO-GAPS.
 TRANSLATE wa_req-waers TO UPPER CASE.
+TRANSLATE wa_req-ktgrd TO UPPER CASE.
+TRANSLATE wa_req-inco1 TO UPPER CASE.
 
 " Default Fallbacks jika kosong
 IF wa_req-bp_role IS INITIAL.
-  wa_req-bp_role = 'FLVN01'. " Default: FLVN01 (MM Supplier)
+  wa_req-bp_role = 'FLCU01'. " Default: FLCU01 (SD Customer)
 ENDIF.
 IF lv_bu_group IS INITIAL.
   IF wa_req-bp_role CS 'CU'.

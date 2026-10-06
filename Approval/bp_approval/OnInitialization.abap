@@ -564,102 +564,171 @@ IF lv_action IS NOT INITIAL.
           CALL FUNCTION 'BAPI_TRANSACTION_COMMIT'
             EXPORTING wait = 'X'.
 
-          " 9. Ekstensi ke Purchasing & Company Code View (Tabel LFM1, LFB1, LFA1, CVI_VEND_LINK)
-          DATA: lv_ekorg_val TYPE ekorg,
-                lv_bukrs_val TYPE bukrs,
-                lv_waers_val TYPE waers,
-                lv_webre_val TYPE webre,
-                lv_lebre_val TYPE lebre,
-                lv_cvi_lifnr TYPE lifnr,
-                ls_lfm1_ins  TYPE lfm1,
-                ls_lfb1_ins  TYPE lfb1,
-                ls_lfa1_ins  TYPE lfa1,
-                ls_cvi_link  TYPE cvi_vend_link,
-                lv_bp_guid   TYPE bu_partner_guid.
+          " 9. Ekstensi Master Data View Sesuai Peran (Vendor vs Customer)
+          IF ls_bp_db-bp_role CS 'VN' OR ls_bp_db-bp_role CS 'VE' OR ls_bp_db-bu_group CP 'S*' OR ls_bp_db-bu_group CP 'V*'.
+            " ----------------------------------------------------------
+            " VENDOR EXTENSION (LFA1, LFM1, LFB1, CVI_VEND_LINK)
+            " ----------------------------------------------------------
+            DATA: lv_ekorg_val TYPE ekorg,
+                  lv_bukrs_val TYPE bukrs,
+                  lv_waers_val TYPE waers,
+                  lv_webre_val TYPE webre,
+                  lv_lebre_val TYPE lebre,
+                  lv_cvi_lifnr TYPE lifnr,
+                  ls_lfm1_ins  TYPE lfm1,
+                  ls_lfb1_ins  TYPE lfb1,
+                  ls_lfa1_ins  TYPE lfa1,
+                  ls_cvi_link  TYPE cvi_vend_link,
+                  lv_bp_guid   TYPE bu_partner_guid.
 
-          lv_ekorg_val = COND #( WHEN ls_bp_db-ekorg IS NOT INITIAL THEN ls_bp_db-ekorg ELSE '1000' ).
-          lv_bukrs_val = COND #( WHEN ls_bp_db-bukrs IS NOT INITIAL THEN ls_bp_db-bukrs ELSE '1000' ).
-          lv_waers_val = COND #( WHEN ls_bp_db-waers IS NOT INITIAL THEN ls_bp_db-waers ELSE 'IDR' ).
-          lv_webre_val = COND #( WHEN ls_bp_db-webre IS NOT INITIAL THEN ls_bp_db-webre ELSE 'X' ).
-          lv_lebre_val = COND #( WHEN ls_bp_db-lebre IS NOT INITIAL THEN ls_bp_db-lebre ELSE 'X' ).
+            lv_ekorg_val = COND #( WHEN ls_bp_db-ekorg IS NOT INITIAL THEN ls_bp_db-ekorg ELSE '1000' ).
+            lv_bukrs_val = COND #( WHEN ls_bp_db-bukrs IS NOT INITIAL THEN ls_bp_db-bukrs ELSE '1000' ).
+            lv_waers_val = COND #( WHEN ls_bp_db-waers IS NOT INITIAL THEN ls_bp_db-waers ELSE 'IDR' ).
+            lv_webre_val = COND #( WHEN ls_bp_db-webre IS NOT INITIAL THEN ls_bp_db-webre ELSE 'X' ).
+            lv_lebre_val = COND #( WHEN ls_bp_db-lebre IS NOT INITIAL THEN ls_bp_db-lebre ELSE 'X' ).
 
-          " Format vendor number 10 digit dengan ALPHA conversion
-          lv_cvi_lifnr = lv_gen_bp_num.
-          CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
-            EXPORTING
-              input  = lv_cvi_lifnr
-            IMPORTING
-              output = lv_cvi_lifnr.
+            lv_cvi_lifnr = lv_gen_bp_num.
+            CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
+              EXPORTING input  = lv_cvi_lifnr
+              IMPORTING output = lv_cvi_lifnr.
 
-          " 9a. Pastikan mapping CVI (CVI_VEND_LINK) & LFA1 Header Terbentuk
-          SELECT SINGLE partner_guid FROM but000 INTO @lv_bp_guid WHERE partner = @lv_gen_bp_num.
-          IF sy-subrc = 0 AND lv_bp_guid IS NOT INITIAL.
-            SELECT SINGLE vendor FROM cvi_vend_link INTO @lv_cvi_lifnr WHERE partner_guid = @lv_bp_guid.
-            IF sy-subrc <> 0 OR lv_cvi_lifnr IS INITIAL.
-              lv_cvi_lifnr = lv_gen_bp_num.
-              CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
-                EXPORTING input  = lv_cvi_lifnr
-                IMPORTING output = lv_cvi_lifnr.
+            SELECT SINGLE partner_guid FROM but000 INTO @lv_bp_guid WHERE partner = @lv_gen_bp_num.
+            IF sy-subrc = 0 AND lv_bp_guid IS NOT INITIAL.
+              SELECT SINGLE vendor FROM cvi_vend_link INTO @lv_cvi_lifnr WHERE partner_guid = @lv_bp_guid.
+              IF sy-subrc <> 0 OR lv_cvi_lifnr IS INITIAL.
+                lv_cvi_lifnr = lv_gen_bp_num.
+                CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
+                  EXPORTING input  = lv_cvi_lifnr
+                  IMPORTING output = lv_cvi_lifnr.
 
-              ls_cvi_link-client       = sy-mandt.
-              ls_cvi_link-partner_guid = lv_bp_guid.
-              ls_cvi_link-vendor       = lv_cvi_lifnr.
-              MODIFY cvi_vend_link FROM @ls_cvi_link.
+                ls_cvi_link-client       = sy-mandt.
+                ls_cvi_link-partner_guid = lv_bp_guid.
+                ls_cvi_link-vendor       = lv_cvi_lifnr.
+                MODIFY cvi_vend_link FROM @ls_cvi_link.
+              ENDIF.
             ENDIF.
-          ENDIF.
 
-          " 9b. Pastikan Header Vendor (LFA1) ada di SAP
-          SELECT SINGLE * FROM lfa1 INTO @ls_lfa1_ins WHERE lifnr = @lv_cvi_lifnr.
-          ls_lfa1_ins-mandt = sy-mandt.
-          ls_lfa1_ins-lifnr = lv_cvi_lifnr.
-          ls_lfa1_ins-name1 = ls_bp_db-name1.
-          ls_lfa1_ins-name2 = ls_bp_db-name2.
-          ls_lfa1_ins-sortl = ls_bp_db-search_term.
-          ls_lfa1_ins-stras = ls_bp_db-street.
-          ls_lfa1_ins-ort01 = ls_bp_db-city.
-          ls_lfa1_ins-pstlz = ls_bp_db-postal_code.
-          ls_lfa1_ins-land1 = COND #( WHEN ls_bp_db-country IS NOT INITIAL THEN ls_bp_db-country ELSE 'ID' ).
-          ls_lfa1_ins-regio = ls_bp_db-region.
-          ls_lfa1_ins-telf1 = ls_bp_db-telephone.
-          ls_lfa1_ins-telfx = ls_bp_db-fax.
-          IF ls_lfa1_ins-ktokk IS INITIAL.
-            ls_lfa1_ins-ktokk = COND #( WHEN ls_bp_db-bu_group IS NOT INITIAL THEN ls_bp_db-bu_group ELSE '0001' ).
-          ENDIF.
-          IF ls_lfa1_ins-erdat IS INITIAL.
-            ls_lfa1_ins-erdat = sy-datum.
-            ls_lfa1_ins-ernam = sy-uname.
-          ENDIF.
-          MODIFY lfa1 FROM @ls_lfa1_ins.
+            SELECT SINGLE * FROM lfa1 INTO @ls_lfa1_ins WHERE lifnr = @lv_cvi_lifnr.
+            ls_lfa1_ins-mandt = sy-mandt.
+            ls_lfa1_ins-lifnr = lv_cvi_lifnr.
+            ls_lfa1_ins-name1 = ls_bp_db-name1.
+            ls_lfa1_ins-name2 = ls_bp_db-name2.
+            ls_lfa1_ins-sortl = ls_bp_db-search_term.
+            ls_lfa1_ins-stras = ls_bp_db-street.
+            ls_lfa1_ins-ort01 = ls_bp_db-city.
+            ls_lfa1_ins-pstlz = ls_bp_db-postal_code.
+            ls_lfa1_ins-land1 = COND #( WHEN ls_bp_db-country IS NOT INITIAL THEN ls_bp_db-country ELSE 'ID' ).
+            ls_lfa1_ins-regio = ls_bp_db-region.
+            ls_lfa1_ins-telf1 = ls_bp_db-telephone.
+            ls_lfa1_ins-telfx = ls_bp_db-fax.
+            IF ls_lfa1_ins-ktokk IS INITIAL.
+              ls_lfa1_ins-ktokk = COND #( WHEN ls_bp_db-bu_group IS NOT INITIAL THEN ls_bp_db-bu_group ELSE 'S001' ).
+            ENDIF.
+            IF ls_lfa1_ins-erdat IS INITIAL.
+              ls_lfa1_ins-erdat = sy-datum.
+              ls_lfa1_ins-ernam = sy-uname.
+            ENDIF.
+            MODIFY lfa1 FROM @ls_lfa1_ins.
 
-          " 9c. Simpan / Extended Purchasing Data ke Tabel LFM1 (EKORG, WAERS, WEBRE, LEBRE)
-          SELECT SINGLE * FROM lfm1 INTO @ls_lfm1_ins WHERE lifnr = @lv_cvi_lifnr AND ekorg = @lv_ekorg_val.
-          ls_lfm1_ins-mandt = sy-mandt.
-          ls_lfm1_ins-lifnr = lv_cvi_lifnr.
-          ls_lfm1_ins-ekorg = lv_ekorg_val.
-          ls_lfm1_ins-waers = lv_waers_val.
-          ls_lfm1_ins-webre = lv_webre_val.
-          ls_lfm1_ins-lebre = lv_lebre_val.
-          IF ls_lfm1_ins-erdat IS INITIAL.
-            ls_lfm1_ins-erdat = sy-datum.
-            ls_lfm1_ins-ernam = sy-uname.
-          ENDIF.
-          MODIFY lfm1 FROM @ls_lfm1_ins.
+            SELECT SINGLE * FROM lfm1 INTO @ls_lfm1_ins WHERE lifnr = @lv_cvi_lifnr AND ekorg = @lv_ekorg_val.
+            ls_lfm1_ins-mandt = sy-mandt.
+            ls_lfm1_ins-lifnr = lv_cvi_lifnr.
+            ls_lfm1_ins-ekorg = lv_ekorg_val.
+            ls_lfm1_ins-waers = lv_waers_val.
+            ls_lfm1_ins-webre = lv_webre_val.
+            ls_lfm1_ins-lebre = lv_lebre_val.
+            IF ls_lfm1_ins-erdat IS INITIAL.
+              ls_lfm1_ins-erdat = sy-datum.
+              ls_lfm1_ins-ernam = sy-uname.
+            ENDIF.
+            MODIFY lfm1 FROM @ls_lfm1_ins.
 
-          " 9d. Simpan / Extended Company Code Data ke Tabel LFB1 (BUKRS, AKONT, ZTERM) - PENTING UNTUK FLVN00 FI SUPPLIER
-          SELECT SINGLE * FROM lfb1 INTO @ls_lfb1_ins WHERE lifnr = @lv_cvi_lifnr AND bukrs = @lv_bukrs_val.
-          ls_lfb1_ins-mandt = sy-mandt.
-          ls_lfb1_ins-lifnr = lv_cvi_lifnr.
-          ls_lfb1_ins-bukrs = lv_bukrs_val.
-          ls_lfb1_ins-akont = ls_bp_db-akont.
-          ls_lfb1_ins-zterm = ls_bp_db-zterm.
-          IF ls_lfb1_ins-erdat IS INITIAL.
-            ls_lfb1_ins-erdat = sy-datum.
-            ls_lfb1_ins-ernam = sy-uname.
-          ENDIF.
-          MODIFY lfb1 FROM @ls_lfb1_ins.
+            SELECT SINGLE * FROM lfb1 INTO @ls_lfb1_ins WHERE lifnr = @lv_cvi_lifnr AND bukrs = @lv_bukrs_val.
+            ls_lfb1_ins-mandt = sy-mandt.
+            ls_lfb1_ins-lifnr = lv_cvi_lifnr.
+            ls_lfb1_ins-bukrs = lv_bukrs_val.
+            ls_lfb1_ins-akont = ls_bp_db-akont.
+            ls_lfb1_ins-zterm = ls_bp_db-zterm.
+            IF ls_lfb1_ins-erdat IS INITIAL.
+              ls_lfb1_ins-erdat = sy-datum.
+              ls_lfb1_ins-ernam = sy-uname.
+            ENDIF.
+            MODIFY lfb1 FROM @ls_lfb1_ins.
 
-          IF sy-subrc = 0.
-            COMMIT WORK AND WAIT.
+            IF sy-subrc = 0.
+              COMMIT WORK AND WAIT.
+            ENDIF.
+
+          ELSE.
+            " ----------------------------------------------------------
+            " CUSTOMER EXTENSION (KNA1, KNB1, CVI_CUST_LINK) - T077D Check
+            " ----------------------------------------------------------
+            DATA: lv_bukrs_cust TYPE bukrs,
+                  lv_cvi_kunnr  TYPE kunnr,
+                  ls_knb1_ins   TYPE knb1,
+                  ls_kna1_ins   TYPE kna1,
+                  ls_cvi_clink  TYPE cvi_cust_link,
+                  lv_bp_cguid   TYPE bu_partner_guid.
+
+            lv_bukrs_cust = COND #( WHEN ls_bp_db-bukrs IS NOT INITIAL THEN ls_bp_db-bukrs ELSE '1000' ).
+            lv_cvi_kunnr  = lv_gen_bp_num.
+            CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
+              EXPORTING input  = lv_cvi_kunnr
+              IMPORTING output = lv_cvi_kunnr.
+
+            SELECT SINGLE partner_guid FROM but000 INTO @lv_bp_cguid WHERE partner = @lv_gen_bp_num.
+            IF sy-subrc = 0 AND lv_bp_cguid IS NOT INITIAL.
+              SELECT SINGLE customer FROM cvi_cust_link INTO @lv_cvi_kunnr WHERE partner_guid = @lv_bp_cguid.
+              IF sy-subrc <> 0 OR lv_cvi_kunnr IS INITIAL.
+                lv_cvi_kunnr = lv_gen_bp_num.
+                CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
+                  EXPORTING input  = lv_cvi_kunnr
+                  IMPORTING output = lv_cvi_kunnr.
+
+                ls_cvi_clink-client       = sy-mandt.
+                ls_cvi_clink-partner_guid = lv_bp_cguid.
+                ls_cvi_clink-customer     = lv_cvi_kunnr.
+                MODIFY cvi_cust_link FROM @ls_cvi_clink.
+              ENDIF.
+            ENDIF.
+
+            SELECT SINGLE * FROM kna1 INTO @ls_kna1_ins WHERE kunnr = @lv_cvi_kunnr.
+            ls_kna1_ins-mandt = sy-mandt.
+            ls_kna1_ins-kunnr = lv_cvi_kunnr.
+            ls_kna1_ins-name1 = ls_bp_db-name1.
+            ls_kna1_ins-name2 = ls_bp_db-name2.
+            ls_kna1_ins-sortl = ls_bp_db-search_term.
+            ls_kna1_ins-stras = ls_bp_db-street.
+            ls_kna1_ins-ort01 = ls_bp_db-city.
+            ls_kna1_ins-pstlz = ls_bp_db-postal_code.
+            ls_kna1_ins-land1 = COND #( WHEN ls_bp_db-country IS NOT INITIAL THEN ls_bp_db-country ELSE 'ID' ).
+            ls_kna1_ins-regio = ls_bp_db-region.
+            ls_kna1_ins-telf1 = ls_bp_db-telephone.
+            ls_kna1_ins-telfx = ls_bp_db-fax.
+            IF ls_kna1_ins-ktokd IS INITIAL.
+              ls_kna1_ins-ktokd = COND #( WHEN ls_bp_db-bu_group IS NOT INITIAL THEN ls_bp_db-bu_group ELSE 'C001' ).
+            ENDIF.
+            IF ls_kna1_ins-erdat IS INITIAL.
+              ls_kna1_ins-erdat = sy-datum.
+              ls_kna1_ins-ernam = sy-uname.
+            ENDIF.
+            MODIFY kna1 FROM @ls_kna1_ins.
+
+            SELECT SINGLE * FROM knb1 INTO @ls_knb1_ins WHERE kunnr = @lv_cvi_kunnr AND bukrs = @lv_bukrs_cust.
+            ls_knb1_ins-mandt = sy-mandt.
+            ls_knb1_ins-kunnr = lv_cvi_kunnr.
+            ls_knb1_ins-bukrs = lv_bukrs_cust.
+            ls_knb1_ins-akont = ls_bp_db-akont.
+            ls_knb1_ins-zterm = ls_bp_db-zterm.
+            IF ls_knb1_ins-erdat IS INITIAL.
+              ls_knb1_ins-erdat = sy-datum.
+              ls_knb1_ins-ernam = sy-uname.
+            ENDIF.
+            MODIFY knb1 FROM @ls_knb1_ins.
+
+            IF sy-subrc = 0.
+              COMMIT WORK AND WAIT.
+            ENDIF.
           ENDIF.
 
           " Tentukan status lanjutan: Customer -> SD_APPROVED, Vendor -> MM_APPROVED (keduanya lanjut Bank Steward)
