@@ -1,10 +1,12 @@
 <%@page language="ABAP" %>
 <%
-  DATA: lv_sb_pending  TYPE i,
-        lv_sb_approved TYPE i,
-        lv_sb_rejected TYPE i.
+  DATA: lv_sb_pending    TYPE i,
+        lv_sb_ir_pending TYPE i,
+        lv_sb_approved   TYPE i,
+        lv_sb_rejected   TYPE i.
 
   SELECT COUNT( * ) FROM zmdg_req_hdr WHERE status IN ( 'CHECKED', 'CODED' ) INTO @lv_sb_pending.
+  SELECT COUNT( * ) FROM zmdg_req_pir WHERE status = '01' INTO @lv_sb_ir_pending.
   SELECT COUNT( * ) FROM zmdg_req_hdr WHERE status = 'APPROVED' INTO @lv_sb_approved.
   SELECT COUNT( * ) FROM zmdg_req_hdr WHERE status = 'REJECTED' OR status = 'FAILED' INTO @lv_sb_rejected.
 %>
@@ -15,9 +17,7 @@
 <aside class="w-64 bg-slate-900 text-slate-300 flex flex-col shrink-0 min-h-screen border-r border-slate-800 shadow-xl sticky top-0 h-screen z-40">
     <!-- Sidebar Brand Header -->
     <div class="h-14 flex items-center gap-3 px-5 border-b border-slate-800 bg-slate-950/60">
-        <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-brand-600 via-emerald-500 to-teal-400 text-white flex items-center justify-center font-black text-xs tracking-wider shadow-md shadow-emerald-500/20">
-            MM
-        </div>
+        <img src="ENJOYSAP_LOGO.png" alt="EnjoySAP Logo" class="h-8 w-auto object-contain transition-transform hover:scale-105 shrink-0" onerror="this.style.display='none'">
         <div>
             <h2 class="font-bold text-xs text-white tracking-wide">Material Master</h2>
             <p class="text-[10px] text-slate-400 font-medium">Governance Approval</p>
@@ -35,6 +35,15 @@
                 <span>Pending Staging</span>
             </div>
             <span id="sbBadgePending" class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30"><%= lv_sb_pending %></span>
+        </a>
+
+        <!-- Info Record Approval -->
+        <a href="ir_approval.htm" id="sbNavIr" class="group flex items-center justify-between px-3.5 py-2.5 rounded-xl font-semibold text-xs transition-all duration-200 hover:bg-slate-800/80 text-slate-300 hover:text-white" title="Info Record Approval">
+            <div class="flex items-center gap-2.5">
+                <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                <span>Info Record Approval</span>
+            </div>
+            <span id="sbBadgeIrPending" class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30"><%= lv_sb_ir_pending %></span>
         </a>
 
         <!-- Approved History -->
@@ -78,6 +87,7 @@
         // Highlighting active sidebar item based on current URL path
         var path = window.location.pathname.toLowerCase();
         var pendingEl = document.getElementById("sbNavPending");
+        var irEl = document.getElementById("sbNavIr");
         var approvedEl = document.getElementById("sbNavApproved");
         var rejectedEl = document.getElementById("sbNavRejected");
 
@@ -90,12 +100,28 @@
             }
         }
 
-        if (path.indexOf("history_approved.htm") !== -1) {
+        if (path.indexOf("ir_approval.htm") !== -1) {
+            setTabActive(irEl, "bg-purple-600 text-white shadow-md shadow-purple-600/30", "bg-white/20 text-white shadow-2xs");
+        } else if (path.indexOf("history_approved.htm") !== -1) {
             setTabActive(approvedEl, "bg-emerald-600 text-white shadow-md shadow-emerald-600/30", "bg-white/20 text-white shadow-2xs");
         } else if (path.indexOf("history_rejected.htm") !== -1) {
             setTabActive(rejectedEl, "bg-red-600 text-white shadow-md shadow-red-600/30", "bg-white/20 text-white shadow-2xs");
         } else {
             setTabActive(pendingEl, "bg-brand-600 text-white shadow-md shadow-brand-600/30", "bg-white/20 text-white shadow-2xs");
+        }
+
+        // Intelligent relative link adjustment for local file preview
+        if (window.location.protocol === "file:") {
+            var curr = path.split(String.fromCharCode(92)).join("/");
+            if (irEl) {
+                if (curr.indexOf("/approval/ir_approval/") !== -1) {
+                    irEl.setAttribute("href", "ir_approval.htm");
+                } else if (curr.indexOf("/material master/") !== -1) {
+                    irEl.setAttribute("href", "../../../Approval/ir_approval/ir_approval.htm");
+                } else {
+                    irEl.setAttribute("href", "ir_approval.htm");
+                }
+            }
         }
 
         // Fetch counter numbers dynamically via AJAX for client-side live updates
@@ -112,9 +138,11 @@
         .then(function(cnts) {
             if (!cnts) return;
             var p = document.getElementById("sbBadgePending");
+            var ir = document.getElementById("sbBadgeIrPending");
             var a = document.getElementById("sbBadgeApproved");
             var r = document.getElementById("sbBadgeRejected");
             if (p && cnts.pending !== undefined) p.innerText = cnts.pending;
+            if (ir && cnts.ir_pending !== undefined) ir.innerText = cnts.ir_pending;
             if (a && cnts.approved !== undefined) a.innerText = cnts.approved;
             if (r && cnts.rejected !== undefined) r.innerText = cnts.rejected;
         })

@@ -353,7 +353,7 @@
               IF ls_headdata-material IS INITIAL.
                 ls_headdata-material = ls_dtl_db-matnr_ext.
               ENDIF.
-              ls_headdata-material_long = ls_dtl_db-matnr_ext.
+              ls_headdata-material_long = ls_headdata-material.
 
               ls_headdata-ind_sector      = ls_dtl_db-mbrsh.
               ls_headdata-matl_type       = ls_dtl_db-mtart.

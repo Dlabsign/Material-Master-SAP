@@ -11,15 +11,25 @@ DATA: lv_req_id      TYPE string,
       lt_chg_dtl     TYPE TABLE OF zmdg_chg_dtl,
       ls_chg_dtl     TYPE zmdg_chg_dtl.
 
-DATA: lv_user_name   TYPE string,
-      lv_curr_date   TYPE string,
-      lv_curr_time   TYPE string.
+DATA: lv_user_name     TYPE string,
+      lv_curr_date     TYPE string,
+      lv_curr_time     TYPE string,
+      lv_is_dev_access TYPE c VALUE ' ',
+      lv_sess_user     TYPE sy-uname.
 
 " Ambil parameter URL jika ada
 lv_req_id      = request->get_form_field( 'req_id' ).
 lv_matnr_param = request->get_form_field( 'matnr' ).
 
 lv_user_name = sy-uname.
+lv_sess_user = sy-uname.
+TRANSLATE lv_sess_user TO UPPER CASE.
+IF lv_sess_user = 'ABAPER04'.
+  lv_is_dev_access = 'X'.
+ELSE.
+  lv_is_dev_access = ' '.
+ENDIF.
+
 lv_curr_date = |{ sy-datum+6(2) }.{ sy-datum+4(2) }.{ sy-datum(4) }|.
 lv_curr_time = |{ sy-uzeit(2) }:{ sy-uzeit+2(2) }:{ sy-uzeit+4(2) }|.
 

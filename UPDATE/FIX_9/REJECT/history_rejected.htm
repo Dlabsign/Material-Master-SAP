@@ -1,0 +1,1236 @@
+<%@page language="ABAP" %>
+<%
+  DATA: lv_auth_user     TYPE string,
+        lv_is_authorized TYPE c LENGTH 1 VALUE ' ',
+        gv_user_fullname TYPE string,
+        ls_bapi_addr     TYPE bapiaddr3,
+        lt_bapi_ret      TYPE TABLE OF bapiret2,
+        lv_persnum       TYPE usr21-persnumber,
+        lv_fname         TYPE adrp-name_first,
+        lv_lname         TYPE adrp-name_last.
+
+  lv_auth_user = sy-uname.
+  TRANSLATE lv_auth_user TO UPPER CASE.
+  CONDENSE lv_auth_user NO-GAPS.
+
+  CALL FUNCTION 'BAPI_USER_GET_DETAIL'
+    EXPORTING
+      username = sy-uname
+    IMPORTING
+      address  = ls_bapi_addr
+    TABLES
+      return   = lt_bapi_ret.
+
+  IF ls_bapi_addr-firstname IS NOT INITIAL OR ls_bapi_addr-lastname IS NOT INITIAL.
+    CONCATENATE ls_bapi_addr-firstname ls_bapi_addr-lastname INTO gv_user_fullname SEPARATED BY space.
+  ELSEIF ls_bapi_addr-fullname IS NOT INITIAL.
+    gv_user_fullname = ls_bapi_addr-fullname.
+  ELSE.
+    SELECT SINGLE persnumber FROM usr21 INTO lv_persnum WHERE bname = sy-uname.
+    IF sy-subrc = 0.
+      SELECT SINGLE name_first name_last FROM adrp INTO (lv_fname, lv_lname) WHERE persnumber = lv_persnum.
+      IF lv_fname IS NOT INITIAL OR lv_lname IS NOT INITIAL.
+        CONCATENATE lv_fname lv_lname INTO gv_user_fullname SEPARATED BY space.
+      ENDIF.
+    ENDIF.
+  ENDIF.
+
+  IF gv_user_fullname IS INITIAL.
+    gv_user_fullname = sy-uname.
+  ENDIF.
+
+  IF lv_auth_user = 'ABAPER04' OR lv_auth_user = 'KMI-BOD' OR lv_auth_user = 'KMI-U163'.
+    lv_is_authorized = 'X'.
+  ENDIF.
+
+  IF lv_is_authorized <> 'X'.
+    DATA: lv_act_chk TYPE string.
+    lv_act_chk = request->get_form_field( 'action' ).
+    IF lv_act_chk IS INITIAL.
+      lv_act_chk = request->get_form_field( 'OnInputProcessing' ).
+    ENDIF.
+    IF lv_act_chk IS NOT INITIAL.
+      _m_response->set_status( code = 403 reason = 'Forbidden' ).
+      _m_response->set_content_type( 'application/json' ).
+      _m_response->set_cdata( '{"status":"ERROR","message":"403 Forbidden - User not authorized"}' ).
+      _m_navigation->response_complete( ).
+      RETURN.
+    ENDIF.
+%>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>403 Forbidden</title>
+    <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Inter:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            min-height: 100vh;
+            background-color: #f8fafc;
+            font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 1.5rem;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .forbidden-logo {
+            width: 76px;
+            height: auto;
+            max-height: 76px;
+            object-fit: contain;
+            margin-bottom: 1.25rem;
+            user-select: none;
+            -webkit-user-drag: none;
+        }
+
+        .forbidden-title {
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            font-weight: 800;
+            background: linear-gradient(135deg, #064e3b 0%, #047857 55%, #059669 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: #047857;
+            letter-spacing: -0.035em;
+            line-height: 1.15;
+            user-select: none;
+            margin-bottom: 0.875rem;
+        }
+
+        .forbidden-desc {
+            font-size: clamp(0.95rem, 1.5vw, 1.075rem);
+            font-weight: 400;
+            color: #64748b;
+            line-height: 1.6;
+            max-width: 540px;
+        }
+    </style>
+</head>
+
+<body>
+    <img src="ENJOYSAP_LOGO.png" alt="Logo KMI" class="forbidden-logo" onerror="this.style.display='none'">
+    <h1 class="forbidden-title">403 Forbidden</h1>
+    <p class="forbidden-desc">You don’t have permission to access this page. If you need any information, please contact the Core Team.</p>
+</body>
+
+</html>
+<%
+    RETURN.
+  ENDIF.
+%>
+<%
+TYPES: BEGIN OF ty_history_item,
+         module_type   TYPE string,
+         req_no        TYPE string,
+         status        TYPE string,
+         req_date      TYPE string,
+         req_time      TYPE string,
+         requestor     TYPE string,
+         remarks       TYPE string,
+         sub_reason    TYPE string,
+         rej_reason    TYPE string,
+         total_item    TYPE i,
+         matnr_gen     TYPE string,
+         maktx_desc    TYPE string,
+         bp_number     TYPE string,
+         bp_category   TYPE string,
+         bp_role       TYPE string,
+         name1         TYPE string,
+         name2         TYPE string,
+         search_term   TYPE string,
+         street        TYPE string,
+         house_num     TYPE string,
+         city          TYPE string,
+         postal_code   TYPE string,
+         country       TYPE string,
+         region        TYPE string,
+         telephone     TYPE string,
+         email         TYPE string,
+         tax_num       TYPE string,
+         banks         TYPE string,
+         bankl         TYPE string,
+         bankn         TYPE string,
+         koinh         TYPE string,
+         bank_name     TYPE string,
+         bukrs         TYPE string,
+         akont         TYPE string,
+         zterm         TYPE string,
+         waers         TYPE string,
+         stw_data_by   TYPE string,
+         stw_data_note TYPE string,
+         stw_bank_by   TYPE string,
+         stw_bank_note TYPE string,
+         appr_final_by TYPE string,
+         appr_final_at TYPE string,
+       END OF ty_history_item.
+
+DATA: lv_action_h       TYPE string,
+      lv_status_flt     TYPE string,
+      lt_history        TYPE TABLE OF ty_history_item,
+      ls_item           TYPE ty_history_item,
+      lt_hdr            TYPE TABLE OF zmdg_req_hdr,
+      ls_hdr            TYPE zmdg_req_hdr,
+      lt_dtl_temp       TYPE TABLE OF zmdg_req_dtl,
+      ls_dtl_temp       TYPE zmdg_req_dtl,
+      lt_bp_db          TYPE TABLE OF zmdg_bp_req,
+      ls_bp_db          TYPE zmdg_bp_req,
+      lv_codes_str      TYPE string,
+      lv_maktx_str      TYPE string,
+      lv_clean_mat      TYPE string,
+      lv_bp_date        TYPE d,
+      lv_bp_time        TYPE t,
+      lv_json_res       TYPE string,
+      lv_req_no_h       TYPE zmdg_req_hdr-req_no,
+      lt_dtl_h          TYPE TABLE OF zmdg_req_dtl,
+      lv_badge_approved TYPE i,
+      lv_badge_rejected TYPE i,
+      lv_badge_mat_app  TYPE i,
+      lv_badge_bp_app   TYPE i,
+      lv_badge_mat_rej  TYPE i,
+      lv_badge_bp_rej   TYPE i,
+      lv_badge_total    TYPE i,
+      lv_req_user_key   TYPE string,
+      lv_req_full_name  TYPE string,
+      ls_baddr_tmp      TYPE bapiaddr3,
+      lt_bret_tmp       TYPE TABLE OF bapiret2,
+      lv_pnum_tmp       TYPE usr21-persnumber,
+      lv_fnm_tmp        TYPE adrp-name_first,
+      lv_lnm_tmp        TYPE adrp-name_last.
+
+SELECT COUNT( * ) FROM zmdg_req_hdr WHERE status = 'APPROVED' INTO @lv_badge_mat_app.
+SELECT COUNT( * ) FROM zmdg_bp_req WHERE status = 'APPROVED' INTO @lv_badge_bp_app.
+lv_badge_approved = lv_badge_mat_app + lv_badge_bp_app.
+
+SELECT COUNT( * ) FROM zmdg_req_hdr WHERE status IN ( 'REJECTED', 'FAILED' ) INTO @lv_badge_mat_rej.
+SELECT COUNT( * ) FROM zmdg_bp_req WHERE status IN ( 'REJECTED', 'FAILED' ) INTO @lv_badge_bp_rej.
+lv_badge_rejected = lv_badge_mat_rej + lv_badge_bp_rej.
+lv_badge_total = lv_badge_approved + lv_badge_rejected.
+
+lv_action_h = request->get_form_field( 'action' ).
+IF lv_action_h IS INITIAL.
+  lv_action_h = request->get_form_field( 'OnInputProcessing' ).
+ENDIF.
+TRANSLATE lv_action_h TO UPPER CASE.
+
+IF lv_action_h = 'GET_COUNTERS'.
+  DATA: lv_cnt_mat_p TYPE i,
+        lv_cnt_bp_p  TYPE i,
+        lv_cnt_p     TYPE i.
+  SELECT COUNT( * ) FROM zmdg_req_hdr WHERE status IN ( 'CHECKED', 'CODED' ) INTO @lv_cnt_mat_p.
+  SELECT COUNT( * ) FROM zmdg_bp_req WHERE status = 'CHECKED'
+    AND stw_data_status = 'X' AND stw_bank_status = 'X' INTO @lv_cnt_bp_p.
+  lv_cnt_p = lv_cnt_mat_p + lv_cnt_bp_p.
+  lv_json_res = '{"pending":' && lv_cnt_p &&
+                ',"mat_pending":' && lv_cnt_mat_p &&
+                ',"bp_pending":' && lv_cnt_bp_p &&
+                ',"approved":' && lv_badge_approved &&
+                ',"mat_approved":' && lv_badge_mat_app &&
+                ',"bp_approved":' && lv_badge_bp_app &&
+                ',"rejected":' && lv_badge_rejected &&
+                ',"mat_rejected":' && lv_badge_mat_rej &&
+                ',"bp_rejected":' && lv_badge_bp_rej &&
+                ',"total_history":' && lv_badge_total && '}'.
+  _m_response->set_content_type( 'application/json' ).
+  _m_response->set_cdata( lv_json_res ).
+  _m_navigation->response_complete( ).
+  RETURN.
+ENDIF.
+
+IF lv_action_h = 'GET_UPLOAD_DETAIL'.
+  lv_req_no_h = request->get_form_field( 'REQ_NO' ).
+  IF lv_req_no_h IS INITIAL.
+    lv_req_no_h = request->get_form_field( 'UPLOAD_ID' ).
+  ENDIF.
+  SELECT * FROM zmdg_req_dtl WHERE req_no = @lv_req_no_h INTO TABLE @lt_dtl_h.
+  lv_json_res = /ui2/cl_json=>serialize( data = lt_dtl_h compress = 'X' pretty_name = /ui2/cl_json=>pretty_mode-low_case ).
+  _m_response->set_content_type( 'application/json' ).
+  _m_response->set_cdata( lv_json_res ).
+  _m_navigation->response_complete( ).
+  RETURN.
+ENDIF.
+
+IF lv_action_h = 'GET_HISTORY_LIST' OR
+   lv_action_h = 'GET_APPROVED_LIST' OR
+   lv_action_h = 'GET_REJECTED_LIST'.
+CLEAR: lt_history, lt_hdr, lt_bp_db.
+
+lv_status_flt = request->get_form_field( 'status' ).
+TRANSLATE lv_status_flt TO UPPER CASE.
+IF lv_action_h = 'GET_REJECTED_LIST' AND lv_status_flt IS INITIAL.
+  lv_status_flt = 'REJECTED'.
+ELSEIF lv_action_h = 'GET_APPROVED_LIST' AND lv_status_flt IS INITIAL.
+  lv_status_flt = 'APPROVED'.
+ENDIF.
+IF lv_status_flt IS INITIAL.
+  lv_status_flt = 'ALL'.
+ENDIF.
+
+IF lv_status_flt = 'APPROVED'.
+  SELECT * FROM zmdg_req_hdr INTO TABLE @lt_hdr
+    WHERE status = 'APPROVED'
+    ORDER BY req_date DESCENDING, req_time DESCENDING.
+ELSEIF lv_status_flt = 'REJECTED'.
+  SELECT * FROM zmdg_req_hdr INTO TABLE @lt_hdr
+    WHERE status IN ( 'REJECTED', 'FAILED' )
+    ORDER BY req_date DESCENDING, req_time DESCENDING.
+ELSE.
+  SELECT * FROM zmdg_req_hdr INTO TABLE @lt_hdr
+    WHERE status IN ( 'APPROVED', 'REJECTED', 'FAILED' )
+    ORDER BY req_date DESCENDING, req_time DESCENDING.
+ENDIF.
+
+LOOP AT lt_hdr INTO ls_hdr.
+  CLEAR: ls_item, lv_req_full_name, ls_baddr_tmp, lt_bret_tmp, lv_pnum_tmp, lv_fnm_tmp, lv_lnm_tmp.
+  ls_item-module_type   = 'MM'.
+  ls_item-req_no        = CONV #( ls_hdr-req_no ).
+  ls_item-status        = CONV #( ls_hdr-status ).
+  ls_item-req_date      = CONV #( ls_hdr-req_date ).
+  ls_item-req_time      = CONV #( ls_hdr-req_time ).
+  ls_item-remarks       = CONV #( ls_hdr-remarks ).
+  ls_item-sub_reason    = CONV #( ls_hdr-sub_reason ).
+  ls_item-rej_reason    = CONV #( ls_hdr-rej_reason ).
+
+  lv_req_user_key = ls_hdr-requestor.
+  TRANSLATE lv_req_user_key TO UPPER CASE.
+  CONDENSE lv_req_user_key NO-GAPS.
+  IF lv_req_user_key IS NOT INITIAL.
+    CALL FUNCTION 'BAPI_USER_GET_DETAIL'
+      EXPORTING username = CONV sy-uname( lv_req_user_key )
+      IMPORTING address  = ls_baddr_tmp
+      TABLES    return   = lt_bret_tmp.
+    IF ls_baddr_tmp-firstname IS NOT INITIAL OR ls_baddr_tmp-lastname IS NOT INITIAL.
+      CONCATENATE ls_baddr_tmp-firstname ls_baddr_tmp-lastname INTO lv_req_full_name SEPARATED BY space.
+    ELSEIF ls_baddr_tmp-fullname IS NOT INITIAL.
+      lv_req_full_name = ls_baddr_tmp-fullname.
+    ELSE.
+      SELECT SINGLE persnumber FROM usr21 INTO lv_pnum_tmp WHERE bname = lv_req_user_key.
+      IF sy-subrc = 0.
+        SELECT SINGLE name_first name_last FROM adrp INTO (lv_fnm_tmp, lv_lnm_tmp) WHERE persnumber = lv_pnum_tmp.
+        IF lv_fnm_tmp IS NOT INITIAL OR lv_lnm_tmp IS NOT INITIAL.
+          CONCATENATE lv_fnm_tmp lv_lnm_tmp INTO lv_req_full_name SEPARATED BY space.
+        ENDIF.
+      ENDIF.
+    ENDIF.
+  ENDIF.
+  IF lv_req_full_name IS INITIAL.
+    lv_req_full_name = ls_hdr-requestor.
+  ENDIF.
+  ls_item-requestor = lv_req_full_name.
+
+  IF ls_hdr-approver IS NOT INITIAL.
+    CLEAR: ls_baddr_tmp, lt_bret_tmp, lv_pnum_tmp, lv_fnm_tmp, lv_lnm_tmp, lv_req_full_name.
+    lv_req_user_key = ls_hdr-approver.
+    TRANSLATE lv_req_user_key TO UPPER CASE.
+    CONDENSE lv_req_user_key NO-GAPS.
+    CALL FUNCTION 'BAPI_USER_GET_DETAIL'
+      EXPORTING username = CONV sy-uname( lv_req_user_key )
+      IMPORTING address  = ls_baddr_tmp
+      TABLES    return   = lt_bret_tmp.
+    IF ls_baddr_tmp-firstname IS NOT INITIAL OR ls_baddr_tmp-lastname IS NOT INITIAL.
+      CONCATENATE ls_baddr_tmp-firstname ls_baddr_tmp-lastname INTO lv_req_full_name SEPARATED BY space.
+    ELSEIF ls_baddr_tmp-fullname IS NOT INITIAL.
+      lv_req_full_name = ls_baddr_tmp-fullname.
+    ELSE.
+      SELECT SINGLE persnumber FROM usr21 INTO lv_pnum_tmp WHERE bname = lv_req_user_key.
+      IF sy-subrc = 0.
+        SELECT SINGLE name_first name_last FROM adrp INTO (lv_fnm_tmp, lv_lnm_tmp) WHERE persnumber = lv_pnum_tmp.
+        IF lv_fnm_tmp IS NOT INITIAL OR lv_lnm_tmp IS NOT INITIAL.
+          CONCATENATE lv_fnm_tmp lv_lnm_tmp INTO lv_req_full_name SEPARATED BY space.
+        ENDIF.
+      ENDIF.
+    ENDIF.
+    IF lv_req_full_name IS INITIAL.
+      lv_req_full_name = ls_hdr-approver.
+    ENDIF.
+    ls_item-appr_final_by = lv_req_full_name.
+  ENDIF.
+
+  IF ls_hdr-app_date IS NOT INITIAL.
+    ls_item-appr_final_at = |{ ls_hdr-app_date+6(2) }/{ ls_hdr-app_date+4(2) }/{ ls_hdr-app_date+0(4) }|.
+  ENDIF.
+  SELECT COUNT( * ) FROM zmdg_req_dtl WHERE req_no = @ls_hdr-req_no INTO @ls_item-total_item.
+  CLEAR: lt_dtl_temp, lv_codes_str, lv_maktx_str.
+  SELECT * FROM zmdg_req_dtl WHERE req_no = @ls_hdr-req_no INTO TABLE @lt_dtl_temp.
+  LOOP AT lt_dtl_temp INTO ls_dtl_temp.
+    IF ls_dtl_temp-maktx IS NOT INITIAL.
+      IF lv_maktx_str IS INITIAL.
+        lv_maktx_str = ls_dtl_temp-maktx.
+      ELSE.
+        lv_maktx_str = lv_maktx_str && ', ' && ls_dtl_temp-maktx.
+      ENDIF.
+    ENDIF.
+    IF ls_dtl_temp-matnr_ext IS NOT INITIAL.
+      lv_clean_mat = ls_dtl_temp-matnr_ext.
+      SHIFT lv_clean_mat LEFT DELETING LEADING '0'.
+      IF lv_clean_mat IS INITIAL.
+        lv_clean_mat = '0'.
+      ENDIF.
+      IF lv_codes_str IS INITIAL.
+        lv_codes_str = lv_clean_mat.
+      ELSE.
+        lv_codes_str = lv_codes_str && ', ' && lv_clean_mat.
+      ENDIF.
+    ENDIF.
+  ENDLOOP.
+  ls_item-matnr_gen  = lv_codes_str.
+  ls_item-maktx_desc = lv_maktx_str.
+  APPEND ls_item TO lt_history.
+ENDLOOP.
+
+IF lv_status_flt = 'APPROVED'.
+  SELECT * FROM zmdg_bp_req INTO TABLE @lt_bp_db
+    WHERE status = 'APPROVED'
+    ORDER BY req_id DESCENDING.
+ELSEIF lv_status_flt = 'REJECTED'.
+  SELECT * FROM zmdg_bp_req INTO TABLE @lt_bp_db
+    WHERE status IN ( 'REJECTED', 'FAILED' )
+    ORDER BY req_id DESCENDING.
+ELSE.
+  SELECT * FROM zmdg_bp_req INTO TABLE @lt_bp_db
+    WHERE status IN ( 'APPROVED', 'REJECTED', 'FAILED' )
+    ORDER BY req_id DESCENDING.
+ENDIF.
+
+LOOP AT lt_bp_db INTO ls_bp_db.
+  CLEAR: ls_item, lv_req_full_name, ls_baddr_tmp, lt_bret_tmp, lv_pnum_tmp, lv_fnm_tmp, lv_lnm_tmp.
+  ls_item-module_type   = 'BP'.
+  ls_item-req_no        = CONV #( ls_bp_db-req_id ).
+  ls_item-status        = CONV #( ls_bp_db-status ).
+  ls_item-bp_number     = CONV #( ls_bp_db-bp_number ).
+  ls_item-bp_category   = CONV #( ls_bp_db-bp_category ).
+  ls_item-bp_role       = CONV #( ls_bp_db-bp_role ).
+  ls_item-name1         = CONV #( ls_bp_db-name1 ).
+  ls_item-name2         = CONV #( ls_bp_db-name2 ).
+  ls_item-search_term   = CONV #( ls_bp_db-search_term ).
+  ls_item-street        = CONV #( ls_bp_db-street ).
+  ls_item-house_num     = CONV #( ls_bp_db-house_num ).
+  ls_item-city          = CONV #( ls_bp_db-city ).
+  ls_item-postal_code   = CONV #( ls_bp_db-postal_code ).
+  ls_item-country       = CONV #( ls_bp_db-country ).
+  ls_item-region        = CONV #( ls_bp_db-region ).
+  ls_item-telephone     = CONV #( ls_bp_db-telephone ).
+  ls_item-email         = CONV #( ls_bp_db-email ).
+  ls_item-tax_num       = CONV #( ls_bp_db-tax_num ).
+  ls_item-banks         = CONV #( ls_bp_db-banks ).
+  ls_item-bankl         = CONV #( ls_bp_db-bankl ).
+  ls_item-bankn         = CONV #( ls_bp_db-bankn ).
+  ls_item-koinh         = CONV #( ls_bp_db-koinh ).
+  ls_item-bank_name     = CONV #( ls_bp_db-bank_name ).
+  ls_item-bukrs         = CONV #( ls_bp_db-bukrs ).
+  ls_item-akont         = CONV #( ls_bp_db-akont ).
+  ls_item-zterm         = CONV #( ls_bp_db-zterm ).
+  ls_item-waers         = CONV #( ls_bp_db-waers ).
+  ls_item-rej_reason    = CONV #( ls_bp_db-rejection_reason ).
+  ls_item-remarks       = CONV #( ls_bp_db-name1 ).
+  ls_item-sub_reason    = |BP: { ls_bp_db-name1 } ({ ls_bp_db-search_term })|.
+
+  lv_req_user_key = ls_bp_db-created_by.
+  TRANSLATE lv_req_user_key TO UPPER CASE.
+  CONDENSE lv_req_user_key NO-GAPS.
+  IF lv_req_user_key IS NOT INITIAL.
+    CALL FUNCTION 'BAPI_USER_GET_DETAIL'
+      EXPORTING username = CONV sy-uname( lv_req_user_key )
+      IMPORTING address  = ls_baddr_tmp
+      TABLES    return   = lt_bret_tmp.
+    IF ls_baddr_tmp-firstname IS NOT INITIAL OR ls_baddr_tmp-lastname IS NOT INITIAL.
+      CONCATENATE ls_baddr_tmp-firstname ls_baddr_tmp-lastname INTO lv_req_full_name SEPARATED BY space.
+    ELSEIF ls_baddr_tmp-fullname IS NOT INITIAL.
+      lv_req_full_name = ls_baddr_tmp-fullname.
+    ELSE.
+      SELECT SINGLE persnumber FROM usr21 INTO lv_pnum_tmp WHERE bname = lv_req_user_key.
+      IF sy-subrc = 0.
+        SELECT SINGLE name_first name_last FROM adrp INTO (lv_fnm_tmp, lv_lnm_tmp) WHERE persnumber = lv_pnum_tmp.
+        IF lv_fnm_tmp IS NOT INITIAL OR lv_lnm_tmp IS NOT INITIAL.
+          CONCATENATE lv_fnm_tmp lv_lnm_tmp INTO lv_req_full_name SEPARATED BY space.
+        ENDIF.
+      ENDIF.
+    ENDIF.
+  ENDIF.
+  IF lv_req_full_name IS INITIAL.
+    lv_req_full_name = ls_bp_db-created_by.
+  ENDIF.
+  ls_item-requestor     = lv_req_full_name.
+  ls_item-total_item    = 1.
+  ls_item-stw_data_by   = CONV #( ls_bp_db-stw_data_by ).
+  ls_item-stw_data_note = CONV #( ls_bp_db-stw_data_note ).
+  ls_item-stw_bank_by   = CONV #( ls_bp_db-stw_bank_by ).
+  ls_item-stw_bank_note = CONV #( ls_bp_db-stw_bank_note ).
+  ls_item-appr_final_by = CONV #( ls_bp_db-appr_final_by ).
+  ls_item-appr_final_at = CONV #( ls_bp_db-appr_final_at ).
+  IF ls_bp_db-created_at IS NOT INITIAL.
+    CONVERT TIME STAMP ls_bp_db-created_at TIME ZONE sy-zonlo INTO DATE lv_bp_date TIME lv_bp_time.
+    ls_item-req_date = lv_bp_date.
+    ls_item-req_time = lv_bp_time.
+  ELSE.
+    ls_item-req_date = sy-datum.
+    ls_item-req_time = sy-uzeit.
+  ENDIF.
+  APPEND ls_item TO lt_history.
+ENDLOOP.
+  lv_json_res = /ui2/cl_json=>serialize( data = lt_history compress = 'X' pretty_name = /ui2/cl_json=>pretty_mode-low_case ).
+  _m_response->set_content_type( 'application/json' ).
+  _m_response->set_cdata( lv_json_res ).
+  _m_navigation->response_complete( ).
+  RETURN.
+ENDIF.
+
+%>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rejected History Log - Master Data Governance</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+                    colors: {
+                        emerald: {
+                            50: '#ecfdf5', 100: '#d1fae5', 200: '#a7f3d0',
+                            500: '#10b981', 600: '#059669', 700: '#047857',
+                            800: '#065f46', 900: '#064e3b'
+                        },
+                        brand: {
+                            50: '#f0fdf4', 100: '#dcfce7', 200: '#bbf7d0',
+                            500: '#10b981', 600: '#059669', 700: '#047857',
+                            800: '#065f46', 900: '#022c22'
+                        }
+                    }
+                }
+            }
+        };
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background-color: #f8fafc;
+            background-image:
+                radial-gradient(at 10% 10%, rgba(16, 185, 129, 0.05) 0px, transparent 40%),
+                radial-gradient(at 90% 15%, rgba(100, 116, 139, 0.05) 0px, transparent 45%),
+                radial-gradient(at 50% 85%, rgba(16, 185, 129, 0.03) 0px, transparent 50%);
+            background-attachment: fixed;
+            color: #0f172a;
+        }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(241, 245, 249, 0.6); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #10b981; }
+        .glass-panel {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.03), 0 2px 6px -1px rgba(15, 23, 42, 0.02);
+        }
+        .custom-select {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%6b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.75rem center;
+            background-repeat: no-repeat;
+            background-size: 1.25em 1.25em;
+            padding-right: 2.25rem;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+    </style>
+</head>
+<body class="text-[13px] font-sans leading-relaxed m-0 p-0 antialiased min-h-screen">
+    <div class="flex min-h-screen">
+        <%@include file="sidebar_approval.htm" %>
+        <div class="flex-1 min-w-0 flex flex-col">
+            <header class="bg-white/80 backdrop-blur-xl h-16 border-b border-slate-200/80 sticky top-0 z-50 px-6 lg:px-10 flex items-center justify-between shadow-2xs">
+                <a href="landing_page.htm" class="flex items-center gap-3 decoration-none">
+                    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-700 via-emerald-600 to-emerald-800 text-white font-extrabold text-xs flex items-center justify-center shadow-xs">KMI</div>
+                    <div class="flex flex-col">
+                        <span class="text-sm font-extrabold text-slate-900 leading-none">PT Kayu Mebel Indonesia</span>
+                        <span class="text-[11px] font-semibold text-slate-500 mt-0.5">Wood &amp; Furniture Manufacturing</span>
+                    </div>
+                </a>
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-2.5 bg-white border border-slate-200 px-3 py-1.5 rounded-full shadow-2xs">
+                        <div class="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-700 text-white flex items-center justify-center font-extrabold text-xs" id="userAvatarInitial">A</div>
+                        <span class="text-xs font-bold text-slate-800" id="userNameLabel"><%= gv_user_fullname %></span>
+                    </div>
+                    <a href="?action=LOGOUT" class="text-xs font-semibold text-slate-600 hover:text-rose-700 px-3.5 py-1.5 rounded-full border border-slate-200 bg-white hover:bg-rose-50/50 transition">Sign Out</a>
+                </div>
+            </header>
+            <main class="max-w-[1700px] my-6 mx-auto px-4 sm:px-8 space-y-6 flex-1 w-full">
+                <section class="text-center py-2 flex flex-col items-center justify-center">
+                    <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900">Master Data Governance</h1>
+                    <p class="text-xs font-bold text-rose-600 uppercase tracking-widest mt-1.5">Rejected History Records &mdash; Material Master &amp; Business Partner</p>
+                </section>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="bg-gradient-to-br from-rose-800 via-rose-700 to-rose-900 text-white rounded-2xl px-5 py-4 shadow-sm border border-rose-600/30 transition-all hover:shadow-md cursor-pointer" onclick="setModuleFilter('ALL')">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-bold tracking-wide text-rose-100 uppercase">Total Rejected</span>
+                            <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-200 border border-rose-400/30">MM + BP</span>
+                        </div>
+                        <span class="text-3xl font-extrabold text-white tracking-tight block mt-1" id="statRejectedCount"><%= lv_badge_rejected %></span>
+                        <div class="text-[11px] text-rose-200/80 mt-1 font-medium flex items-center gap-2">
+                            <span>Material: <strong id="statMatRejCount" class="text-white"><%= lv_badge_mat_rej %></strong></span>
+                            <span>&bull;</span>
+                            <span>BP: <strong id="statBpRejCount" class="text-white"><%= lv_badge_bp_rej %></strong></span>
+                        </div>
+                    </div>
+                    <div class="bg-gradient-to-br from-amber-800 via-amber-700 to-rose-900 text-white rounded-2xl px-5 py-4 shadow-sm border border-amber-600/30 transition-all hover:shadow-md cursor-pointer" onclick="setModuleFilter('MM')">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-bold tracking-wide text-amber-100 uppercase">Material Master</span>
+                            <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-200 border border-amber-400/30">MM Rejected</span>
+                        </div>
+                        <span class="text-3xl font-extrabold text-white tracking-tight block mt-1" id="statMatRejCountCard"><%= lv_badge_mat_rej %></span>
+                        <div class="text-[11px] text-amber-200/80 mt-1 font-medium">
+                            <span>Record Ditolak</span>
+                        </div>
+                    </div>
+                    <div class="bg-gradient-to-br from-rose-900 via-red-800 to-slate-900 text-white rounded-2xl px-5 py-4 shadow-sm border border-rose-700/30 transition-all hover:shadow-md cursor-pointer" onclick="setModuleFilter('BP')">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-bold tracking-wide text-rose-100 uppercase">Business Partner</span>
+                            <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-200 border border-rose-400/30">BP Rejected</span>
+                        </div>
+                        <span class="text-3xl font-extrabold text-white tracking-tight block mt-1" id="statBpRejCountCard"><%= lv_badge_bp_rej %></span>
+                        <div class="text-[11px] text-rose-200/80 mt-1 font-medium">
+                            <span>Record Ditolak</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="glass-panel rounded-2xl p-4 transition-all space-y-3.5">
+                    <div class="flex flex-col sm:flex-row items-center justify-between gap-3">
+                        <div class="flex items-center gap-1.5 bg-slate-100/80 p-1 rounded-xl border border-slate-200/80 self-start">
+                            <button type="button" id="tabModAll" onclick="setModuleFilter('ALL')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition">Semua Modul</button>
+                            <button type="button" id="tabModMM" onclick="setModuleFilter('MM')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5">Material Master</button>
+                            <button type="button" id="tabModBP" onclick="setModuleFilter('BP')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5">Business Partner</button>
+                        </div>
+                        <div class="relative flex-1 w-full sm:max-w-md">
+                            <svg class="w-4 h-4 text-slate-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                            <input type="text" id="searchInput" onkeyup="applyFilter()" placeholder="Cari Request ID, Nama BP, Material, Kode, NPWP, PIC..." class="w-full pl-9 pr-3.5 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 bg-white font-medium text-slate-800 placeholder:text-slate-400 transition">
+                        </div>
+                        <div class="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+                            <select id="dateSort" onchange="applyFilter()" class="custom-select px-3 py-2 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 bg-white outline-none focus:border-emerald-600 cursor-pointer">
+                                <option value="DESC">Terbaru &rarr; Terlama</option>
+                                <option value="ASC">Terlama &rarr; Terbaru</option>
+                            </select>
+                            <button type="button" onclick="loadHistoryList()" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs rounded-xl border border-slate-200 transition cursor-pointer flex items-center gap-1.5">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                    <path d="M23 4v6h-6M1 20v-6h6"></path>
+                                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                                </svg>
+                                Refresh
+                            </button>
+                            <div class="text-xs font-bold text-slate-500 whitespace-nowrap" id="summaryLabel">Memuat data...</div>
+                        </div>
+                    </div>
+                </div>
+                <section class="glass-panel rounded-3xl overflow-hidden mb-8 transition-all duration-300">
+                    <div class="overflow-x-auto min-h-[350px]">
+                        <table class="w-full min-w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-100/80 border-b border-slate-200/80 text-[10px] font-black text-slate-600 uppercase tracking-wider backdrop-blur-xs">
+                                    <th class="p-3.5 text-center" style="width: 55px;">Detail</th>
+                                    <th class="p-3.5">Modul &amp; Informasi Permintaan</th>
+                                    <th class="p-3.5 text-center" style="width: 140px;">Request Date</th>
+                                    <th class="p-3.5 text-center" style="width: 140px;">PIC / Requestor</th>
+                                    <th class="p-3.5 text-center" style="width: 120px;">Status</th>
+                                    <th class="p-3.5 text-center" style="width: 120px;">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="stagingTableBody" class="divide-y divide-slate-100 text-xs">
+                                <tr><td colspan="6" class="p-8 text-center text-slate-400 font-medium">Memuat histori log...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+    <script>
+        var fullHistoryData = [];
+        var currentStatusFilter = "REJECTED";
+        var currentModuleFilter = "ALL";
+        var loadedBatchDetails = {};
+
+        document.addEventListener("DOMContentLoaded", function() {
+            var nameLabel = document.getElementById("userNameLabel");
+            if (nameLabel && nameLabel.innerText.trim()) {
+                var initial = nameLabel.innerText.trim().charAt(0).toUpperCase();
+                var avatar = document.getElementById("userAvatarInitial");
+                if (avatar) avatar.innerText = initial;
+            }
+            syncFilterButtons();
+            if (window.location.protocol === "file:") {
+                initMockData();
+            } else {
+                loadHistoryList();
+                loadSidebarCounters();
+            }
+        });
+
+        function initMockData() {
+            fullHistoryData = [
+                {
+                    module_type: "MM",
+                    req_no: "REQ260901",
+                    status: "APPROVED",
+                    req_date: "20260915",
+                    req_time: "093000",
+                    requestor: "PURCHASING01",
+                    sub_reason: "Pengajuan Kayu Jati Grade A Standard Ekspor",
+                    remarks: "Kayu_Jati_Log.xlsx",
+                    total_item: 12,
+                    matnr_gen: "1002341, 1002342",
+                    maktx_desc: "Kayu Jati Solid 200x50x5cm"
+                },
+                {
+                    module_type: "BP",
+                    req_no: "BP260901",
+                    status: "APPROVED",
+                    req_date: "20260915",
+                    req_time: "101500",
+                    requestor: "PURCHASING02",
+                    name1: "PT Kayu Abadi Perkasa",
+                    name2: "Kayu Abadi Group",
+                    search_term: "KAYUABADI",
+                    bp_category: "2",
+                    bp_role: "FLVN00",
+                    city: "Semarang",
+                    postal_code: "50135",
+                    country: "ID",
+                    tax_num: "01.234.567.8-501.000",
+                    bankl: "014",
+                    bank_name: "BCA KCU Semarang",
+                    bankn: "8830192831",
+                    koinh: "PT Kayu Abadi Perkasa",
+                    bukrs: "1000",
+                    akont: "211100",
+                    zterm: "Z030",
+                    waers: "IDR",
+                    bp_number: "10000045",
+                    stw_data_by: "STEWARD01",
+                    stw_bank_by: "BANKSTW01",
+                    appr_final_by: "ABAPER04"
+                },
+                {
+                    module_type: "MM",
+                    req_no: "REQ260902",
+                    status: "REJECTED",
+                    req_date: "20260914",
+                    req_time: "142000",
+                    requestor: "PROD01",
+                    sub_reason: "Pengadaan Baut & Sekrup Furniture Assembly",
+                    remarks: "Baut_Hardware.xlsx",
+                    total_item: 5,
+                    rej_reason: "Spesifikasi ukuran panjang baut dan moving average price belum sesuai master standar pabrik."
+                },
+                {
+                    module_type: "BP",
+                    req_no: "BP260902",
+                    status: "REJECTED",
+                    req_date: "20260914",
+                    req_time: "164500",
+                    requestor: "LOGISTIC01",
+                    name1: "CV Mitra Sejahtera Logistik",
+                    search_term: "MITRALOG",
+                    bp_category: "2",
+                    bp_role: "FLVN00",
+                    city: "Surabaya",
+                    country: "ID",
+                    tax_num: "02.345.678.9-601.000",
+                    rej_reason: "Nama pada buku tabungan bank tidak cocok dengan NPWP dan identitas SIUP perusahaan."
+                }
+            ];
+            updateStatCardsFromData(fullHistoryData);
+            applyFilter();
+        }
+
+        function updateStatCardsFromData(list) {
+            var matR = 0, bpR = 0;
+            (list || []).forEach(function(it) {
+                if (it.status === "REJECTED" || it.status === "FAILED") {
+                    if (it.module_type === "MM") matR++; else bpR++;
+                }
+            });
+            var totR = matR + bpR;
+            var elRej = document.getElementById("statRejectedCount");
+            if (elRej) elRej.innerText = totR;
+            var elMatR = document.getElementById("statMatRejCount");
+            if (elMatR) elMatR.innerText = matR;
+            var elBpR = document.getElementById("statBpRejCount");
+            if (elBpR) elBpR.innerText = bpR;
+            var elMatCard = document.getElementById("statMatRejCountCard");
+            if (elMatCard) elMatCard.innerText = matR;
+            var elBpCard = document.getElementById("statBpRejCountCard");
+            if (elBpCard) elBpCard.innerText = bpR;
+        }
+
+        function setModuleFilter(mod) {
+            currentModuleFilter = mod;
+            syncFilterButtons();
+            applyFilter();
+        }
+
+        function syncFilterButtons() {
+            var mAll = document.getElementById("tabModAll");
+            var mMM = document.getElementById("tabModMM");
+            var mBP = document.getElementById("tabModBP");
+            var activeClass = "bg-white text-slate-900 shadow-xs";
+            var inactiveClass = "text-slate-600 hover:text-slate-900";
+            if (mAll) mAll.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold transition " + (currentModuleFilter === "ALL" ? activeClass : inactiveClass);
+            if (mMM) mMM.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 " + (currentModuleFilter === "MM" ? "bg-rose-700 text-white shadow-xs" : inactiveClass);
+            if (mBP) mBP.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 " + (currentModuleFilter === "BP" ? "bg-sky-600 text-white shadow-xs" : inactiveClass);
+        }
+
+        function loadSidebarCounters() {
+            fetch("?OnInputProcessing=GET_COUNTERS&action=GET_COUNTERS", { method: "POST" })
+            .then(function(res) {
+                var ct = res.headers.get("content-type") || "";
+                if (ct.indexOf("application/json") !== -1) return res.json();
+                return res.text().then(function(t) { try { return JSON.parse(t); } catch(e) { return null; } });
+            })
+            .then(function(cnts) {
+                if (!cnts) return;
+                var pMat = document.getElementById("sbBadgeMatPending");
+                var pBp = document.getElementById("sbBadgeBpPending");
+                var a = document.getElementById("sbBadgeApproved");
+                var r = document.getElementById("sbBadgeRejected");
+                if (pMat && cnts.mat_pending !== undefined) pMat.innerText = cnts.mat_pending;
+                if (pBp && cnts.bp_pending !== undefined) pBp.innerText = cnts.bp_pending;
+                if (a && cnts.approved !== undefined) a.innerText = cnts.approved;
+                if (r && cnts.rejected !== undefined) r.innerText = cnts.rejected;
+                var elApp = document.getElementById("statApprovedCount");
+                if (elApp && cnts.approved !== undefined) elApp.innerText = cnts.approved;
+                var elRej = document.getElementById("statRejectedCount");
+                if (elRej && cnts.rejected !== undefined) elRej.innerText = cnts.rejected;
+                var elTot = document.getElementById("statTotalHistory");
+                if (elTot && cnts.total_history !== undefined) elTot.innerText = cnts.total_history;
+                var elMatA = document.getElementById("statMatAppCount");
+                if (elMatA && cnts.mat_approved !== undefined) elMatA.innerText = cnts.mat_approved;
+                var elBpA = document.getElementById("statBpAppCount");
+                if (elBpA && cnts.bp_approved !== undefined) elBpA.innerText = cnts.bp_approved;
+                var elMatR = document.getElementById("statMatRejCount");
+                if (elMatR && cnts.mat_rejected !== undefined) elMatR.innerText = cnts.mat_rejected;
+                var elBpR = document.getElementById("statBpRejCount");
+                if (elBpR && cnts.bp_rejected !== undefined) elBpR.innerText = cnts.bp_rejected;
+            })
+            .catch(function(e) { console.error("Counter load err", e); });
+        }
+
+        function loadHistoryList() {
+            var tbody = document.getElementById("stagingTableBody");
+            if (tbody) {
+                tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-slate-400 italic">Memuat data histori...</td></tr>';
+            }
+            fetch("?action=GET_HISTORY_LIST", { method: "POST" })
+            .then(function(res) {
+                var ct = res.headers.get("content-type") || "";
+                if (ct.indexOf("application/json") !== -1) {
+                    return res.json();
+                }
+                return res.text().then(function(text) {
+                    try {
+                        return JSON.parse(text);
+                    } catch(e) {
+                        throw new Error("Respon server bukan JSON valid (" + (res.status || 200) + ")");
+                    }
+                });
+            })
+            .then(function(data) {
+                fullHistoryData = data || [];
+                updateStatCardsFromData(fullHistoryData);
+                applyFilter();
+                loadSidebarCounters();
+            })
+            .catch(function(err) {
+                console.error("Fetch history err", err);
+                if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-rose-500 font-bold italic">Gagal memuat histori data: ' + escapeHtml(err.message) + '</td></tr>';
+            });
+        }
+
+        function escapeHtml(str) {
+            if (str === null || str === undefined) return "";
+            return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        }
+
+        function formatMaterialCode(code) {
+            if (!code) return "-";
+            var clean = String(code).trim().replace(/^0+/, "");
+            return clean || "0";
+        }
+
+        function applyFilter() {
+            var search = (document.getElementById("searchInput").value || "").toLowerCase().trim();
+            var sortDir = document.getElementById("dateSort").value || "DESC";
+
+            var filtered = (fullHistoryData || []).filter(function(item) {
+                if (currentStatusFilter === "APPROVED" && item.status !== "APPROVED") return false;
+                if (currentStatusFilter === "REJECTED" && item.status !== "REJECTED" && item.status !== "FAILED") return false;
+                if (currentModuleFilter === "MM" && item.module_type !== "MM") return false;
+                if (currentModuleFilter === "BP" && item.module_type !== "BP") return false;
+                if (!search) return true;
+                var fullText = ((item.req_no || "") + " " +
+                               (item.name1 || "") + " " +
+                               (item.name2 || "") + " " +
+                               (item.search_term || "") + " " +
+                               (item.bp_number || "") + " " +
+                               (item.tax_num || "") + " " +
+                               (item.remarks || "") + " " +
+                               (item.sub_reason || "") + " " +
+                               (item.maktx_desc || "") + " " +
+                               (item.matnr_gen || "") + " " +
+                               (item.rej_reason || "") + " " +
+                               (item.requestor || "")).toLowerCase();
+                return fullText.indexOf(search) !== -1;
+            });
+
+            filtered.sort(function(a, b) {
+                var dA = (a.req_date || "") + (a.req_time || "");
+                var dB = (b.req_date || "") + (b.req_time || "");
+                return sortDir === "ASC" ? dA.localeCompare(dB) : dB.localeCompare(dA);
+            });
+
+            renderTable(filtered);
+        }
+
+        function renderTable(data) {
+            var tbody = document.getElementById("stagingTableBody");
+            if (!tbody) return;
+            tbody.innerHTML = "";
+
+            var summaryLabel = document.getElementById("summaryLabel");
+            if (summaryLabel) {
+                summaryLabel.innerText = "Menampilkan " + data.length + " dari " + fullHistoryData.length + " record";
+            }
+
+            if (!data || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-slate-400 italic">Tidak ada data histori yang sesuai filter.</td></tr>';
+                return;
+            }
+
+            data.forEach(function(item, idx) {
+                var isMM = (item.module_type === "MM");
+                var isApproved = (item.status === "APPROVED");
+                var reqNoEsc = escapeHtml(item.req_no);
+                var reqIdKey = (item.module_type || "GEN") + "_" + reqNoEsc;
+
+                var fDate = (item.req_date && item.req_date.length === 8) ?
+                    (item.req_date.substring(6,8) + "/" + item.req_date.substring(4,6) + "/" + item.req_date.substring(0,4)) :
+                    (escapeHtml(item.req_date) || "-");
+                var fTime = (item.req_time && item.req_time.length >= 4) ?
+                    (item.req_time.substring(0,2) + ":" + item.req_time.substring(2,4)) : "";
+                var dateTimeStr = fDate + (fTime ? " " + fTime : "");
+
+                var tr = document.createElement("tr");
+                tr.className = "hover:bg-slate-50/80 transition-colors border-b border-slate-100";
+
+                var tdDetail = document.createElement("td");
+                tdDetail.className = "p-3 text-center";
+                var btnExpand = document.createElement("button");
+                btnExpand.type = "button";
+                btnExpand.id = "expand_btn_" + reqIdKey;
+                btnExpand.className = "w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold flex items-center justify-center transition shadow-2xs text-[10px] cursor-pointer mx-auto";
+                btnExpand.innerHTML = "&#9660;";
+                btnExpand.onclick = function() { toggleExpandRow(reqIdKey, item); };
+                tdDetail.appendChild(btnExpand);
+
+                var tdInfo = document.createElement("td");
+                tdInfo.className = "p-3 font-medium text-slate-800 max-w-[380px]";
+                var infoHtml = "";
+                if (isMM) {
+                    var mmTitle = item.sub_reason || item.maktx_desc || item.remarks || ("Material Request " + reqNoEsc);
+                    infoHtml += '<div class="flex items-center gap-2 flex-wrap mb-1">';
+                    infoHtml += '<span class="px-2 py-0.5 text-[9px] font-extrabold rounded-md bg-emerald-100 text-emerald-800 border border-emerald-300">MM &bull; Material Master</span>';
+                    infoHtml += '</div>';
+                    infoHtml += '<div class="font-extrabold text-slate-900 text-xs leading-snug">' + escapeHtml(mmTitle) + '</div>';
+                    if (item.matnr_gen) {
+                        infoHtml += '<div class="mt-1"><span class="inline-flex items-center bg-emerald-50 text-emerald-800 border border-emerald-200 ' +
+                                    'px-2 py-0.5 rounded-full font-mono text-[10px] font-extrabold">Generated Code: ' + escapeHtml(item.matnr_gen) + '</span></div>';
+                    }
+                } else {
+                    var bpName = item.name1 || ("Business Partner " + reqNoEsc);
+                    infoHtml += '<div class="flex items-center gap-2 flex-wrap mb-1">';
+                    infoHtml += '<span class="px-2 py-0.5 text-[9px] font-extrabold rounded-md bg-sky-100 text-sky-800 border border-sky-300">BP &bull; Business Partner</span>';
+                    infoHtml += '</div>';
+                    infoHtml += '<div class="font-extrabold text-slate-900 text-xs leading-snug">' + escapeHtml(bpName) + (item.name2 ? ' <span class="text-slate-500 font-normal">(' + escapeHtml(item.name2) + ')</span>' : '') + '</div>';
+                    infoHtml += '<div class="flex items-center gap-2 text-[10px] text-slate-500 mt-1 flex-wrap">';
+                    if (item.bp_number) {
+                        infoHtml += '<span class="inline-flex items-center gap-1 font-mono font-extrabold text-emerald-900 bg-emerald-100 px-2 py-0.5 rounded border border-emerald-300">&#10003; SAP BP: ' + escapeHtml(item.bp_number) + '</span>';
+                    }
+                    if (item.tax_num) infoHtml += '<span>Tax/NPWP: <strong class="font-mono text-slate-700">' + escapeHtml(item.tax_num) + '</strong></span>';
+                    if (item.city) infoHtml += '<span>&bull; Lokasi: ' + escapeHtml(item.city) + (item.country ? ', ' + escapeHtml(item.country) : '') + '</span>';
+                    infoHtml += '</div>';
+                }
+
+                if (!isApproved && item.rej_reason) {
+                    infoHtml += '<div class="mt-1.5 p-2 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-[11px] leading-relaxed">';
+                    infoHtml += '<strong class="font-black">&#10005; Alasan Penolakan:</strong> ' + escapeHtml(item.rej_reason);
+                    infoHtml += '</div>';
+                }
+                tdInfo.innerHTML = infoHtml;
+
+                var tdDate = document.createElement("td");
+                tdDate.className = "p-3 text-center font-mono text-slate-600 text-[11px]";
+                tdDate.innerText = dateTimeStr;
+
+                var tdUser = document.createElement("td");
+                tdUser.className = "p-3 text-center text-[11px]";
+                var userHtml = '<div class="font-extrabold text-slate-800 font-mono">' + escapeHtml(item.requestor || "-") + '</div>';
+                if (isMM) {
+                    if (item.appr_final_by) {
+                        userHtml += '<div class="text-[10px] text-emerald-800 font-semibold mt-0.5">Appr: ' + escapeHtml(item.appr_final_by) + '</div>';
+                    }
+                } else {
+                    if (item.stw_data_by) {
+                        userHtml += '<div class="text-[10px] text-emerald-800 font-semibold mt-0.5">Data: ' + escapeHtml(item.stw_data_by) + '</div>';
+                    }
+                    if (item.stw_bank_by) {
+                        userHtml += '<div class="text-[10px] text-sky-800 font-semibold">Bank: ' + escapeHtml(item.stw_bank_by) + '</div>';
+                    }
+                    if (item.appr_final_by) {
+                        userHtml += '<div class="text-[10px] text-slate-700 font-semibold">Appr: ' + escapeHtml(item.appr_final_by) + '</div>';
+                    }
+                }
+                tdUser.innerHTML = userHtml;
+
+                var tdStatus = document.createElement("td");
+                tdStatus.className = "p-3 text-center";
+                if (isApproved) {
+                    tdStatus.innerHTML = '<span class="inline-flex items-center gap-1 bg-emerald-50 text-emerald-800 ' +
+                        'text-[10px] font-extrabold px-2.5 py-1 rounded-full border border-emerald-200">' +
+                        '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>APPROVED</span>';
+                } else {
+                    tdStatus.innerHTML = '<span class="inline-flex items-center gap-1 bg-rose-50 text-rose-800 ' +
+                        'text-[10px] font-extrabold px-2.5 py-1 rounded-full border border-rose-200">' +
+                        '<span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>REJECTED</span>';
+                }
+
+                var tdAction = document.createElement("td");
+                tdAction.className = "p-3 text-center";
+                var btnAct = document.createElement("button");
+                btnAct.type = "button";
+                btnAct.className = "px-3 py-1 text-[11px] font-extrabold rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition cursor-pointer mx-auto flex items-center gap-1";
+                btnAct.innerText = "Lihat Detail";
+                btnAct.onclick = function() { toggleExpandRow(reqIdKey, item); };
+                tdAction.appendChild(btnAct);
+
+                tr.appendChild(tdDetail);
+                tr.appendChild(tdInfo);
+                tr.appendChild(tdDate);
+                tr.appendChild(tdUser);
+                tr.appendChild(tdStatus);
+                tr.appendChild(tdAction);
+                tbody.appendChild(tr);
+
+                var trExp = document.createElement("tr");
+                trExp.id = "expand_row_" + reqIdKey;
+                trExp.className = "hidden bg-slate-50/90 border-b border-slate-200";
+                var tdExp = document.createElement("td");
+                tdExp.colSpan = 6;
+                tdExp.className = "p-3 max-w-0";
+                var cardBox = document.createElement("div");
+                cardBox.className = "p-3.5 bg-slate-100/90 border border-slate-200 rounded-xl shadow-inner w-full max-w-full overflow-hidden";
+                cardBox.innerHTML = '<div class="flex items-center justify-between mb-2.5 px-1">' +
+                    '<span class="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-2">' +
+                    '<span class="w-2 h-2 rounded-full ' + (isApproved ? 'bg-emerald-600' : 'bg-rose-600') + '"></span>' +
+                    (isMM ? 'Detail Item Material Master' : 'Master Data Business Partner') + ' &mdash; ID: <span class="font-mono ' + (isApproved ? 'text-emerald-800' : 'text-rose-800') + '">' + reqNoEsc + '</span>' +
+                    '</span>' +
+                    '<span class="text-[10px] font-bold px-2 py-0.5 rounded-full ' + (isApproved ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-rose-100 text-rose-800 border border-rose-300') + '">' + item.status + '</span>' +
+                    '</div>' +
+                    '<div id="expand_content_' + reqIdKey + '" class="w-full bg-white p-3 rounded-xl border border-slate-200 shadow-xs max-h-[400px] overflow-auto"></div>';
+                tdExp.appendChild(cardBox);
+                trExp.appendChild(tdExp);
+                tbody.appendChild(trExp);
+            });
+        }
+
+        function toggleExpandRow(reqIdKey, item) {
+            var expandTr = document.getElementById("expand_row_" + reqIdKey);
+            var expandBtn = document.getElementById("expand_btn_" + reqIdKey);
+            if (!expandTr) return;
+            var isHidden = expandTr.classList.contains("hidden");
+            if (isHidden) {
+                expandTr.classList.remove("hidden");
+                if (expandBtn) expandBtn.innerHTML = "&#9650;";
+                renderAccordionContent(reqIdKey, item);
+            } else {
+                expandTr.classList.add("hidden");
+                if (expandBtn) expandBtn.innerHTML = "&#9660;";
+            }
+        }
+
+        function renderAccordionContent(reqIdKey, item) {
+            var container = document.getElementById("expand_content_" + reqIdKey);
+            if (!container) return;
+            if (item.module_type === "BP") {
+                container.innerHTML = renderBpCard(item);
+            } else {
+                if (loadedBatchDetails[item.req_no]) {
+                    renderMmTable(container, loadedBatchDetails[item.req_no]);
+                } else {
+                    container.innerHTML = '<div class="p-4 text-center text-slate-400 italic">Memuat item material...</div>';
+                    var formData = new FormData();
+                    formData.append("REQ_NO", item.req_no);
+                    fetch("?action=GET_UPLOAD_DETAIL", { method: "POST", body: formData })
+                    .then(function(r) {
+                        var ct = r.headers.get("content-type") || "";
+                        if (ct.indexOf("application/json") !== -1) {
+                            return r.json();
+                        }
+                        return r.text().then(function(text) {
+                            try { return JSON.parse(text); }
+                            catch(e) { throw new Error("Respon server bukan JSON valid"); }
+                        });
+                    })
+                    .then(function(rows) {
+                        loadedBatchDetails[item.req_no] = rows || [];
+                        renderMmTable(container, loadedBatchDetails[item.req_no]);
+                    })
+                    .catch(function(e) {
+                        container.innerHTML = '<div class="p-4 text-center text-rose-500 font-bold italic">Gagal memuat item material: ' + escapeHtml(e.message) + '</div>';
+                    });
+                }
+            }
+        }
+
+        function renderBpCard(item) {
+            var h = '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">';
+            h += '<div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 space-y-1.5">';
+            h += '<div class="text-[10px] font-black uppercase tracking-wider text-emerald-800 pb-1 border-b border-slate-200">01. General Data</div>';
+            h += '<div><span class="text-slate-400 text-[10px] block">Category &amp; Role</span>' +
+                 '<span class="font-bold text-slate-800">' + ((item.bp_category === "1") ? "Person" : "Organization") + " (" + escapeHtml(item.bp_role || "FLVN00") + ")</span></div>";
+            h += '<div><span class="text-slate-400 text-[10px] block">Legal Name 1</span><span class="font-extrabold text-slate-900">' + escapeHtml(item.name1 || "-") + '</span></div>';
+            if (item.name2) h += '<div><span class="text-slate-400 text-[10px] block">Name 2</span><span class="font-semibold text-slate-700">' + escapeHtml(item.name2) + '</span></div>';
+            h += '<div><span class="text-slate-400 text-[10px] block">Search Term</span><span class="font-mono font-bold text-slate-800">' + escapeHtml(item.search_term || "-") + '</span></div>';
+            h += '<div><span class="text-slate-400 text-[10px] block">Telepon &amp; Email</span><span class="text-slate-700">' + escapeHtml(item.telephone || "-") + " | " + escapeHtml(item.email || "-") + '</span></div>';
+            if (item.bp_number) {
+                h += '<div class="mt-1 pt-1 border-t border-slate-200"><span class="text-slate-400 text-[10px] block">SAP BP Number</span>' +
+                     '<span class="font-mono font-extrabold text-emerald-900 bg-emerald-100 px-2 py-0.5 rounded text-[11px] inline-block border border-emerald-300">' +
+                     escapeHtml(item.bp_number) + '</span></div>';
+            }
+            h += '</div>';
+
+            h += '<div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 space-y-1.5">';
+            h += '<div class="text-[10px] font-black uppercase tracking-wider text-emerald-800 pb-1 border-b border-slate-200">02. Alamat &amp; Lokasi</div>';
+            h += '<div><span class="text-slate-400 text-[10px] block">Jalan &amp; Nomor</span><span class="font-semibold text-slate-800">' + escapeHtml(item.street || "-") + " " + escapeHtml(item.house_num || "") + '</span></div>';
+            h += '<div><span class="text-slate-400 text-[10px] block">Kota &amp; Kode Pos</span><span class="font-bold text-slate-900">' + escapeHtml(item.city || "-") + " " + escapeHtml(item.postal_code || "") + '</span></div>';
+            h += '<div><span class="text-slate-400 text-[10px] block">Negara &amp; Region</span><span class="font-semibold text-slate-700">' + escapeHtml(item.country || "ID") + " (" + escapeHtml(item.region || "-") + ")</span></div>";
+            h += '</div>';
+
+            h += '<div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 space-y-1.5">';
+            h += '<div class="text-[10px] font-black uppercase tracking-wider text-emerald-800 pb-1 border-b border-slate-200">03. Perpajakan &amp; Rekening</div>';
+            h += '<div><span class="text-slate-400 text-[10px] block">NPWP / Tax Number</span><span class="font-mono font-extrabold text-emerald-900">' + escapeHtml(item.tax_num || "-") + '</span></div>';
+            h += '<div><span class="text-slate-400 text-[10px] block">Bank Key &amp; Bank Name</span><span class="font-bold text-slate-800">' + escapeHtml(item.bankl || "-") + " - " + escapeHtml(item.bank_name || "-") + '</span></div>';
+            h += '<div><span class="text-slate-400 text-[10px] block">No Rekening &amp; Pemilik</span><span class="font-mono text-slate-800">' + escapeHtml(item.bankn || "-") + " (" + escapeHtml(item.koinh || "-") + ")</span></div>";
+            h += '</div>';
+
+            h += '<div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 space-y-1.5">';
+            h += '<div class="text-[10px] font-black uppercase tracking-wider text-emerald-800 pb-1 border-b border-slate-200">04. CVI Accounting &amp; Audit</div>';
+            h += '<div><span class="text-slate-400 text-[10px] block">Company Code &amp; Currency</span><span class="font-mono font-bold text-slate-800">' + escapeHtml(item.bukrs || "1000") + " (" + escapeHtml(item.waers || "IDR") + ")</span></div>";
+            h += '<div><span class="text-slate-400 text-[10px] block">Recon Account (AKONT)</span><span class="font-mono text-slate-800">' + escapeHtml(item.akont || "-") + '</span></div>';
+            h += '<div><span class="text-slate-400 text-[10px] block">Payment Terms (ZTERM)</span><span class="font-mono text-slate-800">' + escapeHtml(item.zterm || "-") + '</span></div>';
+            if (item.stw_data_by) h += '<div class="pt-1 border-t border-slate-200"><span class="text-slate-400 text-[10px] block">Data Steward</span><span class="font-bold text-emerald-800">' + escapeHtml(item.stw_data_by) + '</span></div>';
+            if (item.appr_final_by) h += '<div class="pt-1 border-t border-slate-200"><span class="text-slate-400 text-[10px] block">Final Approver</span><span class="font-bold text-slate-800">' + escapeHtml(item.appr_final_by) + '</span></div>';
+            h += '</div>';
+            h += '</div>';
+            return h;
+        }
+
+        var mmCols = [
+            { label: "#", width: "40px", align: "center", sticky: true, left: "0px" },
+            { label: "Material Code", width: "130px", align: "left", fontClass: "font-mono font-bold text-emerald-800" },
+            { label: "Description", width: "220px", align: "left", fontClass: "font-bold text-slate-900" },
+            { label: "Industry Sector", width: "100px", align: "center" },
+            { label: "Old Mat No", width: "110px", align: "left" },
+            { label: "Mat Type", width: "80px", align: "center" },
+            { label: "Mat Group", width: "90px", align: "center" },
+            { label: "Base UoM", width: "80px", align: "center" },
+            { label: "Plant", width: "70px", align: "center" },
+            { label: "Storage Loc", width: "90px", align: "center" },
+            { label: "Sales Org", width: "90px", align: "center" },
+            { label: "Dist Channel", width: "90px", align: "center" },
+            { label: "Valuation Class", width: "100px", align: "center" },
+            { label: "Standard Price", width: "100px", align: "right" },
+            { label: "Moving Avg Price", width: "110px", align: "right" },
+            { label: "Profit Center", width: "90px", align: "center" },
+            { label: "Purchasing Group", width: "110px", align: "center" }
+        ];
+
+        function renderMmTable(container, items) {
+            if (!items || items.length === 0) {
+                container.innerHTML = '<div class="p-4 text-center text-slate-400 italic">Tidak ada item material ditemukan.</div>';
+                return;
+            }
+            var table = document.createElement("table");
+            table.className = "w-full text-xs text-slate-700 border-collapse whitespace-nowrap";
+            var thead = document.createElement("thead");
+            var thRow = document.createElement("tr");
+            thRow.className = "text-left font-bold uppercase tracking-wider bg-slate-100 text-slate-700 border-b border-slate-200 sticky top-0 z-10 text-[11px]";
+            mmCols.forEach(function(c) {
+                var th = document.createElement("th");
+                th.className = "p-2 border-r border-slate-200 " + (c.fontClass || "") + (c.align === "center" ? " text-center" : c.align === "right" ? " text-right" : "") + (c.sticky ? " sticky bg-slate-100 z-20" : "");
+                if (c.width) th.style.minWidth = c.width;
+                if (c.left) th.style.left = c.left;
+                th.innerText = c.label;
+                thRow.appendChild(th);
+            });
+            thead.appendChild(thRow);
+            table.appendChild(thead);
+            var tbody = document.createElement("tbody");
+            tbody.className = "divide-y divide-slate-200 bg-white";
+            items.forEach(function(row, i) {
+                var tr = document.createElement("tr");
+                tr.className = "hover:bg-slate-50 transition-colors";
+                function cTd(val, align, extra, isStk, sLeft) {
+                    var td = document.createElement("td");
+                    td.className = "p-2 border-r border-slate-200 " + (extra || "") + (align === "center" ? " text-center" : align === "right" ? " text-right" : "") + (isStk ? " sticky bg-white z-10" : "");
+                    if (sLeft) td.style.left = sLeft;
+                    td.innerText = (val !== null && val !== undefined && val !== "") ? val : "-";
+                    return td;
+                }
+                tr.appendChild(cTd(row.item_no || (i + 1), "center", "font-bold text-slate-700", true, "0px"));
+                tr.appendChild(cTd(formatMaterialCode(row.matnr_ext || row.matnr), "left", "font-mono font-bold text-emerald-800"));
+                tr.appendChild(cTd(row.maktx, "left", "font-bold text-slate-900"));
+                tr.appendChild(cTd(row.mbrsh || "F", "center"));
+                tr.appendChild(cTd(row.bismt, "left", "font-mono"));
+                tr.appendChild(cTd(row.mtart || "ZOS3", "center", "font-bold"));
+                tr.appendChild(cTd(row.matkl, "center", "font-mono"));
+                tr.appendChild(cTd(row.meins || "PC", "center"));
+                tr.appendChild(cTd(row.werks || "1200", "center", "font-mono"));
+                tr.appendChild(cTd(row.lgort || "1201", "center", "font-mono"));
+                tr.appendChild(cTd(row.vkorg, "center", "font-mono"));
+                tr.appendChild(cTd(row.vtweg || "1", "center"));
+                tr.appendChild(cTd(row.bklas || "OS01", "center", "font-mono"));
+                tr.appendChild(cTd(row.stprs || "0", "right"));
+                tr.appendChild(cTd(row.verpr || "0", "right"));
+                tr.appendChild(cTd(row.prctr || "200201", "center", "font-mono"));
+                tr.appendChild(cTd(row.ekgrp || "K01", "center"));
+                tbody.appendChild(tr);
+            });
+            table.appendChild(tbody);
+            container.innerHTML = "";
+            container.appendChild(table);
+        }
+    </script>
+</body>
+</html>

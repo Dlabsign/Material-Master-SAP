@@ -132,6 +132,67 @@ IF lv_mtart_json = '[' OR lv_mtart_json IS INITIAL.
   lv_mtart_json = '[]'.
 ENDIF.
 
+TYPES: BEGIN OF ty_mara_list_raw,
+         matnr TYPE mara-matnr,
+         maktx TYPE makt-maktx,
+         mtart TYPE mara-mtart,
+         matkl TYPE mara-matkl,
+         meins TYPE mara-meins,
+         groes TYPE mara-groes,
+       END OF ty_mara_list_raw.
+
+DATA: lt_mara_list_raw TYPE TABLE OF ty_mara_list_raw,
+      ls_mara_list_raw TYPE ty_mara_list_raw,
+      lv_mat_json      TYPE string,
+      lv_mat_sep       TYPE string,
+      lv_matnr_clean   TYPE string,
+      lv_maktx_clean   TYPE string,
+      lv_groes_clean   TYPE string.
+
+SELECT a~matnr, b~maktx, a~mtart, a~matkl, a~meins, a~groes
+  FROM mara AS a
+  LEFT OUTER JOIN makt AS b ON a~matnr = b~matnr AND b~spras = @sy-langu
+  INTO CORRESPONDING FIELDS OF TABLE @lt_mara_list_raw
+  UP TO 2500 ROWS.
+
+lv_mat_json = '['.
+lv_mat_sep = ''.
+
+LOOP AT lt_mara_list_raw INTO ls_mara_list_raw.
+  lv_matnr_clean = ls_mara_list_raw-matnr.
+  CALL FUNCTION 'CONVERSION_EXIT_ALPHA_OUTPUT'
+    EXPORTING input  = lv_matnr_clean
+    IMPORTING output = lv_matnr_clean.
+
+  lv_maktx_clean = ls_mara_list_raw-maktx.
+  REPLACE ALL OCCURRENCES OF '\' IN lv_maktx_clean WITH '\\'.
+  REPLACE ALL OCCURRENCES OF '"' IN lv_maktx_clean WITH '\"'.
+  REPLACE ALL OCCURRENCES OF cl_abap_char_utilities=>cr_lf IN lv_maktx_clean WITH ' '.
+  REPLACE ALL OCCURRENCES OF cl_abap_char_utilities=>newline IN lv_maktx_clean WITH ' '.
+  REPLACE ALL OCCURRENCES OF cl_abap_char_utilities=>horizontal_tab IN lv_maktx_clean WITH ' '.
+
+  lv_groes_clean = ls_mara_list_raw-groes.
+  REPLACE ALL OCCURRENCES OF '\' IN lv_groes_clean WITH '\\'.
+  REPLACE ALL OCCURRENCES OF '"' IN lv_groes_clean WITH '\"'.
+  REPLACE ALL OCCURRENCES OF cl_abap_char_utilities=>cr_lf IN lv_groes_clean WITH ' '.
+  REPLACE ALL OCCURRENCES OF cl_abap_char_utilities=>newline IN lv_groes_clean WITH ' '.
+  REPLACE ALL OCCURRENCES OF cl_abap_char_utilities=>horizontal_tab IN lv_groes_clean WITH ' '.
+
+  CONCATENATE lv_mat_json lv_mat_sep
+              '{"matnr":"' lv_matnr_clean
+              '","maktx":"' lv_maktx_clean
+              '","mtart":"' ls_mara_list_raw-mtart
+              '","matkl":"' ls_mara_list_raw-matkl
+              '","meins":"' ls_mara_list_raw-meins
+              '","groes":"' lv_groes_clean '"}'
+              INTO lv_mat_json.
+  lv_mat_sep = ','.
+ENDLOOP.
+CONCATENATE lv_mat_json ']' INTO lv_mat_json.
+IF lv_mat_json = '[' OR lv_mat_json IS INITIAL.
+  lv_mat_json = '[]'.
+ENDIF.
+
 SELECT partner name_org1 name_first name_last xdele FROM but000 INTO TABLE lt_but000_raw WHERE xdele = ' '.
 IF lt_but000_raw IS NOT INITIAL.
   SELECT partner banks bankl bankn FROM but0bk INTO TABLE lt_but0bk_raw FOR ALL ENTRIES IN lt_but000_raw WHERE partner = lt_but000_raw-partner.

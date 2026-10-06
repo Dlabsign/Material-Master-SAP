@@ -1,6 +1,64 @@
     <%@page language="ABAP" %>
     <%
-      IF sy-uname <> 'ABAPER04'.
+      DATA: lv_auth_user_ha  TYPE string,
+            lv_action_chk    TYPE string,
+            gv_user_fullname TYPE string,
+            ls_bapi_addr     TYPE bapiaddr3,
+            lt_bapi_ret      TYPE TABLE OF bapiret2,
+            lv_persnum       TYPE usr21-persnumber,
+            lv_fname         TYPE adrp-name_first,
+            lv_lname         TYPE adrp-name_last.
+
+      lv_auth_user_ha = sy-uname.
+      TRANSLATE lv_auth_user_ha TO UPPER CASE.
+      CONDENSE lv_auth_user_ha NO-GAPS.
+
+      CALL FUNCTION 'BAPI_USER_GET_DETAIL'
+        EXPORTING
+          username = sy-uname
+        IMPORTING
+          address  = ls_bapi_addr
+        TABLES
+          return   = lt_bapi_ret.
+
+      IF ls_bapi_addr-firstname IS NOT INITIAL OR
+        ls_bapi_addr-lastname IS NOT INITIAL.
+        CONCATENATE ls_bapi_addr-firstname ls_bapi_addr-lastname INTO
+          gv_user_fullname SEPARATED BY space.
+      ELSEIF ls_bapi_addr-fullname IS NOT INITIAL.
+        gv_user_fullname = ls_bapi_addr-fullname.
+      ELSE.
+        SELECT SINGLE persnumber FROM usr21 INTO lv_persnum WHERE bname = sy-uname.
+        IF sy-subrc = 0.
+          SELECT SINGLE name_first name_last FROM adrp INTO (lv_fname, lv_lname)
+            WHERE persnumber = lv_persnum.
+          IF lv_fname IS NOT INITIAL OR lv_lname IS NOT INITIAL.
+            CONCATENATE lv_fname lv_lname INTO gv_user_fullname SEPARATED BY space.
+          ENDIF.
+        ENDIF.
+      ENDIF.
+
+      IF gv_user_fullname IS INITIAL.
+        IF sy-uname IS NOT INITIAL.
+          gv_user_fullname = sy-uname.
+        ELSE.
+          gv_user_fullname = 'User tidak ditemukan'.
+        ENDIF.
+      ENDIF.
+
+      IF lv_auth_user_ha <> 'ABAPER04' AND lv_auth_user_ha <> 'BASIS' AND
+        lv_auth_user_ha <> 'KMI-BOD' AND lv_auth_user_ha <> 'KMI-U163'.
+        lv_action_chk = request->get_form_field( 'action' ).
+        IF lv_action_chk IS INITIAL.
+          lv_action_chk = request->get_form_field( 'OnInputProcessing' ).
+        ENDIF.
+        IF lv_action_chk IS NOT INITIAL.
+          _m_response->set_status( code = 403 reason = 'Forbidden' ).
+          _m_response->set_content_type( 'application/json' ).
+          _m_response->set_cdata( '{"status":"ERROR","message":"Akses Terbatas: Anda tidak memiliki akses untuk masuk ke halaman ini, silahkan hubungi core tim."}' ).
+          _m_navigation->response_complete( ).
+          RETURN.
+        ENDIF.
     %>
     <!DOCTYPE html>
     <html lang="en">
@@ -11,34 +69,87 @@
         <!-- Google Fonts: Inter -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+        <link
+
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+            rel="stylesheet">
         <!-- Tailwind CSS CDN -->
+        <!-- Tailwind CDN Warning Suppressor for BSP Production -->
+        <script>
+            (function() {
+                var _w = console.warn;
+                console.warn = function() {
+                    if (arguments[0] && typeof arguments[0] === 'string' &&
+                        arguments[0].indexOf('tailwindcss') !== -1) return;
+                    _w.apply(console, arguments);
+                };
+            })();
+        </script>
         <script src="https://cdn.tailwindcss.com"></script>
     </head>
-    <body class="bg-gradient-to-br from-emerald-700 via-emerald-800 to-teal-900 font-sans min-h-screen flex items-center justify-center p-4 antialiased selection:bg-emerald-500 selection:text-white">
+    <body
+
+        class="bg-gradient-to-br from-emerald-700 via-emerald-800 to-teal-900
+               font-sans min-h-screen flex items-center justify-center p-4
+               antialiased selection:bg-emerald-500 selection:text-white">
         <div class="relative w-full max-w-md">
             <!-- Ambient Glow -->
-            <div class="absolute -top-12 -left-12 w-48 h-48 bg-emerald-400/20 rounded-full blur-3xl pointer-events-none"></div>
-            <div class="absolute -bottom-12 -right-12 w-48 h-48 bg-amber-400/15 rounded-full blur-3xl pointer-events-none"></div>
+            <div
+
+                class="absolute -top-12 -left-12 w-48 h-48 bg-emerald-400/20
+                       rounded-full blur-3xl pointer-events-none">
+            </div>
+            <div
+
+                class="absolute -bottom-12 -right-12 w-48 h-48 bg-amber-400/15
+                       rounded-full blur-3xl pointer-events-none">
+            </div>
 
             <!-- Main Card with White Gradient -->
-            <div class="relative bg-gradient-to-b from-white via-slate-50 to-emerald-50/50 backdrop-blur-xl border border-white/80 rounded-3xl shadow-2xl p-8 sm:p-10 text-center space-y-6 overflow-hidden">
+            <div
+
+                class="relative bg-gradient-to-b from-white via-slate-50
+                       to-emerald-50/50 backdrop-blur-xl border border-white/80
+                       rounded-3xl shadow-2xl p-8 sm:p-10 text-center space-y-6
+                       overflow-hidden">
                 <!-- Top Gradient Accent Line -->
-                <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-500 via-teal-500 to-amber-400"></div>
+                <div
+
+                    class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r
+                           from-emerald-500 via-teal-500 to-amber-400">
+                </div>
 
                 <!-- Icon Accent Badge -->
-                <div class="w-16 h-16 bg-gradient-to-br from-amber-400 to-amber-500 text-slate-900 rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-amber-500/25">
-                    <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                <div
+
+                    class="w-16 h-16 bg-gradient-to-br from-amber-400 to-amber-500
+                           text-slate-900 rounded-2xl flex items-center
+                           justify-center mx-auto shadow-lg shadow-amber-500/25">
+                    <svg
+                       class="w-8 h-8" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor" stroke-width="2.2">
+                        <path
+                           stroke-linecap="round" stroke-linejoin="round"
+                             d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0
+                              00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
                     </svg>
                 </div>
 
                 <!-- Message Headings -->
                 <div class="space-y-2">
-                    <h1 class="text-xl sm:text-2xl font-extrabold bg-gradient-to-r from-emerald-900 via-emerald-800 to-teal-900 bg-clip-text text-transparent tracking-tight leading-snug">
+                    <h1
+
+                        class="text-xl sm:text-2xl font-extrabold bg-gradient-to-r
+                               from-emerald-900 via-emerald-800 to-teal-900
+                               bg-clip-text text-transparent tracking-tight
+                               leading-snug">
                         MASTER DATA GOVERNANCE is forbidden
                     </h1>
-                    <p class="text-sm font-medium text-emerald-900/80 bg-emerald-100/60 border border-emerald-200/80 py-2.5 px-4 rounded-2xl">
+                    <p
+
+                        class="text-sm font-medium text-emerald-900/80
+                               bg-emerald-100/60 border border-emerald-200/80 py-2.5
+                               px-4 rounded-2xl">
                         Access to this page is very limited.
                     </p>
                 </div>
@@ -46,7 +157,10 @@
                 <!-- Logged In User Metadata -->
                 <div class="pt-4 border-t border-slate-200/60">
                     <p class="text-xs text-slate-500 font-medium">
-                        Logged in user: <span class="font-mono font-bold text-slate-800 bg-white border border-slate-200/80 px-2.5 py-1 rounded-lg inline-block ml-1 shadow-2xs"><%= sy-uname %></span>
+                         Logged in user: <span class="font-mono font-bold
+                          text-slate-800 bg-white border border-slate-200/80 px-2.5
+                          py-1 rounded-lg inline-block ml-1 shadow-2xs"><%=
+                          gv_user_fullname %></span>
                     </p>
                 </div>
             </div>
@@ -59,33 +173,83 @@
     %>
     <%
     TYPES: BEGIN OF ty_staging_list,
-            req_no     TYPE string,
-            remarks    TYPE string,
-            sub_reason TYPE string,
-            req_date   TYPE string,
-            req_time   TYPE string,
-            requestor  TYPE string,
-            status     TYPE string,
-            total_item TYPE i,
-            matnr_gen  TYPE string,
-            rej_reason TYPE string,
-            maktx_desc TYPE string,
-            END OF ty_staging_list.
+            module_type   TYPE string,
+            bp_role       TYPE string,
+            req_no        TYPE string,
+            remarks       TYPE string,
+            sub_reason    TYPE string,
+            req_date      TYPE string,
+            req_time      TYPE string,
+            requestor     TYPE string,
+            status        TYPE string,
+            total_item    TYPE i,
+            matnr_gen     TYPE string,
+            rej_reason    TYPE string,
+            maktx_desc    TYPE string,
+            bp_number     TYPE string,
+            bp_category   TYPE string,
+            name1         TYPE string,
+            name2         TYPE string,
+            search_term   TYPE string,
+            street        TYPE string,
+            house_num     TYPE string,
+            city          TYPE string,
+            postal_code   TYPE string,
+            country       TYPE string,
+            region        TYPE string,
+            telephone     TYPE string,
+            email         TYPE string,
+            tax_num       TYPE string,
+            banks         TYPE string,
+            bankl         TYPE string,
+            bankn         TYPE string,
+            koinh         TYPE string,
+            bank_name     TYPE string,
+            bukrs         TYPE string,
+            akont         TYPE string,
+            zterm         TYPE string,
+            waers         TYPE string,
+            stw_data_by   TYPE string,
+            stw_data_note TYPE string,
+            stw_bank_by   TYPE string,
+            stw_bank_note TYPE string,
+            appr_final_by TYPE string,
+            appr_final_at TYPE string,
+           END OF ty_staging_list.
 
-    DATA: lv_action_ha TYPE string,
-            lt_hdr_app   TYPE TABLE OF zmdg_req_hdr,
-            ls_hdr_app   TYPE zmdg_req_hdr,
-            lt_list_app  TYPE TABLE OF ty_staging_list,
-            ls_list_app  TYPE ty_staging_list,
-            lv_json_app  TYPE string,
-            lv_req_no_ha TYPE zmdg_req_hdr-req_no,
-            lt_dtl_ha    TYPE TABLE OF zmdg_req_dtl,
+    DATA: lv_action_ha      TYPE string,
+            lt_hdr_app        TYPE TABLE OF zmdg_req_hdr,
+            ls_hdr_app        TYPE zmdg_req_hdr,
+            lt_list_app       TYPE TABLE OF ty_staging_list,
+            ls_list_app       TYPE ty_staging_list,
+            lv_json_app       TYPE string,
+            lv_req_no_ha      TYPE zmdg_req_hdr-req_no,
+            lt_dtl_ha         TYPE TABLE OF zmdg_req_dtl,
             lv_badge_approved TYPE i,
             lv_badge_rejected TYPE i,
-            lv_badge_draft    TYPE i.
+            lv_badge_draft     TYPE i,
+            lv_req_user_key   TYPE string,
+            lv_req_full_name  TYPE string,
+            ls_baddr_tmp      TYPE bapiaddr3,
+            lt_bret_tmp       TYPE TABLE OF bapiret2,
+            lv_pnum_tmp       TYPE usr21-persnumber,
+            lv_fnm_tmp        TYPE adrp-name_first,
+            lv_lnm_tmp        TYPE adrp-name_last.
 
+    DATA: lv_badge_ir_app TYPE i,
+          lv_badge_ir_rej TYPE i.
     SELECT COUNT( * ) FROM zmdg_req_hdr WHERE status = 'APPROVED' INTO @lv_badge_approved.
+    DATA: lv_cnt_bp_badge TYPE i.
+    SELECT COUNT( * ) FROM zmdg_bp_req WHERE status IN ( 'APPROVED', 'SD_APPROVED', 'MM_APPROVED' ) INTO @lv_cnt_bp_badge.
+    SELECT COUNT( * ) FROM zmdg_req_pir WHERE status IN ( '02', '04' ) INTO @lv_badge_ir_app.
+    lv_badge_approved = lv_badge_approved + lv_cnt_bp_badge + lv_badge_ir_app.
+
     SELECT COUNT( * ) FROM zmdg_req_hdr WHERE status IN ( 'REJECTED', 'FAILED' ) INTO @lv_badge_rejected.
+    DATA: lv_cnt_bp_rej_b TYPE i.
+    SELECT COUNT( * ) FROM zmdg_bp_req WHERE status IN ( 'REJECTED', 'FAILED' ) INTO @lv_cnt_bp_rej_b.
+    SELECT COUNT( * ) FROM zmdg_req_pir WHERE status IN ( '03', '05' ) INTO @lv_badge_ir_rej.
+    lv_badge_rejected = lv_badge_rejected + lv_cnt_bp_rej_b + lv_badge_ir_rej.
+
     SELECT COUNT( * ) FROM zmdg_req_hdr WHERE status = 'DRAFT' OR status IS INITIAL OR status = '' INTO @lv_badge_draft.
 
     lv_action_ha = request->get_form_field( 'action' ).
@@ -96,10 +260,22 @@
 
     " Handler AJAX: GET_COUNTERS
     IF lv_action_ha = 'GET_COUNTERS'.
-        DATA: lv_cnt_p TYPE i, lv_cnt_a TYPE i, lv_cnt_r TYPE i, lv_json_cnt TYPE string.
-        SELECT COUNT( * ) FROM zmdg_req_hdr WHERE status IN ( 'CHECKED', 'CODED', 'SUBMITTED' ) INTO @lv_cnt_p.
-        SELECT COUNT( * ) FROM zmdg_req_hdr WHERE status = 'APPROVED' INTO @lv_cnt_a.
-        SELECT COUNT( * ) FROM zmdg_req_hdr WHERE status IN ( 'REJECTED', 'FAILED' ) INTO @lv_cnt_r.
+        DATA: lv_cnt_p TYPE i, lv_cnt_a TYPE i, lv_cnt_r TYPE i, lv_cnt_bp_a TYPE i,
+              lv_cnt_mat_p TYPE i, lv_cnt_bp_p TYPE i, lv_cnt_ir_p TYPE i,
+              lv_cnt_mat_a TYPE i, lv_cnt_mat_r TYPE i, lv_cnt_bp_r TYPE i,
+              lv_json_cnt TYPE string.
+        SELECT COUNT( * ) FROM zmdg_req_hdr WHERE status IN ( 'CHECKED', 'CODED' ) INTO @lv_cnt_mat_p.
+        SELECT COUNT( * ) FROM zmdg_bp_req WHERE status IN ( 'SUBMITTED', 'CHECKED' ) INTO @lv_cnt_bp_p.
+        SELECT COUNT( * ) FROM zmdg_req_pir WHERE status = '01' INTO @lv_cnt_ir_p.
+        lv_cnt_p = lv_cnt_mat_p + lv_cnt_bp_p + lv_cnt_ir_p.
+
+        SELECT COUNT( * ) FROM zmdg_req_hdr WHERE status = 'APPROVED' INTO @lv_cnt_mat_a.
+        SELECT COUNT( * ) FROM zmdg_bp_req WHERE status IN ( 'APPROVED', 'SD_APPROVED', 'MM_APPROVED' ) INTO @lv_cnt_bp_a.
+        lv_cnt_a = lv_cnt_mat_a + lv_cnt_bp_a + lv_badge_ir_app.
+
+        SELECT COUNT( * ) FROM zmdg_req_hdr WHERE status IN ( 'REJECTED', 'FAILED' ) INTO @lv_cnt_mat_r.
+        SELECT COUNT( * ) FROM zmdg_bp_req WHERE status IN ( 'REJECTED', 'FAILED' ) INTO @lv_cnt_bp_r.
+        lv_cnt_r = lv_cnt_mat_r + lv_cnt_bp_r + lv_badge_ir_rej.
 
         lv_json_cnt = '{"pending":' && lv_cnt_p && ',"approved":' && lv_cnt_a && ',"rejected":' && lv_cnt_r && '}'.
         _m_response->set_content_type( 'application/json' ).
@@ -117,17 +293,62 @@
         ORDER BY req_date DESCENDING, req_time DESCENDING.
 
         LOOP AT lt_hdr_app INTO ls_hdr_app.
-        CLEAR ls_list_app.
+         CLEAR: ls_list_app, lv_req_full_name, ls_baddr_tmp, lt_bret_tmp,
+          lv_pnum_tmp, lv_fnm_tmp, lv_lnm_tmp.
+        ls_list_app-module_type = 'MM'.
         ls_list_app-req_no     = CONV #( ls_hdr_app-req_no ).
         ls_list_app-remarks    = CONV #( ls_hdr_app-remarks ).
         ls_list_app-sub_reason = CONV #( ls_hdr_app-sub_reason ).
         ls_list_app-req_date   = CONV #( ls_hdr_app-req_date ).
         ls_list_app-req_time   = CONV #( ls_hdr_app-req_time ).
-        ls_list_app-requestor  = CONV #( ls_hdr_app-requestor ).
         ls_list_app-status     = CONV #( ls_hdr_app-status ).
         ls_list_app-rej_reason = CONV #( ls_hdr_app-rej_reason ).
 
-        SELECT COUNT( * ) FROM zmdg_req_dtl WHERE req_no = @ls_hdr_app-req_no INTO @ls_list_app-total_item.
+        lv_req_user_key = ls_hdr_app-requestor.
+        TRANSLATE lv_req_user_key TO UPPER CASE.
+        CONDENSE lv_req_user_key NO-GAPS.
+
+        IF lv_req_user_key IS NOT INITIAL.
+        CALL FUNCTION 'BAPI_USER_GET_DETAIL'
+          EXPORTING
+            username = CONV sy-uname( lv_req_user_key )
+          IMPORTING
+            address  = ls_baddr_tmp
+          TABLES
+            return   = lt_bret_tmp.
+
+        IF ls_baddr_tmp-firstname IS NOT INITIAL OR
+          ls_baddr_tmp-lastname IS NOT INITIAL.
+          CONCATENATE ls_baddr_tmp-firstname ls_baddr_tmp-lastname INTO
+            lv_req_full_name SEPARATED BY space.
+        ELSEIF ls_baddr_tmp-fullname IS NOT INITIAL.
+          lv_req_full_name = ls_baddr_tmp-fullname.
+        ELSE.
+          SELECT SINGLE persnumber FROM usr21 INTO lv_pnum_tmp WHERE
+            bname = lv_req_user_key.
+          IF sy-subrc = 0.
+            SELECT SINGLE name_first name_last FROM adrp INTO
+              (lv_fnm_tmp, lv_lnm_tmp) WHERE persnumber = lv_pnum_tmp.
+            IF lv_fnm_tmp IS NOT INITIAL OR lv_lnm_tmp IS NOT INITIAL.
+              CONCATENATE lv_fnm_tmp lv_lnm_tmp INTO lv_req_full_name SEPARATED BY
+                space.
+            ENDIF.
+          ENDIF.
+        ENDIF.
+
+        ENDIF.
+
+        IF lv_req_full_name IS INITIAL.
+          IF ls_hdr_app-requestor IS NOT INITIAL.
+            lv_req_full_name = ls_hdr_app-requestor.
+          ELSE.
+            lv_req_full_name = 'User tidak ditemukan'.
+          ENDIF.
+        ENDIF.
+        ls_list_app-requestor = lv_req_full_name.
+
+        SELECT COUNT( * ) FROM zmdg_req_dtl WHERE req_no = @ls_hdr_app-req_no INTO
+          @ls_list_app-total_item.
 
         " Gather generated material codes and material descriptions
         DATA: lt_dtl_temp TYPE TABLE OF zmdg_req_dtl,
@@ -135,7 +356,8 @@
                 lv_codes_str TYPE string,
                 lv_maktx_str TYPE string.
         CLEAR: lt_dtl_temp, lv_codes_str, lv_maktx_str.
-        SELECT * FROM zmdg_req_dtl WHERE req_no = @ls_hdr_app-req_no INTO TABLE @lt_dtl_temp.
+        SELECT * FROM zmdg_req_dtl WHERE req_no = @ls_hdr_app-req_no INTO
+          TABLE @lt_dtl_temp.
         LOOP AT lt_dtl_temp INTO ls_dtl_temp.
             IF ls_dtl_temp-maktx IS NOT INITIAL.
                 IF lv_maktx_str IS INITIAL.
@@ -166,6 +388,172 @@
         APPEND ls_list_app TO lt_list_app.
         ENDLOOP.
 
+        " Fetch Business Partner Approved Requests (Customer / Vendor)
+        DATA: lt_bp_app_tbl TYPE TABLE OF zmdg_bp_req,
+              ls_bp_app_rec TYPE zmdg_bp_req.
+        CLEAR lt_bp_app_tbl.
+        SELECT * FROM zmdg_bp_req
+          INTO TABLE @lt_bp_app_tbl
+          WHERE status IN ( 'APPROVED', 'SD_APPROVED', 'MM_APPROVED' )
+          ORDER BY req_id DESCENDING.
+
+        LOOP AT lt_bp_app_tbl INTO ls_bp_app_rec.
+          CLEAR ls_list_app.
+          ls_list_app-bp_role = CONV #( ls_bp_app_rec-bp_role ).
+          DATA: lv_r_chk TYPE string.
+          lv_r_chk = ls_bp_app_rec-bp_role.
+          TRANSLATE lv_r_chk TO UPPER CASE.
+          IF lv_r_chk CS 'FLCU' OR lv_r_chk CS 'CRM'.
+            ls_list_app-module_type = 'CUSTOMER'.
+            ls_list_app-sub_reason  = |Customer: { ls_bp_app_rec-name1 } ({ ls_bp_app_rec-bp_role })|.
+          ELSE.
+            ls_list_app-module_type = 'VENDOR'.
+            ls_list_app-sub_reason  = |Vendor: { ls_bp_app_rec-name1 } ({ ls_bp_app_rec-bp_role })|.
+          ENDIF.
+
+          ls_list_app-req_no        = CONV #( ls_bp_app_rec-req_id ).
+          ls_list_app-remarks       = CONV #( ls_bp_app_rec-name1 ).
+          ls_list_app-bp_number     = CONV #( ls_bp_app_rec-bp_number ).
+          ls_list_app-bp_category   = CONV #( ls_bp_app_rec-bp_category ).
+          ls_list_app-name1         = CONV #( ls_bp_app_rec-name1 ).
+          ls_list_app-name2         = CONV #( ls_bp_app_rec-name2 ).
+          ls_list_app-search_term   = CONV #( ls_bp_app_rec-search_term ).
+          ls_list_app-street        = CONV #( ls_bp_app_rec-street ).
+          ls_list_app-house_num     = CONV #( ls_bp_app_rec-house_num ).
+          ls_list_app-city          = CONV #( ls_bp_app_rec-city ).
+          ls_list_app-postal_code   = CONV #( ls_bp_app_rec-postal_code ).
+          ls_list_app-country       = CONV #( ls_bp_app_rec-country ).
+          ls_list_app-region        = CONV #( ls_bp_app_rec-region ).
+          ls_list_app-telephone     = CONV #( ls_bp_app_rec-telephone ).
+          ls_list_app-email         = CONV #( ls_bp_app_rec-email ).
+          ls_list_app-tax_num       = CONV #( ls_bp_app_rec-tax_num ).
+          ls_list_app-banks         = CONV #( ls_bp_app_rec-banks ).
+          ls_list_app-bankl         = CONV #( ls_bp_app_rec-bankl ).
+          ls_list_app-bankn         = CONV #( ls_bp_app_rec-bankn ).
+          ls_list_app-koinh         = CONV #( ls_bp_app_rec-koinh ).
+          ls_list_app-bank_name     = CONV #( ls_bp_app_rec-bank_name ).
+          ls_list_app-bukrs         = CONV #( ls_bp_app_rec-bukrs ).
+          ls_list_app-akont         = CONV #( ls_bp_app_rec-akont ).
+          ls_list_app-zterm         = CONV #( ls_bp_app_rec-zterm ).
+          ls_list_app-waers         = CONV #( ls_bp_app_rec-waers ).
+          ls_list_app-stw_data_by   = CONV #( ls_bp_app_rec-stw_data_by ).
+          ls_list_app-stw_data_note = CONV #( ls_bp_app_rec-stw_data_note ).
+          ls_list_app-stw_bank_by   = CONV #( ls_bp_app_rec-stw_bank_by ).
+          ls_list_app-stw_bank_note = CONV #( ls_bp_app_rec-stw_bank_note ).
+          ls_list_app-appr_final_by = CONV #( ls_bp_app_rec-appr_final_by ).
+          ls_list_app-appr_final_at = CONV #( ls_bp_app_rec-appr_final_at ).
+          IF ls_bp_app_rec-created_at IS NOT INITIAL.
+            DATA: lv_bp_d2 TYPE d, lv_bp_t2 TYPE t.
+            CONVERT TIME STAMP ls_bp_app_rec-created_at TIME ZONE sy-zonlo INTO
+              DATE lv_bp_d2 TIME lv_bp_t2.
+            ls_list_app-req_date = |{ lv_bp_d2+0(4) }{ lv_bp_d2+4(2) }{ lv_bp_d2+6(2) }|.
+            ls_list_app-req_time = |{ lv_bp_t2+0(2) }{ lv_bp_t2+2(2) }{ lv_bp_t2+4(2) }|.
+          ENDIF.
+          CLEAR: ls_baddr_tmp, lt_bret_tmp, lv_pnum_tmp, lv_fnm_tmp, lv_lnm_tmp, lv_req_full_name.
+          lv_req_user_key = ls_bp_app_rec-created_by.
+          TRANSLATE lv_req_user_key TO UPPER CASE.
+          CONDENSE lv_req_user_key NO-GAPS.
+          IF lv_req_user_key IS NOT INITIAL.
+            CALL FUNCTION 'BAPI_USER_GET_DETAIL'
+              EXPORTING username = CONV sy-uname( lv_req_user_key )
+              IMPORTING address  = ls_baddr_tmp
+              TABLES    return   = lt_bret_tmp.
+            IF ls_baddr_tmp-firstname IS NOT INITIAL OR ls_baddr_tmp-lastname IS NOT INITIAL.
+              CONCATENATE ls_baddr_tmp-firstname ls_baddr_tmp-lastname INTO lv_req_full_name SEPARATED BY space.
+              CONDENSE lv_req_full_name.
+            ELSEIF ls_baddr_tmp-fullname IS NOT INITIAL AND ls_baddr_tmp-fullname <> lv_req_user_key.
+              lv_req_full_name = ls_baddr_tmp-fullname.
+            ELSE.
+              SELECT SINGLE persnumber FROM usr21 INTO lv_pnum_tmp WHERE bname = lv_req_user_key.
+              IF sy-subrc = 0.
+                SELECT SINGLE name_first name_last FROM adrp INTO (lv_fnm_tmp, lv_lnm_tmp) WHERE persnumber = lv_pnum_tmp.
+                IF lv_fnm_tmp IS NOT INITIAL OR lv_lnm_tmp IS NOT INITIAL.
+                  CONCATENATE lv_fnm_tmp lv_lnm_tmp INTO lv_req_full_name SEPARATED BY space.
+                  CONDENSE lv_req_full_name.
+                ENDIF.
+              ENDIF.
+            ENDIF.
+          ENDIF.
+          IF lv_req_full_name IS INITIAL.
+            IF lv_req_user_key IS NOT INITIAL.
+              lv_req_full_name = lv_req_user_key.
+            ELSE.
+              lv_req_full_name = 'User tidak ditemukan'.
+            ENDIF.
+          ENDIF.
+          ls_list_app-requestor = lv_req_full_name.
+          ls_list_app-status     = CONV #( ls_bp_app_rec-status ).
+          ls_list_app-total_item = 1.
+          ls_list_app-matnr_gen  = CONV #( ls_bp_app_rec-bp_number ).
+          ls_list_app-maktx_desc = |BP: { ls_bp_app_rec-bp_number } - { ls_bp_app_rec-name1 } ({ ls_bp_app_rec-search_term })|.
+          APPEND ls_list_app TO lt_list_app.
+        ENDLOOP.
+
+        " Fetch Info Record Approved Requests
+        DATA: lt_pir_app_tbl TYPE TABLE OF zmdg_req_pir,
+              ls_pir_app_rec TYPE zmdg_req_pir.
+        CLEAR lt_pir_app_tbl.
+        SELECT * FROM zmdg_req_pir
+          INTO TABLE @lt_pir_app_tbl
+          WHERE status IN ( '02', '04' )
+          ORDER BY req_id DESCENDING.
+
+        LOOP AT lt_pir_app_tbl INTO ls_pir_app_rec.
+          CLEAR ls_list_app.
+          ls_list_app-module_type = 'IR'.
+          ls_list_app-req_no     = CONV #( ls_pir_app_rec-req_id ).
+          ls_list_app-remarks    = CONV #( ls_pir_app_rec-txz01 ).
+          ls_list_app-sub_reason = |Info Record: { ls_pir_app_rec-txz01 } (Vendor: { ls_pir_app_rec-lifnr })|.
+          IF ls_pir_app_rec-erdat IS NOT INITIAL.
+            ls_list_app-req_date = CONV #( ls_pir_app_rec-erdat ).
+          ELSE.
+            ls_list_app-req_date = sy-datum.
+          ENDIF.
+          IF ls_pir_app_rec-erzet IS NOT INITIAL.
+            ls_list_app-req_time = CONV #( ls_pir_app_rec-erzet ).
+          ELSE.
+            ls_list_app-req_time = sy-uzeit.
+          ENDIF.
+          CLEAR: ls_baddr_tmp, lt_bret_tmp, lv_pnum_tmp, lv_fnm_tmp, lv_lnm_tmp, lv_req_full_name.
+          lv_req_user_key = ls_pir_app_rec-ernam.
+          TRANSLATE lv_req_user_key TO UPPER CASE.
+          CONDENSE lv_req_user_key NO-GAPS.
+          IF lv_req_user_key IS NOT INITIAL.
+            CALL FUNCTION 'BAPI_USER_GET_DETAIL'
+              EXPORTING username = CONV sy-uname( lv_req_user_key )
+              IMPORTING address  = ls_baddr_tmp
+              TABLES    return   = lt_bret_tmp.
+            IF ls_baddr_tmp-firstname IS NOT INITIAL OR ls_baddr_tmp-lastname IS NOT INITIAL.
+              CONCATENATE ls_baddr_tmp-firstname ls_baddr_tmp-lastname INTO lv_req_full_name SEPARATED BY space.
+              CONDENSE lv_req_full_name.
+            ELSEIF ls_baddr_tmp-fullname IS NOT INITIAL AND ls_baddr_tmp-fullname <> lv_req_user_key.
+              lv_req_full_name = ls_baddr_tmp-fullname.
+            ELSE.
+              SELECT SINGLE persnumber FROM usr21 INTO lv_pnum_tmp WHERE bname = lv_req_user_key.
+              IF sy-subrc = 0.
+                SELECT SINGLE name_first name_last FROM adrp INTO (lv_fnm_tmp, lv_lnm_tmp) WHERE persnumber = lv_pnum_tmp.
+                IF lv_fnm_tmp IS NOT INITIAL OR lv_lnm_tmp IS NOT INITIAL.
+                  CONCATENATE lv_fnm_tmp lv_lnm_tmp INTO lv_req_full_name SEPARATED BY space.
+                  CONDENSE lv_req_full_name.
+                ENDIF.
+              ENDIF.
+            ENDIF.
+          ENDIF.
+          IF lv_req_full_name IS INITIAL.
+            IF lv_req_user_key IS NOT INITIAL.
+              lv_req_full_name = lv_req_user_key.
+            ELSE.
+              lv_req_full_name = 'User tidak ditemukan'.
+            ENDIF.
+          ENDIF.
+          ls_list_app-requestor = lv_req_full_name.
+          ls_list_app-status     = 'APPROVED'.
+          ls_list_app-total_item = 1.
+          ls_list_app-matnr_gen  = |PIR: { ls_pir_app_rec-infnr } / { ls_pir_app_rec-matnr }|.
+          ls_list_app-maktx_desc = |Info Record Material: { ls_pir_app_rec-matnr } - { ls_pir_app_rec-txz01 }|.
+          APPEND ls_list_app TO lt_list_app.
+        ENDLOOP.
+
         lv_json_app = /ui2/cl_json=>serialize( data = lt_list_app compress = 'X' pretty_name = /ui2/cl_json=>pretty_mode-low_case ).
         _m_response->set_content_type( 'application/json' ).
         _m_response->set_cdata( lv_json_app ).
@@ -177,16 +565,134 @@
     IF lv_action_ha = 'GET_UPLOAD_DETAIL'.
         lv_req_no_ha = request->get_form_field( 'REQ_NO' ).
         IF lv_req_no_ha IS INITIAL.
-        lv_req_no_ha = request->get_form_field( 'UPLOAD_ID' ).
+          lv_req_no_ha = request->get_form_field( 'UPLOAD_ID' ).
         ENDIF.
-        SELECT * FROM zmdg_req_dtl WHERE req_no = @lv_req_no_ha INTO TABLE @lt_dtl_ha.
 
-        lv_json_app = /ui2/cl_json=>serialize( data = lt_dtl_ha compress = 'X' pretty_name = /ui2/cl_json=>pretty_mode-low_case ).
+        TYPES: BEGIN OF ty_att_json_ha,
+                 att_no      TYPE i,
+                 file_name   TYPE string,
+                 file_type   TYPE string,
+                 file_size   TYPE i,
+                 description TYPE string,
+                 file_base64 TYPE string,
+               END OF ty_att_json_ha.
+        DATA: lt_att_db_ha   TYPE TABLE OF zmdg_req_att,
+              ls_att_db_ha   TYPE zmdg_req_att,
+              lt_att_json_ha TYPE TABLE OF ty_att_json_ha,
+              ls_att_json_ha TYPE ty_att_json_ha.
+
+        CLEAR: lt_att_db_ha, lt_att_json_ha.
+        SELECT * FROM zmdg_req_att
+          INTO TABLE @lt_att_db_ha
+          WHERE req_no = @lv_req_no_ha
+          ORDER BY att_no ASCENDING.
+
+        LOOP AT lt_att_db_ha INTO ls_att_db_ha.
+          CLEAR ls_att_json_ha.
+          ls_att_json_ha-att_no      = ls_att_db_ha-att_no.
+          ls_att_json_ha-file_name   = ls_att_db_ha-file_name.
+          ls_att_json_ha-file_type   = ls_att_db_ha-file_type.
+          ls_att_json_ha-file_size   = ls_att_db_ha-file_size.
+          ls_att_json_ha-description = ls_att_db_ha-description.
+          IF ls_att_db_ha-file_data IS NOT INITIAL.
+            TRY.
+                ls_att_json_ha-file_base64 = cl_http_utility=>encode_x_base64( unencoded = ls_att_db_ha-file_data ).
+              CATCH cx_root.
+                CLEAR ls_att_json_ha-file_base64.
+            ENDTRY.
+          ENDIF.
+          APPEND ls_att_json_ha TO lt_att_json_ha.
+        ENDLOOP.
+
+        DATA: ls_bp_chk TYPE zmdg_bp_req.
+        CLEAR ls_bp_chk.
+        SELECT SINGLE * FROM zmdg_bp_req INTO @ls_bp_chk WHERE
+          req_id = @lv_req_no_ha.
+        IF sy-subrc = 0.
+          TYPES: BEGIN OF ty_bp_h_dtl,
+                   matnr_ext TYPE string,
+                   maktx     TYPE string,
+                   mtart     TYPE string,
+                   meins     TYPE string,
+                   matkl     TYPE string,
+                   status    TYPE string,
+                 END OF ty_bp_h_dtl.
+          DATA: lt_bp_h_dtl TYPE TABLE OF ty_bp_h_dtl,
+                ls_bp_h_dtl TYPE ty_bp_h_dtl.
+          ls_bp_h_dtl-matnr_ext = ls_bp_chk-bp_number.
+          ls_bp_h_dtl-maktx     = |BP: { ls_bp_chk-name1 } ({ ls_bp_chk-search_term }), Loc: { ls_bp_chk-city }, Role: { ls_bp_chk-bp_role }|.
+          ls_bp_h_dtl-mtart     = ls_bp_chk-bp_role.
+          ls_bp_h_dtl-meins     = ls_bp_chk-country.
+          ls_bp_h_dtl-matkl     = ls_bp_chk-bukrs.
+          ls_bp_h_dtl-status    = ls_bp_chk-status.
+          APPEND ls_bp_h_dtl TO lt_bp_h_dtl.
+
+          TYPES: BEGIN OF ty_bp_h_resp,
+                   items       TYPE TABLE OF ty_bp_h_dtl WITH DEFAULT KEY,
+                   attachments TYPE TABLE OF ty_att_json_ha WITH DEFAULT KEY,
+                 END OF ty_bp_h_resp.
+          DATA: ls_bp_h_resp TYPE ty_bp_h_resp.
+          ls_bp_h_resp-items       = lt_bp_h_dtl.
+          ls_bp_h_resp-attachments = lt_att_json_ha.
+
+          lv_json_app = /ui2/cl_json=>serialize( data = ls_bp_h_resp compress = 'X' pretty_name = /ui2/cl_json=>pretty_mode-low_case ).
+          _m_response->set_content_type( 'application/json' ).
+          _m_response->set_cdata( lv_json_app ).
+          _m_navigation->response_complete( ).
+          RETURN.
+        ENDIF.
+
+        DATA: ls_pir_chk TYPE zmdg_req_pir.
+        CLEAR ls_pir_chk.
+        SELECT SINGLE * FROM zmdg_req_pir INTO @ls_pir_chk
+          WHERE req_id = @lv_req_no_ha.
+        IF sy-subrc = 0.
+          DATA: lt_pir_itm_ha TYPE TABLE OF zmdg_pir_itm,
+                lt_pir_cnd_ha TYPE TABLE OF zmdg_pir_cnd,
+                lt_pir_adt_ha TYPE TABLE OF zmdg_pir_adt.
+          SELECT * FROM zmdg_pir_itm INTO TABLE @lt_pir_itm_ha WHERE req_id = @lv_req_no_ha.
+          SELECT * FROM zmdg_pir_cnd INTO TABLE @lt_pir_cnd_ha WHERE req_id = @lv_req_no_ha.
+          SELECT * FROM zmdg_pir_adt INTO TABLE @lt_pir_adt_ha WHERE req_id = @lv_req_no_ha ORDER BY log_id ASCENDING.
+
+          TYPES: BEGIN OF ty_pir_h_resp,
+                   header      TYPE zmdg_req_pir,
+                   items       TYPE TABLE OF zmdg_pir_itm WITH DEFAULT KEY,
+                   conditions  TYPE TABLE OF zmdg_pir_cnd WITH DEFAULT KEY,
+                   audit_logs  TYPE TABLE OF zmdg_pir_adt WITH DEFAULT KEY,
+                   attachments TYPE TABLE OF ty_att_json_ha WITH DEFAULT KEY,
+                 END OF ty_pir_h_resp.
+          DATA: ls_pir_h_resp TYPE ty_pir_h_resp.
+          ls_pir_h_resp-header      = ls_pir_chk.
+          ls_pir_h_resp-items       = lt_pir_itm_ha.
+          ls_pir_h_resp-conditions  = lt_pir_cnd_ha.
+          ls_pir_h_resp-audit_logs  = lt_pir_adt_ha.
+          ls_pir_h_resp-attachments = lt_att_json_ha.
+
+          lv_json_app = /ui2/cl_json=>serialize( data = ls_pir_h_resp compress = 'X' pretty_name = /ui2/cl_json=>pretty_mode-low_case ).
+          _m_response->set_content_type( 'application/json' ).
+          _m_response->set_cdata( lv_json_app ).
+          _m_navigation->response_complete( ).
+          RETURN.
+        ENDIF.
+
+        SELECT * FROM zmdg_req_dtl WHERE req_no = @lv_req_no_ha INTO
+          TABLE @lt_dtl_ha.
+
+        TYPES: BEGIN OF ty_detail_resp_ha,
+                 items       TYPE TABLE OF zmdg_req_dtl WITH DEFAULT KEY,
+                 attachments TYPE TABLE OF ty_att_json_ha WITH DEFAULT KEY,
+               END OF ty_detail_resp_ha.
+        DATA: ls_detail_resp_ha TYPE ty_detail_resp_ha.
+        ls_detail_resp_ha-items       = lt_dtl_ha.
+        ls_detail_resp_ha-attachments = lt_att_json_ha.
+
+        lv_json_app = /ui2/cl_json=>serialize( data = ls_detail_resp_ha compress = 'X' pretty_name = /ui2/cl_json=>pretty_mode-low_case ).
         _m_response->set_content_type( 'application/json' ).
         _m_response->set_cdata( lv_json_app ).
         _m_navigation->response_complete( ).
         RETURN.
     ENDIF.
+
 
     " Pre-load data untuk tampilan pertama saat halaman dibuka
     CLEAR: lt_hdr_app, lt_list_app.
@@ -197,20 +703,53 @@
 
     LOOP AT lt_hdr_app INTO ls_hdr_app.
         CLEAR ls_list_app.
+        ls_list_app-module_type = 'MM'.
         ls_list_app-req_no     = CONV #( ls_hdr_app-req_no ).
         ls_list_app-remarks    = CONV #( ls_hdr_app-remarks ).
         ls_list_app-sub_reason = CONV #( ls_hdr_app-sub_reason ).
         ls_list_app-req_date   = CONV #( ls_hdr_app-req_date ).
         ls_list_app-req_time   = CONV #( ls_hdr_app-req_time ).
-        ls_list_app-requestor  = CONV #( ls_hdr_app-requestor ).
+        CLEAR: ls_baddr_tmp, lt_bret_tmp, lv_pnum_tmp, lv_fnm_tmp, lv_lnm_tmp, lv_req_full_name.
+          lv_req_user_key = ls_hdr_app-requestor.
+          TRANSLATE lv_req_user_key TO UPPER CASE.
+          CONDENSE lv_req_user_key NO-GAPS.
+          IF lv_req_user_key IS NOT INITIAL.
+            CALL FUNCTION 'BAPI_USER_GET_DETAIL'
+              EXPORTING username = CONV sy-uname( lv_req_user_key )
+              IMPORTING address  = ls_baddr_tmp
+              TABLES    return   = lt_bret_tmp.
+            IF ls_baddr_tmp-firstname IS NOT INITIAL OR ls_baddr_tmp-lastname IS NOT INITIAL.
+              CONCATENATE ls_baddr_tmp-firstname ls_baddr_tmp-lastname INTO lv_req_full_name SEPARATED BY space.
+            ELSEIF ls_baddr_tmp-fullname IS NOT INITIAL AND ls_baddr_tmp-fullname <> lv_req_user_key.
+              lv_req_full_name = ls_baddr_tmp-fullname.
+            ELSE.
+              SELECT SINGLE persnumber FROM usr21 INTO lv_pnum_tmp WHERE bname = lv_req_user_key.
+              IF sy-subrc = 0.
+                SELECT SINGLE name_first name_last FROM adrp INTO (lv_fnm_tmp, lv_lnm_tmp) WHERE persnumber = lv_pnum_tmp.
+                IF lv_fnm_tmp IS NOT INITIAL OR lv_lnm_tmp IS NOT INITIAL.
+                  CONCATENATE lv_fnm_tmp lv_lnm_tmp INTO lv_req_full_name SEPARATED BY space.
+                ENDIF.
+              ENDIF.
+            ENDIF.
+          ENDIF.
+          IF lv_req_full_name IS INITIAL.
+            IF ls_hdr_app-requestor IS NOT INITIAL.
+              lv_req_full_name = ls_hdr_app-requestor.
+            ELSE.
+              lv_req_full_name = 'User tidak ditemukan'.
+            ENDIF.
+          ENDIF.
+          ls_list_app-requestor = lv_req_full_name.
         ls_list_app-status     = CONV #( ls_hdr_app-status ).
         ls_list_app-rej_reason = CONV #( ls_hdr_app-rej_reason ).
 
-        SELECT COUNT( * ) FROM zmdg_req_dtl WHERE req_no = @ls_hdr_app-req_no INTO @ls_list_app-total_item.
+        SELECT COUNT( * ) FROM zmdg_req_dtl WHERE req_no = @ls_hdr_app-req_no INTO
+          @ls_list_app-total_item.
 
         DATA: lv_maktx_str2 TYPE string.
         CLEAR: lt_dtl_temp, lv_codes_str, lv_maktx_str2.
-        SELECT * FROM zmdg_req_dtl WHERE req_no = @ls_hdr_app-req_no INTO TABLE @lt_dtl_temp.
+        SELECT * FROM zmdg_req_dtl WHERE req_no = @ls_hdr_app-req_no INTO
+          TABLE @lt_dtl_temp.
         LOOP AT lt_dtl_temp INTO ls_dtl_temp.
         IF ls_dtl_temp-maktx IS NOT INITIAL.
             IF lv_maktx_str2 IS INITIAL.
@@ -241,6 +780,139 @@
         APPEND ls_list_app TO lt_list_app.
     ENDLOOP.
 
+    " Pre-load Business Partner approved requests (Customer / Vendor)
+    CLEAR lt_bp_app_tbl.
+    SELECT * FROM zmdg_bp_req
+      INTO TABLE @lt_bp_app_tbl
+      WHERE status IN ( 'APPROVED', 'SD_APPROVED', 'MM_APPROVED' )
+      ORDER BY req_id DESCENDING.
+
+    LOOP AT lt_bp_app_tbl INTO ls_bp_app_rec.
+      CLEAR ls_list_app.
+      ls_list_app-bp_role = CONV #( ls_bp_app_rec-bp_role ).
+      DATA: lv_r_chk2 TYPE string.
+      lv_r_chk2 = ls_bp_app_rec-bp_role.
+      TRANSLATE lv_r_chk2 TO UPPER CASE.
+      IF lv_r_chk2 CS 'FLCU' OR lv_r_chk2 CS 'CRM'.
+        ls_list_app-module_type = 'CUSTOMER'.
+        ls_list_app-sub_reason  = |Customer: { ls_bp_app_rec-name1 } ({ ls_bp_app_rec-bp_role })|.
+      ELSE.
+        ls_list_app-module_type = 'VENDOR'.
+        ls_list_app-sub_reason  = |Vendor: { ls_bp_app_rec-name1 } ({ ls_bp_app_rec-bp_role })|.
+      ENDIF.
+
+      ls_list_app-req_no     = CONV #( ls_bp_app_rec-req_id ).
+      ls_list_app-remarks    = CONV #( ls_bp_app_rec-name1 ).
+      IF ls_bp_app_rec-created_at IS NOT INITIAL.
+        DATA: lv_bp_d3 TYPE d, lv_bp_t3 TYPE t.
+        CONVERT TIME STAMP ls_bp_app_rec-created_at TIME ZONE sy-zonlo INTO
+          DATE lv_bp_d3 TIME lv_bp_t3.
+        ls_list_app-req_date = |{ lv_bp_d3+0(4) }{ lv_bp_d3+4(2) }{ lv_bp_d3+6(2) }|.
+        ls_list_app-req_time = |{ lv_bp_t3+0(2) }{ lv_bp_t3+2(2) }{ lv_bp_t3+4(2) }|.
+      ENDIF.
+      CLEAR: ls_baddr_tmp, lt_bret_tmp, lv_pnum_tmp, lv_fnm_tmp, lv_lnm_tmp, lv_req_full_name.
+          lv_req_user_key = ls_bp_app_rec-created_by.
+          TRANSLATE lv_req_user_key TO UPPER CASE.
+          CONDENSE lv_req_user_key NO-GAPS.
+          IF lv_req_user_key IS NOT INITIAL.
+            CALL FUNCTION 'BAPI_USER_GET_DETAIL'
+              EXPORTING username = CONV sy-uname( lv_req_user_key )
+              IMPORTING address  = ls_baddr_tmp
+              TABLES    return   = lt_bret_tmp.
+            IF ls_baddr_tmp-firstname IS NOT INITIAL OR ls_baddr_tmp-lastname IS NOT INITIAL.
+              CONCATENATE ls_baddr_tmp-firstname ls_baddr_tmp-lastname INTO lv_req_full_name SEPARATED BY space.
+              CONDENSE lv_req_full_name.
+            ELSEIF ls_baddr_tmp-fullname IS NOT INITIAL AND ls_baddr_tmp-fullname <> lv_req_user_key.
+              lv_req_full_name = ls_baddr_tmp-fullname.
+            ELSE.
+              SELECT SINGLE persnumber FROM usr21 INTO lv_pnum_tmp WHERE bname = lv_req_user_key.
+              IF sy-subrc = 0.
+                SELECT SINGLE name_first name_last FROM adrp INTO (lv_fnm_tmp, lv_lnm_tmp) WHERE persnumber = lv_pnum_tmp.
+                IF lv_fnm_tmp IS NOT INITIAL OR lv_lnm_tmp IS NOT INITIAL.
+                  CONCATENATE lv_fnm_tmp lv_lnm_tmp INTO lv_req_full_name SEPARATED BY space.
+                  CONDENSE lv_req_full_name.
+                ENDIF.
+              ENDIF.
+            ENDIF.
+          ENDIF.
+          IF lv_req_full_name IS INITIAL.
+            IF lv_req_user_key IS NOT INITIAL.
+              lv_req_full_name = lv_req_user_key.
+            ELSE.
+              lv_req_full_name = 'User tidak ditemukan'.
+            ENDIF.
+          ENDIF.
+          ls_list_app-requestor = lv_req_full_name.
+      ls_list_app-status     = CONV #( ls_bp_app_rec-status ).
+      ls_list_app-total_item = 1.
+      ls_list_app-matnr_gen  = CONV #( ls_bp_app_rec-bp_number ).
+      ls_list_app-maktx_desc = |BP: { ls_bp_app_rec-bp_number } - { ls_bp_app_rec-name1 } ({ ls_bp_app_rec-search_term })|.
+      APPEND ls_list_app TO lt_list_app.
+    ENDLOOP.
+
+    " Pre-load Info Record approved requests
+    CLEAR lt_pir_app_tbl.
+    SELECT * FROM zmdg_req_pir
+      INTO TABLE @lt_pir_app_tbl
+      WHERE status IN ( '02', '04' )
+      ORDER BY req_id DESCENDING.
+
+    LOOP AT lt_pir_app_tbl INTO ls_pir_app_rec.
+      CLEAR ls_list_app.
+      ls_list_app-module_type = 'IR'.
+      ls_list_app-req_no     = CONV #( ls_pir_app_rec-req_id ).
+      ls_list_app-remarks    = CONV #( ls_pir_app_rec-txz01 ).
+      ls_list_app-sub_reason = |Info Record: { ls_pir_app_rec-txz01 } (Vendor: { ls_pir_app_rec-lifnr })|.
+      IF ls_pir_app_rec-erdat IS NOT INITIAL.
+        ls_list_app-req_date = CONV #( ls_pir_app_rec-erdat ).
+      ELSE.
+        ls_list_app-req_date = sy-datum.
+      ENDIF.
+      IF ls_pir_app_rec-erzet IS NOT INITIAL.
+        ls_list_app-req_time = CONV #( ls_pir_app_rec-erzet ).
+      ELSE.
+        ls_list_app-req_time = sy-uzeit.
+      ENDIF.
+      CLEAR: ls_baddr_tmp, lt_bret_tmp, lv_pnum_tmp, lv_fnm_tmp, lv_lnm_tmp, lv_req_full_name.
+          lv_req_user_key = ls_pir_app_rec-ernam.
+          TRANSLATE lv_req_user_key TO UPPER CASE.
+          CONDENSE lv_req_user_key NO-GAPS.
+          IF lv_req_user_key IS NOT INITIAL.
+            CALL FUNCTION 'BAPI_USER_GET_DETAIL'
+              EXPORTING username = CONV sy-uname( lv_req_user_key )
+              IMPORTING address  = ls_baddr_tmp
+              TABLES    return   = lt_bret_tmp.
+            IF ls_baddr_tmp-firstname IS NOT INITIAL OR ls_baddr_tmp-lastname IS NOT INITIAL.
+              CONCATENATE ls_baddr_tmp-firstname ls_baddr_tmp-lastname INTO lv_req_full_name SEPARATED BY space.
+              CONDENSE lv_req_full_name.
+            ELSEIF ls_baddr_tmp-fullname IS NOT INITIAL AND ls_baddr_tmp-fullname <> lv_req_user_key.
+              lv_req_full_name = ls_baddr_tmp-fullname.
+            ELSE.
+              SELECT SINGLE persnumber FROM usr21 INTO lv_pnum_tmp WHERE bname = lv_req_user_key.
+              IF sy-subrc = 0.
+                SELECT SINGLE name_first name_last FROM adrp INTO (lv_fnm_tmp, lv_lnm_tmp) WHERE persnumber = lv_pnum_tmp.
+                IF lv_fnm_tmp IS NOT INITIAL OR lv_lnm_tmp IS NOT INITIAL.
+                  CONCATENATE lv_fnm_tmp lv_lnm_tmp INTO lv_req_full_name SEPARATED BY space.
+                  CONDENSE lv_req_full_name.
+                ENDIF.
+              ENDIF.
+            ENDIF.
+          ENDIF.
+          IF lv_req_full_name IS INITIAL.
+            IF lv_req_user_key IS NOT INITIAL.
+              lv_req_full_name = lv_req_user_key.
+            ELSE.
+              lv_req_full_name = 'User tidak ditemukan'.
+            ENDIF.
+          ENDIF.
+          ls_list_app-requestor = lv_req_full_name.
+      ls_list_app-status     = 'APPROVED'.
+      ls_list_app-total_item = 1.
+      ls_list_app-matnr_gen  = |PIR: { ls_pir_app_rec-infnr } / { ls_pir_app_rec-matnr }|.
+      ls_list_app-maktx_desc = |Info Record Material: { ls_pir_app_rec-matnr } - { ls_pir_app_rec-txz01 }|.
+      APPEND ls_list_app TO lt_list_app.
+    ENDLOOP.
+
     lv_json_app = /ui2/cl_json=>serialize( data = lt_list_app compress = 'X' pretty_name = /ui2/cl_json=>pretty_mode-low_case ).
     IF lv_json_app IS INITIAL OR lv_json_app = 'null'.
         lv_json_app = '[]'.
@@ -256,9 +928,23 @@
         <!-- Google Fonts: Inter -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+        <link
+
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+            rel="stylesheet">
 
         <!-- Tailwind CSS CDN -->
+        <!-- Tailwind CDN Warning Suppressor for BSP Production -->
+        <script>
+            (function() {
+                var _w = console.warn;
+                console.warn = function() {
+                    if (arguments[0] && typeof arguments[0] === 'string' &&
+                        arguments[0].indexOf('tailwindcss') !== -1) return;
+                    _w.apply(console, arguments);
+                };
+            })();
+        </script>
         <script src="https://cdn.tailwindcss.com"></script>
 
         <script>
@@ -292,9 +978,12 @@
                 font-family: 'Inter', system-ui, sans-serif;
                 background-color: #f8fafc;
                 background-image:
-                    radial-gradient(at 10% 10%, rgba(16, 185, 129, 0.05) 0px, transparent 40%),
-                    radial-gradient(at 90% 15%, rgba(100, 116, 139, 0.05) 0px, transparent 45%),
-                    radial-gradient(at 50% 85%, rgba(16, 185, 129, 0.03) 0px, transparent 50%);
+                     radial-gradient(at 10% 10%, rgba(16, 185, 129, 0.05) 0px,
+                      transparent 40%),
+                     radial-gradient(at 90% 15%, rgba(100, 116, 139, 0.05) 0px,
+                      transparent 45%),
+                     radial-gradient(at 50% 85%, rgba(16, 185, 129, 0.03) 0px,
+                      transparent 50%);
                 background-attachment: fixed;
                 color: #0f172a;
             }
@@ -321,11 +1010,16 @@
             .glass-panel {
                 background: #ffffff;
                 border: 1px solid #e2e8f0;
-                box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.03), 0 2px 6px -1px rgba(15, 23, 42, 0.02);
+                 box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.03), 0 2px 6px -1px
+                  rgba(15, 23, 42, 0.02);
             }
 
             .custom-select {
-                background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%6b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+                 background-image: url("data:image/svg+xml,%3csvg
+                  xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20
+                  20'%3e%3cpath stroke='%6b7280' stroke-linecap='round'
+                  stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4
+                  4-4'/%3e%3c/svg%3e");
                 background-position: right 0.75rem center;
                 background-repeat: no-repeat;
                 background-size: 1.25em 1.25em;
@@ -336,104 +1030,370 @@
             }
         </style>
     </head>
-    <body class="text-[13px] font-sans leading-relaxed m-0 p-0 antialiased min-h-screen">
+    <body
+
+         class="text-[13px] font-sans leading-relaxed m-0 p-0 antialiased
+          min-h-screen">
 
         <div class="flex min-h-screen">
             <!-- REUSABLE SIDEBAR PAGE FRAGMENT -->
-            <%@include file="sidebar_approval.htm" %>
+            <%@include file="sidebar.htm" %>
 
             <!-- MAIN CONTENT AREA -->
             <div class="flex-1 min-w-0 flex flex-col">
                 <!-- TOP NAVBAR -->
-                <header class="bg-white/80 backdrop-blur-xl h-16 border-b border-slate-200/80 sticky top-0 z-50 px-6 lg:px-10 flex items-center justify-between shadow-2xs">
+                <header
+
+                    class="bg-white/80 backdrop-blur-xl h-16 border-b
+                           border-slate-200/80 sticky top-0 z-50 px-6 lg:px-10 flex
+                           items-center justify-between shadow-2xs">
                     <!-- BRAND LOGO -->
-                    <a href="landing_page.htm" class="flex items-center gap-3 decoration-none">
-                        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-700 via-emerald-600 to-emerald-800 text-white font-extrabold text-xs flex items-center justify-center shadow-xs">
+                    <a
+                       href="landing_page.htm"
+                        class="flex items-center gap-3 decoration-none">
+                        <div
+
+                            class="w-9 h-9 rounded-xl bg-gradient-to-br
+                                   from-emerald-700 via-emerald-600 to-emerald-800
+                                   text-white font-extrabold text-xs flex
+                                   items-center justify-center shadow-xs">
                             KMI
                         </div>
                         <div class="flex flex-col">
-                            <span class="text-sm font-extrabold text-slate-900 leading-none">PT Kayu Mebel Indonesia</span>
-                            <span class="text-[11px] font-semibold text-slate-500 mt-0.5">Wood & Furniture Manufacturing</span>
+                            <span
+
+                                 class="text-sm font-extrabold text-slate-900
+                                  leading-none">
+                            PT Kayu Mebel Indonesia</span>
+                            <span
+
+                                 class="text-[11px] font-semibold text-slate-500
+                                  mt-0.5">
+                            Wood & Furniture Manufacturing</span>
                         </div>
                     </a>
 
                     <!-- USER PROFILE WIDGET -->
                     <div class="flex items-center gap-3">
-                        <div class="flex items-center gap-2.5 bg-white border border-slate-200 px-3 py-1.5 rounded-full shadow-2xs">
-                            <div class="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-700 text-white flex items-center justify-center font-extrabold text-xs" id="userAvatarInitial">
+                        <div
+
+                            class="flex items-center gap-2.5 bg-white border
+                                   border-slate-200 px-3 py-1.5 rounded-full
+                                   shadow-2xs">
+                            <div
+
+                                class="w-7 h-7 rounded-full bg-gradient-to-br
+                                       from-emerald-500 to-emerald-700 text-white
+                                       flex items-center justify-center
+                                       font-extrabold text-xs"
+                                id="userAvatarInitial">
                                 A
                             </div>
-                            <span class="text-xs font-bold text-slate-800" id="userNameLabel">
-                                <%= sy-uname %>
+                            <span
+                               class="text-xs font-bold text-slate-800"
+                                id="userNameLabel">
+                                <%= gv_user_fullname %>
                             </span>
                         </div>
-                        <a href="?action=LOGOUT" class="text-xs font-semibold text-slate-600 hover:text-rose-700 px-3.5 py-1.5 rounded-full border border-slate-200 bg-white hover:bg-rose-50/50 transition">
+                        <a
+                           href="?action=LOGOUT"
+                            class="text-xs font-semibold text-slate-600
+                                   hover:text-rose-700 px-3.5 py-1.5 rounded-full
+                                   border border-slate-200 bg-white
+                                   hover:bg-rose-50/50 transition">
                             Sign Out
                         </a>
                     </div>
                 </header>
 
                 <!-- MAIN CONTENT BODY -->
-                <main class="max-w-[1700px] my-6 mx-auto px-4 sm:px-8 space-y-8 flex-1 w-full">
+                <main
+
+                     class="max-w-[1700px] my-6 mx-auto px-4 sm:px-8 space-y-8 flex-1
+                      w-full">
 
                     <!-- MINIMALIST HERO TITLE SECTION -->
-                    <section class="text-center py-2 flex flex-col items-center justify-center">
-                        <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900">
+                    <section
+
+                         class="text-center py-2 flex flex-col items-center
+                          justify-center">
+                        <h1
+
+                             class="text-3xl sm:text-4xl font-extrabold
+                              tracking-tight text-slate-900">
                             Master Data Governance
                         </h1>
-                        <p class="text-xs font-bold text-emerald-600 uppercase tracking-widest mt-1.5">
+                        <p
+
+                             class="text-xs font-bold text-emerald-600 uppercase
+                              tracking-widest mt-1.5">
                             Approved History Log
                         </p>
                     </section>
 
-                    <!-- SUMMARY BADGES SECTION -->
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-                        <!-- Total Approved -->
-                        <div class="bg-gradient-to-r from-emerald-700 via-emerald-600 to-teal-700 text-white rounded-2xl px-5 py-3.5 shadow-sm border border-emerald-500/20 transition-all hover:shadow-md">
-                            <span class="text-[11px] font-medium tracking-wide text-emerald-100 block">Total Approved</span>
-                            <span class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight block mt-0.5" id="statApprovedCount"><%= lv_badge_approved %></span>
+                    <!-- SUMMARY KPI CARDS SECTION (4 CATEGORIES) -->
+                    <div
+
+                         class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4
+                          mb-6">
+                        <!-- 1. Customer Card -->
+                        <div id="kpiCardCustomer" onclick="setCategoryFilter('CUSTOMER')"
+                              class="bg-gradient-to-r from-sky-700 via-sky-600
+                               to-blue-700 text-white rounded-2xl px-5 py-3.5
+                               shadow-xs border border-sky-500/20 transition-all
+                               hover:shadow-md cursor-pointer group">
+                            <div class="flex items-center justify-between">
+                                <span
+
+                                     class="text-[11px] font-bold tracking-wide
+                                      text-sky-100 uppercase">
+                                Customer</span>
+                                <span
+
+                                    class="text-[10px] font-extrabold px-2 py-0.5
+                                           rounded-full bg-white/20 text-white border
+                                           border-white/30">
+                                BP Customer</span>
+                            </div>
+                            <span
+
+                                 class="text-2xl sm:text-3xl font-extrabold
+                                  text-white tracking-tight block mt-0.5"
+                                id="statCustomerCount">
+                            0</span>
+                            <span
+
+                                 class="text-[10px] font-medium text-sky-100/80 block
+                                  mt-0.5">
+                            Approved Customer Records</span>
                         </div>
 
-                        <!-- Total Reject -->
-                        <div class="bg-gradient-to-r from-emerald-700 via-emerald-600 to-teal-700 text-white rounded-2xl px-5 py-3.5 shadow-sm border border-emerald-500/20 transition-all hover:shadow-md">
-                            <span class="text-[11px] font-medium tracking-wide text-emerald-100 block">Total Reject</span>
-                            <span class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight block mt-0.5" id="statRejectedCount"><%= lv_badge_rejected %></span>
+                        <!-- 2. Vendor Card -->
+                        <div id="kpiCardVendor" onclick="setCategoryFilter('VENDOR')"
+                              class="bg-gradient-to-r from-amber-700 via-amber-600
+                               to-orange-700 text-white rounded-2xl px-5 py-3.5
+                               shadow-xs border border-amber-500/20 transition-all
+                               hover:shadow-md cursor-pointer group">
+                            <div class="flex items-center justify-between">
+                                <span
+
+                                     class="text-[11px] font-bold tracking-wide
+                                      text-amber-100 uppercase">
+                                Vendor</span>
+                                <span
+
+                                    class="text-[10px] font-extrabold px-2 py-0.5
+                                           rounded-full bg-white/20 text-white border
+                                           border-white/30">
+                                BP Vendor</span>
+                            </div>
+                            <span
+
+                                 class="text-2xl sm:text-3xl font-extrabold
+                                  text-white tracking-tight block mt-0.5"
+                                id="statVendorCount">
+                            0</span>
+                            <span
+
+                                 class="text-[10px] font-medium text-amber-100/80
+                                  block mt-0.5">
+                            Approved Vendor Records</span>
                         </div>
 
-                        <!-- Total Belum di Submit -->
-                        <div class="bg-gradient-to-r from-emerald-700 via-emerald-600 to-teal-700 text-white rounded-2xl px-5 py-3.5 shadow-sm border border-emerald-500/20 transition-all hover:shadow-md">
-                            <span class="text-[11px] font-medium tracking-wide text-emerald-100 block">Total Belum di Submit</span>
-                            <span class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight block mt-0.5" id="statDraftCount"><%= lv_badge_draft %></span>
+                        <!-- 3. Material Master Card -->
+                        <div id="kpiCardMm" onclick="setCategoryFilter('MM')"
+                              class="bg-gradient-to-r from-emerald-700
+                               via-emerald-600 to-teal-700 text-white rounded-2xl
+                               px-5 py-3.5 shadow-xs border border-emerald-500/20
+                               transition-all hover:shadow-md cursor-pointer group">
+                            <div class="flex items-center justify-between">
+                                <span
+
+                                     class="text-[11px] font-bold tracking-wide
+                                      text-emerald-100 uppercase">
+                                Material Master</span>
+                                <span
+
+                                    class="text-[10px] font-extrabold px-2 py-0.5
+                                           rounded-full bg-white/20 text-white border
+                                           border-white/30">
+                                Material</span>
+                            </div>
+                            <span
+
+                                 class="text-2xl sm:text-3xl font-extrabold
+                                  text-white tracking-tight block mt-0.5"
+                                id="statMmCount">
+                            0</span>
+                            <span
+
+                                 class="text-[10px] font-medium text-emerald-100/80
+                                  block mt-0.5">
+                            Approved Material Records</span>
+                        </div>
+
+                        <!-- 4. Info Record Card -->
+                        <div id="kpiCardIr" onclick="setCategoryFilter('IR')"
+                              class="bg-gradient-to-r from-purple-700 via-purple-600
+                               to-indigo-700 text-white rounded-2xl px-5 py-3.5
+                               shadow-xs border border-purple-500/20 transition-all
+                               hover:shadow-md cursor-pointer group">
+                            <div class="flex items-center justify-between">
+                                <span
+
+                                     class="text-[11px] font-bold tracking-wide
+                                      text-purple-100 uppercase">
+                                Info Record</span>
+                                <span
+
+                                    class="text-[10px] font-extrabold px-2 py-0.5
+                                           rounded-full bg-white/20 text-white border
+                                           border-white/30">
+                                PIR</span>
+                            </div>
+                            <span
+
+                                 class="text-2xl sm:text-3xl font-extrabold
+                                  text-white tracking-tight block mt-0.5"
+                                id="statIrCount">
+                            0</span>
+                            <span
+
+                                 class="text-[10px] font-medium text-purple-100/80
+                                  block mt-0.5">
+                            Approved Info Record Records</span>
                         </div>
                     </div>
 
-                    <!-- SEARCH BAR -->
-                    <div class="glass-panel rounded-2xl p-4 mb-6 transition-all duration-300 flex items-center justify-between gap-4">
-                        <div class="relative flex-1 max-w-md">
-                            <svg class="w-4 h-4 text-slate-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114
-0z"/></svg>
-                            <input type="text" id="searchInput" onkeyup="applyFilter()" placeholder="Search by Request ID, Generated Material Code, Remarks, or Requestor..." class="w-full pl-9 pr-3.5 py-2 border border-slate-200/80 rounded-xl text-xs
-outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 bg-white/80 text-slate-800 font-medium transition shadow-2xs">
+                    <!-- SEARCH & CATEGORY FILTER BAR (NO ALL TAB) -->
+                    <div
+
+                        class="glass-panel rounded-2xl p-4 mb-6 transition-all
+                               duration-300 flex flex-col sm:flex-row items-center
+                               justify-between gap-4">
+                         <!-- Category Tabs: Customer, Vendor, Material Master, Info
+                          Record -->
+                        <div
+
+                            class="flex items-center gap-1.5 bg-slate-100/80 p-1
+                                   rounded-xl border border-slate-200/80 self-start
+                                   sm:self-auto flex-wrap">
+                            <button
+                               type="button" id="tabCatCustomer"
+                                onclick="setCategoryFilter('CUSTOMER')"
+                                class="px-3.5 py-1.5 rounded-lg text-xs font-bold
+                                       transition flex items-center gap-1.5
+                                       cursor-pointer">
+                                Customer
+                            </button>
+                            <button
+                               type="button" id="tabCatVendor"
+                                onclick="setCategoryFilter('VENDOR')"
+                                class="px-3.5 py-1.5 rounded-lg text-xs font-bold
+                                       transition flex items-center gap-1.5
+                                       cursor-pointer">
+                                Vendor
+                            </button>
+                            <button
+                               type="button" id="tabCatMM"
+                                onclick="setCategoryFilter('MM')"
+                                class="px-3.5 py-1.5 rounded-lg text-xs font-bold
+                                       transition flex items-center gap-1.5
+                                       cursor-pointer">
+                                Material Master
+                            </button>
+                            <button
+                               type="button" id="tabCatIR"
+                                onclick="setCategoryFilter('IR')"
+                                class="px-3.5 py-1.5 rounded-lg text-xs font-bold
+                                       transition flex items-center gap-1.5
+                                       cursor-pointer">
+                                Info Record
+                            </button>
                         </div>
-                        <div class="text-xs font-semibold text-slate-500" id="summaryLabel">Showing 0 requests</div>
+
+                        <!-- Search Box & Item Counter -->
+                        <div
+
+                             class="flex items-center gap-3 w-full sm:w-auto flex-1
+                              max-w-md justify-end">
+                            <div class="relative flex-1">
+                                <svg
+
+                                     class="w-4 h-4 text-slate-400 absolute left-3
+                                      top-3"
+                                    fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                <path
+                                   stroke-linecap="round" stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z">
+                                </svg>
+                                <input
+                                   type="text" id="searchInput"
+                                    onkeyup="applyFilter()"
+                                     placeholder="Search ID, Material Code, Remarks,
+                                      or Requestor..."
+                                    class="w-full pl-9 pr-3.5 py-2 border
+                                           border-slate-200/80 rounded-xl text-xs
+                                           outline-none focus:border-emerald-600
+                                           focus:ring-2 focus:ring-emerald-500/10
+                                           bg-white/80 text-slate-800 font-medium
+                                           transition shadow-2xs">
+                            </div>
+                            <div
+
+                                 class="text-xs font-semibold text-slate-500
+                                  whitespace-nowrap"
+                                id="summaryLabel">
+                            Showing 0 requests</div>
+                        </div>
                     </div>
 
                     <!-- TABLE -->
-                    <section class="glass-panel rounded-3xl overflow-hidden mb-8 transition-all duration-300">
+                    <section
+
+                         class="glass-panel rounded-3xl overflow-hidden mb-8
+                          transition-all duration-300">
                         <div class="overflow-x-auto min-h-[350px]">
-                            <table class="w-full min-w-full text-left border-collapse">
+                            <table
+                               class="w-full min-w-full text-left border-collapse">
                                 <thead>
-                                    <tr class="bg-slate-100/80 border-b border-slate-200/80 text-[10px] font-black text-slate-600 uppercase tracking-wider backdrop-blur-xs">
-                                        <th class="p-3.5 text-center" style="width: 55px;">Detail</th>
+                                    <tr
+
+                                        class="bg-slate-100/80 border-b
+                                               border-slate-200/80 text-[10px]
+                                               font-black text-slate-600 uppercase
+                                               tracking-wider backdrop-blur-xs">
+                                        <th
+                                           class="p-3.5 text-center"
+                                            style="width: 55px;">
+                                        Detail</th>
                                         <th class="p-3.5">Permintaan</th>
-                                        <th class="p-3.5 text-center" style="width: 140px;">Request Date</th>
-                                        <th class="p-3.5 text-center" style="width: 120px;">Requestor</th>
-                                        <th class="p-3.5 text-center" style="width: 110px;">Status</th>
-                                        <th class="p-3.5 text-center" style="width: 120px;">Actions</th>
+                                        <th
+                                           class="p-3.5 text-center"
+                                            style="width: 140px;">
+                                        Request Date</th>
+                                        <th
+                                           class="p-3.5 text-center"
+                                            style="width: 120px;">
+                                        Requestor</th>
+                                        <th
+                                           class="p-3.5 text-center"
+                                            style="width: 110px;">
+                                        Status</th>
+                                        <th
+                                           class="p-3.5 text-center"
+                                            style="width: 120px;">
+                                        Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody id="stagingTableBody" class="divide-y divide-slate-100 text-xs">
-                                    <tr><td colspan="6" class="p-8 text-center text-slate-400 font-medium">Loading approved history...</td></tr>
+                                <tbody
+                                   id="stagingTableBody"
+                                    class="divide-y divide-slate-100 text-xs">
+                                     <tr><td colspan="6" class="p-8 text-center
+                                      text-slate-400 font-medium">Loading approved
+                                      history...</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -445,19 +1405,99 @@ outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 bg-
 
         <!-- JAVASCRIPT LOGIC -->
         <script>
-            var fullData = [];
+            var fullData = <% IF lv_json_app IS NOT INITIAL. %><%= lv_json_app %><% ELSE. %>[]<% ENDIF. %>;
             var loadedBatchDetails = {};
+            var loadedBatchAttachments = {};
+            var currentCategoryFilter = "MM";
 
             document.addEventListener("DOMContentLoaded", function() {
+                initMmImageZoomEvents();
                 var nameLabel = document.getElementById("userNameLabel");
                 if (nameLabel && nameLabel.innerText.trim()) {
                     var initial = nameLabel.innerText.trim().charAt(0).toUpperCase();
                     var avatar = document.getElementById("userAvatarInitial");
                     if (avatar) avatar.innerText = initial;
                 }
+                if (fullData && fullData.length) {
+                    updateKPIs(fullData);
+                    syncCategoryFilterButtons();
+                    applyFilter();
+                }
                 loadApprovedHistory();
                 loadSidebarCounters();
             });
+
+            function getItemCategory(item) {
+                if (!item) return 'MM';
+                var mod = (item.module_type || '').toUpperCase();
+                if (mod === 'CUSTOMER') return 'CUSTOMER';
+                if (mod === 'VENDOR') return 'VENDOR';
+                if (mod === 'IR' || mod === 'PIR') return 'IR';
+                if (mod === 'MM') return 'MM';
+
+                var role = (item.bp_role || '').toUpperCase();
+                if (role.indexOf('FLCU') !== -1 || role.indexOf('CRM') !== -1 ||
+                    role.indexOf('CUSTOMER') !== -1) return 'CUSTOMER';
+                if (role.indexOf('FLVN') !== -1 || role.indexOf('VENDOR') !== -1)
+                    return 'VENDOR';
+
+                var sub = (item.sub_reason || '').toUpperCase();
+                if (sub.indexOf('CUSTOMER:') !== -1) return 'CUSTOMER';
+                if (sub.indexOf('VENDOR:') !== -1) return 'VENDOR';
+                if (sub.indexOf('INFO RECORD:') !== -1) return 'IR';
+
+                return 'MM';
+            }
+
+            function setCategoryFilter(cat) {
+                currentCategoryFilter = cat;
+                syncCategoryFilterButtons();
+                applyFilter();
+            }
+
+            function syncCategoryFilterButtons() {
+                var tabs = [
+                    { id: "tabCatCustomer", cat: "CUSTOMER", activeClass: "bg-sky-600 text-white shadow-xs", inactiveClass: "text-slate-600 hover:text-sky-700 hover:bg-sky-50" },
+                    { id: "tabCatVendor", cat: "VENDOR", activeClass: "bg-amber-600 text-white shadow-xs", inactiveClass: "text-slate-600 hover:text-amber-700 hover:bg-amber-50" },
+                    { id: "tabCatMM", cat: "MM", activeClass: "bg-emerald-600 text-white shadow-xs", inactiveClass: "text-slate-600 hover:text-emerald-700 hover:bg-emerald-50" },
+                    { id: "tabCatIR", cat: "IR", activeClass: "bg-purple-600 text-white shadow-xs", inactiveClass: "text-slate-600 hover:text-purple-700 hover:bg-purple-50" }
+                ];
+
+                var kpiCards = [
+                    { id: "kpiCardCustomer", cat: "CUSTOMER" },
+                    { id: "kpiCardVendor", cat: "VENDOR" },
+                    { id: "kpiCardMm", cat: "MM" },
+                    { id: "kpiCardIr", cat: "IR" }
+                ];
+
+                tabs.forEach(function(t) {
+                    var el = document.getElementById(t.id);
+                    if (!el) return;
+                    var baseCls = "px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ";
+                    if (currentCategoryFilter === t.cat) {
+                        el.className = baseCls + t.activeClass;
+                    } else {
+                        el.className = baseCls + t.inactiveClass;
+                    }
+                });
+
+                kpiCards.forEach(function(k) {
+                    var cardEl = document.getElementById(k.id);
+                    if (!cardEl) return;
+                    if (currentCategoryFilter === k.cat) {
+                        cardEl.classList.add("ring-2", "ring-emerald-400", "ring-offset-2");
+                    } else {
+                        cardEl.classList.remove("ring-2", "ring-emerald-400", "ring-offset-2");
+                    }
+                });
+            }
+
+
+            function formatUserFullName(name) {
+                if (!name) return '-';
+                var clean = String(name).trim();
+                return clean || '-';
+            }
 
             function formatMaterialCode(code) {
                 if (!code) return '-';
@@ -475,7 +1515,9 @@ outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 bg-
             }
 
             function loadSidebarCounters() {
-                fetch("?OnInputProcessing=GET_COUNTERS&action=GET_COUNTERS", { method: "POST" })
+                fetch("?OnInputProcessing=GET_COUNTERS&action=GET_COUNTERS", {
+                    method: "POST"
+                })
                 .then(function(res) {
                     var ct = res.headers.get("content-type") || "";
                     if (ct.indexOf("application/json") !== -1) {
@@ -493,66 +1535,88 @@ outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 bg-
                     if (p && cnts.pending !== undefined) p.innerText = cnts.pending;
                     if (a && cnts.approved !== undefined) a.innerText = cnts.approved;
                     if (r && cnts.rejected !== undefined) r.innerText = cnts.rejected;
-
-                    var elApproved = document.getElementById("statApprovedCount");
-                    if (elApproved && cnts.approved !== undefined) elApproved.innerText = cnts.approved;
-                    var elRejected = document.getElementById("statRejectedCount");
-                    if (elRejected && cnts.rejected !== undefined) elRejected.innerText = cnts.rejected;
-                    var elDraft = document.getElementById("statDraftCount");
-                    if (elDraft && cnts.draft !== undefined) elDraft.innerText = cnts.draft;
                 })
                 .catch(function(e) { console.error("Counter load err", e); });
             }
 
             function loadApprovedHistory() {
                 var tbody = document.getElementById("stagingTableBody");
-                if (tbody) {
-                    tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-slate-400 italic">Loading approved requests...</td></tr>';
+                if (tbody && (!fullData || fullData.length === 0)) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-slate-400 italic">Loading approved history...</td></tr>';
                 }
 
                 fetch("?action=GET_APPROVED_LIST", { method: "POST" })
-                .then(res => res.json())
-                .then(data => {
+                .then(function(res) { return res.json(); })
+                .then(function(data) {
                     fullData = data || [];
                     updateKPIs(fullData);
+                    syncCategoryFilterButtons();
                     applyFilter();
                 })
-                .catch(err => {
-                    console.error(err);
-                    if (tbody) {
-                        tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-red-500 italic">Failed to load approved history.</td></tr>';
+                .catch(function(err) {
+                    console.error("Load approved history error:", err);
+                    if (tbody && (!fullData || fullData.length === 0)) {
+                        tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-rose-500 italic">Failed to load approved history.</td></tr>';
                     }
                 });
             }
 
             function updateKPIs(data) {
-                var elCount = document.getElementById("kpiApprovedCount");
-                if (elCount) elCount.innerText = data ? data.length : 0;
-                var totalItems = 0;
+                var cntCustomer = 0, cntVendor = 0, cntMm = 0, cntIr = 0;
                 if (data && data.length) {
-                    data.forEach(function(i) { totalItems += (i.total_item || 0); });
+                    data.forEach(function(item) {
+                        var cat = getItemCategory(item);
+                        if (cat === 'CUSTOMER') cntCustomer++;
+                        else if (cat === 'VENDOR') cntVendor++;
+                        else if (cat === 'IR') cntIr++;
+                        else cntMm++;
+                    });
                 }
-                var elItems = document.getElementById("kpiApprovedItemsCount");
-                if (elItems) elItems.innerText = totalItems;
+                var elCust = document.getElementById("statCustomerCount");
+                if (elCust) elCust.innerText = cntCustomer;
+                var elVend = document.getElementById("statVendorCount");
+                if (elVend) elVend.innerText = cntVendor;
+                var elMm = document.getElementById("statMmCount");
+                if (elMm) elMm.innerText = cntMm;
+                var elIr = document.getElementById("statIrCount");
+                if (elIr) elIr.innerText = cntIr;
             }
 
             function applyFilter() {
-                var search = (document.getElementById("searchInput").value || '').toLowerCase();
+                var searchInput = document.getElementById("searchInput");
+                var search = (searchInput ? searchInput.value : '').toLowerCase().trim();
                 var filtered = fullData.filter(function(item) {
-                    return !search ||
-                        (item.req_no || '').toLowerCase().includes(search) ||
-                        (item.matnr_gen || '').toLowerCase().includes(search) ||
-                        (item.remarks || '').toLowerCase().includes(search) ||
-                        (item.sub_reason || '').toLowerCase().includes(search) ||
-                        (item.maktx_desc || '').toLowerCase().includes(search) ||
-                        (item.requestor || '').toLowerCase().includes(search);
+                    var cat = getItemCategory(item);
+                    if (cat !== currentCategoryFilter) return false;
+                    if (!search) return true;
+                    return (item.req_no || '').toLowerCase().indexOf(search) !== -1 ||
+                           (item.matnr_gen || '').toLowerCase().indexOf(search) !== -1 ||
+                           (item.remarks || '').toLowerCase().indexOf(search) !== -1 ||
+                           (item.sub_reason || '').toLowerCase().indexOf(search) !== -1 ||
+                           (item.maktx_desc || '').toLowerCase().indexOf(search) !== -1 ||
+                           (item.requestor || '').toLowerCase().indexOf(search) !== -1;
                 });
                 renderTable(filtered);
             }
 
             function escapeHtml(str) {
                 if (str === null || str === undefined) return '';
-                return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                return String(str)
+                    .split('&').join('&amp;')
+                    .split('<').join('&lt;')
+                    .split('>').join('&gt;')
+                    .split('"').join('&quot;')
+                    .split("'").join('&#039;')
+                    .split('\r').join(' ')
+                    .split('\n').join(' ');
+            }
+
+            function isImageFile(fileName, fileType) {
+                if (fileType && fileType.toLowerCase().indexOf('image') !== -1) return true;
+                if (!fileName) return false;
+                var fn = String(fileName).toLowerCase();
+                var ext = fn.split('.').pop();
+                return ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp'].indexOf(ext) !== -1;
             }
 
             function renderTable(data) {
@@ -562,11 +1626,15 @@ outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 bg-
 
                 var labelElem = document.getElementById("summaryLabel");
                 if (labelElem) {
-                    labelElem.innerText = 'Showing ' + data.length + ' of ' + fullData.length + ' approved requests';
+                    var catName = currentCategoryFilter === 'CUSTOMER' ? 'Customer' :
+                                  currentCategoryFilter === 'VENDOR' ? 'Vendor' :
+                                  currentCategoryFilter === 'IR' ? 'Info Record' :
+                                  'Material Master';
+                    labelElem.innerText = 'Showing ' + data.length + ' approved ' + catName + ' requests';
                 }
 
                 if (!data || data.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-slate-400 italic">No approved requests found.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-slate-400 italic">No approved requests found in this category.</td></tr>';
                     return;
                 }
 
@@ -574,6 +1642,7 @@ outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 bg-
                     var tr = document.createElement("tr");
                     tr.className = "hover:bg-slate-50/80 transition-colors border-b border-slate-100";
 
+                    var cat = getItemCategory(item);
                     var reqNoEsc = escapeHtml(item.req_no);
                     var matGenFormatted = formatMaterialCodeList(item.matnr_gen);
                     var matGenEsc = escapeHtml(matGenFormatted);
@@ -582,8 +1651,11 @@ outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 bg-
                     var titleVal = item.sub_reason || item.remarks || '-';
                     var titleEsc = escapeHtml(titleVal);
 
-                    var fDate = (item.req_date && item.req_date.length === 8) ? (item.req_date.substring(6,8) + '/' + item.req_date.substring(4,6) + '/' + item.req_date.substring(0,4)) : (escapeHtml(item.req_date) || "-");
-                    var fTime = (item.req_time && item.req_time.length >= 4) ? (item.req_time.substring(0,2) + ':' + item.req_time.substring(2,4)) : "";
+                    var fDate = (item.req_date && item.req_date.length === 8) ?
+                        (item.req_date.substring(6,8) + '/' + item.req_date.substring(4,6) + '/' + item.req_date.substring(0,4)) :
+                        (escapeHtml(item.req_date) || "-");
+                    var fTime = (item.req_time && item.req_time.length >= 4) ?
+                        (item.req_time.substring(0,2) + ':' + item.req_time.substring(2,4)) : "";
                     var dateTimeStr = fDate + (fTime ? ' ' + fTime : '');
 
                     // 1. Detail (Expand Button)
@@ -592,25 +1664,56 @@ outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 bg-
                     var btnExpand = document.createElement("button");
                     btnExpand.type = "button";
                     btnExpand.id = "expand_btn_" + item.req_no;
-                    btnExpand.className = "w-7 h-7 rounded-full bg-slate-100 hover:bg-emerald-100 text-slate-700 hover:text-emerald-800 font-extrabold flex items-center justify-center transition shadow-2xs text-[10px] cursor-pointer mx-auto";
+                    btnExpand.className = "w-7 h-7 rounded-full bg-slate-100 " +
+                        "hover:bg-emerald-100 text-slate-700 " +
+                        "hover:text-emerald-800 font-extrabold " +
+                        "flex items-center justify-center transition " +
+                        "shadow-2xs text-[10px] cursor-pointer mx-auto";
                     btnExpand.innerHTML = "&#9660;";
-                    btnExpand.onclick = (function(rNo) {
-                        return function() { toggleExpandRow(rNo); };
-                    })(item.req_no);
+                    btnExpand.onclick = (function(itemObj) {
+                        return function() { toggleExpandRow(itemObj); };
+                    })(item);
                     tdDetail.appendChild(btnExpand);
 
                     // 2. Permintaan
                     var tdPermintaan = document.createElement("td");
                     tdPermintaan.className = "p-3 font-medium text-slate-800 max-w-[340px]";
-                    var pStr = '<div class="font-extrabold text-slate-900 text-xs leading-snug">' + titleEsc + '</div>';
-                    pStr += '<div class="flex items-center gap-2 mt-1 flex-wrap">';
-                    if (reqNoEsc) {
-                        pStr += '<span class="text-[10px] font-mono text-emerald-800 font-bold">ID: ' + reqNoEsc + ' (' + (item.total_item || 0) + ' items)</span>';
+
+                    var catPillHtml = '';
+                    if (cat === 'CUSTOMER') {
+                        catPillHtml = '<span class="inline-flex items-center bg-sky-50 text-sky-700 border border-sky-200' +
+                            ' px-2 py-0.5 rounded-full text-[10px] font-extrabold mr-1.5">CUSTOMER</span>';
+                    } else if (cat === 'VENDOR') {
+                        catPillHtml = '<span class="inline-flex items-center bg-amber-50 text-amber-700 border border-amber-200' +
+                            ' px-2 py-0.5 rounded-full text-[10px] font-extrabold mr-1.5">VENDOR</span>';
+                    } else if (cat === 'IR') {
+                        catPillHtml = '<span class="inline-flex items-center bg-purple-50 text-purple-700 border border-purple-200' +
+                            ' px-2 py-0.5 rounded-full text-[10px] font-extrabold mr-1.5">INFO RECORD</span>';
+                    } else {
+                        catPillHtml = '<span class="inline-flex items-center bg-emerald-50 text-emerald-700 border border-emerald-200' +
+                            ' px-2 py-0.5 rounded-full text-[10px] font-extrabold mr-1.5">MATERIAL</span>';
                     }
-                    if (matGenEsc) {
-                        pStr += '<span class="inline-flex items-center bg-emerald-500/10 text-emerald-800 border border-emerald-500/20 px-2 py-0.5 rounded-full font-mono text-[10px] font-extrabold">Mat Code: ' + matGenEsc + '</span>';
+
+                    var pStr = '';
+                    if (cat === 'CUSTOMER' || cat === 'VENDOR') {
+                        var bpNoVal = escapeHtml(item.bp_number || item.matnr_gen || '');
+                        var bpTitle = item.name1 || item.remarks || titleEsc;
+                        pStr = '<div class="font-extrabold text-slate-900 text-xs leading-snug flex items-center flex-wrap gap-1">' + catPillHtml + escapeHtml(bpTitle) + '</div>';
+                        if (bpNoVal) {
+                            pStr += '<div class="flex items-center gap-2 mt-1 flex-wrap">';
+                            pStr += '<span class="inline-flex items-center bg-emerald-100 text-emerald-900 border border-emerald-300 ' +
+                                'px-2 py-0.5 rounded font-mono text-[10px] font-extrabold">SAP BP: ' + bpNoVal + '</span>';
+                            pStr += '</div>';
+                        }
+                    } else {
+                        pStr = '<div class="font-extrabold text-slate-900 text-xs leading-snug flex items-center flex-wrap">' + catPillHtml + titleEsc + '</div>';
+                        if (matGenEsc) {
+                            pStr += '<div class="flex items-center gap-2 mt-1 flex-wrap">';
+                            pStr += '<span class="inline-flex items-center bg-emerald-500/10 text-emerald-800 border border-emerald-500/20 ' +
+                                'px-2 py-0.5 rounded-full font-mono text-[10px] font-extrabold">Code: ' + matGenEsc + '</span>';
+                            pStr += '</div>';
+                        }
                     }
-                    pStr += '</div>';
                     tdPermintaan.innerHTML = pStr;
 
                     // 3. Request Date
@@ -620,14 +1723,16 @@ outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 bg-
 
                     // 4. Requestor
                     var tdUser = document.createElement("td");
-                    tdUser.className = "p-3 text-center font-extrabold text-emerald-800 font-mono";
-                    tdUser.innerText = requestorEsc || "-";
+                    tdUser.className = "p-3 text-center font-bold text-slate-800";
+                    tdUser.innerText = formatUserFullName(item.requestor) || "-";
 
                     // 5. Status
                     var tdBadge = document.createElement("td");
                     tdBadge.className = "p-3 text-center";
                     var badgeSpan = document.createElement("span");
-                    badgeSpan.className = "inline-flex items-center gap-1.5 bg-emerald-500/10 text-emerald-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-emerald-500/20";
+                    badgeSpan.className = "inline-flex items-center gap-1.5 " +
+                        "bg-emerald-500/10 text-emerald-800 text-[10px] " +
+                        "font-extrabold px-2.5 py-0.5 rounded-full border border-emerald-500/20";
                     badgeSpan.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>APPROVED';
                     tdBadge.appendChild(badgeSpan);
 
@@ -636,12 +1741,16 @@ outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 bg-
                     tdActions.className = "p-3 text-center";
                     var btnAction = document.createElement("button");
                     btnAction.type = "button";
-                    btnAction.className = "bg-slate-100 hover:bg-emerald-100 text-slate-700 hover:text-emerald-800 border border-slate-200 " +
-    "text-[11px] font-extrabold px-3 py-1 rounded-full shadow-2xs transition cursor-pointer flex items-center gap-1 mx-auto";
+                    btnAction.className = "bg-slate-100 hover:bg-emerald-100 " +
+                      "text-slate-700 hover:text-emerald-800 " +
+                      "border border-slate-200 text-[11px] " +
+                      "font-extrabold px-3 py-1 rounded-full " +
+                      "shadow-2xs transition cursor-pointer " +
+                      "flex items-center gap-1 mx-auto";
                     btnAction.innerText = "View Items";
-                    btnAction.onclick = (function(rNo) {
-                        return function() { toggleExpandRow(rNo); };
-                    })(item.req_no);
+                    btnAction.onclick = (function(itemObj) {
+                        return function() { toggleExpandRow(itemObj); };
+                    })(item);
                     tdActions.appendChild(btnAction);
 
                     tr.appendChild(tdDetail);
@@ -670,11 +1779,22 @@ outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 bg-
 
                     var titleSpan = document.createElement("span");
                     titleSpan.className = "text-[11px] font-bold text-slate-800 uppercase tracking-wider";
-                    titleSpan.innerHTML = 'Approved Items (ID: <span class="font-mono text-emerald-800">' + reqNoEsc + '</span>)';
-
                     var countSpan = document.createElement("span");
                     countSpan.className = "text-[10px] font-semibold text-slate-600 bg-white px-2 py-0.5 rounded border border-slate-200 shadow-xs";
-                    countSpan.innerText = (item.total_item || 0) + " items";
+
+                    if (cat === 'CUSTOMER' || cat === 'VENDOR') {
+                        var bpNoDisp = escapeHtml(item.bp_number || item.matnr_gen || item.req_no);
+                        titleSpan.innerHTML = 'Approved Business Partner (SAP BP: ' +
+                            '<span class="font-mono text-emerald-800">' + bpNoDisp + '</span>' +
+                            ' &bull; Req ID: ' + reqNoEsc + ')';
+                        countSpan.innerText = item.bp_role || "BP Record";
+                    } else if (cat === 'IR') {
+                        titleSpan.innerHTML = 'Approved Info Record (Req ID: <span class="font-mono text-purple-900">' + reqNoEsc + '</span>)';
+                        countSpan.innerText = "PIR Record";
+                    } else {
+                        titleSpan.innerHTML = 'Approved Material Items (ID: <span class="font-mono text-emerald-800">' + reqNoEsc + '</span>)';
+                        countSpan.innerText = (item.total_item || 0) + " items";
+                    }
 
                     hdrDiv.appendChild(titleSpan);
                     hdrDiv.appendChild(countSpan);
@@ -693,7 +1813,9 @@ outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 bg-
                 });
             }
 
-            function toggleExpandRow(reqNo) {
+            function toggleExpandRow(item) {
+                if (!item) return;
+                var reqNo = item.req_no;
                 var expandTr = document.getElementById("expand_row_" + reqNo);
                 var expandBtn = document.getElementById("expand_btn_" + reqNo);
                 if (!expandTr) return;
@@ -703,28 +1825,279 @@ outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 bg-
                 if (isHidden) {
                     expandTr.classList.remove("hidden");
                     if (expandBtn) expandBtn.innerHTML = "&#9650;";
-                    if (!loadedBatchDetails[reqNo]) fetchBatchDetail(reqNo);
+                    renderAccordionContent(item);
                 } else {
                     expandTr.classList.add("hidden");
                     if (expandBtn) expandBtn.innerHTML = "&#9660;";
                 }
             }
 
-            function fetchBatchDetail(reqNo) {
+            function renderAccordionContent(item) {
+                var reqNo = item.req_no;
                 var container = document.getElementById("expand_content_" + reqNo);
                 if (!container) return;
 
+                if (!loadedBatchAttachments[reqNo] && loadedBatchAttachments[reqNo] !== []) {
+                    container.innerHTML = '<div class="p-4 text-center text-slate-400 italic text-xs">Memuat detail &amp; file lampiran...</div>';
+                    fetchBatchDetail(reqNo, function() {
+                        renderAccordionContent(item);
+                    });
+                    return;
+                }
+
+                var atts = loadedBatchAttachments[reqNo] || [];
+                var items = loadedBatchDetails[reqNo] || [];
+                var galleryHtml = renderAttachmentGallery(reqNo, atts);
+
+                var mod = (item.module_type || '').toUpperCase();
+                if (mod === "BP" || mod === "CUSTOMER" || mod === "VENDOR") {
+                    container.innerHTML = galleryHtml + renderBpCard(item);
+                } else if (mod === "IR" || mod === "PIR") {
+                    container.innerHTML = galleryHtml + renderIrCard(item);
+                } else {
+                    renderExpandDetailTable(reqNo, items, atts);
+                }
+            }
+
+            function renderAttachmentGallery(reqNo, attachments) {
+                if (!attachments || attachments.length === 0) return "";
+
+                var reqNoEsc = escapeHtml(reqNo);
+                var h = '<div class="mb-4 bg-white border border-slate-200 rounded-2xl p-4 shadow-2xs text-xs">';
+                h += '<div class="flex items-center justify-between border-b border-slate-100 pb-2.5 mb-3">';
+                h += '<div class="flex items-center gap-2">';
+                h += '<span class="w-6 h-6 rounded-lg bg-teal-100 text-teal-800 flex items-center justify-center font-bold text-xs">';
+                h += '<svg class="w-4 h-4 text-teal-700" fill="none" ' +
+                    'stroke="currentColor" viewBox="0 0 24 24">' +
+                    '<path stroke-linecap="round" stroke-linejoin="round" ' +
+                    'stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 ' +
+                    '102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 ' +
+                    '6.585a6 6 0 108.486 8.486L20.5 13"></path></svg>';
+                h += '</span>';
+                h += '<h3 class="text-xs font-black text-slate-800 uppercase tracking-wider">File Attachment Pendukung Requester (ZMDG_REQ_ATT)</h3>';
+                h += '</div>';
+                h += '<span class="text-[10px] font-extrabold bg-teal-50 text-teal-700 border border-teal-200 ' +
+                    'px-2.5 py-0.5 rounded-full">' + attachments.length + ' File Attachment</span>';
+                h += '</div>';
+
+                h += '<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">';
+
+                attachments.forEach(function(att, idx) {
+                    var rawB64 = att.file_base64 || '';
+                    var fullB64 = rawB64;
+                    if (rawB64 && !rawB64.startsWith('data:')) {
+                        var mime = att.file_type || 'image/jpeg';
+                        if (mime && mime.indexOf('/') === -1) {
+                            var lowerMime = mime.toLowerCase();
+                            if (lowerMime === 'png') mime = 'image/png';
+                            else if (lowerMime === 'jpg' || lowerMime === 'jpeg') mime = 'image/jpeg';
+                            else if (lowerMime === 'gif') mime = 'image/gif';
+                            else if (lowerMime === 'webp') mime = 'image/webp';
+                            else mime = 'image/' + lowerMime;
+                        }
+                        fullB64 = 'data:' + mime + ';base64,' + rawB64;
+                    }
+                    var isImg = isImageFile(att.file_name, att.file_type) || fullB64.startsWith('data:image');
+                    var fileName = escapeHtml(att.file_name || ('Attachment_' + (idx + 1)));
+                    var desc = escapeHtml(att.description || '');
+
+                    h += '<div class="bg-slate-50 border border-slate-200 rounded-xl p-2.5 flex flex-col justify-between ' +
+                        'hover:border-teal-500/50 transition shadow-2xs group relative">';
+
+                    if (isImg && fullB64) {
+                        h += '<div class="h-24 w-full bg-slate-200/60 rounded-lg overflow-hidden flex items-center ' +
+                            'justify-center mb-2 cursor-pointer relative group-hover:opacity-95" ';
+                        h += 'data-action="open-mm-preview" ';
+                        h += 'data-src="' + fullB64 + '" ';
+                        h += 'data-caption="' + fileName + '" ';
+                        h += 'data-req-no="' + reqNoEsc + '" ';
+                        h += 'data-idx="' + idx + '">';
+                        h += '<img src="' + fullB64 + '" alt="' + fileName + '" class="w-full h-full object-cover transition transform group-hover:scale-105">';
+                        h += '<div class="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition ' +
+                            'flex items-center justify-center text-white text-xs font-bold gap-1">';
+                        h += '<svg class="w-4 h-4" fill="none" stroke="currentColor" ' +
+                        'viewBox="0 0 24 24"><path stroke-linecap="round" ' +
+                        'stroke-linejoin="round" stroke-width="2" ' +
+                        'd="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path ' +
+                        'stroke-linecap="round" stroke-linejoin="round" ' +
+                        'stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 ' +
+                        '12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 ' +
+                        '7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg> View</div>';
+                        h += '</div>';
+                    } else {
+                        var fileExt = att.file_type ? (att.file_type.split('/')[1] || 'PDF') : 'PDF';
+                        fileExt = escapeHtml(fileExt.toUpperCase());
+                        h += '<div class="h-24 w-full bg-emerald-50/80 rounded-lg flex flex-col ' +
+                            'items-center justify-center p-2 mb-2 border border-emerald-100">';
+                        h += '<svg class="w-8 h-8 text-emerald-600 mb-1" fill="none" ' +
+                        'stroke="currentColor" viewBox="0 0 24 24"><path ' +
+                        'stroke-linecap="round" stroke-linejoin="round" ' +
+                        'stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 ' +
+                        '01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 ' +
+                        '5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>';
+                        h += '<span class="text-[10px] font-bold text-emerald-800 uppercase font-mono">' + fileExt + '</span>';
+                        h += '</div>';
+                    }
+
+                    h += '<div>';
+                    h += '<p class="text-[11px] font-bold text-slate-800 truncate" title="' + fileName + '">' + fileName + '</p>';
+                    if (desc) {
+                        h += '<p class="text-[10px] text-slate-500 truncate mt-0.5" title="' + desc + '">' + desc + '</p>';
+                    }
+                    if (fullB64) {
+                        h += '<a href="' + fullB64 + '" download="' + fileName + '" ' +
+                    'class="mt-2 w-full text-[10px] font-bold ' +
+                    'text-teal-700 bg-teal-50 hover:bg-teal-100 ' +
+                    'border border-teal-200 py-1 rounded ' +
+                    'text-center block transition">Download File</a>';
+                    }
+                    h += '</div>';
+                    h += '</div>';
+                });
+
+                h += '</div></div>';
+                return h;
+            }
+
+            function renderBpCard(item) {
+                var catText = (item.bp_category === "1") ? "Person" : "Organization";
+                var roleText = escapeHtml(item.bp_role || "FLVN00");
+                var name1Text = escapeHtml(item.name1 || "-");
+                var name2Text = escapeHtml(item.name2 || "");
+                var stText = escapeHtml(item.search_term || "-");
+                var phoneEmail = escapeHtml(item.telephone || "-") + " | " + escapeHtml(item.email || "-");
+                var streetNum = escapeHtml(item.street || "-") + " " + escapeHtml(item.house_num || "");
+                var cityPost = escapeHtml(item.city || "-") + " " + escapeHtml(item.postal_code || "");
+                var countryRegion = escapeHtml(item.country || "ID") + " (" + escapeHtml(item.region || "-") + ")";
+                var taxNum = escapeHtml(item.tax_num || "-");
+                var bankKeyName = escapeHtml(item.bankl || "-") + " - " + escapeHtml(item.bank_name || "-");
+                var bankAccOwner = escapeHtml(item.bankn || "-") + " (" + escapeHtml(item.koinh || "-") + ")";
+                var bukrsWaers = escapeHtml(item.bukrs || "1000") + " (" + escapeHtml(item.waers || "IDR") + ")";
+                var akontText = escapeHtml(item.akont || "-");
+                var ztermText = escapeHtml(item.zterm || "-");
+
+                var h = '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-xs p-1">';
+
+                // Col 1: General Data
+                h += '<div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 space-y-1.5">';
+                h += '<div class="text-[10px] font-black uppercase tracking-wider text-emerald-800 pb-1 border-b border-slate-200">01. General Data</div>';
+                h += '<div><span class="text-slate-400 text-[10px] block">Category &amp; Role</span>';
+                h += '<span class="font-bold text-slate-800">' + catText + ' (' + roleText + ')</span></div>';
+                h += '<div><span class="text-slate-400 text-[10px] block">Legal Name 1</span>';
+                h += '<span class="font-extrabold text-slate-900">' + name1Text + '</span></div>';
+                if (item.name2) {
+                    h += '<div><span class="text-slate-400 text-[10px] block">Name 2</span>';
+                    h += '<span class="font-semibold text-slate-700">' + name2Text + '</span></div>';
+                }
+                h += '<div><span class="text-slate-400 text-[10px] block">Search Term</span>';
+                h += '<span class="font-mono font-bold text-slate-800">' + stText + '</span></div>';
+                h += '<div><span class="text-slate-400 text-[10px] block">Telepon &amp; Email</span>';
+                h += '<span class="text-slate-700">' + phoneEmail + '</span></div>';
+                if (item.bp_number) {
+                    h += '<div class="mt-1 pt-1 border-t border-slate-200">';
+                    h += '<span class="text-slate-400 text-[10px] block">SAP BP Number</span>';
+                    h += '<span class="font-mono font-extrabold text-emerald-900 bg-emerald-100 "' +
+                        'px-2 py-0.5 rounded text-[11px] inline-block border border-emerald-300">' +
+                        escapeHtml(item.bp_number) + '</span></div>';
+                }
+                h += '</div>';
+
+                // Col 2: Address
+                h += '<div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 space-y-1.5">';
+                h += '<div class="text-[10px] font-black uppercase tracking-wider text-emerald-800 pb-1 border-b border-slate-200">02. Alamat &amp; Lokasi</div>';
+                h += '<div><span class="text-slate-400 text-[10px] block">Jalan &amp; Nomor</span>';
+                h += '<span class="font-semibold text-slate-800">' + streetNum + '</span></div>';
+                h += '<div><span class="text-slate-400 text-[10px] block">Kota &amp; Kode Pos</span>';
+                h += '<span class="font-bold text-slate-900">' + cityPost + '</span></div>';
+                h += '<div><span class="text-slate-400 text-[10px] block">Negara &amp; Region</span>';
+                h += '<span class="font-semibold text-slate-700">' + countryRegion + '</span></div>';
+                h += '</div>';
+
+                // Col 3: Tax & Bank
+                h += '<div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 space-y-1.5">';
+                h += '<div class="text-[10px] font-black uppercase tracking-wider text-emerald-800 pb-1 border-b border-slate-200">03. Perpajakan &amp; Rekening</div>';
+                h += '<div><span class="text-slate-400 text-[10px] block">NPWP / Tax Number</span>';
+                h += '<span class="font-mono font-extrabold text-emerald-900">' + taxNum + '</span></div>';
+                h += '<div><span class="text-slate-400 text-[10px] block">Bank Key &amp; Bank Name</span>';
+                h += '<span class="font-bold text-slate-800">' + bankKeyName + '</span></div>';
+                h += '<div><span class="text-slate-400 text-[10px] block">No Rekening &amp; Pemilik</span>';
+                h += '<span class="font-mono text-slate-800">' + bankAccOwner + '</span></div>';
+                h += '</div>';
+
+                // Col 4: CVI & Audit
+                h += '<div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 space-y-1.5">';
+                h += '<div class="text-[10px] font-black uppercase tracking-wider text-emerald-800 pb-1 border-b border-slate-200">04. CVI Accounting &amp; Audit</div>';
+                h += '<div><span class="text-slate-400 text-[10px] block">Company Code &amp; Currency</span>';
+                h += '<span class="font-mono font-bold text-slate-800">' + bukrsWaers + '</span></div>';
+                h += '<div><span class="text-slate-400 text-[10px] block">Recon Account (AKONT)</span>';
+                h += '<span class="font-mono text-slate-800">' + akontText + '</span></div>';
+                h += '<div><span class="text-slate-400 text-[10px] block">Payment Terms (ZTERM)</span>';
+                h += '<span class="font-mono text-slate-800">' + ztermText + '</span></div>';
+                if (item.stw_data_by) {
+                    h += '<div class="pt-1 border-t border-slate-200">';
+                    h += '<span class="text-slate-400 text-[10px] block">Data Steward</span>';
+                    h += '<span class="font-bold text-emerald-800">' + escapeHtml(item.stw_data_by) + '</span></div>';
+                }
+                if (item.appr_final_by) {
+                    h += '<div class="pt-1 border-t border-slate-200">';
+                    h += '<span class="text-slate-400 text-[10px] block">Final Approver</span>';
+                    h += '<span class="font-bold text-slate-800">' + escapeHtml(item.appr_final_by) + '</span></div>';
+                }
+                h += '</div>';
+                h += '</div>';
+                return h;
+            }
+
+            function renderIrCard(item) {
+                var reqNoEsc = escapeHtml(item.req_no);
+                var vendorInfoEsc = escapeHtml(item.sub_reason || item.remarks);
+                var matGenEsc = escapeHtml(item.matnr_gen || "-");
+
+                var h = '<div class="p-4 rounded-xl border border-purple-200 bg-purple-50/60 text-xs space-y-2 m-1">';
+                h += '<div class="text-[11px] font-black uppercase tracking-wider text-purple-900 pb-1 border-b border-purple-200">Purchasing Info Record (PIR) Detail</div>';
+                h += '<div class="grid grid-cols-1 md:grid-cols-3 gap-3">';
+                h += '<div><span class="text-purple-600 text-[10px] block font-semibold">Request ID</span>';
+                h += '<span class="font-mono font-extrabold text-purple-950">' + reqNoEsc + '</span></div>';
+                h += '<div><span class="text-purple-600 text-[10px] block font-semibold">Vendor &amp; Info Record</span>';
+                h += '<span class="font-bold text-slate-900">' + vendorInfoEsc + '</span></div>';
+                h += '<div><span class="text-purple-600 text-[10px] block font-semibold">Material Code / Ref</span>';
+                h += '<span class="font-mono font-bold text-purple-900">' + matGenEsc + '</span></div>';
+                h += '</div></div>';
+                return h;
+            }
+
+            function fetchBatchDetail(reqNo, callback) {
+                var container = document.getElementById("expand_content_" + reqNo);
                 var formData = new FormData();
                 formData.append("REQ_NO", reqNo);
 
                 fetch("?action=GET_UPLOAD_DETAIL", { method: "POST", body: formData })
-                .then(res => res.json())
-                .then(data => {
-                    loadedBatchDetails[reqNo] = data || [];
-                    renderExpandDetailTable(reqNo, loadedBatchDetails[reqNo]);
+                .then(function(res) { return res.json(); })
+                .then(function(resp) {
+                    var items = [];
+                    var atts = [];
+                    if (Array.isArray(resp)) {
+                        items = resp;
+                    } else if (resp && typeof resp === 'object') {
+                        items = resp.items || resp.details || resp.data || [];
+                        atts = resp.attachments || resp.files || [];
+                    }
+                    loadedBatchDetails[reqNo] = items;
+                    loadedBatchAttachments[reqNo] = atts;
+                    if (typeof callback === "function") {
+                        callback();
+                    } else {
+                        renderExpandDetailTable(reqNo, items, atts);
+                    }
                 })
-                .catch(() => {
-                    container.innerHTML = '<div class="p-3 text-center text-red-500 font-semibold italic text-xs">Failed to load items.</div>';
+                .catch(function(err) {
+                    console.error("Fetch detail error:", err);
+                    loadedBatchDetails[reqNo] = [];
+                    loadedBatchAttachments[reqNo] = [];
+                    if (typeof callback === "function") callback();
+                    else if (container) {
+                        container.innerHTML = '<div class="p-3 text-center text-rose-500 font-semibold italic text-xs">Failed to load items.</div>';
+                    }
                 });
             }
 
@@ -866,12 +2239,128 @@ outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 bg-
                 { label: 'Indicator: Multiple Specifications', width: '190px', align: 'center' }
             ];
 
-            function renderExpandDetailTable(reqNo, items) {
+            function renderExpandDetailTable(reqNo, items, attachments) {
                 var container = document.getElementById("expand_content_" + reqNo);
                 if (!container) return;
 
+                if (!attachments) attachments = loadedBatchAttachments[reqNo] || [];
+                var reqNoEsc = escapeHtml(reqNo);
+
+                container.innerHTML = "";
+
+                if (attachments && attachments.length > 0) {
+                    var galleryDiv = document.createElement("div");
+                    galleryDiv.className = "mb-4 bg-white border border-slate-200 rounded-2xl p-4 shadow-2xs";
+
+                    var gHdr = document.createElement("div");
+                    gHdr.className = "flex items-center justify-between border-b border-slate-100 pb-2.5 mb-3";
+
+                    var gHdrStr = '';
+                    gHdrStr += '<div class="flex items-center gap-2">';
+                    gHdrStr += '<span class="w-6 h-6 rounded-lg bg-teal-100 text-teal-800 flex items-center justify-center font-bold text-xs">';
+                    gHdrStr += '<svg class="w-4 h-4 text-teal-700" fill="none" ' +
+                    'stroke="currentColor" viewBox="0 0 24 24">' +
+                    '<path stroke-linecap="round" stroke-linejoin="round" ' +
+                    'stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 ' +
+                    '102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 ' +
+                    '6.585a6 6 0 108.486 8.486L20.5 13"></path></svg>';
+                    gHdrStr += '</span>';
+                    gHdrStr += '<h3 class="text-xs font-black text-slate-800 uppercase tracking-wider">File Attachment Pendukung Requester (ZMDG_REQ_ATT)</h3>';
+                    gHdrStr += '</div>';
+                    gHdrStr += '<span class="text-[10px] font-extrabold bg-teal-50 ' +
+                        'text-teal-700 border border-teal-200 px-2.5 py-0.5 rounded-full">' +
+                        attachments.length + ' File Attachment</span>';
+                    gHdr.innerHTML = gHdrStr;
+                    galleryDiv.appendChild(gHdr);
+
+                    var gGrid = document.createElement("div");
+                    gGrid.className = "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3";
+
+                    attachments.forEach(function(att, idx) {
+                        var rawB64 = att.file_base64 || '';
+                        var fullB64 = rawB64;
+                        if (rawB64 && !rawB64.startsWith('data:')) {
+                            var mime = att.file_type || 'image/jpeg';
+                            if (mime && mime.indexOf('/') === -1) {
+                                var lowerMime = mime.toLowerCase();
+                                if (lowerMime === 'png') mime = 'image/png';
+                                else if (lowerMime === 'jpg' || lowerMime === 'jpeg') mime = 'image/jpeg';
+                                else if (lowerMime === 'gif') mime = 'image/gif';
+                                else if (lowerMime === 'webp') mime = 'image/webp';
+                                else mime = 'image/' + lowerMime;
+                            }
+                            fullB64 = 'data:' + mime + ';base64,' + rawB64;
+                        }
+                        var isImg = isImageFile(att.file_name, att.file_type) || fullB64.startsWith('data:image');
+                        var fileName = escapeHtml(att.file_name || ('Attachment_' + (idx + 1)));
+                        var desc = escapeHtml(att.description || '');
+
+                        var card = document.createElement("div");
+                        card.className = "bg-slate-50 border border-slate-200 " +
+                            "rounded-xl p-2.5 flex flex-col justify-between " +
+                            "hover:border-teal-500/50 transition shadow-2xs group relative";
+
+                        var cardBodyHtml = '';
+                        if (isImg && fullB64) {
+                            cardBodyHtml += '<div class="h-24 w-full bg-slate-200/60 rounded-lg overflow-hidden flex items-center ' +
+                                'justify-center mb-2 cursor-pointer relative group-hover:opacity-95" ';
+                            cardBodyHtml += 'data-action="open-mm-preview" ';
+                            cardBodyHtml += 'data-src="' + fullB64 + '" ';
+                            cardBodyHtml += 'data-caption="' + fileName + '" ';
+                            cardBodyHtml += 'data-req-no="' + reqNoEsc + '" ';
+                            cardBodyHtml += 'data-idx="' + idx + '">';
+                            cardBodyHtml += '<img src="' + fullB64 + '" alt="' + fileName + '" class="w-full h-full object-cover transition transform group-hover:scale-105">';
+                            cardBodyHtml += '<div class="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition ' +
+                                'flex items-center justify-center text-white text-xs font-bold gap-1">';
+                            cardBodyHtml += '<svg class="w-4 h-4" fill="none" stroke="currentColor" ' +
+                        'viewBox="0 0 24 24"><path stroke-linecap="round" ' +
+                        'stroke-linejoin="round" stroke-width="2" ' +
+                        'd="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path ' +
+                        'stroke-linecap="round" stroke-linejoin="round" ' +
+                        'stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 ' +
+                        '12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 ' +
+                        '7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg> View</div>';
+                            cardBodyHtml += '</div>';
+                        } else {
+                            var fileExt = att.file_type ? (att.file_type.split('/')[1] || 'PDF') : 'PDF';
+                            fileExt = escapeHtml(fileExt.toUpperCase());
+                            cardBodyHtml += '<div class="h-24 w-full bg-emerald-50/80 rounded-lg flex flex-col items-center justify-center p-2 mb-2 border border-emerald-100">';
+                            cardBodyHtml += '<svg class="w-8 h-8 text-emerald-600 mb-1" fill="none" ' +
+                        'stroke="currentColor" viewBox="0 0 24 24"><path ' +
+                        'stroke-linecap="round" stroke-linejoin="round" ' +
+                        'stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 ' +
+                        '01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 ' +
+                        '5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>';
+                            cardBodyHtml += '<span class="text-[10px] font-bold text-emerald-800 uppercase font-mono">' + fileExt + '</span>';
+                            cardBodyHtml += '</div>';
+                        }
+
+                        cardBodyHtml += '<div>';
+                        cardBodyHtml += '<p class="text-[11px] font-bold text-slate-800 truncate" title="' + fileName + '">' + fileName + '</p>';
+                        if (desc) {
+                            cardBodyHtml += '<p class="text-[10px] text-slate-500 truncate mt-0.5" title="' + desc + '">' + desc + '</p>';
+                        }
+                        if (fullB64) {
+                            cardBodyHtml += '<a href="' + fullB64 + '" download="' + fileName + '" ' +
+                        'class="mt-2 w-full text-[10px] font-bold ' +
+                        'text-teal-700 bg-teal-50 hover:bg-teal-100 ' +
+                        'border border-teal-200 py-1 rounded ' +
+                        'text-center block transition">Download File</a>';
+                        }
+                        cardBodyHtml += '</div>';
+
+                        card.innerHTML = cardBodyHtml;
+                        gGrid.appendChild(card);
+                    });
+
+                    galleryDiv.appendChild(gGrid);
+                    container.appendChild(galleryDiv);
+                }
+
                 if (!items || items.length === 0) {
-                    container.innerHTML = '<div class="p-4 text-center text-slate-400 italic text-xs">No items found.</div>';
+                    if (!attachments || attachments.length === 0) {
+                        container.innerHTML = '<div class="p-4 text-center text-slate-400 italic text-xs">No items or attachments found.</div>';
+                    }
                     return;
                 }
 
@@ -1064,9 +2553,374 @@ outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 bg-
                 });
 
                 table.appendChild(tbody);
-                container.innerHTML = "";
                 container.appendChild(table);
             }
+
+            // LIGHTBOX MODAL IMAGE ZOOM & PAN LOGIC
+            var currentMmZoom = 1;
+            var mmPanX = 0;
+            var mmPanY = 0;
+            var isMmDragging = false;
+            var startMmDragX = 0;
+            var startMmDragY = 0;
+
+            function applyMmImageTransform(animate) {
+                var target = document.getElementById("mmImagePreviewTarget");
+                var zoomLabel = document.getElementById("mmImageZoomLevel");
+                var viewport = document.getElementById("mmImagePreviewViewport");
+                if (!target) return;
+
+                target.style.transition = animate ? "transform 0.15s ease-out" : "none";
+                target.style.transform = "scale(" + currentMmZoom + ") translate(" + (mmPanX / currentMmZoom) + "px, " + (mmPanY / currentMmZoom) + "px)";
+
+                if (zoomLabel) {
+                    zoomLabel.innerText = Math.round(currentMmZoom * 100) + "%";
+                }
+                if (viewport) {
+                    viewport.style.cursor = (currentMmZoom > 1) ? (isMmDragging ? "grabbing" : "grab") : "default";
+                }
+            }
+
+            function changeMmImageZoom(delta) {
+                var newZoom = currentMmZoom + delta;
+                newZoom = Math.min(Math.max(newZoom, 0.5), 5.0);
+                if (newZoom <= 1) { mmPanX = 0; mmPanY = 0; }
+                currentMmZoom = Math.round(newZoom * 100) / 100;
+                applyMmImageTransform(true);
+            }
+
+            function setMmImageZoom(targetZoom) {
+                currentMmZoom = Math.min(Math.max(targetZoom, 0.5), 5.0);
+                if (currentMmZoom <= 1) { mmPanX = 0; mmPanY = 0; }
+                applyMmImageTransform(true);
+            }
+
+            function resetMmImageZoom() {
+                currentMmZoom = 1;
+                mmPanX = 0;
+                mmPanY = 0;
+                applyMmImageTransform(true);
+            }
+
+            function previewMmImage(src, caption) {
+                var modal = document.getElementById("mmImagePreviewModal");
+                var target = document.getElementById("mmImagePreviewTarget");
+                var cap = document.getElementById("mmImagePreviewCaption");
+                if (!modal || !target) return;
+                target.src = src;
+                if (cap) cap.innerText = caption || "Attachment Image";
+                resetMmImageZoom();
+                modal.classList.remove("hidden");
+            }
+
+            function closeMmImagePreview() {
+                var modal = document.getElementById("mmImagePreviewModal");
+                if (modal) modal.classList.add("hidden");
+                resetMmImageZoom();
+            }
+
+            function previewMmImageByIdx(reqNo, idx) {
+                var atts = loadedBatchAttachments[reqNo] || [];
+                var att = atts[idx];
+                if (!att) return;
+                var rawB64 = att.file_base64 || '';
+                var fullB64 = rawB64;
+                if (rawB64 && !rawB64.startsWith('data:')) {
+                    var mime = att.file_type || 'image/jpeg';
+                    if (mime && mime.indexOf('/') === -1) {
+                        var lowerMime = mime.toLowerCase();
+                        if (lowerMime === 'png') mime = 'image/png';
+                        else if (lowerMime === 'jpg' || lowerMime === 'jpeg') mime = 'image/jpeg';
+                        else if (lowerMime === 'gif') mime = 'image/gif';
+                        else if (lowerMime === 'webp') mime = 'image/webp';
+                        else mime = 'image/' + lowerMime;
+                    }
+                    fullB64 = 'data:' + mime + ';base64,' + rawB64;
+                }
+                previewMmImage(fullB64, att.file_name || 'Attachment Image');
+            }
+
+            function initMmImageZoomEvents() {
+                var viewport = document.getElementById("mmImagePreviewViewport");
+                if (!viewport) return;
+
+                viewport.addEventListener("wheel", function (e) {
+                    var modal = document.getElementById("mmImagePreviewModal");
+                    if (modal && !modal.classList.contains("hidden")) {
+                        e.preventDefault();
+                        var delta = e.deltaY < 0 ? 0.25 : -0.25;
+                        changeMmImageZoom(delta);
+                    }
+                }, { passive: false });
+
+                viewport.addEventListener("mousedown", function (e) {
+                    if (currentMmZoom > 1) {
+                        isMmDragging = true;
+                        startMmDragX = e.clientX - mmPanX;
+                        startMmDragY = e.clientY - mmPanY;
+                        viewport.style.cursor = "grabbing";
+                        e.preventDefault();
+                    }
+                });
+
+                window.addEventListener("mousemove", function (e) {
+                    if (isMmDragging && currentMmZoom > 1) {
+                        mmPanX = e.clientX - startMmDragX;
+                        mmPanY = e.clientY - startMmDragY;
+                        applyMmImageTransform(false);
+                    }
+                });
+
+                window.addEventListener("mouseup", function () {
+                    if (isMmDragging) {
+                        isMmDragging = false;
+                        var vp = document.getElementById("mmImagePreviewViewport");
+                        if (vp) vp.style.cursor = (currentMmZoom > 1) ? "grab" : "default";
+                    }
+                });
+
+                viewport.addEventListener("dblclick", function (e) {
+                    e.preventDefault();
+                    if (currentMmZoom === 1) {
+                        changeMmImageZoom(1.0);
+                    } else {
+                        resetMmImageZoom();
+                    }
+                });
+            }
+
+            document.addEventListener("click", function (e) {
+                var card = e.target.closest('[data-action="open-mm-preview"]');
+                if (card) {
+                    var img = card.querySelector("img");
+                    var src = card.getAttribute("data-src") || (img ? img.src : "");
+                    var caption = card.getAttribute("data-caption") || "Attachment Image";
+                    if (src) {
+                        previewMmImage(src, caption);
+                    } else {
+                        var reqNo = card.getAttribute("data-req-no");
+                        var idx = parseInt(card.getAttribute("data-idx"), 10);
+                        if (reqNo && !isNaN(idx)) {
+                            previewMmImageByIdx(reqNo, idx);
+                        }
+                    }
+                }
+            });
+
+            document.addEventListener("keydown", function (e) {
+                var modal = document.getElementById("mmImagePreviewModal");
+                if (modal && !modal.classList.contains("hidden")) {
+                    if (e.key === "Escape") {
+                        closeMmImagePreview();
+                        e.stopPropagation();
+                    } else if (e.key === "+" || e.key === "=") {
+                        changeMmImageZoom(0.25);
+                        e.stopPropagation();
+                    } else if (e.key === "-") {
+                        changeMmImageZoom(-0.25);
+                        e.stopPropagation();
+                    }
+                }
+            });
         </script>
-    </body>
+
+    <!-- LIGHTBOX MODAL PREVIEW GAMBAR ATTACHMENT -->
+    <div
+       id="mmImagePreviewModal"
+        class="hidden fixed inset-0 z-[11000] flex items-center justify-center
+               bg-slate-950/85 backdrop-blur-xl p-3 sm:p-6 transition-all"
+        onclick="closeMmImagePreview()">
+        <div
+
+            class="relative max-w-6xl w-full max-h-[96vh] bg-slate-900 border
+                   border-slate-700/80 rounded-3xl p-5 shadow-2xl flex flex-col
+                   items-center backdrop-blur-md"
+            onclick="event.stopPropagation()">
+
+            <!-- HEADER BAR -->
+            <div
+
+                class="w-full flex items-center justify-between pb-3 mb-3 border-b
+                       border-slate-800 flex-wrap gap-2">
+                <div class="flex items-center gap-3">
+                    <div
+
+                        class="w-10 h-10 rounded-2xl bg-emerald-500/20 border
+                               border-emerald-500/30 flex items-center justify-center
+                               text-emerald-400 text-lg font-bold shadow-xs">
+                        <svg class="w-5 h-5 text-emerald-400" fill="none"
+                             stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2
+
+                            class="text-base sm:text-lg font-extrabold text-white
+                                   tracking-tight flex items-center gap-2">
+                            <span>Pratinjau Dokumen Attachment</span>
+                            <span
+
+                                class="bg-emerald-500/20 text-emerald-300 text-xs
+                                       font-bold px-2.5 py-0.5 rounded-full border
+                                       border-emerald-500/30">
+                            Zoom Active</span>
+                        </h2>
+                    </div>
+                </div>
+
+                <button
+                   type="button" onclick="closeMmImagePreview()"
+                    class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white
+                           font-extrabold text-xs sm:text-sm rounded-xl shadow-lg
+                           border border-rose-400/50 flex items-center gap-2
+                           transition cursor-pointer active:scale-95">
+                    <svg
+                       class="w-4 h-4 sm:w-5 sm:h-5" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                       stroke-linecap="round" stroke-linejoin="round"
+                        stroke-width="2.5" d="M6 18L18 6M6 6l12 12">
+                    </svg>
+                    <span>Tutup (ESC)</span>
+                </button>
+            </div>
+
+            <!-- TOOLBAR: ZOOM CONTROLS -->
+            <div
+
+                class="w-full flex flex-wrap items-center justify-between gap-3 mb-3
+                       p-2 bg-slate-950/80 border border-slate-800 rounded-2xl
+                       shadow-inner">
+                <div class="flex items-center gap-2">
+                    <button
+                       type="button" onclick="changeMmImageZoom(-0.25)"
+                        class="px-3.5 py-2 flex items-center gap-1.5 text-white
+                               bg-slate-800 hover:bg-slate-700 border
+                               border-slate-600 rounded-xl transition cursor-pointer
+                               font-bold text-xs sm:text-sm active:scale-95"
+                        title="Perkecil (-)">
+                        <svg
+                           class="w-4 h-4 text-slate-300" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                           stroke-linecap="round" stroke-linejoin="round"
+                            stroke-width="3" d="M20 12H4">
+                        </svg>
+                        <span>-</span>
+                    </button>
+
+                    <span
+                       id="mmImageZoomLevel"
+                        class="text-sm sm:text-base font-mono font-black
+                               text-emerald-400 bg-slate-900 border
+                               border-emerald-500/30 px-3.5 py-1.5 rounded-xl
+                               min-w-[75px] text-center shadow-xs select-none">
+                    100%</span>
+
+                    <button
+                       type="button" onclick="changeMmImageZoom(0.25)"
+                        class="px-3.5 py-2 flex items-center gap-1.5 text-white
+                               bg-emerald-600 hover:bg-emerald-500 border
+                               border-emerald-400/50 rounded-xl transition
+                               cursor-pointer font-extrabold text-xs sm:text-sm
+                               shadow-md active:scale-95"
+                        title="Perbesar (+)">
+                        <svg
+                           class="w-4 h-4 text-white" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                           stroke-linecap="round" stroke-linejoin="round"
+                            stroke-width="3" d="M12 4v16m8-8H4">
+                        </svg>
+                        <span>+</span>
+                    </button>
+
+                    <button
+                       type="button" onclick="resetMmImageZoom()"
+                        class="px-3.5 py-2 text-xs sm:text-sm font-bold
+                               text-slate-300 hover:text-white bg-slate-800
+                               hover:bg-slate-700 border border-slate-700 rounded-xl
+                               transition cursor-pointer active:scale-95 select-none"
+                        title="Reset ke Ukuran Normal">
+                        ↺ Normal
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-1.5 overflow-x-auto py-0.5">
+                    <button
+                       type="button" onclick="setMmImageZoom(1.0)"
+                        class="px-3 py-1.5 text-xs font-bold text-slate-200
+                               bg-slate-800 hover:bg-slate-700 border
+                               border-slate-700 rounded-lg transition cursor-pointer
+                               select-none">
+                    100%</button>
+                    <button
+                       type="button" onclick="setMmImageZoom(1.5)"
+                        class="px-3 py-1.5 text-xs font-bold text-emerald-300
+                               bg-slate-800 hover:bg-emerald-950/60 border
+                               border-emerald-700/50 rounded-lg transition
+                               cursor-pointer select-none">
+                    150%</button>
+                    <button
+                       type="button" onclick="setMmImageZoom(2.0)"
+                        class="px-3 py-1.5 text-xs font-bold text-emerald-300
+                               bg-slate-800 hover:bg-emerald-950/60 border
+                               border-emerald-700/50 rounded-lg transition
+                               cursor-pointer select-none">
+                    200%</button>
+                    <button
+                       type="button" onclick="setMmImageZoom(3.0)"
+                        class="px-3 py-1.5 text-xs font-bold text-emerald-300
+                               bg-slate-800 hover:bg-emerald-950/60 border
+                               border-emerald-700/50 rounded-lg transition
+                               cursor-pointer select-none">
+                    300%</button>
+                </div>
+            </div>
+
+            <!-- IMAGE VIEWPORT CONTAINER -->
+            <div
+               id="mmImagePreviewViewport"
+                class="w-full h-[65vh] sm:h-[68vh] flex items-center justify-center
+                       overflow-hidden rounded-2xl bg-slate-950 p-3 border
+                       border-slate-800 relative select-none shadow-inner">
+                <img
+                   id="mmImagePreviewTarget" src="" alt="Preview Dokumen"
+                    class="max-h-full max-w-full object-contain rounded-xl shadow-md
+                           transition-transform duration-150 ease-out origin-center"
+                    style="transform: scale(1) translate(0px, 0px);">
+            </div>
+
+            <!-- FOOTER BAR -->
+            <div
+
+                class="w-full flex items-center justify-between mt-3 pt-2 border-t
+                       border-slate-800 flex-wrap gap-2">
+                <div class="flex items-center gap-2 max-w-[70%]">
+                    <svg class="w-4 h-4 text-emerald-400 flex-shrink-0" fill="none"
+                         stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    <p
+                       id="mmImagePreviewCaption"
+                         class="text-xs sm:text-sm font-bold text-emerald-300
+                          font-mono truncate max-w-full">
+                    </p>
+                </div>
+
+                <button
+                   type="button" onclick="closeMmImagePreview()"
+                    class="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200
+                           font-bold text-xs rounded-xl border border-slate-700
+                           transition cursor-pointer active:scale-95">
+                    Tutup Window
+                </button>
+            </div>
+        </div>
+    </div>
+
+</body>
     </html>
