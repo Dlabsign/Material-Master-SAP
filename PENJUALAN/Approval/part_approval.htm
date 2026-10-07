@@ -179,7 +179,7 @@
 
     <div class="flex min-h-screen">
         <!-- REUSABLE SIDEBAR PAGE FRAGMENT -->
-        <%@include file="sidebar.htm" %>
+        <%@include file="sidebar_penjualan.htm" %>
 
         <!-- MAIN CONTENT AREA -->
         <div class="flex-1 min-w-0 flex flex-col">
@@ -372,44 +372,48 @@ items-center gap-1.5">
             </main>
 
             <!-- APPROVAL CONFIRMATION MODAL POPUP -->
-<div id="approveConfirmModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[10000] hidden flex
-                items-center justify-center p-4">
-<div class="bg-white rounded-2xl shadow-2xl border border-slate-100 max-w-md w-full overflow-hidden transform
-                    transition-all">
-                    <div class="bg-emerald-50 border-b border-emerald-100 px-6 py-4 flex items-center justify-between">
-<h3 class="text-xs font-extrabold text-emerald-900 uppercase tracking-wider flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                            Konfirmasi Approval
+            <div id="approveConfirmModal"
+              class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[10000] hidden flex items-center justify-center p-4">
+                <div class="bg-white rounded-2xl shadow-2xl border border-slate-100 max-w-4xl w-full overflow-hidden transform transition-all flex flex-col max-h-[90vh]">
+                    <div class="bg-emerald-700 text-white px-6 py-4 flex items-center justify-between shadow-md shrink-0">
+                        <h3 class="text-xs font-extrabold uppercase tracking-wider flex items-center gap-2 text-white">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-300 animate-pulse"></span>
+                            Konfirmasi Approval Request
                         </h3>
-                        <button type="button" onclick="cancelApproveConfirm()" class="w-7 h-7 rounded-lg bg-white hover:bg-slate-100 text-slate-400 hover:text-slate-700 font-bold text-base flex items-center justify-center transition border
-border-slate-200 cursor-pointer">&times;</button>
+                        <button type="button" id="btnCloseApproveModalX" onclick="cancelApproveConfirm()"
+                          class="w-7 h-7 rounded-lg bg-emerald-800 hover:bg-emerald-900 text-emerald-100 font-bold text-base flex items-center justify-center transition border border-emerald-600 cursor-pointer">&times;</button>
                     </div>
-                    <div class="p-6 space-y-4">
-<div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-xl
-                            font-black mx-auto shadow-inner border border-emerald-200">
-                            ?
-                        </div>
-                        <div class="text-center space-y-1.5">
-<h4 class="text-sm font-extrabold text-slate-900">Apakah Anda yakin ingin memproses Approval ini?</h4>
-                            <p class="text-xs text-slate-500 font-medium leading-relaxed">
-                                Data request yang dipilih akan divalidasi dan langsung di-upload ke SAP S/4HANA Master Data.
-                            </p>
-                        </div>
-<div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-xs font-mono text-slate-700 space-y-1">
-                            <div class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider font-sans">
-                                Dokumen / Data yang di-Approve:
+                    <div class="p-6 space-y-4 overflow-y-auto flex-1 bg-slate-50/50">
+                        <div class="flex items-center gap-3 bg-emerald-50 p-4 rounded-xl border border-emerald-200">
+                            <div class="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center text-lg font-black shrink-0 shadow-xs">
+                                &#10003;
                             </div>
-<div id="confirmApproveDocList" class="font-bold text-emerald-800 break-all leading-snug"></div>
+                            <div>
+                                <h4 class="text-sm font-extrabold text-slate-900">Apakah Anda yakin ingin memproses Approval ini?</h4>
+                                <p class="text-xs text-slate-600 font-medium leading-relaxed mt-0.5">
+                                    Data request di bawah ini akan divalidasi dan dikirim langsung ke SAP S/4HANA Master Data.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Data Preview Section -->
+                        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs space-y-3">
+                            <div class="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider flex items-center justify-between">
+                                <span>Detail Data yang akan di-Approve:</span>
+                                <span id="confirmApproveBadgeCount" class="bg-emerald-100 text-emerald-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-emerald-200"></span>
+                            </div>
+                            <div id="confirmApprovePreviewContainer" class="max-h-[320px] overflow-y-auto overflow-x-auto border border-slate-200 rounded-lg">
+                                <!-- Data Table rendered dynamically -->
+                            </div>
                         </div>
                     </div>
-                    <div class="bg-slate-50 px-6 py-4 border-t border-slate-200 flex justify-end gap-2">
-<button type="button" id="btnCancelApproveModal" onclick="cancelApproveConfirm()" class="px-4 py-2
-                            rounded-full text-xs font-bold border border-slate-200 bg-white hover:bg-slate-100
-                            text-slate-700 transition cursor-pointer">
+                    <div class="bg-slate-100 px-6 py-4 border-t border-slate-200 flex justify-end gap-2 shrink-0">
+                        <button type="button" id="btnCancelApproveModal" onclick="cancelApproveConfirm()"
+                          class="px-5 py-2 rounded-full text-xs font-bold border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 transition cursor-pointer">
                             Batal
                         </button>
-                        <button type="button" id="btnExecuteApproveModal" onclick="executeConfirmedApprove()" class="px-5 py-2 rounded-full text-xs font-extrabold bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs transition flex items-center
-gap-1.5 cursor-pointer">
+                        <button type="button" id="btnExecuteApproveModal" onclick="executeConfirmedApprove()"
+                          class="px-6 py-2 rounded-full text-xs font-extrabold bg-emerald-600 hover:bg-emerald-700 text-white shadow-md transition flex items-center gap-2 cursor-pointer">
                             <span id="btnExecuteApproveText">Ya, Approve Sekarang</span>
                         </button>
                     </div>
@@ -1471,6 +1475,93 @@ cursor-pointer">&times;</button>
                 var pendingApprovalData = { mode: 'SINGLE', reqNo: '', reqNos: [] };
                 var isApprovingInProgress = false;
 
+                function buildConfirmApprovePreviewHtml(reqNos) {
+                    if (!reqNos || reqNos.length === 0) {
+                        return '<div class="p-4 text-center text-slate-400 italic text-xs">Tidak ada data dipilih.</div>';
+                    }
+
+                    var html = '<table class="w-full text-[11px] border-collapse min-w-[700px] bg-white">';
+                    html += '<thead><tr class="bg-slate-100 text-slate-500 font-extrabold uppercase tracking-wider text-[10px] border-b border-slate-200">';
+                    html += '<th class="p-2 text-center" style="width: 35px;">NO</th>';
+                    html += '<th class="p-2 text-left" style="width: 140px;">REQ NO</th>';
+                    html += '<th class="p-2 text-left">KODE PART</th>';
+                    html += '<th class="p-2 text-left">DESKRIPSI MATERIAL</th>';
+                    html += '<th class="p-2 text-left">DIMENSI</th>';
+                    html += '<th class="p-2 text-center" style="width: 55px;">PLANT</th>';
+                    html += '<th class="p-2 text-center" style="width: 55px;">S.LOC</th>';
+                    html += '<th class="p-2 text-center" style="width: 70px;">MRP GRP</th>';
+                    html += '</tr></thead><tbody class="divide-y divide-slate-100">';
+
+                    var rowIdx = 1;
+                    reqNos.forEach(function (rNo) {
+                        var items = loadedBatchDetails[rNo] || [];
+                        var hdr = fullStagingData.find(function (x) { return x.req_no === rNo; });
+
+                        if (items && items.length > 0) {
+                            items.forEach(function (item) {
+                                var codeStr = escapeHtml(item.code_num || item.ferth || '-');
+                                var descStr = escapeHtml(item.maktx || item.description || '-');
+                                var dimStr = escapeHtml(item.groes || item.groes_raw || '-');
+                                var werksStr = escapeHtml(item.werks || '1000');
+                                var lgortStr = escapeHtml(item.lgort1 || item.lgort || '-');
+                                var disgrStr = escapeHtml(item.disgr || 'ZRND');
+
+                                html += '<tr class="hover:bg-slate-50 transition-colors">';
+                                html += '<td class="p-2 text-center font-mono text-slate-400 font-semibold">' + (rowIdx++) + '</td>';
+                                html += '<td class="p-2 font-mono font-bold text-emerald-800 text-[10px]">' + escapeHtml(rNo) + '</td>';
+                                html += '<td class="p-2 font-mono font-bold text-slate-800">' + codeStr + '</td>';
+                                html += '<td class="p-2 font-bold text-slate-900 truncate max-w-[200px]" title="' + descStr + '">' + descStr + '</td>';
+                                html += '<td class="p-2 font-mono text-slate-600">' + dimStr + '</td>';
+                                html += '<td class="p-2 text-center font-mono text-slate-600">' + werksStr + '</td>';
+                                html += '<td class="p-2 text-center font-mono text-slate-600">' + lgortStr + '</td>';
+                                html += '<td class="p-2 text-center font-mono text-slate-600">' + disgrStr + '</td>';
+                                html += '</tr>';
+                            });
+                        } else if (hdr) {
+                            var subReason = escapeHtml(hdr.sub_reason || hdr.remarks || 'Permintaan Part Request');
+                            var reqName = escapeHtml(hdr.requestor_name || hdr.requestor || '-');
+                            html += '<tr class="hover:bg-slate-50 transition-colors">';
+                            html += '<td class="p-2 text-center font-mono text-slate-400 font-semibold">' + (rowIdx++) + '</td>';
+                            html += '<td class="p-2 font-mono font-bold text-emerald-800 text-[10px]">' + escapeHtml(rNo) + '</td>';
+                            html += '<td class="p-2 font-mono text-slate-600" colspan="2"><span class="font-bold text-slate-800">' + subReason + '</span> (Req: ' + reqName + ')</td>';
+                            html += '<td class="p-2 font-mono text-slate-400">-</td>';
+                            html += '<td class="p-2 text-center font-mono text-slate-400">1000</td>';
+                            html += '<td class="p-2 text-center font-mono text-slate-400">-</td>';
+                            html += '<td class="p-2 text-center font-mono text-slate-400">ZRND</td>';
+                            html += '</tr>';
+                        }
+                    });
+
+                    html += '</tbody></table>';
+                    return html;
+                }
+
+                function fetchBatchDetailForConfirm(reqNo) {
+                    var formData = new FormData();
+                    formData.append("REQ_NO", reqNo);
+
+                    fetch("?action=GET_UPLOAD_DETAIL", { method: "POST", body: formData })
+                        .then(function (res) { return res.json(); })
+                        .then(function (resp) {
+                            var items = [];
+                            var atts = [];
+                            if (Array.isArray(resp)) {
+                                items = resp;
+                            } else if (resp && typeof resp === 'object') {
+                                items = resp.items || resp.details || resp.data || [];
+                                atts = resp.attachments || resp.files || [];
+                            }
+                            loadedBatchDetails[reqNo] = items;
+                            loadedBatchAttachments[reqNo] = atts;
+
+                            var container = document.getElementById("confirmApprovePreviewContainer");
+                            if (container && pendingApprovalData.reqNos && pendingApprovalData.reqNos.indexOf(reqNo) !== -1) {
+                                container.innerHTML = buildConfirmApprovePreviewHtml(pendingApprovalData.reqNos);
+                            }
+                        })
+                        .catch(function () {});
+                }
+
                 function openApproveConfirm(mode, singleReqNo) {
                     if (isApprovingInProgress) return;
 
@@ -1490,17 +1581,28 @@ cursor-pointer">&times;</button>
                     pendingApprovalData.reqNo = singleReqNo || '';
                     pendingApprovalData.reqNos = docList;
 
-                    var docListEl = document.getElementById("confirmApproveDocList");
-                    if (docListEl) {
-                        docListEl.innerText = docList.join(", ");
+                    var badgeCount = document.getElementById("confirmApproveBadgeCount");
+                    if (badgeCount) {
+                        badgeCount.innerText = docList.length + " Request";
+                    }
+
+                    var container = document.getElementById("confirmApprovePreviewContainer");
+                    if (container) {
+                        container.innerHTML = buildConfirmApprovePreviewHtml(docList);
                     }
 
                     var modal = document.getElementById("approveConfirmModal");
                     if (modal) modal.classList.remove("hidden");
+
+                    docList.forEach(function (rNo) {
+                        if (!loadedBatchDetails[rNo]) {
+                            fetchBatchDetailForConfirm(rNo);
+                        }
+                    });
                 }
 
-                function cancelApproveConfirm() {
-                    if (isApprovingInProgress) return;
+                function cancelApproveConfirm(force) {
+                    if (isApprovingInProgress && !force) return;
                     var modal = document.getElementById("approveConfirmModal");
                     if (modal) modal.classList.add("hidden");
                 }
@@ -1536,22 +1638,32 @@ cursor-pointer">&times;</button>
 
                 function buildMaterialListHtml(materials) {
                     if (!materials || materials.length === 0) return '';
-                    var html = '<div class="mt-3 p-3.5 bg-emerald-50/90 border border-emerald-200 ' +
-                               'rounded-xl text-left shadow-2xs">';
-                    html += '<div class="text-[11px] font-extrabold text-emerald-900 uppercase ' +
-                            'tracking-wider mb-2 flex items-center justify-between">';
-                    html += '<span>Daftar Kode Material yang Berhasil Diproses:</span>';
-                    html += '<span class="bg-emerald-200/90 text-emerald-950 px-2 py-0.5 ' +
-                            'rounded-full text-[10px] font-extrabold border border-emerald-300">' +
-                            materials.length + ' Material</span>';
+                    var html = '<div class="mt-3 p-4 bg-emerald-50/90 border border-emerald-200 ';
+                    html += 'rounded-xl text-left shadow-2xs">';
+                    html += '<div class="text-[11px] font-extrabold text-emerald-950 uppercase ';
+                    html += 'tracking-wider mb-2.5 flex items-center justify-between">';
+                    html += '<span class="flex items-center gap-1.5">';
+                    html += '<svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" ';
+                    html += 'viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" ';
+                    html += 'stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> ';
+                    html += 'Kode Material SAP yang Berhasil Dibuat:</span>';
+                    html += '<span class="bg-emerald-200 text-emerald-950 px-2.5 py-0.5 rounded-full ';
+                    html += 'text-[10px] font-extrabold border border-emerald-300">' + materials.length + ' Material</span>';
                     html += '</div>';
                     html += '<div class="flex flex-wrap gap-2 max-h-48 overflow-y-auto p-1 text-xs">';
                     materials.forEach(function (mat) {
-                        html += '<span class="inline-flex items-center gap-1.5 px-3 py-1 bg-white ' +
-                                'border border-emerald-400 text-emerald-950 font-mono font-bold ' +
-                                'rounded-lg shadow-2xs select-all hover:bg-emerald-100 transition">' +
-                                '<span class="w-2 h-2 rounded-full bg-emerald-500"></span>' +
-                                escapeHtml(mat) + '</span>';
+                        var matEsc = escapeHtml(mat);
+                        html += '<span class="inline-flex items-center gap-2 px-3 py-1.5 bg-white ';
+                        html += 'border border-emerald-400 text-emerald-950 font-mono font-bold ';
+                        html += 'rounded-lg shadow-2xs select-all hover:bg-emerald-100 transition ';
+                        html += 'cursor-pointer" title="Klik untuk menyalin" ';
+                        html += 'onclick="if(navigator.clipboard) navigator.clipboard.writeText(\'' + matEsc + '\'); ';
+                        html += 'showToast(\'Kode Material ' + matEsc + ' disalin!\', \'info\');">';
+                        html += '<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>';
+                        html += '<span>' + matEsc + '</span>';
+                        html += '<span class="text-[10px] text-emerald-600 font-sans font-normal ';
+                        html += 'border-l border-emerald-200 pl-1.5">Copy</span>';
+                        html += '</span>';
                     });
                     html += '</div></div>';
                     return html;
@@ -1587,26 +1699,16 @@ cursor-pointer">&times;</button>
                             return res.json();
                         })
                         .then(function (data) {
-                            cancelApproveConfirm();
+                            cancelApproveConfirm(true);
                             var matList = extractMaterialList(data);
 
-                            console.group("🔍 [MDG APPROVAL DEBUG]");
-                            console.log("Response Data:", data);
-                            if (data && data.return_messages && data.return_messages.length > 0) {
-                                console.error("❌ SAP BAPI Return Messages:");
-                                console.table(data.return_messages);
-                            }
-                            console.groupEnd();
-
                             if (data && data.status === "SUCCESS") {
-                                var successTitle = "DATA BERHASIL DISIMPAN";
-                                var successMsg = "Data berhasil disimpan.";
-                                var displayDetails = data.message || ("Request " + targetDocsStr +
-                                    " telah berhasil divalidasi dan disimpan ke SAP S/4HANA.");
+                                var successTitle = "APPROVAL BERHASIL";
+                                var successMsg = "Data request (" + targetDocsStr + ") telah berhasil disimpan ke SAP S/4HANA.";
+                                var displayDetails = data.message || "";
 
-                                showToast("Data berhasil disimpan.", "success");
+                                showToast("Approval berhasil! Data disimpan ke SAP.", "success");
                                 showPageApprovalAlert(true, successTitle, successMsg, displayDetails, matList);
-                                // Notifikasi popup kedua di-bypass saat sukses agar popup konfirmasi approval tidak muncul 2x
 
                                 selectedReqNos = [];
                                 updateBatchActionBar();
@@ -1616,7 +1718,6 @@ cursor-pointer">&times;</button>
 
                                 showToast(partialMsg, "info");
                                 showPageApprovalAlert(false, partialTitle, partialMsg, "", matList);
-                                showUploadResultNotification(false, partialTitle, partialMsg, "", matList);
                             } else {
                                 var errorMsg = (data && data.message) ?
                                     data.message :
@@ -1626,22 +1727,20 @@ cursor-pointer">&times;</button>
 
                                 showToast("Approval gagal untuk " + targetDocsStr, "error");
                                 showPageApprovalAlert(false, failTitle, failMsg, errorMsg, []);
-                                showUploadResultNotification(false, failTitle, failMsg, errorMsg, []);
                             }
                         })
                         .catch(function (err) {
-                            cancelApproveConfirm();
-                            console.error("💥 [MDG APPROVAL EXCEPTION]:", err);
+                            cancelApproveConfirm(true);
+                            console.error("MDG APPROVAL EXCEPTION:", err);
                             var sysErrTitle = "KESALAHAN SISTEM / KONEKSI";
                             var sysErrMsg = "Terjadi kesalahan sistem saat proses approval untuk Request " + targetDocsStr + ".";
 
                             showToast("Approval error: " + err.message, "error");
                             showPageApprovalAlert(false, sysErrTitle, sysErrMsg, err.message, []);
-                            showUploadResultNotification(false, sysErrTitle, sysErrMsg, err.message, []);
                         })
                         .finally(function () {
                             setApproveLoadingState(false, targetReqNos);
-                            cancelApproveConfirm();
+                            cancelApproveConfirm(true);
                             isApprovingInProgress = false;
                             loadStagingList();
                         });
@@ -1650,6 +1749,7 @@ cursor-pointer">&times;</button>
                 function setApproveLoadingState(isLoading, targetReqNos) {
                     var btnExecute = document.getElementById("btnExecuteApproveModal");
                     var btnCancel = document.getElementById("btnCancelApproveModal");
+                    var btnCloseX = document.getElementById("btnCloseApproveModalX");
                     var textExecute = document.getElementById("btnExecuteApproveText");
 
                     if (isLoading) {
@@ -1661,10 +1761,14 @@ cursor-pointer">&times;</button>
                             btnCancel.disabled = true;
                             btnCancel.classList.add("opacity-50", "cursor-not-allowed");
                         }
+                        if (btnCloseX) {
+                            btnCloseX.disabled = true;
+                            btnCloseX.classList.add("opacity-50", "cursor-not-allowed");
+                        }
                         if (textExecute) {
-                            textExecute.innerHTML = '<span class="inline-block animate-spin w-3.5 h-3.5' +
-                                ' border-2 border-white border-t-transparent rounded-full mr-1.5 align-middle"></span>' +
-                                ' Memproses SAP...';
+                            textExecute.innerHTML = '<span class="inline-block animate-spin w-4 h-4' +
+                                ' border-2 border-white border-t-transparent rounded-full mr-2 align-middle"></span>' +
+                                ' Memproses Approval ke SAP...';
                         }
                     } else {
                         if (btnExecute) {
@@ -1675,13 +1779,18 @@ cursor-pointer">&times;</button>
                             btnCancel.disabled = false;
                             btnCancel.classList.remove("opacity-50", "cursor-not-allowed");
                         }
+                        if (btnCloseX) {
+                            btnCloseX.disabled = false;
+                            btnCloseX.classList.remove("opacity-50", "cursor-not-allowed");
+                        }
                         if (textExecute) {
                             textExecute.innerText = 'Ya, Approve Sekarang';
                         }
                     }
 
                     var btnSel = "button[onclick*='quickApprove'], " +
-                        "button[onclick*='triggerBulkApprove']";
+                        "button[onclick*='triggerBulkApprove'], " +
+                        "button[onclick*='quickApproveRow']";
                     var allApproveBtns = document.querySelectorAll(btnSel);
                     allApproveBtns.forEach(function (btn) {
                         btn.disabled = isLoading;

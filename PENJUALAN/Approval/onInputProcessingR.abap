@@ -708,9 +708,14 @@
               IF ls_dtl_db-vtweg IS INITIAL. ls_dtl_db-vtweg = '10'. ENDIF.
               IF ls_dtl_db-ktgrm IS INITIAL. ls_dtl_db-ktgrm = 'M6'. ENDIF.
               IF ls_dtl_db-prctr IS INITIAL. ls_dtl_db-prctr = '200301'. ENDIF.
-              IF ls_dtl_db-disgr IS INITIAL. ls_dtl_db-disgr = 'ZWH4'. ENDIF.
+              IF ls_dtl_db-disgr IS INITIAL. ls_dtl_db-disgr = 'ZRND'. ENDIF.
+              IF ls_dtl_db-strgr IS INITIAL. ls_dtl_db-strgr = '20'. ENDIF.
+              IF ls_dtl_db-magrv IS INITIAL. ls_dtl_db-magrv = 'ZMG1'. ENDIF.
+              IF ls_dtl_db-sbdkz IS INITIAL. ls_dtl_db-sbdkz = '1'. ENDIF.
+              IF ls_dtl_db-sfpro IS INITIAL OR ls_dtl_db-sfpro = '0' OR ls_dtl_db-sfpro = '00' OR ls_dtl_db-sfpro = '000000'.
+                ls_dtl_db-sfpro = '000002'.
+              ENDIF.
               IF ls_dtl_db-dispo IS INITIAL. ls_dtl_db-dispo = 'RW7'. ENDIF.
-              IF ls_dtl_db-qssys IS INITIAL. ls_dtl_db-qssys = '04'. ENDIF.
               IF ls_dtl_db-qssys IS INITIAL. ls_dtl_db-qssys = '04'. ENDIF.
               IF ls_dtl_db-insptype IS INITIAL. ls_dtl_db-insptype = 'X'. ENDIF.
 
@@ -896,7 +901,10 @@
 
               " Size/dimension (MARA-GROES)
               IF ls_dtl_db-groes IS NOT INITIAL.
-                ls_clientdata-size_dim  = ls_dtl_db-groes.
+                DATA(lv_clean_groes) = ls_dtl_db-groes.
+                REPLACE REGEX '^(1307|1000|1306|1D00|1P03|1P06)X' IN lv_clean_groes WITH ''.
+                REPLACE REGEX 'X(ID|US|JP|VN|CN)$' IN lv_clean_groes WITH ''.
+                ls_clientdata-size_dim  = lv_clean_groes.
                 ls_clientdatax-size_dim = 'X'.
               ENDIF.
 
@@ -915,7 +923,7 @@
               ENDIF.
 
               " Material Package (MAGRV)
-              IF ls_dtl_db-magrv IS NOT INITIAL AND ls_dtl_db-magrv <> '0001' AND ls_dtl_db-magrv <> '1'.
+              IF ls_dtl_db-magrv IS NOT INITIAL.
                 ls_clientdata-mat_grp_sm  = ls_dtl_db-magrv.
                 ls_clientdatax-mat_grp_sm = 'X'.
               ENDIF.
@@ -1032,13 +1040,25 @@
               ENDIF.
 
               " Prod. Scheduling Profile (MARC-SFPRO)
-              IF ls_dtl_db-sfpro IS NOT INITIAL.
+              IF ls_dtl_db-sfpro IS NOT INITIAL AND ls_dtl_db-sfpro <> '0' AND ls_dtl_db-sfpro <> '000000'.
                 CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
                   EXPORTING
                     input  = ls_dtl_db-sfpro
                   IMPORTING
                     output = ls_plantdata-prodprof.
+                IF ls_plantdata-prodprof IS INITIAL OR ls_plantdata-prodprof = '000000'.
+                  ls_plantdata-prodprof = '000002'.
+                ENDIF.
                 ls_plantdatax-prodprof = 'X'.
+              ELSE.
+                ls_plantdata-prodprof  = '000002'.
+                ls_plantdatax-prodprof = 'X'.
+              ENDIF.
+
+              " Individual/Collective (MARC-SBDKZ)
+              IF ls_dtl_db-sbdkz IS NOT INITIAL.
+                ls_plantdata-dep_req_id  = ls_dtl_db-sbdkz.
+                ls_plantdatax-dep_req_id = 'X'.
               ENDIF.
 
               " Costing Lot Size (MARC-LOSGR)

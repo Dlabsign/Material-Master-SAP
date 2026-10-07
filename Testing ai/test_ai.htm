@@ -1,0 +1,1158 @@
+<%@page language="abap" %>
+  <!DOCTYPE html>
+  <html lang="id">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PT Kayu Mebel Indonesia - SAP MDG Assistant</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- FontAwesome 6 CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Google Fonts: Google Sans & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet">
+
+    <!-- Marked.js CDN for Markdown Parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Google Sans', 'Inter', '-apple-system', 'sans-serif'],
+              heading: ['Google Sans', '-apple-system', 'sans-serif'],
+            }
+          }
+        }
+      };
+    </script>
+
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        background-color: #f7f9f8;
+        font-family: 'Google Sans', 'Inter', -apple-system, sans-serif;
+        color: #0f172a;
+        -webkit-font-smoothing: antialiased;
+        overflow: hidden;
+      }
+
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: #f1f5f4;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 9999px;
+      }
+
+      .landing-bg-glow {
+        background: radial-gradient(circle at 50% 25%,
+            rgba(16, 185, 129, 0.08) 0%,
+            rgba(247, 249, 248, 0) 70%);
+      }
+
+      .top-navbar {
+        position: sticky;
+        top: 0;
+        left: 0;
+        width: 100%;
+        background: rgba(255, 255, 255, 0.94);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-bottom: 1px solid #edf2f0;
+        z-index: 50;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+      }
+
+      .brand-logo-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #ffffff;
+        font-weight: 800;
+        font-size: 14px;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+      }
+
+      .markdown-content p {
+        margin-bottom: 0.5rem;
+        line-height: 1.6;
+        color: #334155;
+        font-weight: 500;
+      }
+
+      .markdown-content strong {
+        color: #0f172a;
+        font-weight: 700;
+      }
+
+      .markdown-content code {
+        background-color: #f1f5f9;
+        color: #059669;
+        padding: 0.15rem 0.35rem;
+        border-radius: 0.25rem;
+        font-family: monospace;
+        font-size: 0.85em;
+      }
+
+      .markdown-content pre {
+        background-color: #0f172a;
+        color: #34d399;
+        padding: 0.75rem;
+        border-radius: 0.75rem;
+        overflow-x: auto;
+        margin-bottom: 0.5rem;
+        font-family: monospace;
+        font-size: 0.8em;
+      }
+
+      .markdown-content table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 0.5rem;
+        margin-bottom: 0.75rem;
+        font-size: 0.85em;
+      }
+
+      .markdown-content th {
+        background-color: #f8fafc;
+        border: 1px solid #cbd5e1;
+        padding: 0.4rem 0.6rem;
+        text-align: left;
+        font-weight: 700;
+        color: #334155;
+      }
+
+      .markdown-content td {
+        border: 1px solid #e2e8f0;
+        padding: 0.35rem 0.6rem;
+        color: #1e293b;
+      }
+
+      .markdown-content tr:nth-child(even) {
+        background-color: #f8fafc;
+      }
+    </style>
+  </head>
+
+  <body class="bg-[#f7f9f8] text-slate-900 h-screen flex flex-col justify-between landing-bg-glow relative overflow-hidden">
+
+    <!-- TOP NAVBAR STYLED LIKE PENJUALAN LANDING PAGE -->
+    <header class="top-navbar">
+      <div class="w-full px-4 sm:px-8 py-3 flex items-center justify-between gap-3">
+
+        <!-- Brand Logo & Title -->
+        <div class="flex items-center gap-2.5 sm:gap-3 shrink-0">
+          <div class="brand-logo-icon shrink-0">
+            <i class="fas fa-shield-halved text-base sm:text-lg"></i>
+          </div>
+          <div>
+            <h1 class="font-heading font-extrabold text-slate-900 text-sm sm:text-base leading-tight tracking-tight">
+              SAP MDG Assistant
+            </h1>
+            <span class="hidden md:inline text-[11px] font-semibold text-emerald-600 tracking-wide">
+              PT Kayu Mebel Indonesia &bull; Master Data Governance
+            </span>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex items-center gap-2 text-xs font-semibold shrink-0">
+
+          <!-- History Chat Button -->
+          <button type="button" onclick="openHistoryModal()" title="Riwayat Percakapan (ZMDG_AI_CHAT_LOG)" class="px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-white hover:bg-slate-100 
+                 text-slate-700 border border-slate-200 shadow-2xs transition 
+                 flex items-center gap-1.5 min-h-[36px]">
+            <i class="fas fa-clock-rotate-left text-emerald-600"></i>
+            <span class="hidden sm:inline">Riwayat Chat</span>
+          </button>
+
+          <!-- New Chat Button -->
+          <button type="button" onclick="resetToHome()" title="Mulai Percakapan Baru" class="px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-gradient-to-r from-emerald-500 
+                 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 
+                 text-white shadow-md shadow-emerald-500/20 transition flex 
+                 items-center gap-1.5 min-h-[36px]">
+            <i class="fas fa-plus"></i>
+            <span class="hidden sm:inline">Percakapan Baru</span>
+          </button>
+
+          <!-- Settings Button -->
+          <button type="button" onclick="toggleConfigDrawer()" title="Konfigurasi SAP MDG" class="p-2 sm:p-2.5 rounded-full bg-white hover:bg-slate-100 text-slate-600 
+                 border border-slate-200 transition min-w-[36px] min-h-[36px] 
+                 flex items-center justify-center">
+            <i class="fas fa-gear text-xs"></i>
+          </button>
+        </div>
+
+      </div>
+    </header>
+
+    <!-- CONFIG DRAWER COLLAPSIBLE PANEL -->
+    <div id="config-drawer"
+      class="hidden px-6 sm:px-10 py-5 bg-slate-900 text-white border-b border-slate-800 space-y-4 text-xs shrink-0">
+      <div class="flex items-center justify-between font-semibold text-emerald-400">
+        <div class="flex items-center gap-2">
+          <i class="fas fa-sliders"></i>
+          <span>Konfigurasi SAP MDG Assistant &amp; Endpoint OData</span>
+        </div>
+        <button onclick="toggleConfigDrawer()" class="text-slate-400 hover:text-white">
+          <i class="fas fa-xmark text-sm"></i>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-3.5 max-w-5xl mx-auto w-full">
+        <div class="md:col-span-4">
+          <label class="block text-[11px] text-slate-400 mb-1">API Key</label>
+          <input type="password" id="input-claude-key"
+            placeholder="sk-ant-api03-..."
+            class="w-full px-3.5 py-2 bg-slate-800 border border-slate-700 rounded-xl text-slate-200 font-mono text-[11px] focus:ring-2 focus:ring-emerald-500 outline-none">
+        </div>
+
+        <div class="md:col-span-4">
+          <label class="block text-[11px] text-slate-400 mb-1">AI Middleware URL (Kosong = Otomatis)</label>
+          <input type="text" id="input-middleware-url"
+            placeholder="http://localhost:3000 atau http://192.168.21.174:3000"
+            class="w-full px-3.5 py-2 bg-slate-800 border border-slate-700 rounded-xl text-slate-200 font-mono text-[11px] focus:ring-2 focus:ring-emerald-500 outline-none">
+        </div>
+
+        <div class="md:col-span-4">
+          <label class="block text-[11px] text-slate-400 mb-1">SAP OData URL</label>
+          <input type="text" id="input-odata-url"
+            value="http://kmiprd.kmi.com:8001/sap/opu/odata/sap/ZMDG_MATERIAL_SRV_MDG_SRV/MaterialSet?$format=json"
+            class="w-full px-3.5 py-2 bg-slate-800 border border-slate-700 rounded-xl text-slate-200 font-mono text-[11px] focus:ring-2 focus:ring-emerald-500 outline-none">
+        </div>
+
+        <div class="md:col-span-5">
+          <label class="block text-[11px] text-slate-400 mb-1">SAP Username</label>
+          <input type="text" id="input-sap-user" value="abaper04"
+            class="w-full px-3.5 py-2 bg-slate-800 border border-slate-700 rounded-xl text-slate-200 font-mono text-[11px] focus:ring-2 focus:ring-emerald-500 outline-none">
+        </div>
+
+        <div class="md:col-span-5">
+          <label class="block text-[11px] text-slate-400 mb-1">SAP Password</label>
+          <input type="password" id="input-sap-pass" value="rubikanabudik"
+            class="w-full px-3.5 py-2 bg-slate-800 border border-slate-700 rounded-xl text-slate-200 font-mono text-[11px] focus:ring-2 focus:ring-emerald-500 outline-none">
+        </div>
+
+        <div class="md:col-span-2 flex items-end">
+          <button onclick="fetchLiveODataData()"
+            class="w-full py-2 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl transition text-xs shadow-md">
+            Fetch OData
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN CANVAS AREA -->
+    <main id="main-scroll-area" class="flex-1 overflow-y-auto px-3 sm:px-6 py-4 flex flex-col w-full">
+
+      <!-- HERO SECTION STYLED LIKE PENJUALAN LANDING PAGE -->
+      <div id="hero-section"
+        class="flex flex-col items-center justify-center text-center space-y-7 max-w-2xl w-full mx-auto my-auto">
+
+        <!-- Central Icon Badge -->
+        <div
+          class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-500 to-emerald-400 text-white flex items-center justify-center text-2xl shadow-lg shadow-emerald-500/25">
+          <i class="fas fa-sparkles"></i>
+        </div>
+
+        <!-- Hero Heading -->
+        <div class="space-y-2">
+          <h2 class="font-heading text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+            Master Data Governance Agentic
+          </h2>
+          <p class="text-xs sm:text-sm text-slate-500 max-w-lg mx-auto leading-relaxed">
+            Pusat layanan informasi dan pencarian data Master Material, BOM, Business Partner, serta alur governance PT
+            KMI.
+          </p>
+        </div>
+
+        <!-- CENTERED TEXTAREA CARD -->
+        <div
+          class="w-full bg-white border border-slate-200 focus-within:border-emerald-500 rounded-3xl p-4 shadow-xl shadow-slate-200/50 transition space-y-3 text-left">
+
+          <textarea id="chat-search-input" rows="2"
+            placeholder="Tanyakan status material, cari nomor MATNR, atau instruksi MDG..."
+            onkeydown="handleTextareaKeyDown(event, false)" oninput="autoResizeTextarea(this)" class="w-full bg-transparent border-none text-slate-800 placeholder-slate-400 
+                 text-sm focus:outline-none focus:ring-0 resize-none py-1 overflow-y-auto 
+                 max-h-36 font-sans font-medium leading-relaxed"></textarea>
+
+          <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
+            <span class="text-slate-400 text-[11px] font-medium">
+              Tekan Enter untuk mengirim &bull; Ctrl + Enter untuk baris baru
+            </span>
+
+            <button type="button" onclick="executeSearchFromInput()" class="py-2 px-6 bg-gradient-to-r from-emerald-500 to-emerald-600 
+                   hover:from-emerald-600 text-white font-bold rounded-full 
+                   shadow-md shadow-emerald-500/20 transition text-xs flex items-center gap-2">
+              <span>Kirim</span>
+              <i class="fas fa-arrow-right text-xs"></i>
+            </button>
+          </div>
+
+        </div>
+
+        <!-- QUICK ACTION PILLS STYLED LIKE LANDING PAGE -->
+        <div class="flex flex-wrap items-center justify-center gap-2.5">
+          <button onclick="triggerFilter('Status material 20078227')" class="px-4 py-1.5 rounded-full bg-white hover:bg-emerald-50 text-slate-700 
+                 hover:text-emerald-700 border border-slate-200 hover:border-emerald-300 
+                 text-xs font-semibold shadow-2xs transition">
+            Status 20078227
+          </button>
+          <button onclick="triggerFilter('Cari material GAMELINA')" class="px-4 py-1.5 rounded-full bg-white hover:bg-emerald-50 text-slate-700 
+                 hover:text-emerald-700 border border-slate-200 hover:border-emerald-300 
+                 text-xs font-semibold shadow-2xs transition">
+            Material GAMELINA
+          </button>
+          <button onclick="triggerFilter('Material apa saja yang masih approval?')" class="px-4 py-1.5 rounded-full bg-white hover:bg-emerald-50 text-slate-700 
+                 hover:text-emerald-700 border border-slate-200 hover:border-emerald-300 
+                 text-xs font-semibold shadow-2xs transition">
+            Material Pending Approval
+          </button>
+        </div>
+
+      </div>
+
+      <!-- CHAT THREAD CONTAINER -->
+      <div id="chat-thread"
+        class="space-y-3.5 max-w-3xl w-full mx-auto hidden pt-2 pb-32 sm:pb-36 px-1">
+        <!-- Dynamic conversation messages populated here -->
+      </div>
+
+    </main>
+
+    <!-- FLOATING BOTTOM TEXTAREA INPUT BAR -->
+    <div id="thread-input-bar"
+      class="hidden fixed bottom-0 left-0 right-0 z-40 pointer-events-none pb-3 sm:pb-4 pt-5 px-3 sm:px-6 bg-gradient-to-t from-[#f7f9f8] via-[#f7f9f8]/90 to-transparent">
+      <div class="max-w-3xl mx-auto w-full pointer-events-auto">
+        <div class="bg-white/95 backdrop-blur-md border border-slate-200/90 focus-within:border-emerald-500 
+                  rounded-2xl sm:rounded-3xl p-2.5 sm:p-3 shadow-xl shadow-slate-900/5 
+                  flex items-end gap-2.5">
+          <textarea id="chat-search-input-thread" rows="1" placeholder="Tanyakan ke SAP MDG Assistant..."
+            onkeydown="handleTextareaKeyDown(event, true)" oninput="autoResizeTextarea(this)" class="w-full bg-transparent border-none text-slate-800 placeholder-slate-400 
+                 text-xs sm:text-sm focus:outline-none focus:ring-0 resize-none py-1.5 
+                 overflow-y-auto max-h-36 font-sans font-medium leading-relaxed"></textarea>
+
+          <button type="button" onclick="executeSearchFromThreadInput()" class="py-2 px-4 sm:py-2.5 sm:px-6 bg-gradient-to-r from-emerald-500 to-emerald-600 
+                 hover:from-emerald-600 text-white font-bold rounded-full 
+                 shadow-md shadow-emerald-500/20 transition shrink-0 text-xs 
+                 flex items-center gap-1.5 min-h-[38px]">
+            <span>Kirim</span>
+            <i class="fas fa-arrow-right text-xs"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- HISTORY CHAT MODAL STYLED LIKE LANDING MODAL -->
+    <div id="history-modal"
+      class="fixed inset-0 z-[200] bg-slate-900/50 backdrop-blur-sm hidden flex items-center justify-center p-4 sm:p-6">
+      <div
+        class="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-2xl w-full max-h-[80vh] flex flex-col overflow-hidden">
+
+        <!-- Modal Header -->
+        <div class="px-6 py-4.5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+          <div>
+            <h3 class="font-heading font-extrabold text-slate-900 text-base">
+              Riwayat Percakapan
+            </h3>
+            <p class="text-xs text-slate-500 font-medium">
+              Pilih sesi percakapan sebelumnya untuk melanjutkan konteks
+            </p>
+          </div>
+
+          <button onclick="closeHistoryModal()"
+            class="w-8 h-8 rounded-full bg-slate-200/60 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition">
+            <i class="fas fa-xmark text-sm"></i>
+          </button>
+        </div>
+
+        <!-- Modal Body -->
+        <div id="history-modal-body" class="p-6 overflow-y-auto flex-1 space-y-2.5 text-xs">
+          <div class="text-center text-slate-400 py-10">
+            Memuat riwayat percakapan...
+          </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="px-6 py-3.5 border-t border-slate-100 bg-slate-50/50 flex items-center justify-end">
+          <button onclick="closeHistoryModal()"
+            class="px-5 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-full text-xs transition">
+            Tutup
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+      let liveODataMaterials = [];
+      let currentChatId = "";
+      let activeSessionMessages = [];
+
+      document.addEventListener('DOMContentLoaded', () => {
+        fetchLiveODataData();
+      });
+
+      function toggleConfigDrawer() {
+        document.getElementById('config-drawer').classList.toggle('hidden');
+      }
+
+      function resetToHome() {
+        currentChatId = "";
+        activeSessionMessages = [];
+        document.getElementById('hero-section').classList.remove('hidden');
+        document.getElementById('thread-input-bar').classList.add('hidden');
+        const thread = document.getElementById('chat-thread');
+        thread.classList.add('hidden');
+        thread.innerHTML = '';
+
+        const inp1 = document.getElementById('chat-search-input');
+        const inp2 = document.getElementById('chat-search-input-thread');
+        if (inp1) { inp1.value = ''; autoResizeTextarea(inp1); }
+        if (inp2) { inp2.value = ''; autoResizeTextarea(inp2); }
+      }
+
+      function autoResizeTextarea(elem) {
+        if (!elem) return;
+        elem.style.height = 'auto';
+        elem.style.height = Math.min(elem.scrollHeight, 144) + 'px';
+      }
+
+      function handleTextareaKeyDown(e, isThread) {
+        if (e.key === 'Enter' && !e.shiftKey && !e.ctrlKey) {
+          e.preventDefault();
+          if (isThread) executeSearchFromThreadInput();
+          else executeSearchFromInput();
+        }
+      }
+
+      function triggerFilter(searchTerm) {
+        const input = document.getElementById('chat-search-input');
+        input.value = searchTerm;
+        autoResizeTextarea(input);
+        executeSearchFromInput();
+      }
+
+      function getSapAuthHeader() {
+        const userElem = document.getElementById('input-sap-user');
+        const passElem = document.getElementById('input-sap-pass');
+        const user = userElem ? userElem.value.trim() : '';
+        const pass = passElem ? passElem.value.trim() : '';
+        const headers = { 'Accept': 'application/json' };
+        if (user && pass) {
+          headers['Authorization'] = 'Basic ' + btoa(user + ':' + pass);
+        }
+        return headers;
+      }
+
+      function getMiddlewareBaseUrl() {
+        const customInput = document.getElementById('input-middleware-url');
+        if (customInput && customInput.value && customInput.value.trim()) {
+          return customInput.value.trim().replace(/\/+$/, '');
+        }
+        const h = window.location.hostname;
+        if (h && h !== 'localhost' && h !== '127.0.0.1') {
+          return 'http://' + h + ':3000';
+        }
+        return 'http://localhost:3000';
+      }
+
+      function fetchLiveODataData() {
+        const urlElem = document.getElementById('input-odata-url');
+        const defaultUrl = 'http://kmiprd.kmi.com:8001/sap/opu/odata/sap/' + 
+          'ZMDG_MATERIAL_SRV_MDG_SRV/MaterialSet?$format=json';
+        const odataUrl = (urlElem && urlElem.value.trim()) ? urlElem.value.trim() : defaultUrl;
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+        fetch(odataUrl, {
+          signal: controller.signal,
+          mode: 'cors',
+          headers: getSapAuthHeader()
+        })
+          .then(res => res.json())
+          .then(data => {
+            clearTimeout(timeoutId);
+            if (data && data.d && data.d.results) {
+              liveODataMaterials = data.d.results;
+              console.log("[SAP OData Loaded Direct]:", liveODataMaterials.length, "items");
+            }
+          })
+          .catch(err => {
+            clearTimeout(timeoutId);
+            console.warn("[SAP OData Direct Fetch Warning, trying Proxy]:", err.message);
+            // Fallback: Proxy melalui middleware jika CORS/Auth direct browser gagal
+            fetch(getMiddlewareBaseUrl() + "/api/odata", {
+              headers: getSapAuthHeader()
+            })
+              .then(res => res.json())
+              .then(data => {
+                if (data && data.d && data.d.results) {
+                  liveODataMaterials = data.d.results;
+                  console.log("[SAP OData Loaded via Proxy]:", liveODataMaterials.length, "items");
+                }
+              })
+              .catch(proxyErr => console.warn("[Proxy Fetch Warning]:", proxyErr.message));
+          });
+      }
+
+      function executeSearchFromInput() {
+        const queryInput = document.getElementById('chat-search-input');
+        const rawQuery = queryInput.value.trim();
+        if (!rawQuery) return;
+        processClaudeAgentRequest(rawQuery);
+      }
+
+      function executeSearchFromThreadInput() {
+        const queryInput = document.getElementById('chat-search-input-thread');
+        const rawQuery = queryInput.value.trim();
+        if (!rawQuery) return;
+        processClaudeAgentRequest(rawQuery);
+        queryInput.value = '';
+        autoResizeTextarea(queryInput);
+      }
+
+      // ----------------------------------------------------
+      // SAVE CHAT TO SE11 ZMDG_AI_CHAT_LOG VIA BSP
+      // ----------------------------------------------------
+      function saveChatToSapDatabase(promptText, responseText, statusVal, usageObj) {
+        const formData = new FormData();
+        formData.append('OnInputProcessing', 'SAVE_CHAT_LOG');
+        formData.append('CHAT_ID', currentChatId || '');
+        formData.append('PROMPT_TEXT', (promptText || '').substring(0, 255));
+        formData.append('RESPONSE_TEXT', (responseText || '').substring(0, 255));
+        formData.append('STATUS', (statusVal || 'SUCCESS').substring(0, 10));
+        formData.append('MODEL_NAME', 'Claude Haiku 4.5');
+
+        if (usageObj) {
+          formData.append('INPUT_TOKENS', usageObj.input_tokens || 0);
+          formData.append('OUTPUT_TOKENS', usageObj.output_tokens || 0);
+          formData.append('TOTAL_TOKENS', (usageObj.input_tokens || 0) + (usageObj.output_tokens || 0));
+        } else {
+          formData.append('INPUT_TOKENS', 0);
+          formData.append('OUTPUT_TOKENS', 0);
+          formData.append('TOTAL_TOKENS', 0);
+        }
+
+        fetch(window.location.href, {
+          method: 'POST',
+          body: formData
+        })
+          .then(res => res.json())
+          .then(data => {
+            if (data && data.chat_id) {
+              currentChatId = data.chat_id;
+            }
+          })
+          .catch(err => console.warn("[DB Save Warning]:", err));
+      }
+
+      // ----------------------------------------------------
+      // HISTORY CHAT MODAL CONTROLS & LOAD SESSION
+      // ----------------------------------------------------
+      function openHistoryModal() {
+        document.getElementById('history-modal').classList.remove('hidden');
+        fetchSessionListFromSap();
+      }
+
+      function closeHistoryModal() {
+        document.getElementById('history-modal').classList.add('hidden');
+      }
+
+      function fetchSessionListFromSap() {
+        const bodyContainer = document.getElementById('history-modal-body');
+        bodyContainer.innerHTML = `
+        <div class="text-center text-slate-400 py-8">
+          Memuat riwayat percakapan...
+        </div>
+      `;
+
+        const formData = new FormData();
+        formData.append('OnInputProcessing', 'GET_SESSION_LIST');
+
+        fetch(window.location.href, {
+          method: 'POST',
+          body: formData
+        })
+          .then(res => res.json())
+          .then(data => {
+            if (Array.isArray(data) && data.length > 0) {
+              let htmlStr = `<div class="space-y-2">`;
+              data.forEach((item) => {
+                const formattedDate = (item.chat_date || '')
+                  .replace(/^(\d{4})(\d{2})(\d{2})$/, '$1-$2-$3');
+                const formattedTime = (item.chat_time || '')
+                  .replace(/^(\d{2})(\d{2})(\d{2})$/, '$1:$2:$3');
+
+                htmlStr += `
+                <div 
+                  onclick="loadConversationSession('${escapeHtml(item.chat_id)}')"
+                  class="p-3.5 bg-white hover:bg-emerald-50/50 border border-slate-200 
+                         hover:border-emerald-300 rounded-2xl cursor-pointer transition 
+                         flex items-center justify-between gap-3 shadow-2xs"
+                >
+                  <div class="space-y-1 min-w-0 flex-1 pr-2">
+                    <div class="font-bold text-slate-900 text-xs truncate">
+                      ${escapeHtml(item.title || 'Percakapan Tanpa Judul')}
+                    </div>
+                    <div class="text-[11px] text-slate-400 font-medium">
+                      ${escapeHtml(formattedDate)} ${escapeHtml(formattedTime)} &bull; ${item.msg_count || 1} pesan
+                    </div>
+                  </div>
+                  <span class="text-xs text-emerald-600 font-semibold shrink-0">Buka Sesi &rarr;</span>
+                </div>
+              `;
+              });
+              htmlStr += `</div>`;
+              bodyContainer.innerHTML = htmlStr;
+            } else {
+              bodyContainer.innerHTML = `
+              <div class="text-center text-slate-400 py-8">
+                Belum ada riwayat percakapan tersimpan.
+              </div>
+            `;
+            }
+          })
+          .catch(err => {
+            bodyContainer.innerHTML = `
+            <div class="text-center text-amber-600 py-6">
+              Gagal memuat riwayat: ${escapeHtml(err.message)}
+            </div>
+          `;
+          });
+      }
+
+      function loadConversationSession(sessionId) {
+        closeHistoryModal();
+
+        currentChatId = sessionId;
+        activeSessionMessages = [];
+
+        document.getElementById('hero-section').classList.add('hidden');
+        document.getElementById('thread-input-bar').classList.remove('hidden');
+        const thread = document.getElementById('chat-thread');
+        thread.classList.remove('hidden');
+        thread.innerHTML = `
+        <div class="text-center text-slate-400 text-xs py-4">
+          Memuat isi percakapan...
+        </div>
+      `;
+
+        const formData = new FormData();
+        formData.append('OnInputProcessing', 'GET_SESSION_MESSAGES');
+        formData.append('CHAT_ID', sessionId);
+
+        fetch(window.location.href, {
+          method: 'POST',
+          body: formData
+        })
+          .then(res => res.json())
+          .then(messages => {
+            thread.innerHTML = '';
+            if (Array.isArray(messages) && messages.length > 0) {
+              messages.forEach(msg => {
+                const pText = msg.prompt_text || '';
+                const rText = msg.response_text || '';
+
+                if (pText) appendUserMessage(pText);
+
+                let usageObj = null;
+                if (msg.input_tokens || msg.output_tokens) {
+                  usageObj = {
+                    input_tokens: msg.input_tokens || 0,
+                    output_tokens: msg.output_tokens || 0
+                  };
+                }
+                if (rText) renderMarkdownAgentMessage(rText, usageObj);
+
+                activeSessionMessages.push({
+                  prompt: pText,
+                  response: rText
+                });
+              });
+
+              const scrollArea = document.getElementById('main-scroll-area');
+              scrollArea.scrollTop = scrollArea.scrollHeight;
+            } else {
+              thread.innerHTML = `<div class="text-center text-slate-400 text-xs py-4">Sesi kosong.</div>`;
+            }
+          })
+          .catch(err => {
+            thread.innerHTML = `<div class="text-center text-amber-600 text-xs py-4">Gagal memuat sesi.</div>`;
+          });
+      }
+
+      // ----------------------------------------------------
+      // CLAUDE AGENTIC ENGINE WITH DIRECT PROMPT & MULTI-TURN
+      // ----------------------------------------------------
+      function processClaudeAgentRequest(userQuery) {
+        const queryText = userQuery.trim();
+        if (!queryText) return;
+
+        document.getElementById('hero-section').classList.add('hidden');
+        document.getElementById('thread-input-bar').classList.remove('hidden');
+        const thread = document.getElementById('chat-thread');
+        thread.classList.remove('hidden');
+
+        appendUserMessage(queryText);
+        const loadingId = appendLoadingMessage(queryText);
+        const startTime = performance.now();
+
+        const strictSystemPrompt = `
+Kamu adalah AI Assistant untuk membantu pengguna dalam proses MDG (SAP S/4HANA Master Data Governance).
+Tugas utama: pahami konteks MDG, berikan jawaban relevan, langsung, presisi, dan jelas.
+
+PANDUAN LENGKUP PARAMETER MASTER DATA & MRP (SAP MDG)
+1. PARAMETER MASTER DATA MATERIAL (MARA, MARC, MARD):
+   - Tipe Material (MTART):
+     * Standar SAP: FERT (Finished Goods L0), HALB (Semi-Finished / Sub-assembly L1), ROH (Raw Material L2).
+     * Custom SAP Z-Types: ZR01 (Bahan Baku Custom), ZROH, ZHAL, ZFRT, dll.
+     * ATURAN AKURASI MUTLAK MTART: Selalu baca dan tampilkan nilai field MTART persis sebagaimana
+       terdapat pada dataset OData MaterialSet (contoh: jika OData bernilai MTART: "HALB", SEBUTKAN "HALB").
+       DILARANG KERAS mengarang, menyimpulkan, atau mengganti nilai MTART menjadi "COMP" atau istilah generik lain.
+   - Kelompok Material (MATKL / Material Group):
+     * Klasifikasi: WD_SOLID, WD_LAM, METAL_ACC, FASTENER, CHEMICAL, PACKAGING, RWPN04, dll.
+   - Pabrik / Plant (WERKS): Kode plant aktif produksi (misal 1010, 1300).
+   - Lokasi Gudang (LGORT / Storage Location): SLoc aktif (1001, 1002, 1003, 1301, 1304, 1306, 13A2, dll).
+   - Parameter Perencanaan MRP 1 (Tabel MARC): DISMM, DISGR, DISPO.
+
+2. ATURAN PENCOCOKAN DATA & KONSISTENSI (ODATA MATCHING RULES):
+   - Apabila terdapat section "=== HASIL PENCOCOKAN MATERIAL DITEMUKAN DI SAP ODATA ===",
+     material pada section tersebut PASTI TERDAFTAR DAN EXISTING DI SAP.
+   - Kode Material (MATNR) 18-digit (misal 000000000020299156) dan format clean tanpa nol di depan (20299156)
+     adalah SAMA dan MERUJUK KE MATERIAL SAP YANG SAMA. DILARANG MENYATAKAN TIDAK DITEMUKAN.
+   - EXISTING: Jika MATNR atau MAKTX cocok, dan WERKS di SAP sudah mencakup Plant target.
+   - EXTEND_PLANT: Jika part ditemukan di SAP tetapi kolom WERKS/LGORT masih kosong.
+   - NEW: Jika tidak ada kecocokan di SAP, beri status NEW & isi usulan parameter.
+
+3. FORMAT SKEMA OUTPUT JSON (Ekstraksi Dimensi & Keputusan Matching SAP):
+{
+  "product_header": {
+    "product_code": "STRING", "product_name": "STRING",
+    "plant": "1010", "material_type": "FERT", "storage_location": "1003"
+  },
+  "materials": [
+    {
+      "item_no": 1, "level": 2, "part_name": "FRONT RAIL",
+      "material_category": "WOOD_SOLID / HARDWARE / CHEMICAL / PACKAGING",
+      "wood_species": "Mahoni / Jati / Mindi / NULL",
+      "quantity": 2,
+      "dimension_extraction": {
+        "finish_t_mm": 25.0,
+        "finish_w_mm": 38.0,
+        "finish_l_mm": 509.5,
+        "rough_allowance_mm": { "t": 4.0, "w": 6.0, "l": 12.0 }
+      },
+      "sap_matching_decision": {
+        "sap_status": "NEW / EXISTING / EXTEND_PLANT / AUTO-SUGGEST",
+        "sap_matnr": "STRING_OR_NULL",
+        "match_reason": "Dimensi 25x38x509.5 mm unik untuk model ini, tidak ada kecocokan identik di OData"
+      },
+      "parameters": {
+        "mtart": "ROH / HALB / FERT", "matkl": "STRING_GROUP_CODE",
+        "werks": "1010", "lgort": "1001 / 1002 / 1003",
+        "dismm": "PD / VB / ND", "disgr": "0001", "dispo": "M01 / M02"
+      },
+      "work_station_code": "0010 / 0020 / 0030 / 0040 / 0050"
+    }
+  ]
+}
+
+4. [GOVERNANCE RULE: BOM COMPLETENESS & MTART INTEGRITY - TEST #5]
+   - MTART RESTRICTIONS:
+     * Root Assembly (Level 0) = ONLY "FERT"
+     * Sub-Assemblies (Level 1) = ONLY "HALB"
+     * ALL Child Components, Raw Wood, Dowels, Screws, Glues, Weaving Cords, and Metal Parts = STRICTLY "ROH". Never output "FERT", "HALB", "VERB", or custom codes like "ZR01" for Level 2 items.
+   - AUTO-SUGGEST TRIGGERS:
+     * IF component contains "CORNER BLOCK", MUST auto-suggest: "WOOD SCREW 4X35" (Qty: 2 pcs per block, Base UoM: PC, MTART: ROH, Status: AUTO-SUGGEST).
+     * IF wood joint or frame assembly exists, MUST auto-suggest: "WOOD GLUE PVAC CROSSLINK" (Base UoM: KG, MTART: ROH, Status: AUTO-SUGGEST).
+     * IF woven seat texture is present, MUST auto-suggest: "SEAT WEAVING CORD" (Base UoM: KG, MTART: ROH, Status: AUTO-SUGGEST).
+
+5. [GOVERNANCE RULE: SAP ROUTING CA01 & PLMZ ALLOCATION - TEST #6]
+   - SINGLE OPERATION CONSTRAINT:
+     * Field "work_station_code" MUST be exactly one string: "0010", "0020", "0030", "0040", OR "0050". Multi-station assignment (e.g., "0030 + 0040") is strictly forbidden.
+   - WORK STATION MAPPING DIRECTIVES:
+     * Assign raw sawn timber/lumber to "0010" (Part).
+     * Assign corner blocks and surfaced components (S4S) to "0020" (Component).
+     * Assign machined solid wood, curved slats, and profiles to "0030" (Machining).
+     * Assign dowels, screws, wood glues, and seat weaving cords to "0040" (Assembling).
+     * Assign finishing chemicals AND decorative metal fittings (Brass Stretchers, Brass Caps, glides) to "0050" (Painting).
+
+6. [STRICT GOVERNANCE RULE: WOOD MATCHING & DEDUPLICATION]
+   - ZERO-TOLERANCE DIMENSION MATCHING:
+     * Komponen kayu solid struktural (kaki, rel, stretcher, kisi sandaran) adalah PART KUSTOM yang terikat model.
+     * DILARANG KERAS menetapkan sap_status = "EXISTING" pada komponen kayu hanya karena kesamaan kata kunci (misal sama-sama bernama "FRONT RAIL" atau jenis kayu sama).
+     * Status "EXISTING" HANYA boleh diberikan jika:
+       a. Dimensi Finish Size (T x W x L) SAMA PERSIS (toleransi 0 mm), DAN
+       b. Kode model produk induknya identik.
+     * Jika dimensi berbeda meskipun hanya 0.5 mm, WAJIB tetapkan:
+       - sap_status: "NEW"
+       - sap_matnr: null
+       - match_reason: "Dimensi kustom model baru, wajib buat nomor material baru (MM01)"
+   - SCOPE PENCARIAN ODATA (TOOL FILTER):
+     * Jangan pernah mencocokkan part kustom model aktif dengan nomor material dari seri model lain (misal: mencocokkan part NT-325-2 ke seri HC2515 atau COMUNAL LKL).
+     * Status EXISTING diprioritaskan HANYA untuk:
+       a. Hardware standar (Dowel Beech, Wood Screw).
+       b. Bahan penolong umum (Lem PVAc, finishing).
+       c. Corner block ukuran standar pabrik.
+
+7. [MATRIKS VALIDASI KEPUTUSAN STATUS MATERIAL]
+   - Kayu Solid Struktural & Seri Model Beda ATAU Dimensi Beda -> STATUS: NEW (sap_matnr: null)
+   - Kayu Solid Struktural & Seri Model Sama & Dimensi Identik 100% -> STATUS: EXISTING (sap_matnr: Kode SAP query)
+   - Dowel & Fastener & Ukuran Sama Persis -> STATUS: EXISTING (sap_matnr: Kode SAP query)
+   - Dowel & Fastener & Ukuran Belum Ada -> STATUS: NEW (sap_matnr: null)
+   - Lem & Bahan Kimia Standar Pabrik -> STATUS: AUTO-SUGGEST (sap_matnr: Kode OData / null)
+
+ATURAN UTAMA RESPONS:
+1. Jawab pertanyaan pengguna secara langsung terlebih dahulu (kalimat/paragraf biasa).
+2. DILARANG membuat tabel secara otomatis. Gunakan tabel HANYA jika diminta eksplisit ("buatkan tabel").
+3. DILARANG KERAS MENGARANG ATAU MEMBUAT DATA FAKE/DUMMY SAP. SELALU GUNAKAN DATA MATERIALSET DARI ODATA SAP EKSISTING.
+4. SELALU sebutkan Tipe Material (MTART), Kelompok Material (MATKL), Plant (WERKS), dan SLoc (LGORT) persis sesuai data OData.
+5. Bedakan antara fakta data SAP, konteks percakapan, dan asumsi.
+6. Gunakan konteks percakapan sebelumnya (kontinuitas).
+`;
+
+        callClaudeMessagesAPI(queryText, liveODataMaterials, strictSystemPrompt, activeSessionMessages)
+          .then(agentResponse => {
+            const elapsedTime = ((performance.now() - startTime) / 1000).toFixed(1);
+            removeLoadingMessage(loadingId);
+            renderClaudeAgentResponse(queryText, agentResponse, elapsedTime);
+          })
+          .catch(err => {
+            const elapsedTime = ((performance.now() - startTime) / 1000).toFixed(1);
+            console.warn("Middleware API call error, running local MDG engine:", err);
+            removeLoadingMessage(loadingId);
+            runLocalMdgGovernanceEngine(queryText, elapsedTime, err ? err.message : "Middleware Error");
+          });
+
+        const scrollArea = document.getElementById('main-scroll-area');
+        scrollArea.scrollTop = scrollArea.scrollHeight;
+      }
+
+      async function callClaudeMessagesAPI(query, materialsList, customSystemPrompt, historyArr) {
+        try {
+          const response = await fetch(getMiddlewareBaseUrl() + "/api/claude", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              prompt: query,
+              materials: materialsList,
+              systemPrompt: customSystemPrompt,
+              history: historyArr || []
+            })
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const data = await response.json();
+          return data;
+
+        } catch (error) {
+          console.error("[Error calling Middleware]:", error);
+          throw error;
+        }
+      }
+
+      function getMatField(item, fieldName) {
+        if (!item) return '';
+        const upper = fieldName.toUpperCase();
+        const pascal = fieldName.charAt(0).toUpperCase() + fieldName.slice(1).toLowerCase();
+        return (item[fieldName] !== undefined) ? item[fieldName]
+             : (item[upper] !== undefined) ? item[upper]
+             : (item[pascal] !== undefined) ? item[pascal]
+             : '';
+      }
+
+      function runLocalMdgGovernanceEngine(queryText, elapsedTime = null, debugErrorMsg = null) {
+        const rawQuery = (queryText || '').toUpperCase().trim();
+
+        const stopWords = new Set([
+          'CARIKAN', 'SAYA', 'MATERIAL', 'YANG', 'DESKRIPSINYA', 'DESKRIPSI',
+          'HANYA', 'ADA', 'KODE', 'PADA', 'BULAN', 'BERAPA', 'SAMA', 'TAMPILKAN',
+          'CEK', 'DATA', 'TOLONG', 'LIST', 'SHOW', 'FIND', 'SEARCH', 'GET',
+          'SELECT', 'WHERE', 'ISI', 'STATUS', 'DENGAN', 'UNTUK', 'DAN', 'ATAU',
+          'DI', 'KE', 'DARI', 'INI', 'ITU'
+        ]);
+
+        const numbersFound = rawQuery.match(/\b\d{4,}\b/g) || rawQuery.match(/\b\d+\b/g) || [];
+        const wordsFound = rawQuery
+          .split(/[\s,.;:?!'"]+/)
+          .filter(w => w.length >= 2 && !stopWords.has(w) && !/^\d+$/.test(w));
+
+        let matchedLiveItems = [];
+
+        if (numbersFound.length > 0) {
+          const targetNum = numbersFound[0];
+          const cleanTargetNum = targetNum.replace(/^0+/, '');
+          matchedLiveItems = liveODataMaterials.filter(item => {
+            const rawMatnr = String(getMatField(item, 'Matnr')).toUpperCase();
+            if (!rawMatnr) return false;
+            const cleanMatnr = rawMatnr.replace(/^0+/, '');
+            return rawMatnr.includes(targetNum) || cleanMatnr.includes(cleanTargetNum);
+          });
+        } else if (wordsFound.length > 0) {
+          matchedLiveItems = liveODataMaterials.filter(item => {
+            const maktx = String(getMatField(item, 'Maktx')).toUpperCase();
+            const matnr = String(getMatField(item, 'Matnr')).toUpperCase();
+            const mtart = String(getMatField(item, 'Mtart')).toUpperCase();
+            const matkl = String(getMatField(item, 'Matkl')).toUpperCase();
+            const werks = String(getMatField(item, 'Werks')).toUpperCase();
+            const lgort = String(getMatField(item, 'Lgort')).toUpperCase();
+            const combined = `${matnr} ${maktx} ${mtart} ${matkl} ${werks} ${lgort}`;
+            return wordsFound.every(word => combined.includes(word));
+          });
+
+          if (matchedLiveItems.length === 0) {
+            matchedLiveItems = liveODataMaterials.filter(item => {
+              const maktx = String(getMatField(item, 'Maktx')).toUpperCase();
+              const matnr = String(getMatField(item, 'Matnr')).toUpperCase();
+              const mtart = String(getMatField(item, 'Mtart')).toUpperCase();
+              const matkl = String(getMatField(item, 'Matkl')).toUpperCase();
+              const werks = String(getMatField(item, 'Werks')).toUpperCase();
+              const lgort = String(getMatField(item, 'Lgort')).toUpperCase();
+              const combined = `${matnr} ${maktx} ${mtart} ${matkl} ${werks} ${lgort}`;
+              return wordsFound.some(word => combined.includes(word));
+            });
+          }
+        } else {
+          matchedLiveItems = liveODataMaterials.slice(0, 10);
+        }
+
+        const isSuccess = matchedLiveItems.length > 0;
+        let directAnswerText = "";
+
+        if (isSuccess) {
+          if (matchedLiveItems.length === 1) {
+            const item = matchedLiveItems[0];
+            const matnr = getMatField(item, 'Matnr');
+            const maktx = getMatField(item, 'Maktx');
+            directAnswerText = `Material ${matnr} ditemukan di SAP OData dengan deskripsi '${maktx}'.`;
+          } else {
+            const itemStrings = matchedLiveItems.slice(0, 5).map(m => {
+              const matnr = getMatField(m, 'Matnr');
+              const maktx = getMatField(m, 'Maktx');
+              return `${matnr} (${maktx})`;
+            }).join(', ');
+            directAnswerText = `Ditemukan ${matchedLiveItems.length} material yang sesuai di database SAP OData: ${itemStrings}`;
+            if (matchedLiveItems.length > 5) {
+              directAnswerText += `, dan ${matchedLiveItems.length - 5} item lainnya teridentifikasi.`;
+            }
+          }
+        } else {
+          directAnswerText = `Data material untuk kata kunci '${queryText}' belum tersedia di database SAP OData.`;
+        }
+
+        renderMarkdownAgentMessage(directAnswerText, null, elapsedTime);
+        activeSessionMessages.push({ prompt: queryText, response: directAnswerText });
+        saveChatToSapDatabase(queryText, directAnswerText, isSuccess ? 'SUCCESS' : 'FAILED', null);
+      }
+
+      function renderClaudeAgentResponse(queryText, apiData, elapsedTime = null) {
+        if (apiData && apiData.content && apiData.content.length > 0) {
+          const textBlock = apiData.content.find(block => block.type === 'text');
+          const textContent = textBlock ? textBlock.text : "";
+          const usage = apiData.usage || null;
+
+          renderMarkdownAgentMessage(textContent, usage, elapsedTime);
+          activeSessionMessages.push({ prompt: queryText, response: textContent });
+          saveChatToSapDatabase(queryText, textContent, 'SUCCESS', usage);
+        } else {
+          renderSimpleAgentMessage("Tidak ada respon dari Claude MDG Assistant.");
+        }
+      }
+
+      function renderMarkdownAgentMessage(text, usage, elapsedTime = null) {
+        const thread = document.getElementById('chat-thread');
+        const div = document.createElement('div');
+        div.className = "flex justify-start w-full";
+
+        const formattedHtml = typeof marked !== 'undefined'
+          ? marked.parse(text)
+          : escapeHtml(text).replace(/\n/g, '<br>');
+
+        let metaParts = [];
+        if (usage && usage.output_tokens && usage.output_tokens > 0) {
+          const outTok = Number(usage.output_tokens).toLocaleString();
+          metaParts.push(`Output: ${outTok} tokens`);
+        }
+        if (elapsedTime) {
+          metaParts.push(`${elapsedTime}s`);
+        }
+
+        let tokenUsageHtml = '';
+        if (metaParts.length > 0) {
+          tokenUsageHtml = `
+          <div class="pt-2 border-t border-slate-100/60 text-[11px] ` +
+            `text-slate-400 font-mono tracking-tight text-right opacity-70">
+            ${metaParts.join(' &bull; ')}
+          </div>
+        `;
+        }
+
+        div.innerHTML = `
+        <div class="bg-white/90 backdrop-blur-md border border-slate-200/80 ` +
+          `rounded-2xl rounded-tl-xs p-4 sm:p-5 shadow-2xs space-y-2.5 w-full ` +
+          `text-xs sm:text-sm text-slate-800 font-medium leading-relaxed">
+          <div class="markdown-content font-medium leading-relaxed text-slate-800">
+            ${formattedHtml}
+          </div>
+          ${tokenUsageHtml}
+        </div>
+      `;
+
+        thread.appendChild(div);
+      }
+
+      function appendUserMessage(text) {
+        const thread = document.getElementById('chat-thread');
+        const div = document.createElement('div');
+        div.className = "flex justify-end w-full";
+        div.innerHTML = `
+        <div class="bg-gradient-to-r from-emerald-600 to-emerald-500 text-white ` +
+          `rounded-2xl rounded-tr-xs px-3.5 py-2.5 sm:px-4 sm:py-3 max-w-[85%] ` +
+          `sm:max-w-[75%] shadow-2xs text-xs sm:text-sm font-medium leading-relaxed ` +
+          `break-words whitespace-pre-wrap">${escapeHtml(text)}</div>
+      `;
+        thread.appendChild(div);
+      }
+
+      let currentLoadingTimerId = null;
+
+      function getLoadingStatusText(sec, queryText = "") {
+        const q = (queryText || "").toUpperCase();
+        const isSapQuery = /MATNR|MATERIAL|PLANT|SAP|MDG|VENDOR|CUSTOMER|BP|BOM|CARI|FIND|SEARCH|STATUS|APPROVAL|LIST/.test(q);
+        const isValidation = /CEK|VALIDASI|CHECK|ATURAN|RULE|VALIDATE/.test(q);
+
+        if (isValidation) {
+          if (sec < 10) return "Sedang memvalidasi data...";
+          if (sec < 20) return "Sedang memeriksa data MDG...";
+          if (sec < 30) return "Agent sedang memvalidasi data, harap menunggu...";
+          if (sec < 60) return "Agent masih bekerja pada permintaan Anda...";
+          return "Proses membutuhkan sedikit waktu lebih lama...";
+        }
+
+        if (isSapQuery) {
+          if (sec < 10) return "Sedang mencari data di SAP...";
+          if (sec < 20) return "Sedang memeriksa data MDG...";
+          if (sec < 30) return "Agent sedang mencari data, harap menunggu...";
+          if (sec < 60) return "Sedang memproses data SAP...";
+          return "Proses membutuhkan sedikit waktu lebih lama...";
+        }
+
+        if (sec < 10) return "Sedang memahami permintaan Anda...";
+        if (sec < 20) return "Sedang menyiapkan jawaban...";
+        if (sec < 30) return "Sedang mencari data yang relevan...";
+        if (sec < 60) return "Agent masih bekerja pada permintaan Anda...";
+        return "Proses membutuhkan sedikit waktu lebih lama...";
+      }
+
+      function appendLoadingMessage(userQuery = "") {
+        const thread = document.getElementById('chat-thread');
+        const loadingId = 'loading-' + Date.now();
+        const div = document.createElement('div');
+        div.id = loadingId;
+        div.className = "flex justify-start w-full";
+        div.innerHTML = `
+        <div class="bg-white/90 backdrop-blur-md border border-slate-200/80 ` +
+          `rounded-2xl rounded-tl-xs px-4 py-2.5 shadow-2xs text-xs text-slate-500 ` +
+          `w-fit flex items-center gap-2.5">
+          <div class="flex items-center gap-1.5 shrink-0">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse delay-150"></span>
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse delay-300"></span>
+          </div>
+          <span id="${loadingId}-text" class="text-slate-600 font-medium text-xs">
+            ${getLoadingStatusText(0, userQuery)}
+          </span>
+        </div>
+      `;
+        thread.appendChild(div);
+
+        let elapsedSec = 0;
+        if (currentLoadingTimerId) clearInterval(currentLoadingTimerId);
+
+        currentLoadingTimerId = setInterval(() => {
+          elapsedSec++;
+          const textElem = document.getElementById(`${loadingId}-text`);
+          if (textElem) {
+            textElem.innerText = getLoadingStatusText(elapsedSec, userQuery);
+          } else {
+            clearInterval(currentLoadingTimerId);
+          }
+        }, 1000);
+
+        return loadingId;
+      }
+
+      function removeLoadingMessage(loadingId) {
+        if (currentLoadingTimerId) {
+          clearInterval(currentLoadingTimerId);
+          currentLoadingTimerId = null;
+        }
+        const elem = document.getElementById(loadingId);
+        if (elem) elem.remove();
+      }
+
+      function renderSimpleAgentMessage(text) {
+        const thread = document.getElementById('chat-thread');
+        const div = document.createElement('div');
+        div.className = "flex justify-start w-full";
+        div.innerHTML = `
+        <div class="bg-white/90 backdrop-blur-md border border-slate-200/80 ` +
+          `rounded-2xl rounded-tl-xs p-5 shadow-sm text-xs sm:text-sm font-medium ` +
+          `text-slate-800 leading-relaxed">
+          ${escapeHtml(text)}
+        </div>
+      `;
+        thread.appendChild(div);
+      }
+
+      function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      }
+    </script>
+  </body>
+
+  </html>

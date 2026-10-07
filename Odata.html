@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Master Data Governance - Furniture BOM & SAP S/4HANA</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .font-mono-code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans">
+
+  <!-- Header Shell Bar -->
+  <header class="bg-slate-950 border-b border-slate-800 px-6 py-3 flex items-center justify-between sticky top-0 z-50">
+    <div class="flex items-center space-x-3">
+      <div class="bg-blue-600 text-white w-9 h-9 rounded flex items-center justify-center font-bold text-lg shadow">
+        <i class="fa-solid fa-cube"></i>
+      </div>
+      <div>
+        <h1 class="text-base font-bold tracking-tight text-white flex items-center gap-2">
+          Master Data Governance <span class="text-xs bg-blue-500/20 text-blue-400 border border-blue-500/30 px-2 py-0.5 rounded font-mono">Agentic AI</span>
+        </h1>
+        <p class="text-xs text-slate-400">Automated Furniture BOM & S/4HANA Orchestrator</p>
+      </div>
+    </div>
+    <div class="flex items-center space-x-4 text-xs">
+      <div class="flex items-center space-x-2 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-md">
+        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span class="text-slate-300 font-medium">OData Gateway: <span class="text-emerald-400 font-mono">ONLINE (Port 8001)</span></span>
+      </div>
+      <div class="text-slate-400 hidden sm:block">Client: <span class="font-mono text-slate-200">300</span> | User: <span class="font-mono text-slate-200">ABAPER04</span></div>
+    </div>
+  </header>
+
+  <!-- Konten Utama 2 Kolom -->
+  <main class="flex-1 p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 max-w-[1700px] w-full mx-auto">
+    
+    <!-- Kolom Kiri: Input & CAD Engine -->
+    <div class="lg:col-span-4 space-y-5">
+      
+      <!-- Box CAD & Upload -->
+      <div class="bg-slate-950 border border-slate-800 rounded-xl p-5 shadow-xl">
+        <div class="flex justify-between items-center mb-3">
+          <h2 class="text-sm font-semibold text-slate-200 flex items-center gap-2">
+            <i class="fa-solid fa-drafting-compass text-blue-400"></i> Technical CAD Blueprint
+          </h2>
+          <span class="text-[11px] font-mono bg-slate-800 text-slate-300 px-2 py-0.5 rounded">DWG / DXF Ready</span>
+        </div>
+
+        <!-- Canvas Blueprint -->
+        <div class="relative bg-slate-900 border border-slate-800 rounded-lg overflow-hidden h-52 flex items-center justify-center">
+          <canvas id="cadCanvas" class="w-full h-full"></canvas>
+          <div class="absolute bottom-2 left-2 flex gap-1 bg-slate-950/80 p-1 rounded border border-slate-800 text-[10px]">
+            <button onclick="zoomCanvas(1.1)" class="px-2 py-0.5 hover:bg-slate-800 rounded text-slate-300"><i class="fa-solid fa-plus"></i></button>
+            <button onclick="zoomCanvas(0.9)" class="px-2 py-0.5 hover:bg-slate-800 rounded text-slate-300"><i class="fa-solid fa-minus"></i></button>
+            <button onclick="resetCanvas()" class="px-2 py-0.5 hover:bg-slate-800 rounded text-slate-300">Reset</button>
+          </div>
+          <div class="absolute top-2 right-2 text-[10px] bg-blue-950/80 border border-blue-800/50 text-blue-300 px-2 py-0.5 rounded font-mono">
+            Scale: 1:15 Metric
+          </div>
+        </div>
+
+        <!-- Drag Drop Area -->
+        <label class="mt-3 border-2 border-dashed border-slate-800 hover:border-blue-500/50 rounded-lg p-3 text-center cursor-pointer block transition bg-slate-900/50">
+          <i class="fa-solid fa-cloud-arrow-up text-slate-400 text-lg mb-1"></i>
+          <p class="text-xs text-slate-300 font-medium">Unggah File CAD atau Gambar Teknis</p>
+          <p class="text-[10px] text-slate-500 mt-0.5">Mendukung .DWG, .DXF, .PNG, .JPG (Auto-Detect Scale)</p>
+          <input type="file" id="fileInput" class="hidden" accept=".dwg,.dxf,.png,.jpg,.jpeg" onchange="handleFileUpload(event)">
+        </label>
+      </div>
+
+      <!-- Form Parameter Spesifikasi -->
+      <div class="bg-slate-950 border border-slate-800 rounded-xl p-5 shadow-xl space-y-4">
+        <h2 class="text-sm font-semibold text-slate-200 flex items-center gap-2">
+          <i class="fa-solid fa-sliders text-blue-400"></i> Spesifikasi & Parameter SAP
+        </h2>
+
+        <div class="grid grid-cols-2 gap-3 text-xs">
+          <div>
+            <label class="text-slate-400 block mb-1">Kode BOM / Header</label>
+            <input type="text" id="bomCode" value="NT-325-2" class="w-full bg-slate-900 border border-slate-800 rounded px-2.5 py-1.5 text-slate-100 font-mono focus:border-blue-500 outline-none">
+          </div>
+          <div>
+            <label class="text-slate-400 block mb-1">Nama Produk</label>
+            <input type="text" id="prodName" value="GABBY" class="w-full bg-slate-900 border border-slate-800 rounded px-2.5 py-1.5 text-slate-100 font-medium focus:border-blue-500 outline-none">
+          </div>
+        </div>
+
+        <div class="text-xs">
+          <label class="text-slate-400 block mb-1">Tipe Produk</label>
+          <input type="text" id="prodType" value="HAMBLIN BARSTOOL" class="w-full bg-slate-900 border border-slate-800 rounded px-2.5 py-1.5 text-slate-100 font-medium focus:border-blue-500 outline-none">
+        </div>
+
+        <div class="text-xs">
+          <label class="text-slate-400 block mb-1">Dimensi Jadi Keseluruhan (W x D x H mm)</label>
+          <div class="grid grid-cols-3 gap-2 font-mono">
+            <input type="number" id="dimW" value="542" class="bg-slate-900 border border-slate-800 rounded px-2 py-1.5 text-center focus:border-blue-500 outline-none">
+            <input type="number" id="dimD" value="612" class="bg-slate-900 border border-slate-800 rounded px-2 py-1.5 text-center focus:border-blue-500 outline-none">
+            <input type="number" id="dimH" value="1215" class="bg-slate-900 border border-slate-800 rounded px-2 py-1.5 text-center focus:border-blue-500 outline-none">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 text-xs">
+          <div>
+            <label class="text-slate-400 block mb-1">Material Utama</label>
+            <select id="mainMaterial" class="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1.5 text-slate-200 outline-none">
+              <option value="SL. Mahoni" selected>SL. Mahoni</option>
+              <option value="SL. Jati">SL. Jati</option>
+              <option value="SL. Sungkai">SL. Sungkai</option>
+              <option value="SL. Oak">SL. Oak</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-slate-400 block mb-1">Plant SAP</label>
+            <input type="text" id="sapPlant" value="1010 (KMI Prod)" class="w-full bg-slate-900 border border-slate-800 rounded px-2.5 py-1.5 text-slate-300 font-mono outline-none">
+          </div>
+        </div>
+
+        <!-- Target OData Gateway -->
+        <div class="text-xs">
+          <label class="text-slate-400 block mb-1 flex justify-between">
+            <span>SAP OData Endpoint</span>
+            <span class="text-emerald-400 text-[10px]">Verified via SEGW</span>
+          </label>
+          <input type="text" id="odataUrl" value="http://kmiprd.kmi.com:8001/sap/opu/odata/sap/ZMDG_MATERIAL_SRV_MDG_SRV/MaterialSet?$format=json" class="w-full bg-slate-900 border border-slate-800 rounded px-2.5 py-1 text-[11px] font-mono text-slate-300 outline-none">
+        </div>
+
+        <!-- Tombol Trigger Agent -->
+        <button onclick="runAgenticExtraction()" id="btnRunAgent" class="w-full bg-blue-600 hover:bg-blue-500 active:scale-[0.98] transition text-white py-2.5 rounded-lg font-semibold text-xs flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20">
+          <i class="fa-solid fa-brain"></i> Jalankan Reasoning Agentic AI
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Kolom Kanan: Hasil Evaluasi & Master Data Governance -->
+    <div class="lg:col-span-8 space-y-5">
+      
+      <!-- Kartu Metrik KPI -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-3.5">
+          <span class="text-slate-400 text-[11px] block">Total Part Ekstraksi</span>
+          <span class="text-xl font-bold font-mono text-white mt-0.5 block" id="kpiTotal">29</span>
+          <span class="text-[10px] text-slate-500">Struktur BOM Lengkap</span>
+        </div>
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-3.5">
+          <span class="text-slate-400 text-[11px] block">Kubikasi Kayu Mentah</span>
+          <span class="text-xl font-bold font-mono text-blue-400 mt-0.5 block" id="kpiM3">0.0248 M³</span>
+          <span class="text-[10px] text-slate-500">Toleransi Serut Terhitung</span>
+        </div>
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-3.5">
+          <span class="text-slate-400 text-[11px] block">Material Eksisting SAP</span>
+          <span class="text-xl font-bold font-mono text-emerald-400 mt-0.5 block" id="kpiExisting">7 Part</span>
+          <span class="text-[10px] text-slate-500">Deduplikasi Sukses</span>
+        </div>
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-3.5">
+          <span class="text-slate-400 text-[11px] block">Perlu Kode Baru (MM01)</span>
+          <span class="text-xl font-bold font-mono text-amber-400 mt-0.5 block" id="kpiNew">22 Part</span>
+          <span class="text-[10px] text-slate-500">Siap Buat Nomor SAP</span>
+        </div>
+      </div>
+
+      <!-- Bilah Pipa Alur 5 Stasiun Kerja Pabrik -->
+      <div class="bg-slate-950 border border-slate-800 rounded-xl p-3.5 flex flex-wrap items-center justify-between gap-2 text-xs">
+        <span class="text-slate-400 font-medium text-[11px]">Alur Routing (CA01):</span>
+        <div class="flex items-center gap-1.5 flex-1 max-w-2xl justify-between overflow-x-auto text-[11px] font-mono">
+          <span class="bg-slate-900 border border-slate-800 px-2 py-1 rounded text-slate-300">0010: Part</span>
+          <i class="fa-solid fa-angle-right text-slate-600"></i>
+          <span class="bg-slate-900 border border-slate-800 px-2 py-1 rounded text-slate-300">0020: Component</span>
+          <i class="fa-solid fa-angle-right text-slate-600"></i>
+          <span class="bg-slate-900 border border-slate-800 px-2 py-1 rounded text-slate-300">0030: Machining</span>
+          <i class="fa-solid fa-angle-right text-slate-600"></i>
+          <span class="bg-slate-900 border border-slate-800 px-2 py-1 rounded text-slate-300">0040: Assembling</span>
+          <i class="fa-solid fa-angle-right text-slate-600"></i>
+          <span class="bg-slate-900 border border-slate-800 px-2 py-1 rounded text-slate-300">0050: Painting</span>
+        </div>
+      </div>
+
+      <!-- Panel Tab Utama -->
+      <div class="bg-slate-950 border border-slate-800 rounded-xl shadow-xl overflow-hidden flex flex-col min-h-[500px]">
+        
+        <!-- Tab Navigasi -->
+        <div class="border-b border-slate-800 px-4 pt-3 flex space-x-6 text-xs font-medium">
+          <button onclick="switchTab('tabBom')" id="btnTabBom" class="pb-3 border-b-2 border-blue-500 text-white flex items-center gap-2">
+            <i class="fa-solid fa-table-list"></i> Review Master Data BOM
+          </button>
+          <button onclick="switchTab('tabRouting')" id="btnTabRouting" class="pb-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2">
+            <i class="fa-solid fa-network-wired"></i> Alokasi CA01 & C223
+          </button>
+          <button onclick="switchTab('tabJson')" id="btnTabJson" class="pb-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2">
+            <i class="fa-solid fa-code"></i> Payload JSON (BAPI)
+          </button>
+        </div>
+
+        <!-- Isi Tab 1: Tabel BOM -->
+        <div id="tabBom" class="p-4 flex-1 flex flex-col">
+          <div class="flex justify-between items-center mb-3 gap-3">
+            <div class="relative flex-1 max-w-xs">
+              <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-500 text-xs"></i>
+              <input type="text" id="searchTable" onkeyup="filterTable()" placeholder="Cari part atau material..." class="w-full bg-slate-900 border border-slate-800 rounded pl-8 pr-3 py-1.5 text-xs text-slate-200 outline-none">
+            </div>
+            <div class="flex items-center gap-2 text-xs">
+              <span class="text-slate-400 text-[11px]">Filter Stasiun:</span>
+              <select id="filterStation" onchange="filterTable()" class="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-slate-300 text-xs outline-none">
+                <option value="ALL">Semua Bagian</option>
+                <option value="Part">Part (Rough)</option>
+                <option value="Component">Component (S4S)</option>
+                <option value="Machining">Machining</option>
+                <option value="Assembling">Assembling</option>
+                <option value="Painting">Painting</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Tabel Responsif -->
+          <div class="overflow-x-auto flex-1 border border-slate-800 rounded-lg">
+            <table class="w-full text-left border-collapse text-[11px]" id="bomTable">
+              <thead>
+                <tr class="bg-slate-900/80 text-slate-400 font-mono border-b border-slate-800">
+                  <th class="p-2.5">Item</th>
+                  <th class="p-2.5">Lvl</th>
+                  <th class="p-2.5">Nama Komponen</th>
+                  <th class="p-2.5">Material</th>
+                  <th class="p-2.5">Finish Size (mm)</th>
+                  <th class="p-2.5">Rough Size (mm)</th>
+                  <th class="p-2.5 text-right">Qty</th>
+                  <th class="p-2.5">Stasiun Kerja</th>
+                  <th class="p-2.5">Status SAP</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-800/60 font-mono" id="tableBody">
+                <!-- Diisi via JavaScript -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Isi Tab 2: Alokasi CA01 & C223 -->
+        <div id="tabRouting" class="p-4 flex-1 hidden space-y-4 text-xs">
+          <div class="bg-slate-900 border border-slate-800 rounded-lg p-3">
+            <span class="text-slate-400 block mb-1 font-semibold">Production Version Kunci (T-Code C223):</span>
+            <div class="font-mono text-emerald-400 bg-slate-950 p-2 rounded border border-slate-800">
+              Material: FG-NT-325-2 | Ver: 0001 | BOM Alt: 01 | Routing Group: 50001290 | Plant: 1010
+            </div>
+          </div>
+
+          <div class="border border-slate-800 rounded-lg overflow-hidden">
+            <table class="w-full text-left text-[11px] font-mono">
+              <thead class="bg-slate-900 text-slate-400">
+                <tr>
+                  <th class="p-2">Operasi</th>
+                  <th class="p-2">Work Center (CR01)</th>
+                  <th class="p-2">Deskripsi Kerja</th>
+                  <th class="p-2">Komponen Teralokasi (PLMZ)</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-800 text-slate-300">
+                <tr>
+                  <td class="p-2 text-blue-400">0010</td>
+                  <td class="p-2">WC-ROUGH01</td>
+                  <td class="p-2 font-sans">Pembelahan & Potong Kasar Kayu Log Mahoni</td>
+                  <td class="p-2 text-slate-400 font-sans">Sawn Timber Mahoni Kasar</td>
+                </tr>
+                <tr>
+                  <td class="p-2 text-blue-400">0020</td>
+                  <td class="p-2">WC-PLANER02</td>
+                  <td class="p-2 font-sans">Pengetaman 4 Sisi Rata S4S & Corner Block</td>
+                  <td class="p-2 text-slate-400 font-sans">Front/Back Corner Blocks (Rubberwood)</td>
+                </tr>
+                <tr>
+                  <td class="p-2 text-blue-400">0030</td>
+                  <td class="p-2">WC-CNCMACH03</td>
+                  <td class="p-2 font-sans">Pembuatan Purus, Lubang Dowel & Mal Sandaran</td>
+                  <td class="p-2 text-slate-400 font-sans">16 Profil Kayu Mahoni (Legs, Rails, Slats)</td>
+                </tr>
+                <tr>
+                  <td class="p-2 text-blue-400">0040</td>
+                  <td class="p-2">WC-ASSEMBLY01</td>
+                  <td class="p-2 font-sans">Perakitan Rangka, Dowel, Lem & Anyaman Dudukan</td>
+                  <td class="p-2 text-slate-400 font-sans">Dowel Beech, Sekrup 4x35, Lem PVAc, Tali Anyaman</td>
+                </tr>
+                <tr>
+                  <td class="p-2 text-blue-400">0050</td>
+                  <td class="p-2">WC-FINISH01</td>
+                  <td class="p-2 font-sans">Finishing Cat PU & Pemasangan Aksesoris Brass</td>
+                  <td class="p-2 text-slate-400 font-sans">Brass Caps, Brass Stretcher, Wood Stain, Top Coat</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Isi Tab 3: JSON Payload -->
+        <div id="tabJson" class="p-4 flex-1 hidden flex flex-col">
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-xs text-slate-400">Payload Terstandarisasi BAPI / Middleware</span>
+            <button onclick="copyJsonPayload()" class="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-1 rounded text-slate-300">
+              <i class="fa-solid fa-copy mr-1"></i> Salin JSON
+            </button>
+          </div>
+          <pre id="jsonOutput" class="bg-slate-950 border border-slate-800 rounded p-3 text-[11px] text-emerald-400 font-mono overflow-auto flex-1 max-h-[420px]"></pre>
+        </div>
+
+        <!-- Action Bar Bawah -->
+        <div class="border-t border-slate-800 px-4 py-3 bg-slate-950 flex flex-wrap items-center justify-between gap-3">
+          <div class="text-[11px] text-slate-400 flex items-center gap-2">
+            <i class="fa-solid fa-shield-halved text-blue-400"></i> Tata Kelola: Human Approval Terverifikasi
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="exportCsv()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded text-xs">
+              <i class="fa-solid fa-file-csv mr-1"></i> Ekspor CSV
+            </button>
+            <button onclick="openSyncModal()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-1.5 rounded text-xs font-semibold shadow-lg shadow-emerald-600/20 flex items-center gap-1.5">
+              <i class="fa-solid fa-paper-plane"></i> Sinkronisasi ke SAP ERP
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Modal Konfirmasi Sinkronisasi SAP -->
+  <div id="syncModal" class="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-slate-950 border border-slate-800 rounded-xl max-w-md w-full p-5 space-y-4 shadow-2xl">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-lg">
+          <i class="fa-solid fa-server"></i>
+        </div>
+        <div>
+          <h3 class="text-sm font-bold text-white">Konfirmasi Rilis ke SAP S/4HANA</h3>
+          <p class="text-xs text-slate-400">Pemeriksaan Master Data Governance</p>
+        </div>
+      </div>
+      <div class="text-xs text-slate-300 space-y-2 bg-slate-900 p-3 rounded border border-slate-800 font-mono">
+        <p>• BAPI_MATERIAL_SAVEDATA: 22 Part Baru (MM01)</p>
+        <p>• CSAP_MAT_BOM_MAINTAIN: BOM Header NT-325-2 (CS01)</p>
+        <p>• BAPI_ROUTING_CREATE: 5 Operasi PLMZ & C223</p>
+      </div>
+      <div class="flex justify-end gap-2 pt-2">
+        <button onclick="closeSyncModal()" class="px-3 py-1.5 text-xs text-slate-400 hover:text-slate-200">Batal</button>
+        <button onclick="executeSapRelease()" id="btnConfirmRelease" class="px-4 py-1.5 text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded">
+          Rilis & Posting Sekarang
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript Logika Master Data -->
+  <script>
+    // Data Default Produk NT-325-2 Hamblin Barstool
+    const defaultBomItems = [
+      { item: "0010", lvl: ".1", name: "SUB ASSY BODY", mat: "Assembly", finish: "542x612x1215", rough: "-", qty: 1, station: "Assembling", status: "NEW" },
+      { item: "0020", lvl: "..2", name: "FRONT LEG L", mat: "SL. Mahoni", finish: "44x45x743.5", rough: "48x52x755", qty: 1, station: "Machining", status: "NEW" },
+      { item: "0030", lvl: "..2", name: "FRONT LEG R", mat: "SL. Mahoni", finish: "44x45x743.5", rough: "48x52x755", qty: 1, station: "Machining", status: "NEW" },
+      { item: "0040", lvl: "..2", name: "BACK LEG L", mat: "SL. Mahoni", finish: "38x104x1207", rough: "42x111x1220", qty: 1, station: "Machining", status: "NEW" },
+      { item: "0050", lvl: "..2", name: "BACK LEG R", mat: "SL. Mahoni", finish: "38x104x1207", rough: "42x111x1220", qty: 1, station: "Machining", status: "NEW" },
+      { item: "0060", lvl: "..2", name: "FRONT RAIL", mat: "SL. Mahoni", finish: "25x38x509.5", rough: "29x44x522", qty: 1, station: "Machining", status: "NEW" },
+      { item: "0070", lvl: "..2", name: "SIDE RAIL L", mat: "SL. Mahoni", finish: "32.5x38x450.5", rough: "36.5x44x463", qty: 1, station: "Machining", status: "NEW" },
+      { item: "0080", lvl: "..2", name: "SIDE RAIL R", mat: "SL. Mahoni", finish: "32.5x38x450.5", rough: "36.5x44x463", qty: 1, station: "Machining", status: "NEW" },
+      { item: "0090", lvl: "..2", name: "BACK RAIL", mat: "SL. Mahoni", finish: "38x59.5x422", rough: "42x66x435", qty: 1, station: "Machining", status: "NEW" },
+      { item: "0100", lvl: "..2", name: "STRETCHER SIDE 1 L", mat: "SL. Mahoni", finish: "23x23x515.5", rough: "27x29x528", qty: 1, station: "Machining", status: "NEW" },
+      { item: "0110", lvl: "..2", name: "STRETCHER SIDE 2 L", mat: "SL. Mahoni", finish: "23x23x456.5", rough: "27x29x469", qty: 1, station: "Machining", status: "NEW" },
+      { item: "0120", lvl: "..2", name: "STRETCHER SIDE 1 R", mat: "SL. Mahoni", finish: "23x23x515.5", rough: "27x29x528", qty: 1, station: "Machining", status: "NEW" },
+      { item: "0130", lvl: "..2", name: "STRETCHER SIDE 2 R", mat: "SL. Mahoni", finish: "23x23x456.5", rough: "27x29x469", qty: 1, station: "Machining", status: "NEW" },
+      { item: "0140", lvl: "..2", name: "FRAME BACK REST 1", mat: "SL. Mahoni", finish: "23x50.5x444.5", rough: "27x57x457", qty: 1, station: "Machining", status: "NEW" },
+      { item: "0150", lvl: "..2", name: "FRAME BACK REST 2", mat: "SL. Mahoni", finish: "26x68x433", rough: "30x75x445", qty: 1, station: "Machining", status: "NEW" },
+      { item: "0160", lvl: "..2", name: "FRAME BACK REST 3", mat: "SL. Mahoni", finish: "26x68x433", rough: "30x75x445", qty: 1, station: "Machining", status: "NEW" },
+      { item: "0170", lvl: "..2", name: "FRAME BACK REST 4", mat: "SL. Mahoni", finish: "26x65x433", rough: "30x72x445", qty: 1, station: "Machining", status: "NEW" },
+      { item: "0180", lvl: "..2", name: "FRAME BACK MID TUSCAN", mat: "SL. Mahoni", finish: "19x254x455", rough: "23x261x468", qty: 1, station: "Machining", status: "NEW" },
+      { item: "0190", lvl: "..2", name: "FRONT CORNER L", mat: "SL. Rubber", finish: "32x43.5x106", rough: "36x50x118", qty: 1, station: "Component", status: "EXISTING" },
+      { item: "0200", lvl: "..2", name: "FRONT CORNER R", mat: "SL. Rubber", finish: "32x43.5x106", rough: "36x50x118", qty: 1, station: "Component", status: "EXISTING" },
+      { item: "0210", lvl: "..2", name: "BACK CORNER L", mat: "SL. Rubber", finish: "32x38x139", rough: "36x44x151", qty: 1, station: "Component", status: "EXISTING" },
+      { item: "0220", lvl: "..2", name: "BACK CORNER R", mat: "SL. Rubber", finish: "32x38x139", rough: "36x44x151", qty: 1, station: "Component", status: "EXISTING" },
+      { item: "0230", lvl: "..2", name: "BRASS CAP L", mat: "BRASS", finish: "22x22x432.5", rough: "22x22x432.5", qty: 1, station: "Painting", status: "NEW" },
+      { item: "0240", lvl: "..2", name: "BRASS CAP R", mat: "BRASS", finish: "22x22x432.5", rough: "22x22x432.5", qty: 1, station: "Painting", status: "NEW" },
+      { item: "0250", lvl: "..2", name: "BRASS STRETCHER", mat: "BRASS", finish: "19x19x498.5", rough: "19x19x498.5", qty: 1, station: "Painting", status: "NEW" },
+      { item: "0260", lvl: "..2", name: "DOWEL 10X30", mat: "SL. Beech", finish: "10x10x30", rough: "10x10x30", qty: 4, station: "Assembling", status: "EXISTING" },
+      { item: "0270", lvl: "..2", name: "DOWEL 10X20", mat: "SL. Beech", finish: "10x10x20", rough: "10x10x20", qty: 4, station: "Assembling", status: "EXISTING" },
+      { item: "0280", lvl: "..2", name: "WOOD SCREW 4X35", mat: "STEEL", finish: "-", rough: "-", qty: 8, station: "Assembling", status: "AUTO-SUGGEST" },
+      { item: "0290", lvl: "..2", name: "SEAT WEAVING ROPE", mat: "KRAFT CORD", finish: "-", rough: "-", qty: 1.2, station: "Assembling", status: "AUTO-SUGGEST" }
+    ];
+
+    let currentItems = [...defaultBomItems];
+    let canvasZoom = 1;
+
+    // Render Tabel BOM
+    function renderTable(items) {
+      const tbody = document.getElementById("tableBody");
+      tbody.innerHTML = "";
+
+      items.forEach(it => {
+        let statusBadge = "";
+        if (it.status === "EXISTING") {
+          statusBadge = '<span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded text-[10px]">EXISTING</span>';
+        } else if (it.status === "AUTO-SUGGEST") {
+          statusBadge = '<span class="bg-purple-500/10 text-purple-400 border border-purple-500/20 px-1.5 py-0.5 rounded text-[10px]">AUTO-SUGGEST</span>';
+        } else {
+          statusBadge = '<span class="bg-amber-500/10 text-amber-400 border border-amber-500/20 px-1.5 py-0.5 rounded text-[10px]">NEW</span>';
+        }
+
+        const tr = document.createElement("tr");
+        tr.className = "hover:bg-slate-900/60 transition";
+        tr.innerHTML = `
+          <td class="p-2.5 text-slate-400">${it.item}</td>
+          <td class="p-2.5 text-blue-400 font-bold">${it.lvl}</td>
+          <td class="p-2.5 font-sans font-medium text-slate-200">${it.name}</td>
+          <td class="p-2.5 text-slate-400">${it.mat}</td>
+          <td class="p-2.5 text-slate-300">${it.finish}</td>
+          <td class="p-2.5 text-slate-400">${it.rough}</td>
+          <td class="p-2.5 text-right font-bold text-slate-200">${it.qty}</td>
+          <td class="p-2.5"><span class="bg-slate-900 px-1.5 py-0.5 rounded text-slate-400 border border-slate-800">${it.station}</span></td>
+          <td class="p-2.5">${statusBadge}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      updateJsonOutput();
+    }
+
+    // Filter Pencarian & Stasiun
+    function filterTable() {
+      const query = document.getElementById("searchTable").value.toLowerCase();
+      const station = document.getElementById("filterStation").value;
+
+      const filtered = currentItems.filter(it => {
+        const matchText = it.name.toLowerCase().includes(query) || it.mat.toLowerCase().includes(query);
+        const matchStation = (station === "ALL") || (it.station === station);
+        return matchText && matchStation;
+      });
+
+      renderTable(filtered);
+    }
+
+    // Alih Tab
+    function switchTab(tabId) {
+      ["tabBom", "tabRouting", "tabJson"].forEach(id => document.getElementById(id).classList.add("hidden"));
+      ["btnTabBom", "btnTabRouting", "btnTabJson"].forEach(id => {
+        const btn = document.getElementById(id);
+        btn.classList.remove("border-blue-500", "text-white");
+        btn.classList.add("border-transparent", "text-slate-400");
+      });
+
+      document.getElementById(tabId).classList.remove("hidden");
+      const activeBtn = document.getElementById("btn" + tabId.charAt(0).toUpperCase() + tabId.slice(1));
+      activeBtn.classList.remove("border-transparent", "text-slate-400");
+      activeBtn.classList.add("border-blue-500", "text-white");
+    }
+
+    // Update JSON
+    function updateJsonOutput() {
+      const payload = {
+        bom_header: {
+          product_code: document.getElementById("bomCode").value,
+          product_name: document.getElementById("prodName").value,
+          product_type: document.getElementById("prodType").value,
+          size_mm: {
+            width: parseFloat(document.getElementById("dimW").value),
+            depth: parseFloat(document.getElementById("dimD").value),
+            height: parseFloat(document.getElementById("dimH").value)
+          },
+          sap_plant: "1010",
+          bom_usage: "1"
+        },
+        items_count: currentItems.length,
+        bom_items: currentItems
+      };
+      document.getElementById("jsonOutput").textContent = JSON.stringify(payload, null, 2);
+    }
+
+    // Gambar Canvas Blueprint Simpel
+    function drawCanvas() {
+      const canvas = document.getElementById("cadCanvas");
+      const ctx = canvas.getContext("2d");
+      canvas.width = canvas.parentElement.clientWidth;
+      canvas.height = canvas.parentElement.clientHeight;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Grid Teknis
+      ctx.strokeStyle = "#1e293b";
+      ctx.lineWidth = 1;
+      const step = 20 * canvasZoom;
+      for (let x = 0; x < canvas.width; x += step) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+      }
+      for (let y = 0; y < canvas.height; y += step) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+      }
+
+      // Gambar Garis Kursi Sederhana
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2 + 10;
+      ctx.strokeStyle = "#38bdf8";
+      ctx.lineWidth = 1.8;
+
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.scale(canvasZoom, canvasZoom);
+
+      // Kaki Kursi
+      ctx.strokeRect(-35, -40, 70, 8); // Dudukan
+      ctx.beginPath();
+      ctx.moveTo(-30, -32); ctx.lineTo(-40, 70); // Kaki kiri
+      ctx.moveTo(30, -32); ctx.lineTo(40, 70); // Kaki kanan
+      ctx.moveTo(-35, 30); ctx.lineTo(35, 30); // Palang stretcher kuningan
+      ctx.moveTo(-25, -40); ctx.lineTo(-25, -95); // Sandaran kiri
+      ctx.moveTo(25, -40); ctx.lineTo(25, -95); // Sandaran kanan
+      ctx.moveTo(-25, -90); ctx.lineTo(25, -90); // Top rail sandaran
+      ctx.moveTo(-25, -65); ctx.lineTo(25, -65); // Mid slat
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    function zoomCanvas(factor) {
+      canvasZoom *= factor;
+      drawCanvas();
+    }
+
+    function resetCanvas() {
+      canvasZoom = 1;
+      drawCanvas();
+    }
+
+    // Trigger AI Reasoning Mock
+    function runAgenticExtraction() {
+      const btn = document.getElementById("btnRunAgent");
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Mengevaluasi Dimensi & OData...';
+      btn.classList.add("opacity-75");
+
+      setTimeout(() => {
+        btn.innerHTML = '<i class="fa-solid fa-brain"></i> Jalankan Reasoning Agentic AI';
+        btn.classList.remove("opacity-75");
+        alert("Reasoning Agentic AI Selesai!\n• 29 Part terekstraksi presisi.\n• 7 part eksisting cocok dengan data SAP OData.\n• 2 part auto-suggest berhasil disisipkan.");
+      }, 1200);
+    }
+
+    function handleFileUpload(e) {
+      const file = e.target.files[0];
+      if (file) {
+        alert("File diterima: " + file.name + "\nAgent mendeteksi metadata geometri otomatis.");
+      }
+    }
+
+    function copyJsonPayload() {
+      const text = document.getElementById("jsonOutput").textContent;
+      navigator.clipboard.writeText(text);
+      alert("Payload JSON berhasil disalin ke clipboard!");
+    }
+
+    function exportCsv() {
+      let csv = "Item,Level,Name,Material,FinishSize,RoughSize,Qty,Station,Status\n";
+      currentItems.forEach(i => {
+        csv += `${i.item},${i.lvl},"${i.name}","${i.mat}","${i.finish}","${i.rough}",${i.qty},${i.station},${i.status}\n`;
+      });
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "BOM_NT-325-2_SAP_MDG.csv";
+      a.click();
+    }
+
+    function openSyncModal() { document.getElementById("syncModal").classList.remove("hidden"); }
+    function closeSyncModal() { document.getElementById("syncModal").classList.add("hidden"); }
+
+    function executeSapRelease() {
+      const btn = document.getElementById("btnConfirmRelease");
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menghubungi SAP...';
+      setTimeout(() => {
+        btn.innerHTML = 'Rilis & Posting Sekarang';
+        closeSyncModal();
+        alert("Sukses! 22 Material baru terdaftar via BAPI_MATERIAL_SAVEDATA dan BOM berhasil dibuat di T-Code CS01.");
+      }, 1500);
+    }
+
+    window.addEventListener("resize", drawCanvas);
+    window.addEventListener("DOMContentLoaded", () => {
+      renderTable(currentItems);
+      drawCanvas();
+    });
+  </script>
+</body>
+</html>
