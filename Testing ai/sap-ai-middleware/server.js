@@ -67,6 +67,56 @@ function calculateWoodRoughVolume(item) {
   };
 }
 
+function validateAndSanitizeBapiPayload(parsed) {
+  if (!parsed || typeof parsed !== 'object') return parsed;
+
+  const validMtart = ['FERT', 'HALB', 'ROH'];
+  const validUom = ['PC', 'M3', 'KG', 'L'];
+  const validActions = ['NEW', 'EXISTING', 'EXTEND_PLANT'];
+
+  if (Array.isArray(parsed.bapi_material_records)) {
+    parsed.bapi_material_records.forEach(rec => {
+      if (rec.headdata && rec.headdata.matl_type) {
+        if (!validMtart.includes(rec.headdata.matl_type)) {
+          rec.headdata.matl_type = 'ROH';
+        }
+      }
+      if (rec.clientdata && rec.clientdata.base_uom) {
+        if (!validUom.includes(rec.clientdata.base_uom)) {
+          rec.clientdata.base_uom = 'PC';
+        }
+      }
+      if (Array.isArray(rec.materialdescription)) {
+        rec.materialdescription.forEach(desc => {
+          if (desc.matl_desc) {
+            desc.matl_desc = String(desc.matl_desc).toUpperCase().substring(0, 40);
+          }
+        });
+      }
+      if (rec.governance_status && rec.governance_status.action) {
+        if (!validActions.includes(rec.governance_status.action)) {
+          rec.governance_status.action = 'NEW';
+        }
+      }
+    });
+  }
+
+  if (Array.isArray(parsed.materials)) {
+    parsed.materials.forEach(m => {
+      if (m.part_name) {
+        m.part_name_sanitized = String(m.part_name).toUpperCase().substring(0, 40);
+      }
+      if (m.parameters && m.parameters.mtart) {
+        if (!validMtart.includes(m.parameters.mtart)) {
+          m.parameters.mtart = 'ROH';
+        }
+      }
+    });
+  }
+
+  return parsed;
+}
+
 app.post('/api/claude', async (req, res) => {
   try {
     const { prompt, materials, systemPrompt, model, history } = req.body;
@@ -289,6 +339,43 @@ PANDUAN LENGKUP PARAMETER MASTER DATA & MRP (SAP MDG)
    - Dowel & Fastener & Ukuran Sama Persis -> STATUS: EXISTING (sap_matnr: Kode SAP query)
    - Dowel & Fastener & Ukuran Belum Ada -> STATUS: NEW (sap_matnr: null)
    - Lem & Bahan Kimia Standar Pabrik -> STATUS: AUTO-SUGGEST (sap_matnr: Kode OData / null)
+
+8. [STRICT GOVERNANCE RULE: BAPI PAYLOAD & PROMPT COMPLIANCE - TEST #7]
+   - ZERO CONVERSATIONAL OUTPUT (STRICT JSON ONLY):
+     * Saat pengguna meminta payload/JSON BAPI, luaran WAJIB 100% format JSON murni.
+     * DILARANG menyertakan kata sambutan, pengantar, atau penutup ("Berikut kodenya...", "Semoga membantu", dll.).
+     * Jangan menyertakan blok markdown \`\`\`json atau \`\`\` jika sistem meminta output raw text murni.
+   - ABSOLUTE PROMPT INSTRUCTION PRECEDENCE:
+     * Permintaan spesifik pengguna (part name, jenis material, MTART) MEMILIKI PRIORITAS TERTINGGI melampaui data historis OData.
+     * Jika pengguna meminta komponen "kaki kayu" dengan tipe "ROH", Anda DILARANG menggantinya menjadi "rel samping" atau "HALB" hanya karena part tersebut ada di riwayat OData.
+     * Jika komponen yang diminta tidak ditemukan di database eksisting:
+       - Tetapkan status / action: "NEW"
+       - Tetapkan material / sap_matnr: null
+       - Tetapkan MTART, nama part, dan UoM persis sesuai yang diminta pengguna.
+   - FIELD INTEGRITY & SAP DICTIONARY LIMITS:
+     * maktx / matl_desc: Maksimal 40 karakter, 100% HURUF KAPITAL.
+     * mtart / matl_type: Hanya boleh bernilai "FERT", "HALB", atau "ROH".
+     * meins / base_uom: Wajib kode UoM ISO SAP ("PC", "M3", "KG", "L").
+   - SKEMA PAYLOAD BAPI (BAPI_MATERIAL_SAVEDATA):
+     Struktur data baku BAPI SAP material records:
+     {
+       "bapi_material_records": [
+         {
+           "headdata": { "material": null, "matl_type": "ROH", "matl_group": "HSF012" },
+           "clientdata": { "base_uom": "PC" },
+           "plantdata": { "plant": "1010", "mrptype": "PD", "mrp_group": "ZWE1", "mrp_ctrler": "WM1" },
+           "storagelocationdata": { "plant": "1010", "stge_loc": "1001" },
+           "materialdescription": [ { "langu": "EN", "matl_desc": "WD MAH FRONT LEG 44X45X743.5" } ],
+           "governance_status": { "action": "NEW", "entity_role": "COMPONENT_PART" }
+         }
+       ]
+     }
+
+9. [MATRIKS VALIDASI KEPATUHAN PARAMETER UJI NOMOR 7]
+   - Kaki Kayu (Komponen): Wajib menghasilkan deskripsi kaki ('LEG'), bukan rel ('RAIL').
+   - Tipe Material Part: Wajib menetapkan 'matl_type' / 'mtart' = 'ROH', abaikan jika OData bertipe 'HALB'.
+   - Produk Jadi: Wajib menetapkan 'matl_type' / 'mtart' = 'FERT', unit level 0.
+   - Batas Karakter: Maksimal 40 karakter huruf kapital pada 'matl_desc' / 'maktx'.
 
 ATURAN UTAMA RESPONS:
 1. Jawab pertanyaan pengguna secara langsung terlebih dahulu (kalimat/paragraf biasa).
