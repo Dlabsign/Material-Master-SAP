@@ -482,10 +482,13 @@
           return customInput.value.trim().replace(/\/+$/, '');
         }
         const h = window.location.hostname;
-        if (h && h !== 'localhost' && h !== '127.0.0.1') {
+        if (h === 'localhost' || h === '127.0.0.1') {
+          return 'http://localhost:3000';
+        }
+        if (h && h.startsWith('192.168.')) {
           return 'http://' + h + ':3000';
         }
-        return 'http://localhost:3000';
+        return 'http://192.168.21.174:3000';
       }
 
       function fetchLiveODataData() {
@@ -990,6 +993,19 @@ ATURAN UTAMA RESPONS:
         } else {
           matchedLiveItems = liveODataMaterials.slice(0, 10);
         }
+
+        const uniqueItems = [];
+        const seenKeys = new Set();
+        matchedLiveItems.forEach(item => {
+          const matnr = getMatField(item, 'Matnr');
+          const maktx = getMatField(item, 'Maktx');
+          const key = `${matnr}_${maktx}`;
+          if (!seenKeys.has(key)) {
+            seenKeys.add(key);
+            uniqueItems.push(item);
+          }
+        });
+        matchedLiveItems = uniqueItems;
 
         const isSuccess = matchedLiveItems.length > 0;
         let directAnswerText = "";
