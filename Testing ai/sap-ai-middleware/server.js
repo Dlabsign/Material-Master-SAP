@@ -15,6 +15,7 @@ app.get('/', (req, res) => {
 });
 
 let cachedMaterials = [];
+let cachedBomItems = [];
 
 app.get('/api/odata', async (req, res) => {
   try {
@@ -27,11 +28,31 @@ app.get('/api/odata', async (req, res) => {
     const response = await axios.get(odataUrl, { headers, timeout: 15000 });
     if (response.data && response.data.d && response.data.d.results) {
       cachedMaterials = response.data.d.results;
-      console.log('[Middleware Cache Updated]:', cachedMaterials.length, 'items');
+      console.log('[Middleware Material Cache Updated]:', cachedMaterials.length, 'items');
     }
     res.json(response.data);
   } catch (err) {
-    console.warn('[Proxy OData Error]:', err.message);
+    console.warn('[Proxy OData Material Error]:', err.message);
+    res.status(500).json({ error: true, message: err.message });
+  }
+});
+
+app.get('/api/odata/bom', async (req, res) => {
+  try {
+    const bomUrl = 'http://kmiprd.kmi.com:8001/sap/opu/odata/sap/' +
+      'ZMDG_MATERIAL_SRV_MDG_SRV/BomItemSet?$format=json';
+    const authHeader = req.headers['authorization'];
+    const headers = { 'Accept': 'application/json' };
+    if (authHeader) headers['Authorization'] = authHeader;
+
+    const response = await axios.get(bomUrl, { headers, timeout: 15000 });
+    if (response.data && response.data.d && response.data.d.results) {
+      cachedBomItems = response.data.d.results;
+      console.log('[Middleware BOM Cache Updated]:', cachedBomItems.length, 'items');
+    }
+    res.json(response.data);
+  } catch (err) {
+    console.warn('[Proxy OData BOM Error]:', err.message);
     res.status(500).json({ error: true, message: err.message });
   }
 });
@@ -119,7 +140,7 @@ function validateAndSanitizeBapiPayload(parsed) {
 
 app.post('/api/claude', async (req, res) => {
   try {
-    const { prompt, materials, systemPrompt, model, history } = req.body;
+    const { prompt, materials, bomItems, systemPrompt, model, history } = req.body;
 
     const formattedMessages = [];
 
@@ -216,9 +237,9 @@ app.post('/api/claude', async (req, res) => {
 
       let contextStr = '';
       if (matchedItems.length > 0) {
-        // Pembatasan maksimal 60 item paling cocok agar token prompt tidak melebihi batas 200K
+        // Pembatasan maksimal 60 item paling cocok
         const topMatched = matchedItems.slice(0, 60);
-        contextStr += `=== HASIL PENCOCOKAN MATERIAL DITEMUKAN DI SAP ODATA (${topMatched.length} ITEM DITAMPILKAN DARI ${matchedItems.length} TOTAL MATCH) ===\n` +
+        contextStr += `=== HASIL PENCOCOKAN MATERIAL DITEMUKAN DI SAP ODATA (${topMatched.length} ITEM) ===\n` +
           topMatched.map(item => item.line).join('\n') + '\n\n';
       }
 
@@ -232,7 +253,85 @@ app.post('/api/claude', async (req, res) => {
       materialContext = `\n\n[DATABASE SAP MATERIAL ODATA]: Belum ada data material yang dimuat dari OData.`;
     }
 
-    const currentUserMessage = `${prompt || ''}${materialContext}`;
+    // Gunakan bomItems dari request atau cachedBomItems jika kosong
+    let targetBomItems = (bomItems && Array.isArray(bomItems) && bomItems.length > 0)
+      ? bomItems
+      : cachedBomItems;
+
+    if (targetBomItems.length > 0 && cachedBomItems.length === 0) {
+      cachedBomItems = targetBomItems;
+    }
+
+    let bomContext = '';
+    if (targetBomItems && targetBomItems.length > 0) {
+      const promptText = (prompt || '').trim();
+      const promptNumbers = promptText.match(/\b\d+\b/g) || [];
+      const cleanPromptNums = promptNumbers.map(n => n.replace(/^0+/, ''));
+      const promptWords = promptText.toUpperCase()
+        .split(/[\s,.;:?!'"]+/)
+        .filter(w => w.length >= 2);
+
+      const matchedBom = [];
+      const otherBom = [];
+
+      targetBomItems.forEach(b => {
+        const matnr = String(b.Matnr || b.MATNR || b.Stlnr_Matnr || b.STLNR_MATNR || '').trim();
+        const idnrk = String(b.Idnrk || b.IDNRK || b.Component || '').trim();
+        const maktx = String(b.Maktx || b.MAKTX || b.Ojtxp || b.OJTXP || '').trim();
+        const posnr = String(b.Posnr || b.POSNR || '').trim();
+        const postp = String(b.Postp || b.POSTP || '').trim();
+        const menge = String(b.Menge || b.MENGE || '').trim();
+        const meins = String(b.Meins || b.MEINS || '').trim();
+        const werks = String(b.Werks || b.WERKS || '').trim();
+
+        let score = 0;
+        const cleanMatnr = matnr.replace(/^0+/, '');
+        const cleanIdnrk = idnrk.replace(/^0+/, '');
+
+        cleanPromptNums.forEach(cn => {
+          if (cn.length >= 3) {
+            if (cleanMatnr === cn || cleanIdnrk === cn) score += 100;
+            else if (cleanMatnr.includes(cn) || cleanIdnrk.includes(cn)) score += 50;
+          }
+        });
+
+        if (maktx) {
+          const maktxUpper = maktx.toUpperCase();
+          promptWords.forEach(w => {
+            if (w.length >= 2 && maktxUpper.includes(w)) score += 15;
+          });
+        }
+
+        const line = `- [BOM Parent: ${matnr} | Item: ${posnr}] Comp: ${idnrk}` +
+          ` (${maktx || 'No Desc'}) | Qty: ${menge} ${meins} | Cat: ${postp}` +
+          ` | Werks: ${werks}`;
+
+        if (score > 0) {
+          matchedBom.push({ line: `${line} [MATCH SCORE: ${score}]`, score });
+        } else {
+          otherBom.push(line);
+        }
+      });
+
+      matchedBom.sort((a, b) => b.score - a.score);
+
+      let bomStr = '';
+      if (matchedBom.length > 0) {
+        const topMatchedBom = matchedBom.slice(0, 40);
+        bomStr += `=== HASIL PENCOCOKAN BOM ITEM DITEMUKAN DI SAP ODATA (${topMatchedBom.length} ITEM) ===\n` +
+          topMatchedBom.map(item => item.line).join('\n') + '\n\n';
+      }
+
+      const topOtherBom = otherBom.slice(0, 20);
+      bomStr += `=== DAFTAR DATA BOM ITEM SAP EKSISTING LAINNYA (${topOtherBom.length} ITEM) ===\n` +
+        topOtherBom.join('\n');
+
+      bomContext = `\n\n${bomStr}`;
+    } else {
+      bomContext = `\n\n[DATABASE SAP BOM ITEM ODATA]: Belum ada data BOM item yang dimuat dari OData.`;
+    }
+
+    const currentUserMessage = `${prompt || ''}${materialContext}${bomContext}`;
     formattedMessages.push({ role: 'user', content: currentUserMessage });
 
     const defaultSystem = `

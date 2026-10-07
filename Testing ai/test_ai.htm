@@ -245,9 +245,16 @@
         </div>
 
         <div class="md:col-span-4">
-          <label class="block text-[11px] text-slate-400 mb-1">SAP OData URL</label>
+          <label class="block text-[11px] text-slate-400 mb-1">SAP MaterialSet URL</label>
           <input type="text" id="input-odata-url"
             value="http://kmiprd.kmi.com:8001/sap/opu/odata/sap/ZMDG_MATERIAL_SRV_MDG_SRV/MaterialSet?$format=json"
+            class="w-full px-3.5 py-2 bg-slate-800 border border-slate-700 rounded-xl text-slate-200 font-mono text-[11px] focus:ring-2 focus:ring-emerald-500 outline-none">
+        </div>
+
+        <div class="md:col-span-4">
+          <label class="block text-[11px] text-slate-400 mb-1">SAP BomItemSet URL</label>
+          <input type="text" id="input-bom-url"
+            value="http://kmiprd.kmi.com:8001/sap/opu/odata/sap/ZMDG_MATERIAL_SRV_MDG_SRV/BomItemSet?$format=json"
             class="w-full px-3.5 py-2 bg-slate-800 border border-slate-700 rounded-xl text-slate-200 font-mono text-[11px] focus:ring-2 focus:ring-emerald-500 outline-none">
         </div>
 
@@ -417,6 +424,7 @@
     <!-- JAVASCRIPT LOGIC -->
     <script>
       let liveODataMaterials = [];
+      let liveODataBomItems = [];
       let currentChatId = "";
       let activeSessionMessages = [];
 
@@ -497,9 +505,15 @@
           'ZMDG_MATERIAL_SRV_MDG_SRV/MaterialSet?$format=json';
         const odataUrl = (urlElem && urlElem.value.trim()) ? urlElem.value.trim() : defaultUrl;
 
+        const bomElem = document.getElementById('input-bom-url');
+        const defaultBomUrl = 'http://kmiprd.kmi.com:8001/sap/opu/odata/sap/' + 
+          'ZMDG_MATERIAL_SRV_MDG_SRV/BomItemSet?$format=json';
+        const bomUrl = (bomElem && bomElem.value.trim()) ? bomElem.value.trim() : defaultBomUrl;
+
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 12000);
 
+        // Fetch MaterialSet
         fetch(odataUrl, {
           signal: controller.signal,
           mode: 'cors',
@@ -510,13 +524,12 @@
             clearTimeout(timeoutId);
             if (data && data.d && data.d.results) {
               liveODataMaterials = data.d.results;
-              console.log("[SAP OData Loaded Direct]:", liveODataMaterials.length, "items");
+              console.log("[SAP MaterialSet Loaded Direct]:", liveODataMaterials.length, "items");
             }
           })
           .catch(err => {
             clearTimeout(timeoutId);
-            console.warn("[SAP OData Direct Fetch Warning, trying Proxy]:", err.message);
-            // Fallback: Proxy melalui middleware jika CORS/Auth direct browser gagal
+            console.warn("[SAP MaterialSet Direct Fetch Warning, trying Proxy]:", err.message);
             fetch(getMiddlewareBaseUrl() + "/api/odata", {
               headers: getSapAuthHeader()
             })
@@ -524,10 +537,37 @@
               .then(data => {
                 if (data && data.d && data.d.results) {
                   liveODataMaterials = data.d.results;
-                  console.log("[SAP OData Loaded via Proxy]:", liveODataMaterials.length, "items");
+                  console.log("[SAP MaterialSet Loaded via Proxy]:", liveODataMaterials.length, "items");
                 }
               })
-              .catch(proxyErr => console.warn("[Proxy Fetch Warning]:", proxyErr.message));
+              .catch(proxyErr => console.warn("[Proxy Material Fetch Warning]:", proxyErr.message));
+          });
+
+        // Fetch BomItemSet
+        fetch(bomUrl, {
+          mode: 'cors',
+          headers: getSapAuthHeader()
+        })
+          .then(res => res.json())
+          .then(data => {
+            if (data && data.d && data.d.results) {
+              liveODataBomItems = data.d.results;
+              console.log("[SAP BomItemSet Loaded Direct]:", liveODataBomItems.length, "items");
+            }
+          })
+          .catch(err => {
+            console.warn("[SAP BomItemSet Direct Fetch Warning, trying Proxy]:", err.message);
+            fetch(getMiddlewareBaseUrl() + "/api/odata/bom", {
+              headers: getSapAuthHeader()
+            })
+              .then(res => res.json())
+              .then(data => {
+                if (data && data.d && data.d.results) {
+                  liveODataBomItems = data.d.results;
+                  console.log("[SAP BomItemSet Loaded via Proxy]:", liveODataBomItems.length, "items");
+                }
+              })
+              .catch(proxyErr => console.warn("[Proxy BOM Fetch Warning]:", proxyErr.message));
           });
       }
 
@@ -911,6 +951,7 @@ ATURAN UTAMA RESPONS:
             body: JSON.stringify({
               prompt: query,
               materials: materialsList,
+              bomItems: liveODataBomItems,
               systemPrompt: customSystemPrompt,
               history: historyArr || []
             })
